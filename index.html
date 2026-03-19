@@ -1,0 +1,743 @@
+﻿<!doctype html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>TravelMate - Demo Header</title>
+
+        <!-- Font Google -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Icon -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+        <link rel="stylesheet" href="assets/css/style.css" />
+    </head>
+    <body>
+        <!-- ===== HEADER ===== -->
+        <header class="header">
+            <div class="container navbar">
+                <a href="#" class="logo">
+                    <i class="fa-solid fa-building"></i>
+                    <span class="logo-blue">TRAVEL</span><span class="logo-yellow">MATE</span>
+                </a>
+
+                <nav class="menu">
+                    <ul class="menu-list">
+                        <li><a href="#">TRANG CHỦ</a></li>
+                        <li><a href="#">GỢI Ý DU LỊCH</a></li>
+                        <li><a href="#">TIN TỨC</a></li>
+                        <li><a href="#">LIÊN HỆ</a></li>
+                        <li>
+                            <a href="#"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <a href="#" class="login-btn">ĐĂNG NHẬP</a>
+            </div>
+        </header>
+
+        <!-- ===== HERO / BANNER ===== -->
+        <section class="hero-section">
+            <div class="container">
+                <div class="hero-banner">
+                    <!-- Lớp ảnh nền chạy -->
+                    <div class="hero-slider">
+                        <div class="slide-track">
+                            <div
+                                class="slide"
+                                style="background-image: url(&quot;assets/images/cau-vang-da-nang.jpg&quot;)"
+                            ></div>
+                            <div
+                                class="slide"
+                                style="background-image: url(&quot;assets/images/dulichhagiang.jpg&quot;)"
+                            ></div>
+                            <div class="slide" style="background-image: url(&quot;assets/images/HoiAn.jpg&quot;)"></div>
+                            <div
+                                class="slide"
+                                style="background-image: url(&quot;assets/images/sa-pa-thi-tran-trong-suong.jpg&quot;)"
+                            ></div>
+
+                            <!-- Lặp lại để chạy mượt -->
+                            <div
+                                class="slide"
+                                style="background-image: url(&quot;assets/images/cau-vang-da-nang.jpg&quot;)"
+                            ></div>
+                            <div
+                                class="slide"
+                                style="background-image: url(&quot;assets/images/dulichhagiang.jpg&quot;)"
+                            ></div>
+                            <div class="slide" style="background-image: url(&quot;assets/images/HoiAn.jpg&quot;)"></div>
+                            <div
+                                class="slide"
+                                style="background-image: url(&quot;assets/images/sa-pa-thi-tran-trong-suong.jpg&quot;)"
+                            ></div>
+                        </div>
+                    </div>
+
+                    <!-- Lớp phủ tối -->
+                    <div class="hero-overlay"></div>
+
+                    <!-- Nội dung banner -->
+                    <div class="hero-content">
+                        <h1>HÀNH TRÌNH MƠ ƯỚC</h1>
+                        <p>KHÁM PHÁ VẺ ĐẸP BẤT TẬN CÙNG TRAVELPRO</p>
+
+                        <form class="search-box">
+                            <input type="text" value="Đà Nẵng" placeholder="Nhập điểm đến..." />
+                            <button type="submit">TÌM KIẾM</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== SEARCH PANEL (đã chuyển xuống dưới) ===== -->
+        <section class="search-section">
+            <div class="container">
+                <div class="search-card">
+                    <div class="search-tabs">
+                        <button type="button" class="tab active" data-type="hotel">
+                            <i class="fa-solid fa-hotel"></i> Khách sạn
+                        </button>
+                        <button type="button" class="tab" data-type="villa">
+                            <i class="fa-solid fa-mountain"></i> Villa
+                        </button>
+                        <button type="button" class="tab" data-type="homestay">
+                            <i class="fa-solid fa-house-chimney"></i> Homestay
+                        </button>
+                        <button type="button" class="tab" data-type="apartment">
+                            <i class="fa-solid fa-building"></i> Căn hộ
+                        </button>
+                    </div>
+
+                    <div class="search-divider"></div>
+
+                    <form class="search-form">
+                        <div class="field">
+                            <label>Thành phố, điểm đến, hoặc tên nơi lưu trú</label>
+                            <div class="input-icon">
+                                <i class="fa-solid fa-location-dot"></i>
+                                <input type="text" placeholder="Ví dụ Trung tâm mua sắm AEON Narita" />
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label>Ngày nhận phòng và trả phòng</label>
+                            <div class="input-icon date-range" tabindex="0">
+                                <i class="fa-regular fa-calendar-days"></i>
+                                <input type="text" readonly value="" />
+
+                                <div class="date-popup">
+                                    <div class="date-popup-header">
+                                        <div class="date-popup-tabs">
+                                            <button type="button" class="date-tab active" data-part="start">
+                                                <div class="tab-label">Nhận phòng</div>
+                                                <div class="tab-date" data-part="start"></div>
+                                            </button>
+                                            <button type="button" class="date-tab" data-part="end">
+                                                <div class="tab-label">Trả phòng</div>
+                                                <div class="tab-date" data-part="end"></div>
+                                            </button>
+                                        </div>
+                                        <button type="button" class="date-popup-close" aria-label="Đóng">×</button>
+                                    </div>
+                                    <div class="date-popup-calendars">
+                                        <div class="calendar" data-month-offset="0"></div>
+                                    </div>
+
+                                    <div class="date-popup-footer">
+                                        <button type="button" class="date-apply">Xong</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label>Khách & Phòng</label>
+                            <div class="input-icon guest-input" tabindex="0">
+                                <i class="fa-solid fa-user"></i>
+                                <input type="text" readonly value="2 khách, 1 phòng" />
+
+                                <div class="guest-popup">
+                                    <div class="guest-row">
+                                        <span>Khách</span>
+                                        <div class="guest-controls">
+                                            <button type="button" class="guest-decrement" data-target="adults">
+                                                -
+                                            </button>
+                                            <span class="guest-count" data-target="adults">2</span>
+                                            <button type="button" class="guest-increment" data-target="adults">
+                                                +
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="guest-row">
+                                        <span>Phòng</span>
+                                        <div class="guest-controls">
+                                            <button type="button" class="guest-decrement" data-target="rooms">-</button>
+                                            <span class="guest-count" data-target="rooms">1</span>
+                                            <button type="button" class="guest-increment" data-target="rooms">+</button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="guest-done">Xong</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="search-btn" title="Tìm kiếm">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== PROMO BANNER ===== -->
+        <section class="promo-section">
+            <div class="container">
+                <div class="promo-card">
+                    <div class="promo-left">
+                        <div class="promo-badge">DEAL TỐT GIÁ HỜI ĐẶT PHÒNG NGAY</div>
+                        <div class="promo-banner">
+                            <img src="assets/images/cau-vang-da-nang.jpg" alt="" />
+                        </div>
+                        <div class="promo-title">
+                            <h2>Du lịch <span>ĐÀ NẴNG</span></h2>
+                        </div>
+                    </div>
+
+                    <div class="promo-right">
+                        <div class="promo-ticket">
+                            <div class="ticket-label">DEAL CÓ HẠN</div>
+                            <div class="ticket-value">
+                                <span class="ticket-percent">50%</span>
+                                <span class="ticket-text">giảm đến</span>
+                            </div>
+                            <div class="ticket-note">Điều kiện áp dụng</div>
+                        </div>
+
+                        <div class="promo-qr">
+                            <img src="assets/images/scanme.jpg" alt="QR code" />
+                        </div>
+
+                        <button class="promo-btn">Nhận deal ngay</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== VOUCHER LIST ===== -->
+        <section class="voucher-section">
+            <div class="container">
+                <div class="voucher-header">
+                    <div class="voucher-title">
+                        <i class="fa-solid fa-gift"></i>
+                        <div>
+                            <h2>Phiếu giảm giá 10% cho người dùng mới</h2>
+                            <p>Áp dụng cho lần đặt đầu tiên trên ứng dụng TravelMate.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="voucher-carousel">
+                    <div class="voucher-cards">
+                        <div class="voucher-card">
+                            <div class="voucher-meta">
+                                <div class="voucher-icon">
+                                    <i class="fa-solid fa-plane-departure"></i>
+                                </div>
+                                <div class="voucher-info">
+                                    <h3>Giảm đến 75,000</h3>
+                                    <p>cho lần đặt vé máy bay đầu tiên</p>
+                                </div>
+                            </div>
+                            <div class="voucher-note">Áp dụng cho lần đặt đầu tiên trên ứng dụng TravelMate.</div>
+                            <div class="voucher-code">
+                                <span class="code">TVLKBANMOI</span>
+                                <button type="button" class="copy-btn">Copy</button>
+                            </div>
+                        </div>
+
+                        <div class="voucher-card">
+                            <div class="voucher-meta">
+                                <div class="voucher-icon">
+                                    <i class="fa-solid fa-bed"></i>
+                                </div>
+                                <div class="voucher-info">
+                                    <h3>Giảm đến 250,000</h3>
+                                    <p>cho lần đặt phòng đầu tiên</p>
+                                </div>
+                            </div>
+                            <div class="voucher-note">Áp dụng cho lần đặt đầu tiên trên ứng dụng TravelMate.</div>
+                            <div class="voucher-code">
+                                <span class="code">TVLKBANMOI</span>
+                                <button type="button" class="copy-btn">Copy</button>
+                            </div>
+                        </div>
+
+                        <div class="voucher-card">
+                            <div class="voucher-meta">
+                                <div class="voucher-icon">
+                                    <i class="fa-solid fa-ticket"></i>
+                                </div>
+                                <div class="voucher-info">
+                                    <h3>Giảm đến 10%</h3>
+                                    <p>cho lần đặt vé tham quan đầu tiên</p>
+                                </div>
+                            </div>
+                            <div class="voucher-note">Áp dụng cho lần đặt đầu tiên trên ứng dụng TravelMate.</div>
+                            <div class="voucher-code">
+                                <span class="code">TVLKBANMOI</span>
+                                <button type="button" class="copy-btn">Copy</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== DESTINATIONS GRID ===== -->
+        <section class="destinations-section">
+            <div class="container">
+                <div class="destinations-header">
+                    <h2>ĐIỂM ĐẾN YÊU THÍCH</h2>
+                    <p>
+                        Hãy chọn một điểm đến du lịch nổi tiếng dưới đây để khám phá các chuyến đi độc quyền của chúng
+                        tôi với mức giá vô cùng hợp lý.
+                    </p>
+                </div>
+
+                <div class="destinations-tabs">
+                    <button type="button" class="dest-tab active">Miền Bắc</button>
+                    <button type="button" class="dest-tab">Miền Trung</button>
+                    <button type="button" class="dest-tab">Miền Đông Nam Bộ</button>
+                    <button type="button" class="dest-tab">Miền Tây Nam Bộ</button>
+                    <button type="button" class="dest-tab">Châu Á</button>
+                    <button type="button" class="dest-tab">Châu Âu</button>
+                    <button type="button" class="dest-tab">Châu Mỹ</button>
+                    <button type="button" class="dest-tab">Châu Úc</button>
+                    <button type="button" class="dest-tab">Châu Phi</button>
+                </div>
+
+                <div class="destinations-grid">
+                    <a href="#" class="dest-card dest-quang-ninh">
+                        <img src="assets/images/diadiem/QN.jpg" alt="Quảng Ninh" />
+                        <div class="dest-overlay">
+                            <span class="dest-name">QUẢNG NINH</span>
+                        </div>
+                    </a>
+
+                    <a href="#" class="dest-card dest-ha-giang">
+                        <img src="assets/images/diadiem/HG.jpg" alt="Hà Giang" />
+                        <div class="dest-overlay">
+                            <span class="dest-name">HÀ GIANG</span>
+                        </div>
+                    </a>
+
+                    <a href="#" class="dest-card dest-lao-cai">
+                        <img src="assets/images/diadiem/LC.jpg" alt="Lào Cai" />
+                        <div class="dest-overlay">
+                            <span class="dest-name">LÀO CAI</span>
+                        </div>
+                    </a>
+
+                    <a href="#" class="dest-card dest-ninh-binh">
+                        <img src="assets/images/diadiem/NB.jpg" alt="Ninh Bình" />
+                        <div class="dest-overlay">
+                            <span class="dest-name">NINH BÌNH</span>
+                        </div>
+                    </a>
+
+                    <a href="#" class="dest-card dest-yen-bai">
+                        <img src="assets/images/diadiem/YB.jpg" alt="Yên Bái" />
+                        <div class="dest-overlay">
+                            <span class="dest-name">YÊN BÁI</span>
+                        </div>
+                    </a>
+
+                    <a href="#" class="dest-card dest-son-la">
+                        <img src="assets/images/diadiem/SL.jpg" alt="Sơn La" />
+                        <div class="dest-overlay">
+                            <span class="dest-name">SƠN LA</span>
+                        </div>
+                    </a>
+
+                    <a href="#" class="dest-card dest-cao-bang">
+                        <img src="assets/images/diadiem/CB.jpg" alt="Cao Bằng" />
+                        <div class="dest-overlay">
+                            <span class="dest-name">CAO BẰNG</span>
+                        </div>
+                    </a>
+
+                    <a href="#" class="dest-card dest-hai-phong">
+                        <img src="assets/images/diadiem/HP.jpg" alt="Hải Phòng" />
+                        <div class="dest-overlay">
+                            <span class="dest-name">HẢI PHÒNG</span>
+                        </div>
+                    </a>
+
+                    <a href="#" class="dest-card dest-ha-noi">
+                        <img src="assets/images/diadiem/HN.jpg" alt="Hà Nội" />
+                        <div class="dest-overlay">
+                            <span class="dest-name">HÀ NỘI</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <script>
+            const guestInput = document.querySelector(".guest-input");
+            const guestPopup = document.querySelector(".guest-popup");
+            const guestDisplay = guestInput.querySelector("input");
+            const counters = {
+                adults: 2,
+                children: 0,
+                rooms: 1,
+            };
+
+            function updateGuestDisplay() {
+                guestDisplay.value = `${counters.adults} khách, ${counters.rooms} phòng`;
+            }
+
+            function clamp(value, min, max) {
+                return Math.max(min, Math.min(max, value));
+            }
+
+            guestInput.addEventListener("click", () => {
+                guestInput.classList.toggle("open");
+            });
+
+            document.addEventListener("click", (e) => {
+                if (!guestInput.contains(e.target)) {
+                    guestInput.classList.remove("open");
+                }
+            });
+
+            guestPopup.addEventListener("click", (e) => {
+                const btn = e.target.closest("button[data-target]");
+                if (!btn) return;
+
+                const key = btn.dataset.target;
+                const delta = btn.classList.contains("guest-increment") ? 1 : -1;
+                counters[key] = clamp(counters[key] + delta, key === "rooms" ? 1 : 0, 10);
+
+                const counterEl = guestPopup.querySelector(`.guest-count[data-target="${key}"]`);
+                if (counterEl) counterEl.textContent = counters[key];
+                updateGuestDisplay();
+            });
+
+            guestPopup.querySelector(".guest-done").addEventListener("click", () => {
+                guestInput.classList.remove("open");
+            });
+
+            const searchTabs = document.querySelectorAll(".search-tabs .tab");
+            const destinationInput = document.querySelector('.search-form .field input[type="text"]');
+            const tabPlaceholder = {
+                hotel: "Ví dụ Trung tâm mua sắm AEON Narita",
+                villa: "Ví dụ villa ven biển",
+                homestay: "Ví dụ homestay góc phố",
+                apartment: "Ví dụ căn hộ trung tâm",
+            };
+
+            function updateTabSelection(type) {
+                searchTabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.type === type));
+                destinationInput.placeholder = tabPlaceholder[type] || tabPlaceholder.hotel;
+            }
+
+            searchTabs.forEach((tab) => {
+                tab.addEventListener("click", () => {
+                    updateTabSelection(tab.dataset.type);
+                });
+            });
+
+            // Ensure the initial tab placeholder matches the default active tab
+            updateTabSelection("hotel");
+
+            // ===== Voucher cards (copy + carousel) =====
+            const voucherCards = document.querySelector(".voucher-cards");
+
+            document.querySelectorAll(".copy-btn").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const codeEl = btn.closest(".voucher-code").querySelector(".code");
+                    if (!codeEl) return;
+                    const text = codeEl.textContent.trim();
+                    navigator.clipboard.writeText(text).then(() => {
+                        btn.textContent = "Đã copy";
+                        setTimeout(() => {
+                            btn.textContent = "Copy";
+                        }, 1200);
+                    });
+                });
+            });
+
+            // ===== Date range picker =====
+            const dateRange = document.querySelector(".date-range");
+            const dateRangeInput = dateRange.querySelector("input");
+            const datePopup = dateRange.querySelector(".date-popup");
+            const calendars = datePopup.querySelectorAll(".calendar");
+            const applyBtn = datePopup.querySelector(".date-apply");
+            const closeBtn = datePopup.querySelector(".date-popup-close");
+
+            const today = new Date();
+            const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            const endDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000);
+            let range = { start: startDate, end: endDate };
+
+            // Lưu trạng thái tháng đang hiển thị
+            let calendarStart = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+
+            const weekdayNames = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+            const monthNames = [
+                "tháng 1",
+                "tháng 2",
+                "tháng 3",
+                "tháng 4",
+                "tháng 5",
+                "tháng 6",
+                "tháng 7",
+                "tháng 8",
+                "tháng 9",
+                "tháng 10",
+                "tháng 11",
+                "tháng 12",
+            ];
+
+            function formatDateVN(d) {
+                const day = d.getDate();
+                const month = d.getMonth() + 1;
+                const year = d.getFullYear();
+                return `${day} thg ${month} ${year}`;
+            }
+
+            function updateRangeDisplay() {
+                dateRangeInput.value = `${formatDateVN(range.start)} - ${formatDateVN(range.end)}`;
+
+                const startLabel = datePopup.querySelector('.tab-date[data-part="start"]');
+                const endLabel = datePopup.querySelector('.tab-date[data-part="end"]');
+                if (startLabel) startLabel.textContent = formatDateVN(range.start);
+                if (endLabel) endLabel.textContent = formatDateVN(range.end);
+            }
+
+            function isSameDate(a, b) {
+                return (
+                    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
+                );
+            }
+
+            function addDays(date, days) {
+                const copy = new Date(date.getTime());
+                copy.setDate(copy.getDate() + days);
+                return copy;
+            }
+
+            function clampMax(value, max) {
+                return value > max ? max : value;
+            }
+
+            function renderCalendars() {
+                calendars.forEach((calendar, offset) => {
+                    const monthDate = new Date(calendarStart.getFullYear(), calendarStart.getMonth() + offset, 1);
+                    const monthKey = monthDate.getMonth();
+                    const yearKey = monthDate.getFullYear();
+
+                    const monthName = `${monthNames[monthKey]} ${yearKey}`;
+                    const firstDayOfWeek = (new Date(yearKey, monthKey, 1).getDay() + 6) % 7; // Monday=0
+                    const daysInMonth = new Date(yearKey, monthKey + 1, 0).getDate();
+
+                    const grid = [];
+                    for (let i = 0; i < firstDayOfWeek; i++) {
+                        grid.push(null);
+                    }
+                    for (let d = 1; d <= daysInMonth; d++) {
+                        grid.push(new Date(yearKey, monthKey, d));
+                    }
+
+                    calendar.innerHTML = `
+                    <div class="month-header">
+                        <button type="button" class="month-nav month-prev" aria-label="Tháng trước">‹</button>
+                        <div class="month-name">${monthName}</div>
+                        <button type="button" class="month-nav month-next" aria-label="Tháng sau">›</button>
+                    </div>
+                    <div class="weekdays">${weekdayNames.map((w) => `<div>${w}</div>`).join("")}</div>
+                    <div class="days">${grid
+                        .map((date) => {
+                            if (!date) return "<div></div>";
+                            const isBeforeToday = date < startDate;
+                            const isSelected = isSameDate(date, range.start) || isSameDate(date, range.end);
+                            const inRange = date > range.start && date < range.end;
+                            const classNames = ["day"];
+                            if (isBeforeToday) classNames.push("disabled");
+                            if (isSelected) classNames.push("selected");
+                            if (inRange) classNames.push("in-range");
+                            return `<button type="button" class="${classNames.join(" ")}" data-date="${date.toISOString()}">${date.getDate()}</button>`;
+                        })
+                        .join("")}</div>
+                `;
+
+                    const prevBtn = calendar.querySelector(".month-prev");
+                    const nextBtn = calendar.querySelector(".month-next");
+
+                    prevBtn.addEventListener("click", () => {
+                        calendarStart = new Date(calendarStart.getFullYear(), calendarStart.getMonth() - 1, 1);
+                        renderCalendars();
+                    });
+
+                    nextBtn.addEventListener("click", () => {
+                        calendarStart = new Date(calendarStart.getFullYear(), calendarStart.getMonth() + 1, 1);
+                        renderCalendars();
+                    });
+                });
+            }
+
+            let activeRangePart = "start";
+
+            const tabButtons = datePopup.querySelectorAll(".date-tab");
+            tabButtons.forEach((tab) => {
+                tab.addEventListener("click", () => {
+                    activeRangePart = tab.dataset.part;
+                    tabButtons.forEach((t) => t.classList.toggle("active", t === tab));
+                });
+            });
+
+            function normalizeDate(d) {
+                return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+            }
+
+            function handleDateClick(e) {
+                const btn = e.target.closest(".day");
+                if (!btn || btn.classList.contains("disabled")) return;
+
+                const date = normalizeDate(new Date(btn.dataset.date));
+
+                if (activeRangePart === "start") {
+                    range.start = date;
+                    if (range.end < range.start) {
+                        range.end = range.start;
+                    }
+                } else {
+                    range.end = date;
+                    if (range.start > range.end) {
+                        range.start = range.end;
+                    }
+                }
+
+                updateRangeDisplay();
+                renderCalendars();
+            }
+
+            function openDatePopup() {
+                dateRange.classList.add("open");
+                activeRangePart = "start";
+                tabButtons.forEach((t) => t.classList.toggle("active", t.dataset.part === "start"));
+            }
+
+            function closeDatePopup() {
+                dateRange.classList.remove("open");
+            }
+
+            dateRange.addEventListener("click", (e) => {
+                e.stopPropagation();
+                if (e.target.closest(".date-popup")) return;
+                openDatePopup();
+            });
+
+            document.addEventListener("click", (e) => {
+                if (!dateRange.contains(e.target)) {
+                    closeDatePopup();
+                }
+            });
+
+            closeBtn.addEventListener("click", () => closeDatePopup());
+            applyBtn.addEventListener("click", () => closeDatePopup());
+
+            datePopup.addEventListener("click", handleDateClick);
+
+            updateRangeDisplay();
+            renderCalendars();
+        </script>
+        <!-- ===== FOOTER ===== -->
+        <footer class="footer">
+            <div class="container footer-grid">
+                <div class="footer-col footer-col--brand">
+                    <div class="footer-logo">
+                        <i class="fa-solid fa-building"></i>
+                        <span>TRAVEL</span><span class="footer-logo--accent">MATE</span>
+                    </div>
+                    <p class="footer-desc">
+                        Luôn được cập nhật về các lời khuyên du lịch, đề xuất và khuyến mãi mới nhất.
+                    </p>
+
+                    <div class="footer-payments">
+                        <img src="assets/images/VNPAY.png" alt="VNPay" />
+                    </div>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Về TravelMate</h4>
+                    <ul>
+                        <li><a href="#">Cách đặt chỗ</a></li>
+                        <li><a href="#">Liên hệ chúng tôi</a></li>
+                        <li><a href="#">Trợ giúp</a></li>
+                        <li><a href="#">Tuyển dụng</a></li>
+                        <li><a href="#">Về chúng tôi</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Sản phẩm</h4>
+                    <ul>
+                        <li><a href="#">Khách sạn</a></li>
+                        <li><a href="#">Villa</a></li>
+                        <li><a href="#">Homestay</a></li>
+                        <li><a href="#">Căn hộ</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Khác</h4>
+                    <ul>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Cẩm nang</a></li>
+                        <li><a href="#">Điều khoản & Điều kiện</a></li>
+                        <li><a href="#">Chính sách riêng tư</a></li>
+                        <li><a href="#">Đăng ký đối tác</a></li>
+                        <li><a href="#">Theo dõi chúng tôi</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col footer-col--apps">
+                    <h4>Tải ứng dụng</h4>
+                    <div class="footer-apps">
+                        <a href="#" class="app-btn">
+                            <i class="fa-brands fa-google-play"></i>
+                            <span>Google Play</span>
+                        </a>
+                        <a href="#" class="app-btn">
+                            <i class="fa-brands fa-apple"></i>
+                            <span>App Store</span>
+                        </a>
+                    </div>
+                    <div class="footer-social">
+                        <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#"><i class="fa-brands fa-tiktok"></i></a>
+                        <a href="#"><i class="fa-brands fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>© 2026 TravelMate. Mọi quyền được bảo lưu.</p>
+            </div>
+        </footer>
+    </body>
+</html>

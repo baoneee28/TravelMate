@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Quản lý địa điểm – Admin TravelMate</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="../assets/css/base.css" />
+        <link rel="stylesheet" href="../assets/css/layout.css" />
+        <link rel="stylesheet" href="../assets/css/components.css" />
+        <link rel="stylesheet" href="../assets/css/pages/admin.css" />
+        <link rel="stylesheet" href="../assets/css/responsive.css" />
+    </head>
+    <body>
+        <div class="admin-wrapper">
+            <aside class="admin-sidebar">
+                <div class="admin-sidebar__header">
+                    <a href="dashboard.html" class="admin-sidebar__logo">
+                        <div class="admin-sidebar__logo-icon">✈</div>
+                        <div>
+                            <div class="admin-sidebar__logo-text">Travel<span>Mate</span></div>
+                            <span class="admin-sidebar__badge">ADMIN PANEL</span>
+                        </div>
+                    </a>
+                </div>
+                <nav class="admin-sidebar__nav">
+                    <div class="admin-sidebar__section-title">Tổng quan</div>
+                    <a href="dashboard.html" class="admin-sidebar__link"
+                        ><span class="admin-sidebar__link-icon">📊</span> Dashboard</a
+                    >
+                    <div class="admin-sidebar__section-title">Quản lý</div>
+                    <a href="hotels.html" class="admin-sidebar__link"
+                        ><span class="admin-sidebar__link-icon">🏨</span> Khách sạn</a
+                    >
+                    <a href="rooms.html" class="admin-sidebar__link"
+                        ><span class="admin-sidebar__link-icon">🛏</span> Phòng</a
+                    >
+                    <a href="bookings.html" class="admin-sidebar__link"
+                        ><span class="admin-sidebar__link-icon">📋</span> Đặt phòng</a
+                    >
+                    <a href="users.html" class="admin-sidebar__link"
+                        ><span class="admin-sidebar__link-icon">👥</span> Người dùng</a
+                    >
+                    <a href="places.html" class="admin-sidebar__link active"
+                        ><span class="admin-sidebar__link-icon">🗺</span> Địa điểm</a
+                    >
+                </nav>
+                <div class="admin-sidebar__footer">
+                    <div class="admin-sidebar__user">
+                        <div class="admin-sidebar__user-avatar">AD</div>
+                        <div class="admin-sidebar__user-info">
+                            <div class="admin-sidebar__user-name">Admin TravelMate</div>
+                            <div class="admin-sidebar__user-role">Quản trị viên</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            <div class="admin-sidebar-overlay"></div>
+
+            <div class="admin-main">
+                <header class="admin-topbar">
+                    <div style="display: flex; align-items: center; gap: var(--space-4)">
+                        <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                        <h1 class="admin-topbar__title">🗺 Quản lý địa điểm du lịch</h1>
+                    </div>
+                </header>
+                <main class="admin-content">
+                    <div class="page-header">
+                        <div>
+                            <h2 class="page-header__title">Địa điểm du lịch</h2>
+                            <p class="page-header__subtitle">Quản lý 100 địa điểm du lịch nổi bật</p>
+                        </div>
+                        <button class="btn btn--primary" data-modal="modal-add-place">+ Thêm địa điểm</button>
+                    </div>
+
+                    <div class="table-toolbar">
+                        <div class="input-group table-toolbar__search">
+                            <span class="input-group__icon">🔍</span>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="table-search"
+                                placeholder="Tìm tên địa điểm..."
+                            />
+                        </div>
+                        <div class="table-toolbar__actions">
+                            <select class="form-control" style="width: 160px">
+                                <option>Tất cả loại</option>
+                                <option>Biển đảo</option>
+                                <option>Vùng cao</option>
+                                <option>Di tích</option>
+                                <option>Đô thị</option>
+                            </select>
+                            <select class="form-control" style="width: 150px">
+                                <option>Tất cả trạng thái</option>
+                                <option>Đang hiển thị</option>
+                                <option>Ẩn</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="table data-table">
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Hình ảnh</th>
+                                    <th>Tên địa điểm</th>
+                                    <th>Loại</th>
+                                    <th>Tỉnh/TP</th>
+                                    <th>Đánh giá</th>
+                                    <th>Lượt xem</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>
+                                        <img
+                                            src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=160&q=60"
+                                            class="table-hotel-image"
+                                            alt=""
+                                        />
+                                    </td>
+                                    <td><strong>Phố cổ Hội An</strong></td>
+                                    <td><span class="badge badge--primary">Di tích</span></td>
+                                    <td>Quảng Nam</td>
+                                    <td><span style="color: var(--color-accent)">★</span> 4.9</td>
+                                    <td>58.420</td>
+                                    <td><span class="status-dot status-dot--active">Hiển thị</span></td>
+                                    <td>
+                                        <div class="table__actions">
+                                            <a
+                                                href="../user/place-detail.html"
+                                                class="btn btn--ghost btn--sm"
+                                                target="_blank"
+                                                title="Xem ngoài site"
+                                                >👁</a
+                                            >
+                                            <button class="btn btn--outline btn--sm" data-modal="modal-add-place">
+                                                ✏
+                                            </button>
+                                            <button
+                                                class="btn btn--danger btn--sm btn-delete"
+                                                data-name="Phố cổ Hội An"
+                                            >
+                                                🗑
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>
+                                        <img
+                                            src="https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=160&q=60"
+                                            class="table-hotel-image"
+                                            alt=""
+                                        />
+                                    </td>
+                                    <td><strong>Vịnh Hạ Long</strong></td>
+                                    <td><span class="badge badge--success">Thiên nhiên</span></td>
+                                    <td>Quảng Ninh</td>
+                                    <td><span style="color: var(--color-accent)">★</span> 4.8</td>
+                                    <td>92.100</td>
+                                    <td><span class="status-dot status-dot--active">Hiển thị</span></td>
+                                    <td>
+                                        <div class="table__actions">
+                                            <button class="btn btn--ghost btn--sm">👁</button>
+                                            <button class="btn btn--outline btn--sm" data-modal="modal-add-place">
+                                                ✏
+                                            </button>
+                                            <button class="btn btn--danger btn--sm btn-delete" data-name="Vịnh Hạ Long">
+                                                🗑
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>
+                                        <img
+                                            src="https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=160&q=60"
+                                            class="table-hotel-image"
+                                            alt=""
+                                        />
+                                    </td>
+                                    <td><strong>Sa Pa – Lào Cai</strong></td>
+                                    <td><span class="badge badge--accent">Vùng cao</span></td>
+                                    <td>Lào Cai</td>
+                                    <td><span style="color: var(--color-accent)">★</span> 4.7</td>
+                                    <td>45.800</td>
+                                    <td><span class="status-dot status-dot--active">Hiển thị</span></td>
+                                    <td>
+                                        <div class="table__actions">
+                                            <button class="btn btn--ghost btn--sm">👁</button>
+                                            <button class="btn btn--outline btn--sm" data-modal="modal-add-place">
+                                                ✏
+                                            </button>
+                                            <button class="btn btn--danger btn--sm btn-delete" data-name="Sa Pa">
+                                                🗑
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>4</td>
+                                    <td>
+                                        <img
+                                            src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=160&q=60"
+                                            class="table-hotel-image"
+                                            alt=""
+                                        />
+                                    </td>
+                                    <td><strong>Đảo Phú Quốc</strong></td>
+                                    <td><span class="badge badge--success">Biển đảo</span></td>
+                                    <td>Kiên Giang</td>
+                                    <td><span style="color: var(--color-accent)">★</span> 4.8</td>
+                                    <td>74.300</td>
+                                    <td><span class="status-dot status-dot--inactive">Ẩn tạm</span></td>
+                                    <td>
+                                        <div class="table__actions">
+                                            <button class="btn btn--ghost btn--sm">👁</button>
+                                            <button class="btn btn--outline btn--sm" data-modal="modal-add-place">
+                                                ✏
+                                            </button>
+                                            <button class="btn btn--danger btn--sm btn-delete" data-name="Phú Quốc">
+                                                🗑
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination" style="justify-content: flex-start; margin-top: var(--space-4)">
+                        <span class="pagination__item disabled">‹</span>
+                        <span class="pagination__item active" data-page="1">1</span>
+                        <span class="pagination__item" data-page="2">2</span>
+                        <span class="pagination__item">›</span>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <!-- Modal Add Place -->
+        <div class="modal-overlay" id="modal-add-place">
+            <div class="modal modal--lg">
+                <div class="modal__header">
+                    <h3 class="modal__title">🗺 Thêm / Sửa địa điểm du lịch</h3>
+                    <button class="modal__close">✕</button>
+                </div>
+                <div class="modal__body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Tên địa điểm <span class="required">*</span></label>
+                            <input type="text" class="form-control" placeholder="VD: Phố cổ Hội An" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Loại địa điểm</label>
+                            <select class="form-control">
+                                <option>Biển đảo</option>
+                                <option>Vùng cao</option>
+                                <option>Di tích</option>
+                                <option>Sinh thái</option>
+                                <option>Đô thị</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Tỉnh/Thành phố <span class="required">*</span></label>
+                            <input type="text" class="form-control" placeholder="VD: Quảng Nam" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Trạng thái</label>
+                            <select class="form-control">
+                                <option>Hiển thị</option>
+                                <option>Ẩn</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mô tả chi tiết</label>
+                        <textarea
+                            class="form-control"
+                            rows="4"
+                            placeholder="Giới thiệu về địa điểm du lịch..."
+                        ></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">URL hình ảnh đại diện</label>
+                            <input type="url" class="form-control" placeholder="https://..." />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Thời điểm du lịch tốt nhất</label>
+                            <input type="text" class="form-control" placeholder="VD: Tháng 2 – 4" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal__footer">
+                    <button class="btn btn--ghost modal__close">Hủy</button>
+                    <button class="btn btn--primary">💾 Lưu địa điểm</button>
+                </div>
+            </div>
+        </div>
+
+        <script src="../assets/js/main.js"></script>
+        <script src="../assets/js/admin.js"></script>
+    </body>
+</html>

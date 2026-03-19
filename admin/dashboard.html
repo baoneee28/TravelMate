@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Dashboard – Admin TravelMate</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="../assets/css/base.css" />
+        <link rel="stylesheet" href="../assets/css/layout.css" />
+        <link rel="stylesheet" href="../assets/css/components.css" />
+        <link rel="stylesheet" href="../assets/css/pages/admin.css" />
+        <link rel="stylesheet" href="../assets/css/responsive.css" />
+    </head>
+    <body>
+        <div class="admin-wrapper">
+            <!-- ══ SIDEBAR ══ -->
+            <aside class="admin-sidebar">
+                <div class="admin-sidebar__header">
+                    <a href="dashboard.html" class="admin-sidebar__logo">
+                        <div class="admin-sidebar__logo-icon">✈</div>
+                        <div>
+                            <div class="admin-sidebar__logo-text">Travel<span>Mate</span></div>
+                            <span class="admin-sidebar__badge">ADMIN PANEL</span>
+                        </div>
+                    </a>
+                </div>
+
+                <nav class="admin-sidebar__nav">
+                    <div class="admin-sidebar__section-title">Tổng quan</div>
+                    <a href="dashboard.html" class="admin-sidebar__link active">
+                        <span class="admin-sidebar__link-icon">📊</span> Dashboard
+                    </a>
+
+                    <div class="admin-sidebar__section-title">Quản lý</div>
+                    <a href="hotels.html" class="admin-sidebar__link">
+                        <span class="admin-sidebar__link-icon">🏨</span> Khách sạn
+                    </a>
+                    <a href="rooms.html" class="admin-sidebar__link">
+                        <span class="admin-sidebar__link-icon">🛏</span> Phòng
+                    </a>
+                    <a href="bookings.html" class="admin-sidebar__link">
+                        <span class="admin-sidebar__link-icon">📋</span> Đặt phòng
+                    </a>
+                    <a href="users.html" class="admin-sidebar__link">
+                        <span class="admin-sidebar__link-icon">👥</span> Người dùng
+                    </a>
+                    <a href="places.html" class="admin-sidebar__link">
+                        <span class="admin-sidebar__link-icon">🗺</span> Địa điểm
+                    </a>
+
+                    <div class="admin-sidebar__section-title">Hệ thống</div>
+                    <a href="../user/index.html" class="admin-sidebar__link" target="_blank">
+                        <span class="admin-sidebar__link-icon">🌐</span> Xem trang User
+                    </a>
+                </nav>
+
+                <div class="admin-sidebar__footer">
+                    <div class="admin-sidebar__user">
+                        <div class="admin-sidebar__user-avatar">AD</div>
+                        <div class="admin-sidebar__user-info">
+                            <div class="admin-sidebar__user-name">Admin TravelMate</div>
+                            <div class="admin-sidebar__user-role">Quản trị viên</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Sidebar overlay (mobile) -->
+            <div class="admin-sidebar-overlay"></div>
+
+            <!-- ══ MAIN ══ -->
+            <div class="admin-main">
+                <!-- Topbar -->
+                <header class="admin-topbar">
+                    <div style="display: flex; align-items: center; gap: var(--space-4)">
+                        <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                        <h1 class="admin-topbar__title">Dashboard</h1>
+                    </div>
+                    <div class="admin-topbar__actions">
+                        <span class="text-sm text-muted">📅 18/03/2025</span>
+                        <a href="../user/index.html" class="btn btn--outline btn--sm" target="_blank">🌐 Xem site</a>
+                        <a href="../user/login.html" class="btn btn--ghost btn--sm">🚪 Đăng xuất</a>
+                    </div>
+                </header>
+
+                <!-- Content -->
+                <main class="admin-content">
+                    <!-- Stats Cards -->
+                    <div class="stats-grid">
+                        <div class="stats-card">
+                            <div class="stats-card__icon stats-card__icon--blue">🏨</div>
+                            <div>
+                                <div class="stats-card__value">48</div>
+                                <div class="stats-card__label">Khách sạn</div>
+                                <div class="stats-card__trend stats-card__trend--up">↑ 2 mới trong tháng</div>
+                            </div>
+                        </div>
+                        <div class="stats-card">
+                            <div class="stats-card__icon stats-card__icon--amber">📋</div>
+                            <div>
+                                <div class="stats-card__value">1.248</div>
+                                <div class="stats-card__label">Tổng booking</div>
+                                <div class="stats-card__trend stats-card__trend--up">↑ 12% so với tháng trước</div>
+                            </div>
+                        </div>
+                        <div class="stats-card">
+                            <div class="stats-card__icon stats-card__icon--green">👥</div>
+                            <div>
+                                <div class="stats-card__value">3.542</div>
+                                <div class="stats-card__label">Người dùng</div>
+                                <div class="stats-card__trend stats-card__trend--up">↑ 89 người mới</div>
+                            </div>
+                        </div>
+                        <div class="stats-card">
+                            <div class="stats-card__icon stats-card__icon--red">💰</div>
+                            <div>
+                                <div class="stats-card__value">842M</div>
+                                <div class="stats-card__label">Doanh thu (VNĐ)</div>
+                                <div class="stats-card__trend stats-card__trend--up">↑ 18% tháng này</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row -->
+                    <div class="charts-grid">
+                        <!-- Bar Chart -->
+                        <div class="chart-card">
+                            <div class="chart-card__header">
+                                <h3 class="chart-card__title">📊 Booking theo tháng</h3>
+                                <select class="form-control" style="width: auto; padding: 6px 28px 6px 10px">
+                                    <option>2025</option>
+                                    <option>2024</option>
+                                </select>
+                            </div>
+                            <div class="chart-placeholder">
+                                <div class="chart-bar" data-height="40%" style="height: 40%">
+                                    <div class="chart-bar__tooltip">85</div>
+                                </div>
+                                <div class="chart-bar" data-height="60%" style="height: 60%">
+                                    <div class="chart-bar__tooltip">124</div>
+                                </div>
+                                <div class="chart-bar" data-height="75%" style="height: 75%">
+                                    <div class="chart-bar__tooltip">156</div>
+                                </div>
+                                <div class="chart-bar" data-height="55%" style="height: 55%">
+                                    <div class="chart-bar__tooltip">112</div>
+                                </div>
+                                <div class="chart-bar" data-height="90%" style="height: 90%">
+                                    <div class="chart-bar__tooltip">185</div>
+                                </div>
+                                <div class="chart-bar" data-height="80%" style="height: 80%">
+                                    <div class="chart-bar__tooltip">168</div>
+                                </div>
+                                <div class="chart-bar" data-height="65%" style="height: 65%">
+                                    <div class="chart-bar__tooltip">134</div>
+                                </div>
+                                <div class="chart-bar" data-height="85%" style="height: 85%">
+                                    <div class="chart-bar__tooltip">178</div>
+                                </div>
+                                <div class="chart-bar" data-height="70%" style="height: 70%">
+                                    <div class="chart-bar__tooltip">142</div>
+                                </div>
+                                <div class="chart-bar" data-height="95%" style="height: 95%">
+                                    <div class="chart-bar__tooltip">197</div>
+                                </div>
+                                <div
+                                    class="chart-bar"
+                                    data-height="100%"
+                                    style="height: 100%; background: var(--color-primary)"
+                                >
+                                    <div class="chart-bar__tooltip">208</div>
+                                </div>
+                                <div class="chart-bar" data-height="30%" style="height: 30%">
+                                    <div class="chart-bar__tooltip">62</div>
+                                </div>
+                            </div>
+                            <div
+                                style="
+                                    display: flex;
+                                    justify-content: space-between;
+                                    padding: 8px 4px 0;
+                                    font-size: 11px;
+                                    color: var(--color-text-muted);
+                                "
+                            >
+                                <span>T1</span><span>T2</span><span>T3</span><span>T4</span><span>T5</span
+                                ><span>T6</span> <span>T7</span><span>T8</span><span>T9</span><span>T10</span
+                                ><span>T11</span><span>T12</span>
+                            </div>
+                        </div>
+
+                        <!-- Donut Chart -->
+                        <div class="chart-card">
+                            <div class="chart-card__header">
+                                <h3 class="chart-card__title">🥧 Trạng thái booking</h3>
+                            </div>
+                            <div class="donut-chart-wrap">
+                                <div class="donut-chart"></div>
+                                <div class="donut-legend">
+                                    <div class="donut-legend__item">
+                                        <div class="donut-legend__dot" style="background: var(--color-primary)"></div>
+                                        <span>Đã xác nhận (45%)</span>
+                                    </div>
+                                    <div class="donut-legend__item">
+                                        <div class="donut-legend__dot" style="background: var(--color-accent)"></div>
+                                        <span>Chờ xác nhận (25%)</span>
+                                    </div>
+                                    <div class="donut-legend__item">
+                                        <div class="donut-legend__dot" style="background: var(--color-success)"></div>
+                                        <span>Hoàn thành (15%)</span>
+                                    </div>
+                                    <div class="donut-legend__item">
+                                        <div class="donut-legend__dot" style="background: var(--color-border)"></div>
+                                        <span>Đã hủy (15%)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Bookings + Quick Actions -->
+                    <div class="recent-section-grid">
+                        <!-- Recent Bookings -->
+                        <div class="card">
+                            <div class="card__header">
+                                <h3 class="card__header-title">📋 Đặt phòng gần đây</h3>
+                                <a href="bookings.html" class="btn btn--ghost btn--sm">Xem tất cả →</a>
+                            </div>
+                            <div class="table-wrap" style="border: none; border-radius: 0">
+                                <table class="table data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã</th>
+                                            <th>Khách hàng</th>
+                                            <th>Khách sạn</th>
+                                            <th>Ngày</th>
+                                            <th>Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr data-status="confirmed">
+                                            <td style="font-family: monospace; font-size: 12px">TM-0042</td>
+                                            <td>Nguyễn Văn An</td>
+                                            <td>InterContinental HN</td>
+                                            <td>20/03 – 23/03</td>
+                                            <td><span class="badge badge--primary">Xác nhận</span></td>
+                                        </tr>
+                                        <tr data-status="pending">
+                                            <td style="font-family: monospace; font-size: 12px">TM-0041</td>
+                                            <td>Trần Thị Bình</td>
+                                            <td>Fusion Maia Đà Nẵng</td>
+                                            <td>25/03 – 28/03</td>
+                                            <td><span class="badge badge--warning">Chờ duyệt</span></td>
+                                        </tr>
+                                        <tr data-status="completed">
+                                            <td style="font-family: monospace; font-size: 12px">TM-0040</td>
+                                            <td>Lê Minh Cường</td>
+                                            <td>Park Hyatt Saigon</td>
+                                            <td>15/03 – 17/03</td>
+                                            <td><span class="badge badge--success">Hoàn thành</span></td>
+                                        </tr>
+                                        <tr data-status="cancelled">
+                                            <td style="font-family: monospace; font-size: 12px">TM-0039</td>
+                                            <td>Phạm Lan Anh</td>
+                                            <td>La Résidence HN</td>
+                                            <td>10/03 – 12/03</td>
+                                            <td><span class="badge badge--danger">Đã hủy</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="card">
+                            <div class="card__header">
+                                <h3 class="card__header-title">⚡ Thao tác nhanh</h3>
+                            </div>
+                            <div class="card__body">
+                                <div class="quick-actions">
+                                    <a href="hotels.html" class="quick-action-item">
+                                        <div class="quick-action-item__icon">🏨</div>
+                                        Thêm khách sạn
+                                    </a>
+                                    <a href="rooms.html" class="quick-action-item">
+                                        <div class="quick-action-item__icon">🛏</div>
+                                        Thêm phòng
+                                    </a>
+                                    <a href="places.html" class="quick-action-item">
+                                        <div class="quick-action-item__icon">🗺</div>
+                                        Thêm địa điểm
+                                    </a>
+                                    <a href="users.html" class="quick-action-item">
+                                        <div class="quick-action-item__icon">👥</div>
+                                        Xem người dùng
+                                    </a>
+                                    <a href="bookings.html" class="quick-action-item">
+                                        <div class="quick-action-item__icon">📋</div>
+                                        Xem booking
+                                    </a>
+                                    <a href="../user/index.html" class="quick-action-item" target="_blank">
+                                        <div class="quick-action-item__icon">🌐</div>
+                                        Xem website
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.recent-section-grid -->
+                </main>
+                <!-- /.admin-content -->
+            </div>
+            <!-- /.admin-main -->
+        </div>
+        <!-- /.admin-wrapper -->
+
+        <script src="../assets/js/main.js"></script>
+        <script src="../assets/js/admin.js"></script>
+    </body>
+</html>
