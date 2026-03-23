@@ -1,40 +1,27 @@
-# TravelMate - Nền tảng Booking Khách sạn & Homestay (Đồ án cơ sở)
+# DACS Project
 
-Đây là repository lưu trữ mã nguồn Website Đặt phòng Khách sạn (TravelMate) - Sản phẩm Đồ án cơ sở của nhóm.
+This is the basic project for the group.
 
-## 👥 Thành viên nhóm
-1. [Tên bạn 1] - Đảm nhiệm HTML/CSS/UI
-2. [Tên bạn 2]
-3. [Tên bạn 3]
+## Structure
 
-## 🛠️ Công nghệ sử dụng (Giai đoạn 1: Frontend)
-- HTML5 / CSS3 thuần
-- Giao diện thân thiện, sử dụng CSS Grid/Flexbox
-- Cấu trúc thư mục chia Component & Layout chuẩn mực để dễ dàng ghép với Backend sau này.
+- `frontend/`: Frontend with HTML, CSS, JS
+- `backend/`: Backend with Spring Boot
 
-## 📂 Tổ chức mã nguồn
-- `/assets/`: Nơi chứa toàn bộ tài nguyên chung (css, images, js).
-- `/user/`: Các trang giao diện dành cho UI của khách hàng.
-- `/admin/`: Các trang giao diện cho luồng Quản trị viên (Dashboard).
-- `index.html`: Landing Page của toàn bộ dự án.
+## Frontend
 
-## 🚀 Hướng dẫn chạy dự án (Local)
-1. Cài đặt **Visual Studio Code**.
-2. Cài đặt Extension **Live Server** (của nhà phát triển Ritwick Dey).
-3. Mở thư mục gốc của dự án này trong VS Code.
-4. Chuột phải vào file `index.html` và chọn **"Open with Live Server"**.
+Static website using HTML, CSS, and JavaScript.
 
-## 💡 Quy tắc làm việc nhóm (Git Workflow)
-Để tránh code đè lên nhau (conflict), cả team hãy làm theo luồng này:
-1. Lúc nào cũng pull code mới nhất trước khi làm việc: `git pull origin main`
-2. Tạo nhánh riêng để làm tính năng (vd: tính năng đăng nhập): `git checkout -b feature/login-page`
-3. Sau khi làm xong:
-   ```bash
-   git add .
-   git commit -m "feat: hoàn thiện UI trang đăng nhập"
-   git push origin feature/login-page
-   ```
-4. Cuối cùng, mở Pull Request trên GitHub để gộp vào nhánh `main`.
+## Backend
 
----
-*Developed with ❤️  by Team TravelMate*
+Spring Boot application.
+
+To run the backend:
+1. Ensure Java 17 is installed.
+2. Navigate to `be/` directory.
+3. Run `./mvnw spring-boot:run`
+
+## Getting Started
+
+1. Clone the repository.
+2. For frontend, open `frontend/index.html` in a browser or serve with a static server.
+3. For backend, follow the instructions above.
