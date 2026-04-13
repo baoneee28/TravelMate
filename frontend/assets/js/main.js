@@ -142,5 +142,23 @@ document.addEventListener('DOMContentLoaded', () => {
       img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"%3E%3Crect fill="%23e8f4fb" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" fill="%231A6B9A" font-size="18" text-anchor="middle" dy="0.3em" font-family="sans-serif"%3ETravelMate%3C/text%3E%3C/svg%3E';
     });
   });
+  // SCROLL TO TOP
+const scrollBtn = document.getElementById("scrollTopBtn");
 
+if (scrollBtn) {
+    window.addEventListener("scroll", () => {
+        if (window.scrollY > 400) {
+            scrollBtn.classList.add("show");
+        } else {
+            scrollBtn.classList.remove("show");
+        }
+    });
+
+    scrollBtn.addEventListener("click", () => {
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    });
+}
 });

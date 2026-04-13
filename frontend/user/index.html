@@ -1,725 +1,1058 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>TravelMate - Demo Header</title>
 
-        <!-- Font Google -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
-            rel="stylesheet"
-        />
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TravelMate - Khởi đầu mọi hành trình</title>
 
-        <!-- Icon -->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <!-- Font Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
 
-        <link rel="stylesheet" href="../assets/css/style.css" />
-    </head>
-    <body>
-        <!-- ===== HEADER ===== -->
-        <header class="header">
-            <div class="container navbar">
-                <a href="#" class="logo">
-                    <i class="fa-solid fa-building"></i>
-                    <span class="logo-blue">TRAVEL</span><span class="logo-yellow">MATE</span>
+    <!-- Icon FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <link rel="stylesheet" href="/frontend/assets/style.css" />
+</head>
+
+<body>
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/user.js"></script>
+    <!-- ===== HEADER ===== -->
+    <!-- ===== SIDEBAR OVERLAY ===== -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ===== SIDEBAR MENU ===== -->
+    <aside class="sidebar-menu" id="sidebarMenu" role="dialog" aria-label="Menu điều hướng">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                <span class="s-logo-text">TRAVEL<span>MATE</span></span>
+            </div>
+            <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Đóng menu">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="sidebar-nav-label">Chức năng</div>
+
+            <a href="hotels.html" id="sb-hotels">
+                <span class="s-icon"><i class="fa-solid fa-bed"></i></span>
+                Đặt phòng
+            </a>
+
+            <a href="travel.html" id="sb-travel">
+                <span class="s-icon"><i class="fa-solid fa-map-location-dot"></i></span>
+                Gợi ý du lịch
+            </a>
+
+            <a href="news.html" id="sb-news">
+                <span class="s-icon"><i class="fa-solid fa-newspaper"></i></span>
+                Tin tức
+            </a>
+
+            <a href="contact.html" id="sb-contact">
+                <span class="s-icon"><i class="fa-solid fa-headset"></i></span>
+                Liên hệ
+            </a>
+        </nav>
+
+        <div class="sidebar-divider"></div>
+
+        <!-- Auth section: hiển thị động theo trạng thái đăng nhập -->
+        <div class="sidebar-auth" id="sidebarAuth">
+            <!-- Nội dung sẽ được render bởi JS -->
+        </div>
+    </aside>
+
+    <header class="header" id="header">
+        <div class="container navbar">
+            <!-- Logo + hamburger button xếp dọc -->
+            <div class="logo-wrapper">
+                <a href="index.html" class="logo">
+                    <div class="logo-icon"><i class="fa-solid fa-building"></i></div>
+                    <span class="logo-text"><span class="logo-blue">TRAVEL</span><span
+                            class="logo-yellow">MATE</span></span>
                 </a>
-
-                <nav class="menu">
-                    <ul class="menu-list">
-                        <li><a href="#">TRANG CHỦ</a></li>
-                        <li><a href="#">GỢI Ý DU LỊCH</a></li>
-                        <li><a href="#">TIN TỨC</a></li>
-                        <li><a href="#">LIÊN HỆ</a></li>
-                        <li>
-                            <a href="#"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a>
-                        </li>
-                    </ul>
-                </nav>
-
-                <a href="#" class="login-btn">ĐĂNG NHẬP</a>
+                <button class="hamburger-btn" id="hamburgerBtn" aria-label="Mở menu" aria-expanded="false">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
             </div>
-        </header>
 
-        <!-- ===== HERO / BANNER ===== -->
-        <section class="hero-section">
-            <div class="container">
-                <div class="hero-banner">
-                    <!-- Lớp ảnh nền chạy -->
-                    <div class="hero-slider">
-                        <div class="slide-track">
-                            <div class="slide slide-1"></div>
-                            <div class="slide slide-2"></div>
-                            <div class="slide slide-3"></div>
-                            <div class="slide slide-4"></div>
+            <nav class="menu">
+                <ul class="menu-list">
+                    <li><a href="index.html">TRANG CHỦ</a></li>
+                    <li><a href="travel.html">GỢI Ý DU LỊCH</a></li>
+                    <li><a href="news.html">TIN TỨC</a></li>
+                    <li><a href="contact.html">LIÊN HỆ</a></li>
+                    <li><a href="mybooking.html" class="my-booking"><i class="fa-solid fa-bed"></i> Đặt phòng của
+                            tôi</a></li>
+                </ul>
+            </nav>
 
-                            <!-- Lặp lại để chạy mượt -->
-                            <div class="slide slide-1"></div>
-                            <div class="slide slide-2"></div>
-                            <div class="slide slide-3"></div>
-                            <div class="slide slide-4"></div>
+            <a href="login.html" class="login-btn">ĐĂNG NHẬP</a>
+        </div>
+    </header>
+
+    <!-- ===== HERO / BANNER ===== -->
+    <section class="hero-section">
+        <div class="hero-slider">
+            <div class="slide-track">
+                <!-- Slides sử dụng ảnh thực tế -->
+                <div class="slide" style="background-image: url('/frontend/assets/images/MienBac/NB.jpg');"></div>
+                <div class="slide"
+                    style="background-image: url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=600');">
+                </div>
+                <div class="slide" style="background-image: url('/frontend/assets/images/MienBac/CBang.jpg');"></div>
+                <div class="slide" style="background-image: url('/frontend/assets/images/resort.jpg');"></div>
+                <div class="slide" style="background-image: url('/frontend/assets/images/homestay-o-da-lat.jpg');">
+                </div>
+                <div class="slide" style="background-image: url('/frontend/assets/images/homestay-sapa.jpg');"></div>
+
+
+                <!-- Lặp lại để chạy mượt -->
+                <div class="slide" style="background-image: url('/frontend/assets/images/MienBac/NB.jpg');"></div>
+                <div class="slide"
+                    style="background-image: url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=600');">
+                </div>
+                <div class="slide" style="background-image: url('/frontend/assets/images/MienBac/CBang.jpg');"></div>
+                <div class="slide" style="background-image: url('/frontend/assets/images/resort.jpg');"></div>
+                <div class="slide" style="background-image: url('/frontend/assets/images/homestay-o-da-lat.jpg');">
+                </div>
+                <div class="slide" style="background-image: url('/frontend/assets/images/homestay-sapa.jpg');"></div>
+
+
+            </div>
+        </div>
+
+        <div class="hero-overlay"></div>
+
+        <div class="container relative-z">
+            <div class="hero-content">
+                <h1>KHỞI ĐẦU MỌI HÀNH TRÌNH <br><span class="text-gradient">KHÁM PHÁ VÀ TẬN HƯỞNG KỲ NGHỈ TRỌN
+                        VẸN</span></h1>
+            </div>
+        </div>
+
+        <!-- Hiệu ứng gradient mờ xuống section dưới -->
+        <div class="hero-bottom-fade"></div>
+    </section>
+
+    <!-- ===== SEARCH PANEL ===== -->
+    <section class="search-section">
+        <div class="container">
+            <div class="search-card">
+                <div class="search-tabs">
+                    <button type="button" class="tab active" data-type="hotel"><i class="fa-solid fa-hotel"></i>
+                        Hotel</button>
+                    <button type="button" class="tab" data-type="villa"><i class="fa-solid fa-mountain"></i>
+                        Villa</button>
+                    <button type="button" class="tab" data-type="homestay"><i class="fa-solid fa-house-chimney"></i>
+                        Homestay</button>
+                    <button type="button" class="tab" data-type="apartment"><i class="fa-solid fa-building"></i>
+                        Resort</button>
+                </div>
+                <form class="search-form">
+                    <div class="field">
+                        <label>Thành phố, điểm đến</label>
+                        <div class="input-wrap">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <input type="text" id="destInput" placeholder="Ví dụ Trung tâm mua sắm AEON Narita" />
                         </div>
                     </div>
 
-                    <!-- Lớp phủ tối -->
-                    <div class="hero-overlay"></div>
+                    <div class="field">
+                        <label>Ngày nhận - Trả phòng</label>
+                        <div class="input-wrap date-range" tabindex="0">
+                            <i class="fa-regular fa-calendar-days"></i>
+                            <input type="text" readonly placeholder="Hôm nay - Ngày mai" />
 
-                    <!-- Nội dung banner -->
-                    <div class="hero-content">
-                        <h1>HÀNH TRÌNH MƠ ƯỚC</h1>
-                        <p>KHÁM PHÁ VẺ ĐẸP BẤT TẬN CÙNG TRAVELPRO</p>
+                            <div class="popup-box date-popup">
+                                <div class="date-tabs">
+                                    <button type="button" class="date-tab active" data-part="start">Nhận phòng</button>
+                                    <button type="button" class="date-tab" data-part="end">Trả phòng</button>
+                                </div>
 
-                        <form class="search-box" action="hotels.html" method="GET">
-                            <input type="text" name="dest" value="Đà Nẵng" placeholder="Nhập điểm đến..." />
-                            <button type="submit">TÌM KIẾM</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </section>
+                                <div class="calendar"></div>
 
-        <!-- ===== SEARCH PANEL (đã chuyển xuống dưới) ===== -->
-        <section class="search-section">
-            <div class="container">
-                <div class="search-card">
-                    <div class="search-tabs">
-                        <button type="button" class="tab active" data-type="hotel">
-                            <i class="fa-solid fa-hotel"></i> Khách sạn
-                        </button>
-                        <button type="button" class="tab" data-type="villa">
-                            <i class="fa-solid fa-mountain"></i> Villa
-                        </button>
-                        <button type="button" class="tab" data-type="homestay">
-                            <i class="fa-solid fa-house-chimney"></i> Homestay
-                        </button>
-                        <button type="button" class="tab" data-type="apartment">
-                            <i class="fa-solid fa-building"></i> Căn hộ
-                        </button>
-                    </div>
-
-                    <div class="search-divider"></div>
-
-                    <form class="search-form" action="hotels.html" method="GET">
-                        <div class="field">
-                            <label>Thành phố, điểm đến, hoặc tên nơi lưu trú</label>
-                            <div class="input-icon">
-                                <i class="fa-solid fa-location-dot"></i>
-                                <input type="text" name="dest" placeholder="Ví dụ Trung tâm mua sắm AEON Narita" />
+                                <div class="date-popup-actions">
+                                    <button type="button" class="btn-apply date-apply">Áp dụng</button>
+                                    <button type="button" class="date-popup-close">Đóng</button>
+                                </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="field">
-                            <label>Ngày nhận phòng và trả phòng</label>
-                            <div class="input-icon date-range" tabindex="0">
-                                <i class="fa-regular fa-calendar-days"></i>
-                                <input type="text" name="dates" readonly value="" />
+                    <div class="field">
+                        <label>Khách & Phòng</label>
+                        <div class="input-wrap guest-input" tabindex="0">
+                            <i class="fa-solid fa-user"></i>
+                            <div class="fake-input" id="guestDisplay">2 Khách, 1 Phòng</div>
 
-                                <div class="date-popup">
-                                    <div class="date-popup-header">
-                                        <div class="date-popup-tabs">
-                                            <button type="button" class="date-tab active" data-part="start">
-                                                <div class="tab-label">Nhận phòng</div>
-                                                <div class="tab-date" data-part="start"></div>
-                                            </button>
-                                            <button type="button" class="date-tab" data-part="end">
-                                                <div class="tab-label">Trả phòng</div>
-                                                <div class="tab-date" data-part="end"></div>
-                                            </button>
-                                        </div>
-                                        <button type="button" class="date-popup-close" aria-label="Đóng">×</button>
+                            <!-- Popup Khách -->
+                            <div class="popup-box guest-popup">
+                                <div class="guest-row">
+                                    <div class="guest-info">
+                                        <p class="g-title">Người lớn</p>
+                                        <p class="g-desc">Từ 18 tuổi</p>
                                     </div>
-                                    <div class="date-popup-calendars">
-                                        <div class="calendar" data-month-offset="0"></div>
-                                    </div>
-
-                                    <div class="date-popup-footer">
-                                        <button type="button" class="date-apply">Xong</button>
+                                    <div class="guest-controls">
+                                        <button type="button" class="guest-btn decrement"
+                                            data-target="adults">-</button>
+                                        <span class="guest-count" id="count-adults">2</span>
+                                        <button type="button" class="guest-btn increment"
+                                            data-target="adults">+</button>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <div class="field">
-                            <label>Khách & Phòng</label>
-                            <div class="input-icon guest-input" tabindex="0">
-                                <i class="fa-solid fa-user"></i>
-                                <input type="text" name="guests" readonly value="2 khách, 1 phòng" />
-
-                                <div class="guest-popup">
-                                    <div class="guest-row">
-                                        <span>Khách</span>
-                                        <div class="guest-controls">
-                                            <button type="button" class="guest-decrement" data-target="adults">
-                                                -
-                                            </button>
-                                            <span class="guest-count" data-target="adults">2</span>
-                                            <button type="button" class="guest-increment" data-target="adults">
-                                                +
-                                            </button>
-                                        </div>
+                                <div class="guest-row">
+                                    <div class="guest-info">
+                                        <p class="g-title">Trẻ em</p>
+                                        <p class="g-desc">Từ 0-17 tuổi</p>
                                     </div>
-
-                                    <div class="guest-row">
-                                        <span>Phòng</span>
-                                        <div class="guest-controls">
-                                            <button type="button" class="guest-decrement" data-target="rooms">-</button>
-                                            <span class="guest-count" data-target="rooms">1</span>
-                                            <button type="button" class="guest-increment" data-target="rooms">+</button>
-                                        </div>
+                                    <div class="guest-controls">
+                                        <button type="button" class="guest-btn decrement"
+                                            data-target="children">-</button>
+                                        <span class="guest-count" id="count-children">0</span>
+                                        <button type="button" class="guest-btn increment"
+                                            data-target="children">+</button>
                                     </div>
-                                    <button type="button" class="guest-done">Xong</button>
                                 </div>
+
+                                <div class="guest-row border-top">
+                                    <div class="guest-info">
+                                        <p class="g-title">Số phòng</p>
+                                    </div>
+                                    <div class="guest-controls">
+                                        <button type="button" class="guest-btn decrement" data-target="rooms">-</button>
+                                        <span class="guest-count" id="count-rooms">1</span>
+                                        <button type="button" class="guest-btn increment" data-target="rooms">+</button>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-apply close-popup">Xong</button>
                             </div>
                         </div>
+                    </div>
 
-                        <button type="submit" class="search-btn" title="Tìm kiếm">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                        </button>
-                    </form>
+                    <button type="submit" class="search-btn">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <span class="btn-text">TÌM KIẾM</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== PROMO BANNER ===== -->
+    <section class="promo-section">
+        <div class="container">
+            <div class="promo-card">
+                <div class="promo-left">
+                    <img src="https://images.unsplash.com/photo-1699451505639-55fb416908c8?q=80&w=800" alt="Đà Nẵng"
+                        class="promo-img" />
+                    <div class="promo-img-overlay"></div>
+                    <div class="promo-badge"><i class="fa-solid fa-tag"></i> Deal tốt giá hời đặt phòng ngay</div>
+                    <div class="promo-title">
+                        <p>Khám phá vùng đất mới</p>
+                        <h2>Du lịch ngay<span> Phòng liền tay</span></h2>
+                    </div>
+                </div>
+
+                <div class="promo-right">
+                    <div class="promo-ticket">
+                        <div class="ticket-label">DEAL CÓ HẠN</div>
+                        <div class="ticket-value">
+                            <span class="ticket-percent">50%</span>
+                            <span class="ticket-text">GIẢM ĐẾN</span>
+                        </div>
+                        <div class="ticket-note">Điều kiện áp dụng</div>
+                    </div>
+                    <button class="promo-btn">Nhận deal ngay</button>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- ===== PROMO BANNER ===== -->
-        <section class="promo-section">
-            <div class="container">
-                <div class="promo-card">
-                    <div class="promo-left">
-                        <div class="promo-badge">DEAL TỐT GIÁ HỜI ĐẶT PHÒNG NGAY</div>
-                        <div class="promo-banner">
-                            <img src="../assets/images/cau-vang-da-nang.jpg" alt="" />
-                        </div>
-                        <div class="promo-title">
-                            <h2>Du lịch <span>ĐÀ NẴNG</span></h2>
-                        </div>
-                    </div>
-
-                    <div class="promo-right">
-                        <div class="promo-ticket">
-                            <div class="ticket-label">DEAL CÓ HẠN</div>
-                            <div class="ticket-value">
-                                <span class="ticket-percent">50%</span>
-                                <span class="ticket-text">giảm đến</span>
-                            </div>
-                            <div class="ticket-note">Điều kiện áp dụng</div>
-                        </div>
-
-                        <div class="promo-qr">
-                            <img src="../assets/images/scanme.jpg" alt="QR code" />
-                        </div>
-
-                        <button class="promo-btn">Nhận deal ngay</button>
-                    </div>
+    <!-- ===== VOUCHER LIST ===== -->
+    <section class="voucher-section">
+        <div class="container">
+            <div class="section-header voucher-header">
+                <div class="header-icon bg-amber-light text-amber"><i class="fa-solid fa-gift"></i></div>
+                <div>
+                    <h2>Phiếu giảm giá cho người dùng mới</h2>
+                    <p>Áp dụng cho lần đặt đầu tiên trên ứng dụng TravelMate.</p>
                 </div>
             </div>
-        </section>
 
-        <!-- ===== VOUCHER LIST ===== -->
-        <section class="voucher-section">
-            <div class="container">
-                <div class="voucher-header">
-                    <div class="voucher-title">
-                        <i class="fa-solid fa-gift"></i>
-                        <div>
-                            <h2>Phiếu giảm giá 10% cho người dùng mới</h2>
-                            <p>Áp dụng cho lần đặt đầu tiên trên ứng dụng TravelMate.</p>
+            <div class="voucher-grid">
+                <!-- Voucher 1 -->
+                <div class="voucher-card">
+                    <div class="v-circle bg-sky opacity-10"></div>
+                    <div class="v-meta">
+                        <div class="v-icon bg-sky"><i class="fa-solid fa-plane"></i></div>
+                        <div class="v-info">
+                            <h3>Giảm đến 100,000đ</h3>
+                            <p>cho phòng từ 4 người trở lên</p>
                         </div>
+                    </div>
+                    <div class="v-note">Áp dụng cho lần đặt đầu tiên trên TravelMate.</div>
+                    <div class="v-divider"></div>
+                    <div class="v-action">
+                        <span class="v-code">DATPHONGNHANDEAL</span>
+                        <button type="button" class="copy-btn">Copy</button>
                     </div>
                 </div>
 
-                <div class="voucher-carousel">
-                    <div class="voucher-cards">
-                        <div class="voucher-card">
-                            <div class="voucher-meta">
-                                <div class="voucher-icon">
-                                    <i class="fa-solid fa-plane-departure"></i>
-                                </div>
-                                <div class="voucher-info">
-                                    <h3>Giảm đến 75,000</h3>
-                                    <p>cho lần đặt vé máy bay đầu tiên</p>
-                                </div>
-                            </div>
-                            <div class="voucher-note">Áp dụng cho lần đặt đầu tiên trên ứng dụng TravelMate.</div>
-                            <div class="voucher-code">
-                                <span class="code">TVLKBANMOI</span>
-                                <button type="button" class="copy-btn">Copy</button>
-                            </div>
+                <!-- Voucher 2 -->
+                <div class="voucher-card">
+                    <div class="v-circle bg-amber opacity-10"></div>
+                    <div class="v-meta">
+                        <div class="v-icon bg-amber"><i class="fa-solid fa-bed"></i></div>
+                        <div class="v-info">
+                            <h3>Giảm đến 200,000đ</h3>
+                            <p>cho lần đặt phòng đầu tiên</p>
                         </div>
+                    </div>
+                    <div class="v-note">Áp dụng cho lần đặt đầu tiên trên TravelMate.</div>
+                    <div class="v-divider"></div>
+                    <div class="v-action">
+                        <span class="v-code">DATPHONGMOI</span>
+                        <button type="button" class="copy-btn">Copy</button>
+                    </div>
+                </div>
 
-                        <div class="voucher-card">
-                            <div class="voucher-meta">
-                                <div class="voucher-icon">
-                                    <i class="fa-solid fa-bed"></i>
-                                </div>
-                                <div class="voucher-info">
-                                    <h3>Giảm đến 250,000</h3>
-                                    <p>cho lần đặt phòng đầu tiên</p>
-                                </div>
-                            </div>
-                            <div class="voucher-note">Áp dụng cho lần đặt đầu tiên trên ứng dụng TravelMate.</div>
-                            <div class="voucher-code">
-                                <span class="code">TVLKBANMOI</span>
-                                <button type="button" class="copy-btn">Copy</button>
-                            </div>
+                <!-- Voucher 3 -->
+                <div class="voucher-card">
+                    <div class="v-circle bg-emerald opacity-10"></div>
+                    <div class="v-meta">
+                        <div class="v-icon bg-emerald"><i class="fa-solid fa-ticket"></i></div>
+                        <div class="v-info">
+                            <h3>Giảm đến 10%</h3>
+                            <p>cho khách hàng từng sử dụng dịch vụ</p>
                         </div>
-
-                        <div class="voucher-card">
-                            <div class="voucher-meta">
-                                <div class="voucher-icon">
-                                    <i class="fa-solid fa-ticket"></i>
-                                </div>
-                                <div class="voucher-info">
-                                    <h3>Giảm đến 10%</h3>
-                                    <p>cho lần đặt vé tham quan đầu tiên</p>
-                                </div>
-                            </div>
-                            <div class="voucher-note">Áp dụng cho lần đặt đầu tiên trên ứng dụng TravelMate.</div>
-                            <div class="voucher-code">
-                                <span class="code">TVLKBANMOI</span>
-                                <button type="button" class="copy-btn">Copy</button>
-                            </div>
-                        </div>
+                    </div>
+                    <div class="v-note">Áp dụng cho khách hàng thân thiết trên TravelMate.</div>
+                    <div class="v-divider"></div>
+                    <div class="v-action">
+                        <span class="v-code">KHACHHANGTHANTHIET</span>
+                        <button type="button" class="copy-btn">Copy</button>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- ===== DESTINATIONS GRID ===== -->
-        <section class="destinations-section">
-            <div class="container">
-                <div class="destinations-header">
-                    <h2>ĐIỂM ĐẾN YÊU THÍCH</h2>
-                    <p>
-                        Hãy chọn một điểm đến du lịch nổi tiếng dưới đây để khám phá các chuyến đi độc quyền của chúng
-                        tôi với mức giá vô cùng hợp lý.
-                    </p>
-                </div>
+    <!-- ===== DESTINATIONS GRID ===== -->
+    <section class="destinations-section">
+        <div class="container">
+            <div class="section-header dest-header center">
+                <div class="header-icon bg-sky-light text-sky mx-auto mb-4"><i class="fa-solid fa-map"></i></div>
+                <h2>ĐIỂM ĐẾN YÊU THÍCH</h2>
+                <p>Hãy chọn một điểm đến du lịch nổi tiếng dưới đây để khám phá các chuyến đi độc quyền của chúng tôi
+                    với mức giá vô cùng hợp lý.</p>
+            </div>
 
-                <div class="destinations-tabs">
-                    <button type="button" class="dest-tab active">Miền Bắc</button>
-                    <button type="button" class="dest-tab">Miền Trung</button>
-                    <button type="button" class="dest-tab">Miền Đông Nam Bộ</button>
-                    <button type="button" class="dest-tab">Miền Tây Nam Bộ</button>
-                    <button type="button" class="dest-tab">Châu Á</button>
-                    <button type="button" class="dest-tab">Châu Âu</button>
-                    <button type="button" class="dest-tab">Châu Mỹ</button>
-                    <button type="button" class="dest-tab">Châu Úc</button>
-                    <button type="button" class="dest-tab">Châu Phi</button>
-                </div>
+            <div class="destinations-tabs">
+                <button type="button" class="dest-tab active" data-region="north">Miền Bắc</button>
+                <button type="button" class="dest-tab" data-region="central">Miền Trung</button>
+                <button type="button" class="dest-tab" data-region="south">Miền Nam</button>
+            </div>
 
-                <div class="destinations-grid">
-                    <a href="#" class="dest-card dest-quang-ninh">
-                        <img src="../assets/images/diadiem/QN.jpg" alt="Quảng Ninh" />
-                        <div class="dest-overlay">
-                            <span class="dest-name">QUẢNG NINH</span>
+            <!-- ===== MIỀN BẮC ===== -->
+            <div class="dest-panel active" id="panel-north">
+                <!-- Layout: 4 cột, ô đầu chiếm 2 cột 2 hàng (hero trái), còn lại 2 cột phải -->
+                <div class="dest-grid dest-grid-north">
+                    <a href="#" class="dest-item span-2 row-2 di-animate">
+                        <img src="https://images.unsplash.com/photo-1694142941971-4d15ff0c2ab3?q=80&w=800"
+                            alt="Quảng Ninh" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>QUẢNG NINH</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
                         </div>
                     </a>
-
-                    <a href="#" class="dest-card dest-ha-giang">
-                        <img src="../assets/images/diadiem/HG.jpg" alt="Hà Giang" />
-                        <div class="dest-overlay">
-                            <span class="dest-name">HÀ GIANG</span>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/frontend/assets/images/MienBac/MB_HG.jpg" alt="Hà Giang" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>HÀ GIANG</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
                         </div>
                     </a>
-
-                    <a href="#" class="dest-card dest-lao-cai">
-                        <img src="../assets/images/diadiem/LC.jpg" alt="Lào Cai" />
-                        <div class="dest-overlay">
-                            <span class="dest-name">LÀO CAI</span>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="https://images.unsplash.com/photo-1665905905591-fb66b0496481?q=80&w=600"
+                            alt="Lào Cai" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>LÀO CAI</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
                         </div>
                     </a>
-
-                    <a href="#" class="dest-card dest-ninh-binh">
-                        <img src="../assets/images/diadiem/NB.jpg" alt="Ninh Bình" />
-                        <div class="dest-overlay">
-                            <span class="dest-name">NINH BÌNH</span>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/frontend/assets/images/MienBac/NB.jpg" alt="Ninh Bình" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>NINH BÌNH</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
                         </div>
                     </a>
-
-                    <a href="#" class="dest-card dest-yen-bai">
-                        <img src="../assets/images/diadiem/YB.jpg" alt="Yên Bái" />
-                        <div class="dest-overlay">
-                            <span class="dest-name">YÊN BÁI</span>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/frontend/assets/images/MienBac/MB_HN.jpg" alt="Hà Nội" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>HÀ NỘI</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
                         </div>
                     </a>
-
-                    <a href="#" class="dest-card dest-son-la">
-                        <img src="../assets/images/diadiem/SL.jpg" alt="Sơn La" />
-                        <div class="dest-overlay">
-                            <span class="dest-name">SƠN LA</span>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/frontend/assets/images/MienBac/YB.jpg" alt="Yên Bái" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>YÊN BÁI</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
                         </div>
                     </a>
-
-                    <a href="#" class="dest-card dest-cao-bang">
-                        <img src="../assets/images/diadiem/CB.jpg" alt="Cao Bằng" />
-                        <div class="dest-overlay">
-                            <span class="dest-name">CAO BẰNG</span>
+                    <a href="#" class="dest-item span-2 di-animate">
+                        <img src="/frontend/assets/images/MienBac/Sapa.jpg" alt="Sapa" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>SAPA</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
                         </div>
                     </a>
-
-                    <a href="#" class="dest-card dest-hai-phong">
-                        <img src="../assets/images/diadiem/HP.jpg" alt="Hải Phòng" />
-                        <div class="dest-overlay">
-                            <span class="dest-name">HẢI PHÒNG</span>
-                        </div>
-                    </a>
-
-                    <a href="#" class="dest-card dest-ha-noi">
-                        <img src="../assets/images/diadiem/HN.jpg" alt="Hà Nội" />
-                        <div class="dest-overlay">
-                            <span class="dest-name">HÀ NỘI</span>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/frontend/assets/images/MienBac/SL.jpg" alt="Sơn La" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>SƠN LA</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
                         </div>
                     </a>
                 </div>
             </div>
-        </section>
 
-        <script>
-            const guestInput = document.querySelector(".guest-input");
-            const guestPopup = document.querySelector(".guest-popup");
-            const guestDisplay = guestInput.querySelector("input");
-            const counters = {
-                adults: 2,
-                children: 0,
-                rooms: 1,
-            };
+            <!-- ===== MIỀN TRUNG ===== -->
+            <div class="dest-panel" id="panel-central">
+                <!-- Layout: 3 cột đều, hàng đầu ô giữa chiếm 2 hàng (hero giữa) -->
+                <div class="dest-grid dest-grid-central">
+                    <a href="#" class="dest-item di-animate">
+                        <img src="https://images.unsplash.com/photo-1699451505639-55fb416908c8?q=80&w=800"
+                            alt="Đà Nẵng" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>ĐÀ NẴNG</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item row-2 di-animate">
+                        <img src="/frontend/assets/images/MienTrung/PY.jpg" alt="Phú Yên" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>PHÚ YÊN</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/frontend/assets/images/MienTrung/DakLak.jpg" alt="Đăk Lăk" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>ĐĂK LĂK</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/frontend/assets/images/MienTrung/Hue.jpg" alt="Huế" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>HUẾ</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/frontend/assets/images/MienTrung/QuangBinh.jpg" alt="Quảng Bình" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>QUẢNG BÌNH</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item span-2 di-animate">
+                        <img src="/frontend/assets/images/MienTrung/NhaTrang.jpg" alt="Nha Trang" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>NHA TRANG</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/frontend/assets/images/MienTrung/NinhThuan.jpg" alt="Ninh Thuận" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>NINH THUẬN</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                </div>
+            </div>
 
-            function updateGuestDisplay() {
-                guestDisplay.value = `${counters.adults} khách, ${counters.rooms} phòng`;
+            <!-- ===== MIỀN NAM ===== -->
+            <div class="dest-panel" id="panel-south">
+                <!-- Layout: mosaic 4 cột bất đối xứng, hero ở phải chiếm 2 cột 2 hàng -->
+                <div class="dest-grid dest-grid-south">
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/frontend/assets/images/MienNam/HCM.jpg" alt="TP. Hồ Chí Minh" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>HỒ CHÍ MINH</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/frontend/assets/images/MienNam/BT.jpg" alt="Bến Tre" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>Bến Tre</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item span-2 row-2 di-animate">
+                        <img src="/frontend/assets/images/MienNam/AG.jpg" alt="An Giang" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>AN GIANG</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/frontend/assets/images/MienNam/ST.jpg" alt="Sóc Trăng" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>SÓC TRĂNG</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/frontend/assets/images/MienNam/VT.jpg" alt="Bà Rịa - Vũng Tàu" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>BÀ RỊA - VŨNG TÀU</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item span-2 di-animate">
+                        <img src="/frontend/assets/images/MienNam/CTho.jpg" alt="Cần Thơ" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>CẦN THƠ</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item span-2 di-animate">
+                        <img src="/frontend/assets/images/MienNam/TienGiang.jpg" alt="Tiền Giang" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>TIỀN GIANG</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container footer-grid">
+            <div class="footer-brand">
+                <div class="logo">
+                    <div class="logo-icon bg-sky"><i class="fa-solid fa-building"></i></div>
+                    <span class="logo-text text-white">TRAVEL<span class="logo-yellow">MATE</span></span>
+                </div>
+                <p class="footer-desc">TravelMate giúp bạn tìm được nơi nghỉ dưỡng hoàn hảo với giá tốt nhất và trải
+                    nghiệm tối ưu. Khởi hành dễ dàng, an tâm tận hưởng.</p>
+            </div>
+
+            <div class="footer-links">
+                <h4>Khám phá</h4>
+                <ul>
+                    <li><a href="#">Khách sạn</a></li>
+                    <li><a href="#">Villa & Resort</a></li>
+                    <li><a href="#">Cẩm nang du lịch</a></li>
+                    <li><a href="#">Ưu đãi đặc biệt</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-links">
+                <h4>Hỗ trợ</h4>
+                <ul>
+                    <li><a href="#">Câu hỏi thường gặp</a></li>
+                    <li><a href="#">Chính sách hoàn tiền</a></li>
+                    <li><a href="#">Hướng dẫn đặt phòng</a></li>
+                    <li><a href="#">Liên hệ</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-contact">
+                <h4>Liên hệ</h4>
+                <p><i class="fa-solid fa-phone"></i> +84 123 456 789</p>
+                <p><i class="fa-solid fa-envelope"></i> support@travelmate.vn</p>
+                <div class="social-links">
+                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2024 TravelMate. Đồ án Cơ sở lập trình Web.</p>
+            <p>Thiết kế đẹp, trải nghiệm nhanh.</p>
+        </div>
+    </footer>
+
+    <!-- ===== JAVASCRIPT ===== -->
+    <script>
+        // 1. Header scroll effect
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
             }
+        });
 
-            function clamp(value, min, max) {
-                return Math.max(min, Math.min(max, value));
-            }
+        // 2. Search Tabs
+        const searchTabs = document.querySelectorAll('.search-tabs .tab');
+        const destInput = document.getElementById('destInput');
+        const placeholders = {
+            hotel: 'Ví dụ: Khách sạn Mường Thanh',
+            villa: 'Ví dụ: Villa ven biển Nha Trang',
+            homestay: 'Ví dụ: Homestay cổ Hội An',
+            apartment: 'Ví dụ: Resort cao cấp Phú Quốc'
+        };
 
-            guestInput.addEventListener("click", () => {
-                guestInput.classList.toggle("open");
+        searchTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                searchTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                destInput.placeholder = placeholders[tab.dataset.type] || 'Nhập điểm đến...';
             });
+        });
 
-            document.addEventListener("click", (e) => {
-                if (!guestInput.contains(e.target)) {
-                    guestInput.classList.remove("open");
+        // 3. Date Range Picker (Check-in / Check-out)
+        const dateRange = document.querySelector('.date-range');
+        const dateRangeInput = dateRange.querySelector('input');
+        const datePopup = dateRange.querySelector('.date-popup');
+        const calendars = datePopup.querySelectorAll('.calendar');
+        const applyBtn = datePopup.querySelector('.date-apply');
+        const closeBtn = datePopup.querySelector('.date-popup-close');
+
+        const today = new Date();
+        const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const endDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000);
+        let range = { start: startDate, end: endDate };
+
+        // Lưu trạng thái tháng đang hiển thị
+        let calendarStart = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+
+        const weekdayNames = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+        const monthNames = ['tháng 1', 'tháng 2', 'tháng 3', 'tháng 4', 'tháng 5', 'tháng 6', 'tháng 7', 'tháng 8', 'tháng 9', 'tháng 10', 'tháng 11', 'tháng 12'];
+
+        function formatDateVN(d) {
+            const day = d.getDate();
+            const month = d.getMonth() + 1;
+            const year = d.getFullYear();
+            return `${day} thg ${month} ${year}`;
+        }
+
+        function updateRangeDisplay() {
+            dateRangeInput.value = `${formatDateVN(range.start)} - ${formatDateVN(range.end)}`;
+
+            const startLabel = datePopup.querySelector('.date-tab[data-part="start"]');
+            const endLabel = datePopup.querySelector('.date-tab[data-part="end"]');
+            if (startLabel) startLabel.textContent = formatDateVN(range.start);
+            if (endLabel) endLabel.textContent = formatDateVN(range.end);
+        }
+
+        function isSameDate(a, b) {
+            return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+        }
+
+        function addDays(date, days) {
+            const copy = new Date(date.getTime());
+            copy.setDate(copy.getDate() + days);
+            return copy;
+        }
+
+        function clampMax(value, max) {
+            return value > max ? max : value;
+        }
+
+        function renderCalendars() {
+            calendars.forEach((calendar, offset) => {
+                const monthDate = new Date(calendarStart.getFullYear(), calendarStart.getMonth() + offset, 1);
+                const monthKey = monthDate.getMonth();
+                const yearKey = monthDate.getFullYear();
+
+                const monthName = `${monthNames[monthKey]} ${yearKey}`;
+                const firstDayOfWeek = (new Date(yearKey, monthKey, 1).getDay() + 6) % 7; // Monday=0
+                const daysInMonth = new Date(yearKey, monthKey + 1, 0).getDate();
+
+                const grid = [];
+                for (let i = 0; i < firstDayOfWeek; i++) {
+                    grid.push(null);
                 }
-            });
+                for (let d = 1; d <= daysInMonth; d++) {
+                    grid.push(new Date(yearKey, monthKey, d));
+                }
 
-            guestPopup.addEventListener("click", (e) => {
-                const btn = e.target.closest("button[data-target]");
-                if (!btn) return;
-
-                const key = btn.dataset.target;
-                const delta = btn.classList.contains("guest-increment") ? 1 : -1;
-                counters[key] = clamp(counters[key] + delta, key === "rooms" ? 1 : 0, 10);
-
-                const counterEl = guestPopup.querySelector(`.guest-count[data-target="${key}"]`);
-                if (counterEl) counterEl.textContent = counters[key];
-                updateGuestDisplay();
-            });
-
-            guestPopup.querySelector(".guest-done").addEventListener("click", () => {
-                guestInput.classList.remove("open");
-            });
-
-            const searchTabs = document.querySelectorAll(".search-tabs .tab");
-            const destinationInput = document.querySelector('.search-form .field input[type="text"]');
-            const tabPlaceholder = {
-                hotel: "Ví dụ Trung tâm mua sắm AEON Narita",
-                villa: "Ví dụ villa ven biển",
-                homestay: "Ví dụ homestay góc phố",
-                apartment: "Ví dụ căn hộ trung tâm",
-            };
-
-            function updateTabSelection(type) {
-                searchTabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.type === type));
-                destinationInput.placeholder = tabPlaceholder[type] || tabPlaceholder.hotel;
-            }
-
-            searchTabs.forEach((tab) => {
-                tab.addEventListener("click", () => {
-                    updateTabSelection(tab.dataset.type);
-                });
-            });
-
-            // Ensure the initial tab placeholder matches the default active tab
-            updateTabSelection("hotel");
-
-            // ===== Voucher cards (copy + carousel) =====
-            const voucherCards = document.querySelector(".voucher-cards");
-
-            document.querySelectorAll(".copy-btn").forEach((btn) => {
-                btn.addEventListener("click", () => {
-                    const codeEl = btn.closest(".voucher-code").querySelector(".code");
-                    if (!codeEl) return;
-                    const text = codeEl.textContent.trim();
-                    navigator.clipboard.writeText(text).then(() => {
-                        btn.textContent = "Đã copy";
-                        setTimeout(() => {
-                            btn.textContent = "Copy";
-                        }, 1200);
-                    });
-                });
-            });
-
-            // ===== Date range picker =====
-            const dateRange = document.querySelector(".date-range");
-            const dateRangeInput = dateRange.querySelector("input");
-            const datePopup = dateRange.querySelector(".date-popup");
-            const calendars = datePopup.querySelectorAll(".calendar");
-            const applyBtn = datePopup.querySelector(".date-apply");
-            const closeBtn = datePopup.querySelector(".date-popup-close");
-
-            const today = new Date();
-            const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-            const endDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000);
-            let range = { start: startDate, end: endDate };
-
-            // Lưu trạng thái tháng đang hiển thị
-            let calendarStart = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-
-            const weekdayNames = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
-            const monthNames = [
-                "tháng 1",
-                "tháng 2",
-                "tháng 3",
-                "tháng 4",
-                "tháng 5",
-                "tháng 6",
-                "tháng 7",
-                "tháng 8",
-                "tháng 9",
-                "tháng 10",
-                "tháng 11",
-                "tháng 12",
-            ];
-
-            function formatDateVN(d) {
-                const day = d.getDate();
-                const month = d.getMonth() + 1;
-                const year = d.getFullYear();
-                return `${day} thg ${month} ${year}`;
-            }
-
-            function updateRangeDisplay() {
-                dateRangeInput.value = `${formatDateVN(range.start)} - ${formatDateVN(range.end)}`;
-
-                const startLabel = datePopup.querySelector('.tab-date[data-part="start"]');
-                const endLabel = datePopup.querySelector('.tab-date[data-part="end"]');
-                if (startLabel) startLabel.textContent = formatDateVN(range.start);
-                if (endLabel) endLabel.textContent = formatDateVN(range.end);
-            }
-
-            function isSameDate(a, b) {
-                return (
-                    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
-                );
-            }
-
-            function addDays(date, days) {
-                const copy = new Date(date.getTime());
-                copy.setDate(copy.getDate() + days);
-                return copy;
-            }
-
-            function clampMax(value, max) {
-                return value > max ? max : value;
-            }
-
-            function renderCalendars() {
-                calendars.forEach((calendar, offset) => {
-                    const monthDate = new Date(calendarStart.getFullYear(), calendarStart.getMonth() + offset, 1);
-                    const monthKey = monthDate.getMonth();
-                    const yearKey = monthDate.getFullYear();
-
-                    const monthName = `${monthNames[monthKey]} ${yearKey}`;
-                    const firstDayOfWeek = (new Date(yearKey, monthKey, 1).getDay() + 6) % 7; // Monday=0
-                    const daysInMonth = new Date(yearKey, monthKey + 1, 0).getDate();
-
-                    const grid = [];
-                    for (let i = 0; i < firstDayOfWeek; i++) {
-                        grid.push(null);
-                    }
-                    for (let d = 1; d <= daysInMonth; d++) {
-                        grid.push(new Date(yearKey, monthKey, d));
-                    }
-
-                    calendar.innerHTML = `
+                calendar.innerHTML = `
                     <div class="month-header">
                         <button type="button" class="month-nav month-prev" aria-label="Tháng trước">‹</button>
                         <div class="month-name">${monthName}</div>
                         <button type="button" class="month-nav month-next" aria-label="Tháng sau">›</button>
                     </div>
-                    <div class="weekdays">${weekdayNames.map((w) => `<div>${w}</div>`).join("")}</div>
+                    <div class="weekdays">${weekdayNames.map((w) => `<div>${w}</div>`).join('')}</div>
                     <div class="days">${grid
                         .map((date) => {
-                            if (!date) return "<div></div>";
+                            if (!date) return '<div></div>';
                             const isBeforeToday = date < startDate;
                             const isSelected = isSameDate(date, range.start) || isSameDate(date, range.end);
                             const inRange = date > range.start && date < range.end;
-                            const classNames = ["day"];
-                            if (isBeforeToday) classNames.push("disabled");
-                            if (isSelected) classNames.push("selected");
-                            if (inRange) classNames.push("in-range");
-                            return `<button type="button" class="${classNames.join(" ")}" data-date="${date.toISOString()}">${date.getDate()}</button>`;
+                            const classNames = ['day'];
+                            if (isBeforeToday) classNames.push('disabled');
+                            if (isSelected) classNames.push('selected');
+                            if (inRange) classNames.push('in-range');
+                            return `<button type="button" class="${classNames.join(' ')}" data-date="${date.toISOString()}">${date.getDate()}</button>`;
                         })
-                        .join("")}</div>
+                        .join('')}</div>
                 `;
 
-                    const prevBtn = calendar.querySelector(".month-prev");
-                    const nextBtn = calendar.querySelector(".month-next");
+                const prevBtn = calendar.querySelector('.month-prev');
+                const nextBtn = calendar.querySelector('.month-next');
 
-                    prevBtn.addEventListener("click", () => {
-                        calendarStart = new Date(calendarStart.getFullYear(), calendarStart.getMonth() - 1, 1);
-                        renderCalendars();
-                    });
-
-                    nextBtn.addEventListener("click", () => {
-                        calendarStart = new Date(calendarStart.getFullYear(), calendarStart.getMonth() + 1, 1);
-                        renderCalendars();
-                    });
+                prevBtn.addEventListener('click', () => {
+                    calendarStart = new Date(calendarStart.getFullYear(), calendarStart.getMonth() - 1, 1);
+                    renderCalendars();
                 });
-            }
 
-            let activeRangePart = "start";
-
-            const tabButtons = datePopup.querySelectorAll(".date-tab");
-            tabButtons.forEach((tab) => {
-                tab.addEventListener("click", () => {
-                    activeRangePart = tab.dataset.part;
-                    tabButtons.forEach((t) => t.classList.toggle("active", t === tab));
+                nextBtn.addEventListener('click', () => {
+                    calendarStart = new Date(calendarStart.getFullYear(), calendarStart.getMonth() + 1, 1);
+                    renderCalendars();
                 });
             });
+        }
 
-            function normalizeDate(d) {
-                return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-            }
+        let activeRangePart = 'start';
 
-            function handleDateClick(e) {
-                const btn = e.target.closest(".day");
-                if (!btn || btn.classList.contains("disabled")) return;
-
-                const date = normalizeDate(new Date(btn.dataset.date));
-
-                if (activeRangePart === "start") {
-                    range.start = date;
-                    if (range.end < range.start) {
-                        range.end = range.start;
-                    }
-                } else {
-                    range.end = date;
-                    if (range.start > range.end) {
-                        range.start = range.end;
-                    }
-                }
-
-                updateRangeDisplay();
-                renderCalendars();
-            }
-
-            function openDatePopup() {
-                dateRange.classList.add("open");
-                activeRangePart = "start";
-                tabButtons.forEach((t) => t.classList.toggle("active", t.dataset.part === "start"));
-            }
-
-            function closeDatePopup() {
-                dateRange.classList.remove("open");
-            }
-
-            dateRange.addEventListener("click", (e) => {
-                e.stopPropagation();
-                if (e.target.closest(".date-popup")) return;
-                openDatePopup();
+        const tabButtons = datePopup.querySelectorAll('.date-tab');
+        tabButtons.forEach((tab) => {
+            tab.addEventListener('click', () => {
+                activeRangePart = tab.dataset.part;
+                tabButtons.forEach((t) => t.classList.toggle('active', t === tab));
             });
+        });
 
-            document.addEventListener("click", (e) => {
-                if (!dateRange.contains(e.target)) {
-                    closeDatePopup();
+        function normalizeDate(d) {
+            return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        }
+
+        function handleDateClick(e) {
+            const btn = e.target.closest('.day');
+            if (!btn || btn.classList.contains('disabled')) return;
+
+            const date = normalizeDate(new Date(btn.dataset.date));
+
+            if (activeRangePart === 'start') {
+                range.start = date;
+                if (range.end < range.start) {
+                    range.end = range.start;
                 }
-            });
-
-            closeBtn.addEventListener("click", () => closeDatePopup());
-            applyBtn.addEventListener("click", () => closeDatePopup());
-
-            datePopup.addEventListener("click", handleDateClick);
+            } else {
+                range.end = date;
+                if (range.start > range.end) {
+                    range.start = range.end;
+                }
+            }
 
             updateRangeDisplay();
             renderCalendars();
-        </script>
-        <!-- ===== FOOTER ===== -->
-        <footer class="footer">
-            <div class="container footer-grid">
-                <div class="footer-col footer-col--brand">
-                    <div class="footer-logo">
-                        <i class="fa-solid fa-building"></i>
-                        <span>TRAVEL</span><span class="footer-logo--accent">MATE</span>
-                    </div>
-                    <p class="footer-desc">
-                        Luôn được cập nhật về các lời khuyên du lịch, đề xuất và khuyến mãi mới nhất.
-                    </p>
+        }
 
-                    <div class="footer-payments">
-                        <img src="../assets/images/VNPAY.png" alt="VNPay" />
-                    </div>
-                </div>
+        function openDatePopup() {
+            dateRange.classList.add('open');
+            activeRangePart = 'start';
+            tabButtons.forEach((t) => t.classList.toggle('active', t.dataset.part === 'start'));
+        }
 
-                <div class="footer-col">
-                    <h4>Về TravelMate</h4>
-                    <ul>
-                        <li><a href="#">Cách đặt chỗ</a></li>
-                        <li><a href="#">Liên hệ chúng tôi</a></li>
-                        <li><a href="#">Trợ giúp</a></li>
-                        <li><a href="#">Tuyển dụng</a></li>
-                        <li><a href="#">Về chúng tôi</a></li>
-                    </ul>
-                </div>
+        function closeDatePopup() {
+            dateRange.classList.remove('open');
+        }
 
-                <div class="footer-col">
-                    <h4>Sản phẩm</h4>
-                    <ul>
-                        <li><a href="#">Khách sạn</a></li>
-                        <li><a href="#">Villa</a></li>
-                        <li><a href="#">Homestay</a></li>
-                        <li><a href="#">Căn hộ</a></li>
-                    </ul>
-                </div>
+        dateRange.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (e.target.closest('.date-popup')) return;
+            openDatePopup();
+        });
 
-                <div class="footer-col">
-                    <h4>Khác</h4>
-                    <ul>
-                        <li><a href="#">Blog</a></li>
-                        <li><a href="#">Cẩm nang</a></li>
-                        <li><a href="#">Điều khoản & Điều kiện</a></li>
-                        <li><a href="#">Chính sách riêng tư</a></li>
-                        <li><a href="#">Đăng ký đối tác</a></li>
-                        <li><a href="#">Theo dõi chúng tôi</a></li>
-                    </ul>
-                </div>
+        document.addEventListener('click', (e) => {
+            if (!dateRange.contains(e.target)) {
+                closeDatePopup();
+            }
+        });
 
-                <div class="footer-col footer-col--apps">
-                    <h4>Tải ứng dụng</h4>
-                    <div class="footer-apps">
-                        <a href="#" class="app-btn">
-                            <i class="fa-brands fa-google-play"></i>
-                            <span>Google Play</span>
+        closeBtn.addEventListener('click', () => closeDatePopup());
+        applyBtn.addEventListener('click', () => closeDatePopup());
+
+        datePopup.addEventListener('click', handleDateClick);
+
+        updateRangeDisplay();
+        renderCalendars();
+
+        // 4. Guest Popup
+        const guestWrap = document.querySelector('.guest-input');
+
+        function closeGuestPopup() {
+            guestWrap.classList.remove('active');
+        }
+
+        guestWrap.addEventListener('click', (e) => {
+            if (e.target.closest('.popup-box')) return;
+            const isActive = guestWrap.classList.contains('active');
+            closeGuestPopup();
+            if (!isActive) guestWrap.classList.add('active');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.guest-input')) {
+                closeGuestPopup();
+            }
+        });
+
+        document.querySelectorAll('.close-popup').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeGuestPopup();
+            });
+        });
+
+        // 5. Guest Counter
+        const state = { adults: 2, children: 0, rooms: 1 };
+        const guestDisplay = document.getElementById('guestDisplay');
+
+        function updateGuestDisplay() {
+            guestDisplay.textContent = `${state.adults + state.children} Khách, ${state.rooms} Phòng`;
+            document.getElementById('count-adults').textContent = state.adults;
+            document.getElementById('count-children').textContent = state.children;
+            document.getElementById('count-rooms').textContent = state.rooms;
+        }
+
+        document.querySelectorAll('.guest-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const target = btn.dataset.target;
+                const isIncrement = btn.classList.contains('increment');
+
+                if (isIncrement) {
+                    if (target === 'adults' && state.adults < 20) state.adults++;
+                    if (target === 'children' && state.children < 10) state.children++;
+                    if (target === 'rooms' && state.rooms < 10) state.rooms++;
+                } else {
+                    if (target === 'adults' && state.adults > 1) state.adults--;
+                    if (target === 'children' && state.children > 0) state.children--;
+                    if (target === 'rooms' && state.rooms > 1) state.rooms--;
+                }
+                updateGuestDisplay();
+            });
+        });
+
+        // 5. Copy Voucher
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const code = this.previousElementSibling.textContent;
+                navigator.clipboard.writeText(code);
+
+                const originalText = this.textContent;
+                this.textContent = 'Đã copy!';
+                this.style.backgroundColor = '#d1fae5';
+                this.style.color = '#059669';
+
+                setTimeout(() => {
+                    this.textContent = originalText;
+                    this.style.backgroundColor = '';
+                    this.style.color = '';
+                }, 2000);
+            });
+        });
+
+        // 6. Destination Panels – animated region switcher
+        (function () {
+            const destTabs = document.querySelectorAll('.dest-tab');
+            const panels = document.querySelectorAll('.dest-panel');
+            const STAGGER = 55; // ms giữa mỗi ô
+
+            // Trigger animate-in cho các ô trong panel vừa hiện
+            function animateIn(panel) {
+                const items = panel.querySelectorAll('.di-animate');
+                items.forEach((item, i) => {
+                    item.style.transition = 'none';
+                    item.style.transform = 'scale(0.75)';
+                    item.style.opacity = '0';
+                    // Force reflow
+                    void item.offsetWidth;
+                    setTimeout(() => {
+                        item.style.transition = `transform 0.42s cubic-bezier(0.34,1.56,0.64,1) ${i * STAGGER}ms,
+                                                  opacity   0.35s ease ${i * STAGGER}ms`;
+                        item.style.transform = 'scale(1)';
+                        item.style.opacity = '1';
+                    }, 10);
+                });
+            }
+
+            // Animate-out ô của panel hiện tại rồi gọi callback
+            function animateOut(panel, callback) {
+                const items = panel.querySelectorAll('.di-animate');
+                const total = items.length;
+                if (total === 0) { callback(); return; }
+                let done = 0;
+                items.forEach((item, i) => {
+                    const delay = (total - 1 - i) * (STAGGER * 0.5);
+                    item.style.transition = `transform 0.28s ease ${delay}ms,
+                                              opacity   0.25s ease ${delay}ms`;
+                    item.style.transform = 'scale(0.75)';
+                    item.style.opacity = '0';
+                    setTimeout(() => {
+                        done++;
+                        if (done === total) callback();
+                    }, 280 + delay + 10);
+                });
+            }
+
+            let switching = false;
+
+            destTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    if (switching) return;
+                    const targetRegion = tab.dataset.region;
+                    const activeTab = document.querySelector('.dest-tab.active');
+                    const activePanel = document.querySelector('.dest-panel.active');
+                    const targetPanel = document.getElementById('panel-' + targetRegion);
+
+                    if (!targetPanel || activePanel === targetPanel) return;
+
+                    switching = true;
+
+                    // Update tab active
+                    destTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    // Animate old panel out -> show new panel -> animate new panel in
+                    animateOut(activePanel, () => {
+                        activePanel.classList.remove('active');
+                        targetPanel.classList.add('active');
+                        animateIn(targetPanel);
+                        switching = false;
+                    });
+                });
+            });
+
+            // Animate-in trang đầu
+            const firstPanel = document.querySelector('.dest-panel.active');
+            if (firstPanel) animateIn(firstPanel);
+        })();
+    </script>
+
+    <!-- ===== HAMBURGER SIDEBAR SCRIPT ===== -->
+    <script>
+        (function () {
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const sidebarMenu = document.getElementById('sidebarMenu');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+            const sidebarAuth = document.getElementById('sidebarAuth');
+
+            // Kiểm tra đã đăng nhập chưa (dùng localStorage key 'travelmate_user')
+            function isLoggedIn() {
+                return !!localStorage.getItem('travelmate_user');
+            }
+
+            // Render phần auth
+            function renderAuth() {
+                if (isLoggedIn()) {
+                    sidebarAuth.innerHTML = `
+                        <a href="#" class="btn-logout-side" id="sidebarLogoutBtn">
+                            <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                        </a>`;
+                    document.getElementById('sidebarLogoutBtn').addEventListener('click', function (e) {
+                        e.preventDefault();
+                        localStorage.removeItem('travelmate_user');
+                        closeSidebar();
+                        renderAuth();
+                    });
+                } else {
+                    sidebarAuth.innerHTML = `
+                        <a href="login.html" class="btn-login-side">
+                            <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
                         </a>
-                        <a href="#" class="app-btn">
-                            <i class="fa-brands fa-apple"></i>
-                            <span>App Store</span>
-                        </a>
-                    </div>
-                    <div class="footer-social">
-                        <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-                        <a href="#"><i class="fa-brands fa-instagram"></i></a>
-                        <a href="#"><i class="fa-brands fa-tiktok"></i></a>
-                        <a href="#"><i class="fa-brands fa-youtube"></i></a>
-                    </div>
-                </div>
-            </div>
+                        <a href="register.html" class="btn-register-side">
+                            <i class="fa-solid fa-user-plus"></i> Đăng ký
+                        </a>`;
+                }
+            }
 
-            <div class="footer-bottom">
-                <p>© 2026 TravelMate. Mọi quyền được bảo lưu.</p>
-            </div>
-        </footer>
-    </body>
+            function openSidebar() {
+                sidebarMenu.classList.add('active');
+                sidebarOverlay.classList.add('active');
+                hamburgerBtn.setAttribute('aria-expanded', 'true');
+                document.body.style.overflow = 'hidden';
+                renderAuth();
+            }
+
+            function closeSidebar() {
+                sidebarMenu.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+                hamburgerBtn.setAttribute('aria-expanded', 'false');
+                document.body.style.overflow = '';
+            }
+
+            hamburgerBtn.addEventListener('click', openSidebar);
+            sidebarCloseBtn.addEventListener('click', closeSidebar);
+            sidebarOverlay.addEventListener('click', closeSidebar);
+
+            // Đóng bằng phím Escape
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeSidebar();
+            });
+
+            // Highlight active
+            document.getElementById('sb-hotels').classList.remove('active-sidebar');
+        })();
+    </script>
+    <!-- CHAT AI FLOATING BUTTON -->
+    <div class="ai-chat-widget">
+        <button class="ai-chat-btn" id="aiChatBtn" aria-label="Mở trợ lý AI">
+            <span class="ai-ring ring-1"></span>
+            <span class="ai-ring ring-2"></span>
+            <span class="ai-ring ring-3"></span>
+
+            <span class="ai-chat-core">
+                <img src="/frontend/assets/images/iconChatB.png" alt="AI Chat" class="ai-chat-image" />
+            </span>
+        </button>
+    </div>
+    <!-- SCROLL TO TOP BUTTON -->
+    <button id="scrollTopBtn" class="scroll-top-btn" aria-label="Lên đầu trang">
+        <span class="double-arrow-up">
+            <span class="chevron chevron-1"></span>
+            <span class="chevron chevron-2"></span>
+        </span>
+    </button>
+</body>
+
 </html>

@@ -1,0 +1,293 @@
+/* ===== DESTINATIONS SECTION ===== */
+.destinations-section {
+    padding: 60px 0;
+}
+
+.destinations-header {
+    text-align: center;
+    margin-bottom: 26px;
+}
+
+.destinations-header h2 {
+    font-size: 1.875rem;    /* 30px — H2 scale */
+    font-weight: 800;
+    letter-spacing: 0.06em; /* uppercase tracking */
+    margin-bottom: 10px;
+    color: #1e3a8a;
+    line-height: 1.2;
+}
+
+.destinations-header p {
+    max-width: 660px;
+    margin: 0 auto;
+    color: #64748b;
+    font-size: 0.875rem;    /* 14px — caption */
+    line-height: 1.7;       /* spacious body */
+    font-weight: 400;
+}
+
+.destinations-tabs {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 20px 0 24px;
+}
+
+.dest-tab {
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 999px;
+    padding: 7px 16px;      /* compact pill */
+    font-size: 0.8125rem;   /* 13px */
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.dest-tab.active {
+    background: rgba(37, 99, 235, 0.14);
+    border-color: rgba(37, 99, 235, 0.5);
+    color: #1e40af;
+    font-weight: 700;
+}
+
+.dest-tab:hover {
+    background: rgba(37, 99, 235, 0.08);
+    color: #1e40af;
+}
+
+.destinations-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(4, 200px);
+    gap: 16px;
+    grid-template-areas:
+        "q q q h l"
+        "q q q n y"
+        "q q q s s"
+        "c p a s s";
+}
+
+.dest-card {
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 18px 35px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+
+.dest-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.dest-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.14);
+}
+
+.dest-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(190deg, rgba(0,0,0,0.15), rgba(0,0,0,0.58));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dest-name {
+    color: #ffffff;
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+
+.dest-quang-ninh {
+    grid-area: q;
+    /* kéo ảnh về bên phải để lấy thêm ảnh bên trái*/
+    background-position: right;
+}
+
+.dest-ha-giang {
+    grid-area: h;
+}
+
+.dest-lao-cai {
+    grid-area: l;
+}
+
+.dest-ninh-binh {
+    grid-area: n;
+}
+
+.dest-yen-bai {
+    grid-area: y;
+}
+
+.dest-son-la {
+    grid-area: s;
+}
+
+.dest-cao-bang {
+    grid-area: c;
+}
+
+.dest-hai-phong {
+    grid-area: p;
+}
+
+.dest-ha-noi {
+    grid-area: a;
+}
+
+@media (max-width: 980px) {
+    .destinations-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .destinations-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 500px) {
+    .destinations-header h2 {
+        font-size: 1.8rem;
+    }
+
+    .destinations-header p {
+        font-size: 0.9rem;
+    }
+}
+
+/* ===== FIX CHO DESTINATION GRID TRONG index.html ===== */
+.dest-header {
+    text-align: center;
+    margin-bottom: 26px;
+}
+
+.dest-header h2 {
+    font-size: 1.875rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+    color: #1e3a8a;
+    line-height: 1.2;
+}
+
+.dest-header p {
+    max-width: 760px;
+    margin: 0 auto;
+    color: #64748b;
+    font-size: 0.95rem;
+    line-height: 1.7;
+}
+
+.dest-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 220px;
+    gap: 16px;
+}
+
+.dest-item {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border-radius: 18px;
+    box-shadow: 0 18px 35px rgba(0, 0, 0, 0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    min-height: 220px;
+}
+
+.dest-item:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.14);
+}
+
+.dest-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.dest-item.span-2 {
+    grid-column: span 2;
+}
+
+.dest-item.row-2 {
+    grid-row: span 2;
+}
+
+.dest-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.58));
+}
+
+.dest-content {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    bottom: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 2;
+}
+
+.dest-content h3 {
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    margin: 0;
+    text-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+
+.dest-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+
+@media (max-width: 992px) {
+    .dest-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .dest-item.span-2,
+    .dest-item.row-2 {
+        grid-column: span 1;
+        grid-row: span 1;
+    }
+}
+
+@media (max-width: 576px) {
+    .dest-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dest-item {
+        min-height: 240px;
+    }
+}
