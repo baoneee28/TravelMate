@@ -1,0 +1,139 @@
+﻿<!doctype html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Thêm voucher - Partner TravelMate</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="../assets/base.css" />
+        <link rel="stylesheet" href="../assets/layout.css" />
+        <link rel="stylesheet" href="../assets/components.css" />
+        <link rel="stylesheet" href="../assets/pages/admin.css" />
+        <link rel="stylesheet" href="../assets/pages/partners.css" />
+        <link rel="stylesheet" href="../assets/responsive.css" />
+    </head>
+    <body>
+        <div class="admin-wrapper">
+            <aside class="admin-sidebar">
+                <div class="admin-sidebar__header">
+                    <a href="rooms.html" class="admin-sidebar__logo">
+                        <div class="admin-sidebar__logo-icon">TM</div>
+                        <div>
+                            <div class="admin-sidebar__logo-text">Travel<span>Mate</span></div>
+                            <span class="admin-sidebar__badge">PARTNER CENTER</span>
+                        </div>
+                    </a>
+                </div>
+                <nav class="admin-sidebar__nav">
+                    <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
+                    <a href="rooms.html" class="admin-sidebar__link">
+                        <span class="admin-sidebar__link-icon">🛏</span> Danh sách phòng
+                    </a>
+                    <a href="add-room.html" class="admin-sidebar__link">
+                        <span class="admin-sidebar__link-icon">＋</span> Thêm phòng
+                    </a>
+                    <a href="pending-room.html" class="admin-sidebar__link">
+                        <span class="admin-sidebar__link-icon">⏳</span> Chờ duyệt
+                    </a>
+                    <div class="admin-sidebar__section-title">Tiện ích</div>
+                    <a href="add-furniture.html" class="admin-sidebar__link">
+                        <span class="admin-sidebar__link-icon">🪑</span> Thêm nội thất
+                    </a>
+                    <a href="add-voucher.html" class="admin-sidebar__link active">
+                        <span class="admin-sidebar__link-icon">🎟</span> Thêm voucher
+                    </a>
+                </nav>
+                <div class="admin-sidebar__footer">
+                    <div class="admin-sidebar__user">
+                        <div class="admin-sidebar__user-avatar">PT</div>
+                        <div class="admin-sidebar__user-info">
+                            <div class="admin-sidebar__user-name">Sunrise Sapa Lodge</div>
+                            <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            <div class="admin-sidebar-overlay"></div>
+
+            <div class="admin-main">
+                <header class="admin-topbar">
+                    <div style="display: flex; align-items: center; gap: var(--space-4)">
+                        <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                        <h1 class="admin-topbar__title">Thêm voucher ưu đãi</h1>
+                    </div>
+                </header>
+                <main class="admin-content">
+                    <div class="partner-grid">
+                        <section class="partner-panel">
+                            <div class="partner-panel__body">
+                                <div class="page-header" style="margin-bottom: var(--space-6)">
+                                    <div>
+                                        <h2 class="page-header__title">Thiết lập voucher</h2>
+                                        <p class="page-header__subtitle">Lưu voucher vào bộ nhớ cục bộ để tái sử dụng khi quản lý phòng.</p>
+                                    </div>
+                                </div>
+
+                                <form id="partner-voucher-form" class="partner-form">
+                                    <div class="partner-form__grid">
+                                        <div class="form-group">
+                                            <label class="form-label">Mã voucher</label>
+                                            <input name="code" type="text" class="form-control" placeholder="SAPA20" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Áp dụng cho</label>
+                                            <select class="form-control" id="partner-voucher-room" name="scope"></select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Loại ưu đãi</label>
+                                            <select class="form-control" name="discountType">
+                                                <option>Giảm theo %</option>
+                                                <option>Giảm theo số tiền</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Giá trị</label>
+                                            <input name="discountValue" type="number" class="form-control" placeholder="20" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Ngày bắt đầu</label>
+                                            <input name="startDate" type="date" class="form-control" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Ngày kết thúc</label>
+                                            <input name="endDate" type="date" class="form-control" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group" style="margin-bottom: 0">
+                                        <label class="form-label">Điều kiện áp dụng</label>
+                                        <textarea name="condition" class="form-control" rows="5" placeholder="Ví dụ: đặt tối thiểu 2 đêm, áp dụng cho booking từ thứ 2 đến thứ 5."></textarea>
+                                    </div>
+
+                                    <div class="partner-form__actions">
+                                        <button class="btn btn--primary" type="submit">Tạo voucher</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </section>
+
+                        <aside class="partner-shell">
+                            <section class="partner-panel">
+                                <div class="partner-panel__body">
+                                    <div class="partner-form__heading" style="margin-bottom: var(--space-4)">Voucher đã lưu</div>
+                                    <div class="partner-chip-list" id="partner-voucher-list"></div>
+                                </div>
+                            </section>
+                        </aside>
+                    </div>
+                </main>
+            </div>
+        </div>
+        <script src="../assets/js/main.js"></script>
+        <script src="../assets/js/admin.js"></script>
+        <script src="../assets/js/partners.js"></script>
+    </body>
+</html>
