@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý voucher – Admin TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/base.css" />
+    <link rel="stylesheet" href="../assets/layout.css" />
+    <link rel="stylesheet" href="../assets/components.css" />
+    <link rel="stylesheet" href="../assets/pages/admin.css" />
+    <link rel="stylesheet" href="../assets/pages/partners.css" />
+    <link rel="stylesheet" href="../assets/responsive.css" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+
+<body>
+    <div class="admin-wrapper">
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar__header">
+                <a href="dashboard.html" class="sidebar-logo">
+                    <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                    <div>
+                        <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                        <span class="admin-sidebar__badge">ADMIN PANEL</span>
+                    </div>
+                </a>
+            </div>
+            <nav class="admin-sidebar__nav">
+                <div class="admin-sidebar__section-title">Tổng quan</div>
+                <a href="dashboard.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span>
+                    Dashboard</a>
+                <div class="admin-sidebar__section-title">Quản lý</div>
+                <a href="hotels.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Danh
+                    sách khách sạn</a>
+                <a href="rooms.html" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">🛏</span>
+                    Duyệt phòng</a>
+                <a href="bookings.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt
+                    phòng</a>
+                <a href="users.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người
+                    dùng</a>
+                <a href="places.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗺</span> Địa
+                    điểm</a>
+                <a href="vouchers.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span>
+                    Voucher</a>
+
+                <div class="admin-sidebar__section-title">Hệ thống</div>
+                <a href="../user/index.html" class="admin-sidebar__link" target="_blank">
+                    <span class="admin-sidebar__link-icon">🌐</span> Xem trang User
+                </a>
+            </nav>
+            <div class="admin-sidebar__footer">
+                <div class="admin-sidebar__user">
+                    <div class="admin-sidebar__user-avatar">AD</div>
+                    <div class="admin-sidebar__user-info">
+                        <div class="admin-sidebar__user-name">Admin TravelMate</div>
+                        <div class="admin-sidebar__user-role">Quản trị viên</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <div class="admin-sidebar-overlay"></div>
+
+        <div class="admin-main">
+            <main class="admin-content">
+                <div class="page-header">
+                    <div>
+                        <h2 class="page-header__title">🎟 Quản lý voucher</h2>
+                        <p class="page-header__subtitle">
+                            Admin đăng voucher tại đây. Partner chỉ được chọn voucher đang hoạt động cho phòng đã duyệt.
+                        </p>
+                        <div class="admin-tabs" style="margin-top: 24px; display: flex; gap: 32px; border-bottom: 1px solid var(--color-border);">
+                            <a href="#" class="admin-tab active" data-target="user" style="padding-bottom: 12px; font-weight: 600; color: var(--color-primary); border-bottom: 2px solid var(--color-primary); text-decoration: none; font-size: 15px;">Voucher cho User</a>
+                            <a href="#" class="admin-tab" data-target="partner" style="padding-bottom: 12px; font-weight: 500; color: var(--color-text-muted); text-decoration: none; font-size: 15px;">Voucher cho Partner</a>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="review-stats-grid">
+                    <article class="stats-card">
+                        <div class="stats-card__icon stats-card__icon--blue">🎟</div>
+                        <div>
+                            <div class="stats-card__value" data-voucher-summary="total">0</div>
+                            <div class="stats-card__label">Tổng voucher</div>
+                        </div>
+                    </article>
+                    <article class="stats-card">
+                        <div class="stats-card__icon stats-card__icon--green">✓</div>
+                        <div>
+                            <div class="stats-card__value" data-voucher-summary="active">0</div>
+                            <div class="stats-card__label">Đang hoạt động</div>
+                        </div>
+                    </article>
+                    <article class="stats-card">
+                        <div class="stats-card__icon stats-card__icon--amber">⏸</div>
+                        <div>
+                            <div class="stats-card__value" data-voucher-summary="hidden">0</div>
+                            <div class="stats-card__label">Tạm ẩn</div>
+                        </div>
+                    </article>
+                    <article class="stats-card">
+                        <div class="stats-card__icon stats-card__icon--red">🛏</div>
+                        <div>
+                            <div class="stats-card__value" data-voucher-summary="assigned">0</div>
+                            <div class="stats-card__label">Phòng đã gán</div>
+                        </div>
+                    </article>
+                </section>
+
+                <div class="partner-grid">
+                    <section class="partner-panel">
+                        <div class="partner-panel__body">
+                            <div class="partner-form__heading" id="admin-voucher-form-title">Tạo voucher mới</div>
+                            <form id="admin-voucher-form" class="partner-form" style="margin-top: var(--space-5)">
+                                <input type="hidden" id="admin-voucher-editing-id" />
+
+                                <div class="partner-form__grid">
+                                    <div class="form-group">
+                                        <label class="form-label">Mã voucher <span class="required">*</span></label>
+                                        <input name="code" type="text" class="form-control" placeholder="TRAVEL20" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Tên chương trình</label>
+                                        <input name="title" type="text" class="form-control"
+                                            placeholder="Ưu đãi mùa hè" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Đối tượng <span class="required">*</span></label>
+                                        <select name="target" class="form-control">
+                                            <option value="user">Người dùng (User)</option>
+                                            <option value="partner">Đối tác (Partner)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Loại ưu đãi</label>
+                                        <select name="discountType" class="form-control">
+                                            <option value="percent">Giảm theo %</option>
+                                            <option value="amount">Giảm theo số tiền</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Giá trị <span class="required">*</span></label>
+                                        <input name="discountValue" type="number" class="form-control"
+                                            placeholder="20" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Ngày bắt đầu</label>
+                                        <input name="startDate" type="date" class="form-control" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Ngày kết thúc</label>
+                                        <input name="endDate" type="date" class="form-control" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Số lượt dùng</label>
+                                        <input name="usageLimit" type="number" class="form-control" placeholder="200" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Trạng thái</label>
+                                        <select name="status" class="form-control">
+                                            <option>Đang hoạt động</option>
+                                            <option>Tạm ẩn</option>
+                                            <option>Hết hạn</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 0">
+                                    <label class="form-label">Điều kiện áp dụng</label>
+                                    <textarea name="condition" class="form-control" rows="4"
+                                        placeholder="Ví dụ: áp dụng cho phòng đã được duyệt, đặt tối thiểu 2 đêm."></textarea>
+                                </div>
+
+                                <div class="partner-form__actions">
+                                    <button class="btn btn--ghost" type="button" id="admin-voucher-cancel" hidden>
+                                        Hủy sửa
+                                    </button>
+                                    <button class="btn btn--primary" type="submit" id="admin-voucher-submit">
+                                        Tạo voucher
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </section>
+
+                    <section class="partner-panel">
+                        <div class="partner-panel__body">
+                            <div class="chart-card__header" style="margin-bottom: var(--space-5)">
+                                <div>
+                                    <h3 class="chart-card__title">Danh sách voucher</h3>
+                                    <span class="text-sm text-muted" id="admin-voucher-result-count">0 voucher hiển
+                                        thị</span>
+                                </div>
+                            </div>
+
+                            <div class="table-toolbar">
+                                <div class="input-group table-toolbar__search">
+                                    <span class="input-group__icon">🔍</span>
+                                    <input type="text" class="form-control" id="admin-voucher-search"
+                                        placeholder="Tìm mã voucher..." />
+                                </div>
+                                <div class="table-toolbar__actions">
+                                    <select class="form-control" id="admin-voucher-status-filter" style="width: 170px">
+                                        <option value="all">Tất cả trạng thái</option>
+                                        <option value="Đang hoạt động">Đang hoạt động</option>
+                                        <option value="Tạm ẩn">Tạm ẩn</option>
+                                        <option value="Hết hạn">Hết hạn</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="table-wrap">
+                                <table class="table data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>STT</th>
+                                            <th>Mã voucher</th>
+                                            <th>Đối tượng</th>
+                                            <th>Loại</th>
+                                            <th>Giá trị</th>
+                                            <th>Bắt đầu</th>
+                                            <th>Kết thúc</th>
+                                            <th>Trạng thái</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-vouchers-table"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/admin.js"></script>
+    <script src="../assets/js/voucher-store.js"></script>
+    <script src="../assets/js/admin-vouchers.js"></script>
+</body>
+
+</html>

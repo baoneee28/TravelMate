@@ -15,18 +15,20 @@
         <link rel="stylesheet" href="../assets/pages/admin.css" />
         <link rel="stylesheet" href="../assets/pages/partners.css" />
         <link rel="stylesheet" href="../assets/responsive.css" />
-    </head>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
     <body>
         <div class="admin-wrapper">
             <aside class="admin-sidebar">
                 <div class="admin-sidebar__header">
-                    <a href="rooms.html" class="admin-sidebar__logo">
-                        <div class="admin-sidebar__logo-icon">TM</div>
-                        <div>
-                            <div class="admin-sidebar__logo-text">Travel<span>Mate</span></div>
-                            <span class="admin-sidebar__badge">PARTNER CENTER</span>
-                        </div>
-                    </a>
+                    <a href="rooms.html" class="sidebar-logo">
+                    <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                    <div>
+                        <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                        <span class="admin-sidebar__badge">PARTNER CENTER</span>
+                    </div>
+                </a>
                 </div>
                 <nav class="admin-sidebar__nav">
                     <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
@@ -44,7 +46,7 @@
                         <span class="admin-sidebar__link-icon">🪑</span> Thêm nội thất
                     </a>
                     <a href="add-voucher.html" class="admin-sidebar__link">
-                        <span class="admin-sidebar__link-icon">🎟</span> Thêm voucher
+                        <span class="admin-sidebar__link-icon">🎟</span> Add voucher
                     </a>
                 </nav>
                 <div class="admin-sidebar__footer">
@@ -130,6 +132,8 @@
         </div>
         <script src="../assets/js/main.js"></script>
         <script src="../assets/js/admin.js"></script>
+        <script src="../assets/js/room-store.js"></script>
+        <script src="../assets/js/voucher-store.js"></script>
         <script src="../assets/js/partners.js"></script>
     </body>
 </html>

@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Thêm voucher - Partner TravelMate</title>
+        <title>Add voucher - Partner TravelMate</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
@@ -15,18 +15,20 @@
         <link rel="stylesheet" href="../assets/pages/admin.css" />
         <link rel="stylesheet" href="../assets/pages/partners.css" />
         <link rel="stylesheet" href="../assets/responsive.css" />
-    </head>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
     <body>
         <div class="admin-wrapper">
             <aside class="admin-sidebar">
                 <div class="admin-sidebar__header">
-                    <a href="rooms.html" class="admin-sidebar__logo">
-                        <div class="admin-sidebar__logo-icon">TM</div>
-                        <div>
-                            <div class="admin-sidebar__logo-text">Travel<span>Mate</span></div>
-                            <span class="admin-sidebar__badge">PARTNER CENTER</span>
-                        </div>
-                    </a>
+                    <a href="rooms.html" class="sidebar-logo">
+                    <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                    <div>
+                        <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                        <span class="admin-sidebar__badge">PARTNER CENTER</span>
+                    </div>
+                </a>
                 </div>
                 <nav class="admin-sidebar__nav">
                     <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
@@ -44,7 +46,7 @@
                         <span class="admin-sidebar__link-icon">🪑</span> Thêm nội thất
                     </a>
                     <a href="add-voucher.html" class="admin-sidebar__link active">
-                        <span class="admin-sidebar__link-icon">🎟</span> Thêm voucher
+                        <span class="admin-sidebar__link-icon">🎟</span> Add voucher
                     </a>
                 </nav>
                 <div class="admin-sidebar__footer">
@@ -63,7 +65,7 @@
                 <header class="admin-topbar">
                     <div style="display: flex; align-items: center; gap: var(--space-4)">
                         <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
-                        <h1 class="admin-topbar__title">Thêm voucher ưu đãi</h1>
+                        <h1 class="admin-topbar__title">Add voucher cho phòng</h1>
                     </div>
                 </header>
                 <main class="admin-content">
@@ -72,49 +74,32 @@
                             <div class="partner-panel__body">
                                 <div class="page-header" style="margin-bottom: var(--space-6)">
                                     <div>
-                                        <h2 class="page-header__title">Thiết lập voucher</h2>
-                                        <p class="page-header__subtitle">Lưu voucher vào bộ nhớ cục bộ để tái sử dụng khi quản lý phòng.</p>
+                                        <h2 class="page-header__title">Chọn voucher admin cho phòng</h2>
+                                        <p class="page-header__subtitle">
+                                            Partner chỉ có thể gán voucher cho các phòng đã được admin duyệt.
+                                        </p>
                                     </div>
                                 </div>
 
                                 <form id="partner-voucher-form" class="partner-form">
-                                    <div class="partner-form__grid">
-                                        <div class="form-group">
-                                            <label class="form-label">Mã voucher</label>
-                                            <input name="code" type="text" class="form-control" placeholder="SAPA20" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">Áp dụng cho</label>
-                                            <select class="form-control" id="partner-voucher-room" name="scope"></select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">Loại ưu đãi</label>
-                                            <select class="form-control" name="discountType">
-                                                <option>Giảm theo %</option>
-                                                <option>Giảm theo số tiền</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">Giá trị</label>
-                                            <input name="discountValue" type="number" class="form-control" placeholder="20" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">Ngày bắt đầu</label>
-                                            <input name="startDate" type="date" class="form-control" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">Ngày kết thúc</label>
-                                            <input name="endDate" type="date" class="form-control" />
-                                        </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Phòng đã được duyệt</label>
+                                        <select class="form-control" id="partner-voucher-room" name="roomId"></select>
                                     </div>
 
-                                    <div class="form-group" style="margin-bottom: 0">
-                                        <label class="form-label">Điều kiện áp dụng</label>
-                                        <textarea name="condition" class="form-control" rows="5" placeholder="Ví dụ: đặt tối thiểu 2 đêm, áp dụng cho booking từ thứ 2 đến thứ 5."></textarea>
+                                    <div class="partner-note" id="partner-voucher-room-summary">
+                                        <div class="partner-note__title">Thông tin phòng</div>
+                                        <div class="partner-note__list">Chọn một phòng để xem voucher có thể gán.</div>
+                                    </div>
+
+                                    <div class="partner-form__section">
+                                        <div class="partner-form__heading">Voucher admin đang hoạt động</div>
+                                        <div class="partner-voucher-options" id="partner-voucher-options"></div>
                                     </div>
 
                                     <div class="partner-form__actions">
-                                        <button class="btn btn--primary" type="submit">Tạo voucher</button>
+                                        <a href="rooms.html" class="btn btn--ghost">Về danh sách phòng</a>
+                                        <button class="btn btn--primary" type="submit">Lưu voucher cho phòng</button>
                                     </div>
                                 </form>
                             </div>
@@ -123,7 +108,9 @@
                         <aside class="partner-shell">
                             <section class="partner-panel">
                                 <div class="partner-panel__body">
-                                    <div class="partner-form__heading" style="margin-bottom: var(--space-4)">Voucher đã lưu</div>
+                                    <div class="partner-form__heading" style="margin-bottom: var(--space-4)">
+                                        Voucher đang gán
+                                    </div>
                                     <div class="partner-chip-list" id="partner-voucher-list"></div>
                                 </div>
                             </section>
@@ -134,6 +121,8 @@
         </div>
         <script src="../assets/js/main.js"></script>
         <script src="../assets/js/admin.js"></script>
+        <script src="../assets/js/room-store.js"></script>
+        <script src="../assets/js/voucher-store.js"></script>
         <script src="../assets/js/partners.js"></script>
     </body>
 </html>

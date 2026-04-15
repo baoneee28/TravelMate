@@ -1,73 +1,11 @@
-﻿document.addEventListener('DOMContentLoaded', () => {
-  const STORAGE_KEYS = {
-    rooms: 'travelmatePartnerRooms',
-    latestPendingRoom: 'travelmatePendingRoom',
-    furniture: 'travelmateFurnitureUpdates',
-    vouchers: 'travelmatePartnerVouchers',
-  };
+document.addEventListener('DOMContentLoaded', () => {
+  const roomStore = window.TravelMateRoomStore;
+  const voucherStore = window.TravelMateVoucherStore;
+  if (!roomStore) return;
 
-  const defaultRooms = [
-    {
-      id: 'room-default-1',
-      roomName: 'Deluxe Mountain View',
-      propertyName: 'Sunrise Sapa Lodge',
-      roomType: 'Deluxe',
-      capacity: '2 khách',
-      size: '32m²',
-      price: '1650000',
-      note: '',
-      status: 'Đang bán',
-      approvalStatus: 'Đã duyệt',
-      furniture: [],
-      amenities: [],
-      createdAt: '14/04/2026 08:00:00',
-    },
-    {
-      id: 'room-default-2',
-      roomName: 'Family Balcony Suite',
-      propertyName: 'Sunrise Sapa Lodge',
-      roomType: 'Suite',
-      capacity: '4 khách',
-      size: '52m²',
-      price: '2450000',
-      note: '',
-      status: 'Tạm khóa bán',
-      approvalStatus: 'Chờ duyệt',
-      furniture: [],
-      amenities: [],
-      createdAt: '14/04/2026 08:15:00',
-    },
-    {
-      id: 'room-default-3',
-      roomName: 'Standard Garden',
-      propertyName: 'Sunrise Sapa Lodge',
-      roomType: 'Standard',
-      capacity: '2 khách',
-      size: '26m²',
-      price: '1150000',
-      note: '',
-      status: 'Đang bán',
-      approvalStatus: 'Đã duyệt',
-      furniture: ['Giường 1m8', 'Rèm cản sáng', 'Minibar', 'Két sắt', 'Máy sấy tóc'],
-      amenities: [],
-      createdAt: '14/04/2026 08:30:00',
-    },
-    {
-      id: 'room-default-4',
-      roomName: 'Studio Corner Room',
-      propertyName: 'Sunrise Sapa Lodge',
-      roomType: 'Studio',
-      capacity: '3 khách',
-      size: '40m²',
-      price: '1920000',
-      note: '',
-      status: 'Tạm ẩn',
-      approvalStatus: 'Đã duyệt',
-      furniture: [],
-      amenities: [],
-      createdAt: '14/04/2026 08:45:00',
-    },
-  ];
+  const STORAGE_KEYS = {
+    furniture: 'travelmateFurnitureUpdates',
+  };
 
   function readList(key, fallback) {
     try {
@@ -84,21 +22,6 @@
     window.localStorage.setItem(key, JSON.stringify(value));
   }
 
-  function ensureRooms() {
-    const rooms = readList(STORAGE_KEYS.rooms, []);
-    if (rooms.length) return rooms;
-    writeList(STORAGE_KEYS.rooms, defaultRooms);
-    return defaultRooms;
-  }
-
-  function getRooms() {
-    return ensureRooms();
-  }
-
-  function saveRooms(rooms) {
-    writeList(STORAGE_KEYS.rooms, rooms);
-  }
-
   function getFurnitureUpdates() {
     return readList(STORAGE_KEYS.furniture, []);
   }
@@ -107,38 +30,13 @@
     writeList(STORAGE_KEYS.furniture, items);
   }
 
-  function getVouchers() {
-    return readList(STORAGE_KEYS.vouchers, []);
-  }
-
-  function saveVouchers(items) {
-    writeList(STORAGE_KEYS.vouchers, items);
-  }
-
-  function createId(prefix) {
-    return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-  }
-
-  function formatCurrency(value) {
-    const amount = Number(value) || 0;
-    return `${amount.toLocaleString('vi-VN')}đ`;
-  }
-
-  function getStatusClass(status) {
-    if (status === 'Đang bán' || status === 'Đã duyệt') return 'status-dot--active';
-    if (status === 'Chờ duyệt' || status === 'Tạm khóa bán') return 'status-dot--pending';
-    return 'status-dot--inactive';
-  }
-
-  function getBadgeClass(type) {
-    const map = {
-      Deluxe: 'badge--primary',
-      Suite: 'badge--accent',
-      Standard: 'badge--muted',
-      Studio: 'badge--success',
-      'Family Room': 'badge--accent',
-    };
-    return map[type] || 'badge--primary';
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   function getAmenityLabels() {
@@ -147,41 +45,148 @@
       .filter(Boolean);
   }
 
-  function populateRoomOptions(selector, includeAllOption) {
+  function populateRoomOptions(selector, includeAllOption, onlyApproved = false) {
     const select = document.querySelector(selector);
     if (!select) return;
 
-    const rooms = getRooms();
-    const options = rooms.map((room) => `<option value="${room.id}">${room.roomName}</option>`).join('');
+    let rooms = roomStore.getRooms();
+    if (onlyApproved) {
+      rooms = rooms.filter((room) => room.approvalStatus === 'Đã duyệt');
+    }
+
+    if (!rooms.length) {
+      select.innerHTML = `<option value="">Chưa có phòng nào${onlyApproved ? ' đã được duyệt' : ''}</option>`;
+      select.disabled = true;
+      return;
+    }
+
+    const options = rooms
+      .map((room) => `<option value="${escapeHtml(room.id)}">${escapeHtml(room.roomName)}</option>`)
+      .join('');
+
+    select.disabled = false;
     select.innerHTML = includeAllOption
       ? `<option value="all">Toàn bộ cơ sở</option>${options}`
       : options;
+
+    const latestRoomId = roomStore.getLatestRoomId();
+    if (!includeAllOption && latestRoomId && rooms.some((room) => room.id === latestRoomId)) {
+      select.value = latestRoomId;
+    }
+  }
+
+  function getApprovedRooms() {
+    return roomStore.getRooms().filter((room) => room.approvalStatus === 'Đã duyệt');
+  }
+
+  function getRequestedVoucherRoomId() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('roomId') || voucherStore?.getLatestRoomId() || roomStore.getLatestRoomId();
+  }
+
+  function populateApprovedRoomOptions(selector) {
+    const select = document.querySelector(selector);
+    if (!select) return [];
+
+    const rooms = getApprovedRooms();
+    if (!rooms.length) {
+      select.innerHTML = '<option value="">Chưa có phòng đã duyệt</option>';
+      select.disabled = true;
+      return rooms;
+    }
+
+    select.disabled = false;
+    select.innerHTML = rooms
+      .map((room) => `<option value="${escapeHtml(room.id)}">${escapeHtml(room.roomName)}</option>`)
+      .join('');
+
+    const requestedRoomId = getRequestedVoucherRoomId();
+    const selectedRoom = rooms.find((room) => room.id === requestedRoomId) || rooms[0];
+    select.value = selectedRoom.id;
+    if (voucherStore) voucherStore.setLatestRoomId(selectedRoom.id);
+    return rooms;
   }
 
   function renderRoomsTable() {
     const tbody = document.getElementById('partner-rooms-table');
     if (!tbody) return;
 
-    const rooms = getRooms();
-    tbody.innerHTML = rooms
-      .map((room, index) => `
+    const rooms = roomStore.getRooms();
+
+    if (!rooms.length) {
+      const totalEl = document.querySelector('[data-summary="totalRooms"]');
+      const pendingEl = document.querySelector('[data-summary="pendingRooms"]');
+      const activeEl = document.querySelector('[data-summary="activeRooms"]');
+      const avgPriceEl = document.querySelector('[data-summary="avgPrice"]');
+
+      if (totalEl) totalEl.textContent = '0';
+      if (pendingEl) pendingEl.textContent = '0';
+      if (activeEl) activeEl.textContent = '0';
+      if (avgPriceEl) avgPriceEl.textContent = '0';
+
+      tbody.innerHTML = `
         <tr>
-          <td>${index + 1}</td>
-          <td><strong>${room.roomName}</strong></td>
-          <td><span class="badge ${getBadgeClass(room.roomType)}">${room.roomType}</span></td>
-          <td>${room.capacity}</td>
-          <td>${room.size || '--'}</td>
-          <td style="font-weight: 600; color: var(--color-primary)">${formatCurrency(room.price)}</td>
-          <td><span class="status-dot ${getStatusClass(room.status)}">${room.status}</span></td>
-          <td><span class="status-dot ${getStatusClass(room.approvalStatus)}">${room.approvalStatus}</span></td>
-          <td>
-            <div class="table__actions">
-              <a href="add-furniture.html" class="btn btn--outline btn--sm">Nội thất</a>
-              <button class="btn btn--danger btn--sm btn-delete-room" data-room-id="${room.id}" data-name="${room.roomName}">Xóa</button>
-            </div>
+          <td colspan="9">
+            <div class="partner-empty-inline">Chưa có phòng nào được lưu. Hãy gửi một hồ sơ mới để bắt đầu.</div>
           </td>
         </tr>
-      `)
+      `;
+      return;
+    }
+
+    tbody.innerHTML = rooms
+      .map((room, index) => {
+        const roomTypeLabel = roomStore.getRoomTypeLabel(room);
+        const roomTypeClass = room.roomType ? roomStore.getBadgeClass(room.roomType) : 'badge--muted';
+        const isApproved = room.approvalStatus === 'Đã duyệt';
+        const voucherLabels = voucherStore ? voucherStore.getRoomVoucherLabels(room.id) : [];
+        const voucherNote = voucherLabels.length ? voucherLabels.slice(0, 2).join(', ') : 'Chưa gán voucher';
+        const actionButtons = isApproved
+          ? `
+                <button class="btn btn--outline btn--sm btn-manage-room" data-room-id="${escapeHtml(room.id)}">
+                  Nội thất
+                </button>
+                <button class="btn btn--primary btn--sm btn-add-voucher" data-room-id="${escapeHtml(room.id)}">
+                  Add voucher
+                </button>
+              `
+          : `
+                <button class="btn btn--outline btn--sm btn-track-room" data-room-id="${escapeHtml(room.id)}">
+                  Theo dõi
+                </button>
+              `;
+
+        return `
+          <tr>
+            <td>${index + 1}</td>
+            <td>
+              <strong>${escapeHtml(room.roomName)}</strong>
+              <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 4px;">
+                ${escapeHtml(room.propertyName)}
+              </div>
+            </td>
+            <td><span class="badge ${roomTypeClass}">${escapeHtml(roomTypeLabel)}</span></td>
+            <td>${escapeHtml(room.capacity)}</td>
+            <td>${escapeHtml(room.size || '--')}</td>
+            <td style="font-weight: 600; color: var(--color-primary)">${escapeHtml(roomStore.formatCurrency(room.price))}</td>
+            <td><span class="status-dot ${roomStore.getStatusClass(room.status)}">${escapeHtml(room.status)}</span></td>
+            <td><span class="status-dot ${roomStore.getStatusClass(room.approvalStatus)}">${escapeHtml(room.approvalStatus)}</span></td>
+            <td>
+              <div class="table__actions">
+                ${actionButtons}
+                <button class="btn btn--danger btn--sm btn-delete-room" data-room-id="${escapeHtml(room.id)}" data-name="${escapeHtml(room.roomName)}">
+                  Xóa
+                </button>
+              </div>
+              ${
+                isApproved
+                  ? `<div class="partner-action-note">Voucher: ${escapeHtml(voucherNote)}</div>`
+                  : ''
+              }
+            </td>
+          </tr>
+        `;
+      })
       .join('');
 
     const totalRooms = rooms.length;
@@ -199,27 +204,57 @@
     if (totalEl) totalEl.textContent = String(totalRooms);
     if (pendingEl) pendingEl.textContent = String(pendingRooms);
     if (activeEl) activeEl.textContent = String(activeRooms);
-    if (avgPriceEl) avgPriceEl.textContent = formatCurrency(avgPrice).replace('đ', '');
+    if (avgPriceEl) avgPriceEl.textContent = roomStore.formatCurrency(avgPrice).replace('đ', '');
   }
 
   function renderPendingRoom() {
     const pendingRoomName = document.querySelector('[data-pending-room="roomName"]');
     if (!pendingRoomName) return;
 
-    const rooms = getRooms();
-    const latestPendingRoomRaw = window.localStorage.getItem(STORAGE_KEYS.latestPendingRoom);
-    const fallbackRoom = rooms.find((room) => room.approvalStatus === 'Chờ duyệt') || rooms[0];
-    let payload = fallbackRoom;
+    const room = roomStore.getLatestRoom();
+    if (!room) return;
 
-    if (latestPendingRoomRaw) {
-      try {
-        payload = JSON.parse(latestPendingRoomRaw);
-      } catch (error) {
-        window.localStorage.removeItem(STORAGE_KEYS.latestPendingRoom);
-      }
-    }
+    const roomTypeLabel = roomStore.getRoomTypeLabel(room);
+    const payload = {
+      ...room,
+      roomTypeLabel,
+      priceLabel: roomStore.formatCurrency(room.price),
+      adminNoteLabel: room.adminNote || 'Admin chưa để lại ghi chú.',
+      noteLabel: room.note || 'Không có ghi chú từ đối tác.',
+      reviewedAtLabel: room.reviewedAt || 'Chưa có',
+    };
 
-    if (!payload) return;
+    const statusConfig = {
+      'Chờ duyệt': {
+        alertClass: 'alert--info',
+        icon: '⏳',
+        message: 'Hồ sơ phòng đã được gửi thành công. Admin sẽ rà soát và có thể chỉnh lại thông tin trước khi mở bán.',
+        statusText: 'Đang chờ admin duyệt hồ sơ và xác nhận loại phòng.',
+      },
+      'Đã duyệt': {
+        alertClass: 'alert--success',
+        icon: '✅',
+        message: `Phòng đã được duyệt và phân loại vào nhóm ${roomTypeLabel}.`,
+        statusText: `Đã duyệt, hiện thuộc nhóm ${roomTypeLabel}.`,
+      },
+      'Từ chối': {
+        alertClass: 'alert--danger',
+        icon: '⚠',
+        message: 'Hồ sơ hiện cần bổ sung thông tin trước khi được mở bán lại.',
+        statusText: 'Hồ sơ đã bị từ chối tạm thời và chờ bạn cập nhật thêm.',
+      },
+    };
+
+    const currentState = statusConfig[room.approvalStatus] || statusConfig['Chờ duyệt'];
+    const alertEl = document.getElementById('pending-room-alert');
+    const alertTextEl = document.getElementById('pending-room-alert-text');
+    const iconEl = document.getElementById('pending-room-icon');
+    const statusTextEl = document.getElementById('pending-room-status');
+
+    if (alertEl) alertEl.className = `alert ${currentState.alertClass}`;
+    if (alertTextEl) alertTextEl.textContent = currentState.message;
+    if (iconEl) iconEl.textContent = currentState.icon;
+    if (statusTextEl) statusTextEl.textContent = currentState.statusText;
 
     document.querySelectorAll('[data-pending-room]').forEach((node) => {
       const key = node.getAttribute('data-pending-room');
@@ -242,24 +277,126 @@
 
     list.innerHTML = items
       .slice(0, 6)
-      .map((item) => `<span class="partner-chip">${item.roomName}: ${item.selectedItems.slice(0, 2).join(', ') || 'Chưa chọn'}</span>`)
+      .map((item) => {
+        const selectedItems = Array.isArray(item.selectedItems) ? item.selectedItems.slice(0, 2).join(', ') : 'Chưa chọn';
+        return `<span class="partner-chip">${escapeHtml(item.roomName)}: ${escapeHtml(selectedItems || 'Chưa chọn')}</span>`;
+      })
       .join('');
   }
 
-  function renderVouchers() {
+  function renderVoucherRoomSummary(room) {
+    const summary = document.getElementById('partner-voucher-room-summary');
+    if (!summary) return;
+
+    if (!room) {
+      summary.innerHTML = `
+        <div class="partner-note__title">Thông tin phòng</div>
+        <div class="partner-note__list">Chưa có phòng đã được admin duyệt để gán voucher.</div>
+      `;
+      return;
+    }
+
+    summary.innerHTML = `
+      <div class="partner-note__title">${escapeHtml(room.roomName)}</div>
+      <div class="partner-note__list">
+        <span>Cơ sở: ${escapeHtml(room.propertyName)}</span>
+        <span>Loại phòng: ${escapeHtml(roomStore.getRoomTypeLabel(room))}</span>
+        <span>Giá/đêm: ${escapeHtml(roomStore.formatCurrency(room.price))}</span>
+      </div>
+    `;
+  }
+
+  function renderVoucherOptions(roomId) {
+    const optionsWrap = document.getElementById('partner-voucher-options');
+    if (!optionsWrap) return;
+
+    if (!voucherStore) {
+      optionsWrap.innerHTML = '<div class="partner-empty-inline">Chưa tải được kho voucher từ admin.</div>';
+      return;
+    }
+
+    const vouchers = voucherStore.getActiveVouchers();
+    const selectedIds = voucherStore.getRoomVoucherIds(roomId);
+
+    if (!vouchers.length) {
+      optionsWrap.innerHTML =
+        '<div class="partner-empty-inline">Admin chưa bật voucher nào. Hãy chờ admin tạo voucher trước.</div>';
+      return;
+    }
+
+    optionsWrap.innerHTML = vouchers
+      .map((voucher) => {
+        const isChecked = selectedIds.includes(voucher.id) ? 'checked' : '';
+        return `
+          <label class="partner-voucher-card">
+            <input type="checkbox" name="voucherIds" value="${escapeHtml(voucher.id)}" ${isChecked} />
+            <span class="partner-voucher-card__body">
+              <span class="partner-voucher-card__code">${escapeHtml(voucher.code)}</span>
+              <span class="partner-voucher-card__title">${escapeHtml(voucher.title)}</span>
+              <span class="partner-voucher-card__meta">
+                ${escapeHtml(voucherStore.formatDiscount(voucher))} • ${escapeHtml(voucher.startDate || '--')} - ${escapeHtml(voucher.endDate || '--')}
+              </span>
+              <span class="partner-voucher-card__condition">${escapeHtml(voucher.condition || 'Không có điều kiện bổ sung.')}</span>
+            </span>
+          </label>
+        `;
+      })
+      .join('');
+  }
+
+  function renderAssignedVouchers(roomId) {
     const list = document.getElementById('partner-voucher-list');
     if (!list) return;
 
-    const vouchers = getVouchers();
+    if (!voucherStore || !roomId) {
+      list.innerHTML = '<div class="partner-empty-inline">Chưa chọn phòng.</div>';
+      return;
+    }
+
+    const vouchers = voucherStore.getRoomVouchers(roomId);
     if (!vouchers.length) {
-      list.innerHTML = '<div class="partner-empty-inline">Chưa có voucher nào được tạo.</div>';
+      list.innerHTML = '<div class="partner-empty-inline">Phòng này chưa được gán voucher.</div>';
       return;
     }
 
     list.innerHTML = vouchers
-      .slice(0, 6)
-      .map((voucher) => `<span class="partner-chip">${voucher.code} - ${voucher.discountLabel}</span>`)
+      .map(
+        (voucher) =>
+          `<span class="partner-chip partner-chip--removable">
+            <span>${escapeHtml(voucher.code)} - ${escapeHtml(voucherStore.formatDiscount(voucher))}</span>
+            <button
+              class="partner-chip__remove btn-remove-room-voucher"
+              type="button"
+              data-voucher-id="${escapeHtml(voucher.id)}"
+              data-code="${escapeHtml(voucher.code)}"
+              aria-label="Xóa voucher ${escapeHtml(voucher.code)} khỏi phòng"
+            >
+              ×
+            </button>
+          </span>`,
+      )
       .join('');
+  }
+
+  function renderVouchers() {
+    const roomSelect = document.getElementById('partner-voucher-room');
+    if (!roomSelect) return;
+
+    const room = roomStore.getRoomById(roomSelect.value);
+    if (!room) {
+      const optionsWrap = document.getElementById('partner-voucher-options');
+      renderVoucherRoomSummary(null);
+      if (optionsWrap) {
+        optionsWrap.innerHTML =
+          '<div class="partner-empty-inline">Chưa có phòng đã duyệt nên chưa thể chọn voucher.</div>';
+      }
+      renderAssignedVouchers('');
+      return;
+    }
+
+    renderVoucherRoomSummary(room);
+    renderVoucherOptions(room.id);
+    renderAssignedVouchers(room.id);
   }
 
   const addRoomForm = document.getElementById('partner-add-room-form');
@@ -268,61 +405,62 @@
       event.preventDefault();
 
       const formData = new FormData(addRoomForm);
-      const payload = {
-        id: createId('room'),
-        roomName: formData.get('roomName') || 'Phòng mới',
-        propertyName: formData.get('propertyName') || 'TravelMate Partner',
-        roomType: formData.get('roomType') || 'Deluxe',
-        capacity: formData.get('capacity') || '2 khách',
-        price: formData.get('price') || '0',
-        size: formData.get('size') || '--',
-        note: formData.get('note') || '',
+      const timestamp = new Date().toLocaleString('vi-VN');
+      const room = roomStore.addRoom({
+        roomName: (formData.get('roomName') || 'Phòng mới').toString().trim(),
+        propertyName: (formData.get('propertyName') || 'TravelMate Partner').toString().trim(),
+        roomType: (formData.get('roomType') || 'Hotel').toString().trim(),
+        capacity: (formData.get('capacity') || '2 khách').toString().trim(),
+        price: (formData.get('price') || '0').toString(),
+        size: (formData.get('size') || '--').toString().trim() || '--',
+        note: (formData.get('note') || '').toString().trim(),
         amenities: getAmenityLabels(),
         furniture: [],
         status: 'Tạm khóa bán',
         approvalStatus: 'Chờ duyệt',
-        submittedAt: new Date().toLocaleString('vi-VN'),
-        createdAt: new Date().toLocaleString('vi-VN'),
-      };
+        adminNote: '',
+        submittedAt: timestamp,
+        reviewedAt: '',
+        createdAt: timestamp,
+      });
 
-      const rooms = getRooms();
-      rooms.unshift(payload);
-      saveRooms(rooms);
-      window.localStorage.setItem(STORAGE_KEYS.latestPendingRoom, JSON.stringify(payload));
+      roomStore.setLatestRoomId(room.id);
       window.location.href = 'pending-room.html';
     });
   }
 
   const furnitureForm = document.getElementById('partner-furniture-form');
   if (furnitureForm) {
-    populateRoomOptions('#partner-furniture-room', false);
+    const approvedRooms = populateApprovedRoomOptions('#partner-furniture-room');
+    const submitButton = furnitureForm.querySelector('button[type="submit"]');
+    if (submitButton) submitButton.disabled = !approvedRooms.length;
 
     furnitureForm.addEventListener('submit', (event) => {
       event.preventDefault();
 
       const formData = new FormData(furnitureForm);
-      const roomId = formData.get('roomId');
-      const selectedItems = [...furnitureForm.querySelectorAll('input[name="furnitureItems"]:checked')]
-        .map((input) => input.value);
+      const roomId = (formData.get('roomId') || '').toString();
+      const selectedItems = [...furnitureForm.querySelectorAll('input[name="furnitureItems"]:checked')].map(
+        (input) => input.value,
+      );
+
+      const room = roomStore.getRoomById(roomId);
       const update = {
-        id: createId('furniture'),
+        id: roomStore.createId('furniture'),
         roomId,
-        roomName: getRooms().find((room) => room.id === roomId)?.roomName || 'Phòng chưa xác định',
-        furnitureGroup: formData.get('furnitureGroup') || 'Phòng ngủ',
+        roomName: room?.roomName || 'Phòng chưa xác định',
+        furnitureGroup: (formData.get('furnitureGroup') || 'Phòng ngủ').toString(),
         selectedItems,
-        note: formData.get('note') || '',
+        note: (formData.get('note') || '').toString().trim(),
         updatedAt: new Date().toLocaleString('vi-VN'),
       };
 
-      const rooms = getRooms().map((room) => {
-        if (room.id !== roomId) return room;
-        return {
-          ...room,
+      if (room) {
+        roomStore.updateRoom(roomId, {
           furniture: selectedItems,
           note: update.note || room.note,
-        };
-      });
-      saveRooms(rooms);
+        });
+      }
 
       const updates = getFurnitureUpdates();
       updates.unshift(update);
@@ -337,46 +475,78 @@
 
   const voucherForm = document.getElementById('partner-voucher-form');
   if (voucherForm) {
-    populateRoomOptions('#partner-voucher-room', true);
+    const roomSelect = document.getElementById('partner-voucher-room');
+    const approvedRooms = populateApprovedRoomOptions('#partner-voucher-room');
+    const submitButton = voucherForm.querySelector('button[type="submit"]');
+    if (submitButton) submitButton.disabled = !approvedRooms.length || !voucherStore;
+    renderVouchers();
+
+    if (roomSelect) {
+      roomSelect.addEventListener('change', () => {
+        if (voucherStore) voucherStore.setLatestRoomId(roomSelect.value);
+        renderVouchers();
+      });
+    }
 
     voucherForm.addEventListener('submit', (event) => {
       event.preventDefault();
 
       const formData = new FormData(voucherForm);
-      const scope = formData.get('scope');
-      const discountType = formData.get('discountType');
-      const discountValue = formData.get('discountValue') || '0';
-      const scopeLabel = scope === 'all'
-        ? 'Toàn bộ cơ sở'
-        : getRooms().find((room) => room.id === scope)?.roomName || 'Toàn bộ cơ sở';
-      const discountLabel = discountType === 'Giảm theo %'
-        ? `${discountValue}%`
-        : `${Number(discountValue || 0).toLocaleString('vi-VN')}đ`;
+      const roomId = (formData.get('roomId') || '').toString();
+      const room = roomStore.getRoomById(roomId);
 
-      const voucher = {
-        id: createId('voucher'),
-        code: (formData.get('code') || 'VOUCHER').toString().trim().toUpperCase(),
-        scope,
-        scopeLabel,
-        discountType,
-        discountValue,
-        discountLabel,
-        startDate: formData.get('startDate') || '',
-        endDate: formData.get('endDate') || '',
-        condition: formData.get('condition') || '',
-        createdAt: new Date().toLocaleString('vi-VN'),
-      };
+      if (!voucherStore) {
+        if (typeof showToast === 'function') showToast('Chưa tải được kho voucher từ admin.', 'error');
+        return;
+      }
 
-      const vouchers = getVouchers();
-      vouchers.unshift(voucher);
-      saveVouchers(vouchers);
+      if (!room || room.approvalStatus !== 'Đã duyệt') {
+        if (typeof showToast === 'function') {
+          showToast('Chỉ có thể gán voucher cho phòng đã được admin duyệt.', 'error');
+        }
+        return;
+      }
+
+      const selectedVoucherIds = [...voucherForm.querySelectorAll('input[name="voucherIds"]:checked')].map(
+        (input) => input.value,
+      );
+
+      voucherStore.assignVouchersToRoom(roomId, selectedVoucherIds);
+      voucherStore.setLatestRoomId(roomId);
       renderVouchers();
-      voucherForm.reset();
-      const roomSelect = document.getElementById('partner-voucher-room');
-      if (roomSelect) roomSelect.value = 'all';
+      renderRoomsTable();
 
       if (typeof showToast === 'function') {
-        showToast(`Đã tạo voucher "${voucher.code}"`, 'success');
+        const message = selectedVoucherIds.length
+          ? `Đã gán ${selectedVoucherIds.length} voucher cho "${room.roomName}"`
+          : `Đã bỏ toàn bộ voucher khỏi "${room.roomName}"`;
+        showToast(message, 'success');
+      }
+    });
+  }
+
+  const assignedVoucherList = document.getElementById('partner-voucher-list');
+  if (assignedVoucherList) {
+    assignedVoucherList.addEventListener('click', (event) => {
+      const removeButton = event.target.closest('.btn-remove-room-voucher');
+      if (!removeButton || !voucherStore) return;
+
+      const roomSelect = document.getElementById('partner-voucher-room');
+      const roomId = roomSelect?.value || '';
+      const voucherId = removeButton.getAttribute('data-voucher-id') || '';
+      const voucherCode = removeButton.getAttribute('data-code') || 'voucher';
+      const room = roomStore.getRoomById(roomId);
+      if (!roomId || !voucherId || !room) return;
+
+      if (!window.confirm(`Xóa voucher "${voucherCode}" khỏi "${room.roomName}"?`)) return;
+
+      const nextVoucherIds = voucherStore.getRoomVoucherIds(roomId).filter((id) => id !== voucherId);
+      voucherStore.assignVouchersToRoom(roomId, nextVoucherIds);
+      renderVouchers();
+      renderRoomsTable();
+
+      if (typeof showToast === 'function') {
+        showToast(`Đã xóa voucher "${voucherCode}" khỏi "${room.roomName}"`, 'success');
       }
     });
   }
@@ -384,24 +554,45 @@
   const roomsTable = document.getElementById('partner-rooms-table');
   if (roomsTable) {
     roomsTable.addEventListener('click', (event) => {
-      const button = event.target.closest('.btn-delete-room');
-      if (!button) return;
+      const deleteButton = event.target.closest('.btn-delete-room');
+      if (deleteButton) {
+        const roomId = deleteButton.getAttribute('data-room-id');
+        const roomName = deleteButton.getAttribute('data-name') || 'phòng';
+        if (!window.confirm(`Bạn có chắc muốn xóa "${roomName}"?`)) return;
 
-      const roomId = button.getAttribute('data-room-id');
-      const roomName = button.getAttribute('data-name') || 'phòng';
-      if (!window.confirm(`Bạn có chắc muốn xóa "${roomName}"?`)) return;
+        roomStore.deleteRoom(roomId);
+        renderRoomsTable();
 
-      const rooms = getRooms().filter((room) => room.id !== roomId);
-      saveRooms(rooms);
-      renderRoomsTable();
+        if (typeof showToast === 'function') {
+          showToast(`Đã xóa "${roomName}"`, 'success');
+        }
+        return;
+      }
 
-      if (typeof showToast === 'function') {
-        showToast(`Đã xóa "${roomName}"`, 'success');
+      const trackButton = event.target.closest('.btn-track-room');
+      if (trackButton) {
+        roomStore.setLatestRoomId(trackButton.getAttribute('data-room-id'));
+        window.location.href = 'pending-room.html';
+        return;
+      }
+
+      const addVoucherButton = event.target.closest('.btn-add-voucher');
+      if (addVoucherButton) {
+        const roomId = addVoucherButton.getAttribute('data-room-id');
+        if (voucherStore) voucherStore.setLatestRoomId(roomId);
+        roomStore.setLatestRoomId(roomId);
+        window.location.href = `add-voucher.html?roomId=${encodeURIComponent(roomId)}`;
+        return;
+      }
+
+      const manageButton = event.target.closest('.btn-manage-room');
+      if (manageButton) {
+        roomStore.setLatestRoomId(manageButton.getAttribute('data-room-id'));
+        window.location.href = 'add-furniture.html';
       }
     });
   }
 
-  ensureRooms();
   renderRoomsTable();
   renderPendingRoom();
   renderFurnitureUpdates();

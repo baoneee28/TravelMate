@@ -1,280 +1,323 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="vi">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Quản lý phòng – Admin TravelMate</title>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-            rel="stylesheet"
-        />
-        <link rel="stylesheet" href="../assets/base.css" />
-        <link rel="stylesheet" href="../assets/layout.css" />
-        <link rel="stylesheet" href="../assets/components.css" />
-        <link rel="stylesheet" href="../assets/pages/admin.css" />
-        <link rel="stylesheet" href="../assets/responsive.css" />
-    </head>
-    <body>
-        <div class="admin-wrapper">
-            <aside class="admin-sidebar">
-                <div class="admin-sidebar__header">
-                    <a href="dashboard.html" class="admin-sidebar__logo">
-                        <div class="admin-sidebar__logo-icon">✈</div>
-                        <div>
-                            <div class="admin-sidebar__logo-text">Travel<span>Mate</span></div>
-                            <span class="admin-sidebar__badge">ADMIN PANEL</span>
-                        </div>
-                    </a>
-                </div>
-                <nav class="admin-sidebar__nav">
-                    <div class="admin-sidebar__section-title">Tổng quan</div>
-                    <a href="dashboard.html" class="admin-sidebar__link"
-                        ><span class="admin-sidebar__link-icon">📊</span> Dashboard</a
-                    >
-                    <div class="admin-sidebar__section-title">Quản lý</div>
-                    <a href="hotels.html" class="admin-sidebar__link"
-                        ><span class="admin-sidebar__link-icon">🏨</span> Khách sạn</a
-                    >
-                    <a href="rooms.html" class="admin-sidebar__link active"
-                        ><span class="admin-sidebar__link-icon">🛏</span> Phòng</a
-                    >
-                    <a href="bookings.html" class="admin-sidebar__link"
-                        ><span class="admin-sidebar__link-icon">📋</span> Đặt phòng</a
-                    >
-                    <a href="users.html" class="admin-sidebar__link"
-                        ><span class="admin-sidebar__link-icon">👥</span> Người dùng</a
-                    >
-                    <a href="places.html" class="admin-sidebar__link"
-                        ><span class="admin-sidebar__link-icon">🗺</span> Địa điểm</a
-                    >
 
-                    <div class="admin-sidebar__section-title">Hệ thống</div>
-                    <a href="../user/index.html" class="admin-sidebar__link" target="_blank">
-                        <span class="admin-sidebar__link-icon">🌐</span> Xem trang User
-                    </a>
-                </nav>
-                <div class="admin-sidebar__footer">
-                    <div class="admin-sidebar__user">
-                        <div class="admin-sidebar__user-avatar">AD</div>
-                        <div class="admin-sidebar__user-info">
-                            <div class="admin-sidebar__user-name">Admin TravelMate</div>
-                            <div class="admin-sidebar__user-role">Quản trị viên</div>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-            <div class="admin-sidebar-overlay"></div>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý loại phòng – Admin TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/base.css" />
+    <link rel="stylesheet" href="../assets/layout.css" />
+    <link rel="stylesheet" href="../assets/components.css" />
+    <link rel="stylesheet" href="../assets/pages/admin.css" />
+    <link rel="stylesheet" href="../assets/responsive.css" />
 
-            <div class="admin-main">
-                <header class="admin-topbar">
-                    <div style="display: flex; align-items: center; gap: var(--space-4)">
-                        <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
-                        <h1 class="admin-topbar__title">🛏 Quản lý phòng</h1>
-                    </div>
-                </header>
-                <main class="admin-content">
-                    <div class="page-header">
-                        <div>
-                            <h2 class="page-header__title">Danh sách phòng</h2>
-                            <p class="page-header__subtitle">Quản lý 520 phòng trên 48 khách sạn</p>
-                        </div>
-                        <button class="btn btn--primary" data-modal="modal-add-room">+ Thêm phòng</button>
-                    </div>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
 
-                    <div class="table-toolbar">
-                        <div class="input-group table-toolbar__search">
-                            <span class="input-group__icon">🔍</span>
-                            <input type="text" class="form-control" id="table-search" placeholder="Tìm tên phòng..." />
-                        </div>
-                        <div class="table-toolbar__actions">
-                            <select class="form-control" style="width: 200px">
-                                <option>Tất cả khách sạn</option>
-                                <option>InterContinental HN</option>
-                                <option>Fusion Maia Đà Nẵng</option>
-                                <option>Park Hyatt Saigon</option>
-                            </select>
-                            <select class="form-control" style="width: 140px">
-                                <option>Tất cả trạng thái</option>
-                                <option>Còn trống</option>
-                                <option>Đã đặt</option>
-                            </select>
-                        </div>
+<body>
+    <div class="admin-wrapper">
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar__header">
+                <a href="dashboard.html" class="sidebar-logo">
+                    <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                    <div>
+                        <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                        <span class="admin-sidebar__badge">ADMIN PANEL</span>
                     </div>
-
-                    <div class="table-wrap">
-                        <table class="table data-table">
-                            <thead>
-                                <tr>
-                                    <th>STT</th>
-                                    <th>Hình ảnh</th>
-                                    <th>Tên phòng</th>
-                                    <th>Khách sạn</th>
-                                    <th>Loại phòng</th>
-                                    <th>Sức chứa</th>
-                                    <th>Diện tích</th>
-                                    <th>Giá/đêm</th>
-                                    <th>Trạng thái</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>1</td>
-                                    <td>
-                                        <img
-                                            src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=160&q=60"
-                                            class="table-hotel-image"
-                                            alt=""
-                                        />
-                                    </td>
-                                    <td><strong>Phòng Deluxe Hồ Tây</strong></td>
-                                    <td>InterContinental HN</td>
-                                    <td><span class="badge badge--primary">Deluxe</span></td>
-                                    <td>2 người</td>
-                                    <td>42m²</td>
-                                    <td style="font-weight: 600; color: var(--color-primary)">1.850.000đ</td>
-                                    <td><span class="status-dot status-dot--active">Còn trống</span></td>
-                                    <td>
-                                        <div class="table__actions">
-                                            <button class="btn btn--outline btn--sm" data-modal="modal-add-room">
-                                                ✏
-                                            </button>
-                                            <button
-                                                class="btn btn--danger btn--sm btn-delete"
-                                                data-name="Deluxe Hồ Tây"
-                                            >
-                                                🗑
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td>
-                                        <img
-                                            src="https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=160&q=60"
-                                            class="table-hotel-image"
-                                            alt=""
-                                        />
-                                    </td>
-                                    <td><strong>Junior Suite Hồ Tây</strong></td>
-                                    <td>InterContinental HN</td>
-                                    <td><span class="badge badge--accent">Suite</span></td>
-                                    <td>3 người</td>
-                                    <td>65m²</td>
-                                    <td style="font-weight: 600; color: var(--color-primary)">2.800.000đ</td>
-                                    <td><span class="status-dot status-dot--pending">Đã đặt</span></td>
-                                    <td>
-                                        <div class="table__actions">
-                                            <button class="btn btn--outline btn--sm" data-modal="modal-add-room">
-                                                ✏
-                                            </button>
-                                            <button class="btn btn--danger btn--sm btn-delete" data-name="Junior Suite">
-                                                🗑
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>3</td>
-                                    <td>
-                                        <img
-                                            src="https://images.unsplash.com/photo-1582719508461-905c673771fd?w=160&q=60"
-                                            class="table-hotel-image"
-                                            alt=""
-                                        />
-                                    </td>
-                                    <td><strong>Beach Villa</strong></td>
-                                    <td>Fusion Maia Đà Nẵng</td>
-                                    <td><span class="badge badge--success">Villa</span></td>
-                                    <td>4 người</td>
-                                    <td>120m²</td>
-                                    <td style="font-weight: 600; color: var(--color-primary)">5.500.000đ</td>
-                                    <td><span class="status-dot status-dot--active">Còn trống</span></td>
-                                    <td>
-                                        <div class="table__actions">
-                                            <button class="btn btn--outline btn--sm" data-modal="modal-add-room">
-                                                ✏
-                                            </button>
-                                            <button class="btn btn--danger btn--sm btn-delete" data-name="Beach Villa">
-                                                🗑
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </main>
+                </a>
             </div>
-        </div>
+            <nav class="admin-sidebar__nav">
+                <div class="admin-sidebar__section-title">Tổng quan</div>
+                <a href="dashboard.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span>
+                    Dashboard</a>
+                <div class="admin-sidebar__section-title">Quản lý</div>
+                <a href="hotels.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Danh
+                    sách khách sạn</a>
+                <a href="rooms.html" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">🛏</span>
+                    Duyệt phòng</a>
+                <a href="bookings.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt
+                    phòng</a>
+                <a href="users.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người
+                    dùng</a>
+                <a href="places.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗺</span> Địa
+                    điểm</a>
+                <a href="vouchers.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span>
+                    Voucher</a>
 
-        <!-- Modal Add Room -->
-        <div class="modal-overlay" id="modal-add-room">
-            <div class="modal modal--lg">
-                <div class="modal__header">
-                    <h3 class="modal__title">🛏 Thêm / Sửa phòng</h3>
-                    <button class="modal__close">✕</button>
-                </div>
-                <div class="modal__body">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Tên phòng <span class="required">*</span></label>
-                            <input type="text" class="form-control" placeholder="VD: Phòng Deluxe Hồ Tây" />
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Khách sạn <span class="required">*</span></label>
-                            <select class="form-control">
-                                <option>InterContinental HN</option>
-                                <option>Fusion Maia Đà Nẵng</option>
-                                <option>Park Hyatt Saigon</option>
-                            </select>
-                        </div>
+                <div class="admin-sidebar__section-title">Hệ thống</div>
+                <a href="../user/index.html" class="admin-sidebar__link" target="_blank">
+                    <span class="admin-sidebar__link-icon">🌐</span> Xem trang User
+                </a>
+            </nav>
+            <div class="admin-sidebar__footer">
+                <div class="admin-sidebar__user">
+                    <div class="admin-sidebar__user-avatar">AD</div>
+                    <div class="admin-sidebar__user-info">
+                        <div class="admin-sidebar__user-name">Admin TravelMate</div>
+                        <div class="admin-sidebar__user-role">Quản trị viên</div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Loại phòng</label>
-                            <select class="form-control">
-                                <option>Standard</option>
-                                <option>Deluxe</option>
-                                <option>Suite</option>
-                                <option>Villa</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Sức chứa</label>
-                            <select class="form-control">
-                                <option>1 người</option>
-                                <option>2 người</option>
-                                <option>3 người</option>
-                                <option>4 người</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Diện tích (m²)</label>
-                            <input type="number" class="form-control" placeholder="42" />
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Giá mỗi đêm (VNĐ) <span class="required">*</span></label>
-                            <input type="number" class="form-control" placeholder="1850000" />
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Mô tả tiện nghi</label>
-                        <textarea class="form-control" rows="3" placeholder="WiFi, TV, Điều hoà, Minibar..."></textarea>
-                    </div>
-                </div>
-                <div class="modal__footer">
-                    <button class="btn btn--ghost modal__close">Hủy</button>
-                    <button class="btn btn--primary">💾 Lưu phòng</button>
                 </div>
             </div>
-        </div>
+        </aside>
+        <div class="admin-sidebar-overlay"></div>
 
-        <script src="../assets/js/main.js"></script>
-        <script src="../assets/js/admin.js"></script>
-    </body>
+        <div class="admin-main">
+
+            <main class="admin-content">
+                <div class="page-header">
+                    <div>
+                        <h2 class="page-header__title">🛏 Quản lý hồ sơ đăng ký phòng</h2>
+                        <p class="page-header__subtitle">
+                            Partner có thể chọn loại phòng trước. Admin vẫn có thể chỉnh lại toàn bộ thông tin và
+                            loại phòng trước khi mở bán.
+                        </p>
+                    </div>
+                </div>
+
+                <section class="review-stats-grid">
+                    <article class="stats-card">
+                        <div class="stats-card__icon stats-card__icon--amber">⏳</div>
+                        <div>
+                            <div class="stats-card__value" data-review-summary="pending">0</div>
+                            <div class="stats-card__label">Chờ duyệt</div>
+                        </div>
+                    </article>
+                    <article class="stats-card">
+                        <div class="stats-card__icon stats-card__icon--green">🏡</div>
+                        <div>
+                            <div class="stats-card__value" data-review-summary="Villa">0</div>
+                            <div class="stats-card__label">Villa</div>
+                        </div>
+                    </article>
+                    <article class="stats-card">
+                        <div class="stats-card__icon stats-card__icon--blue">🏨</div>
+                        <div>
+                            <div class="stats-card__value" data-review-summary="Hotel">0</div>
+                            <div class="stats-card__label">Hotel</div>
+                        </div>
+                    </article>
+                    <article class="stats-card">
+                        <div class="stats-card__icon stats-card__icon--amber">🪴</div>
+                        <div>
+                            <div class="stats-card__value" data-review-summary="Homestay">0</div>
+                            <div class="stats-card__label">Homestay</div>
+                        </div>
+                    </article>
+                    <article class="stats-card">
+                        <div class="stats-card__icon stats-card__icon--green">🌴</div>
+                        <div>
+                            <div class="stats-card__value" data-review-summary="Resort">0</div>
+                            <div class="stats-card__label">Resort</div>
+                        </div>
+                    </article>
+                </section>
+
+                <div class="room-review-layout">
+                    <section class="chart-card">
+                        <div class="chart-card__header">
+                            <h3 class="chart-card__title">📥 Hàng chờ duyệt loại phòng</h3>
+                            <span class="text-sm text-muted" id="admin-room-result-count">0 hồ sơ hiển thị</span>
+                        </div>
+
+                        <div class="table-toolbar">
+                            <div class="input-group table-toolbar__search">
+                                <span class="input-group__icon">🔍</span>
+                                <input type="text" class="form-control" id="admin-room-search"
+                                    placeholder="Tìm theo tên phòng hoặc cơ sở..." />
+                            </div>
+                            <div class="table-toolbar__actions">
+                                <select class="form-control" id="admin-room-approval-filter" style="width: 180px">
+                                    <option value="all">Tất cả phê duyệt</option>
+                                    <option value="Chờ duyệt">Chờ duyệt</option>
+                                    <option value="Đã duyệt">Đã duyệt</option>
+                                    <option value="Từ chối">Từ chối</option>
+                                </select>
+                                <select class="form-control" id="admin-room-type-filter" style="width: 180px">
+                                    <option value="all">Tất cả loại phòng</option>
+                                    <option value="__pending__">Chưa phân loại</option>
+                                    <option value="Villa">Villa</option>
+                                    <option value="Hotel">Hotel</option>
+                                    <option value="Homestay">Homestay</option>
+                                    <option value="Resort">Resort</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="table-wrap" id="admin-room-review-wrap">
+                            <table class="table data-table">
+                                <thead>
+                                    <tr>
+                                        <th>STT</th>
+                                        <th>Tên phòng</th>
+                                        <th>Cơ sở</th>
+                                        <th>Loại phòng</th>
+                                        <th>Giá/đêm</th>
+                                        <th>Trạng thái bán</th>
+                                        <th>Phê duyệt</th>
+                                        <th>Thời gian gửi</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-room-review-table"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="empty-state" id="admin-room-review-empty" hidden>
+                            <div class="empty-state__icon">🗂</div>
+                            <div class="empty-state__title">Không có hồ sơ phù hợp</div>
+                            <div class="empty-state__desc">
+                                Hãy đổi bộ lọc hoặc chờ partner gửi thêm hồ sơ phòng mới.
+                            </div>
+                        </div>
+                    </section>
+
+                    <aside class="chart-card review-panel">
+                        <div class="chart-card__header">
+                            <h3 class="chart-card__title">🧾 Phiếu duyệt</h3>
+                            <span class="badge badge--muted" id="admin-room-selected-approval">Chưa chọn</span>
+                        </div>
+
+                        <div class="review-panel__body">
+                            <div>
+                                <div class="review-panel__title" id="admin-room-selected-title">
+                                    Chọn một hồ sơ để duyệt
+                                </div>
+                                <div class="review-panel__subtitle" id="admin-room-selected-property">
+                                    Thông tin chi tiết sẽ hiển thị tại đây.
+                                </div>
+                            </div>
+
+                            <div class="review-meta-grid">
+                                <div class="review-meta-card">
+                                    <span>Gửi lúc</span>
+                                    <strong id="admin-room-submitted-at">--</strong>
+                                </div>
+                                <div class="review-meta-card">
+                                    <span>Duyệt lúc</span>
+                                    <strong id="admin-room-reviewed-at">--</strong>
+                                </div>
+                                <div class="review-meta-card">
+                                    <span>Sức chứa</span>
+                                    <strong id="admin-room-capacity">--</strong>
+                                </div>
+                                <div class="review-meta-card">
+                                    <span>Diện tích</span>
+                                    <strong id="admin-room-size">--</strong>
+                                </div>
+                                <div class="review-meta-card">
+                                    <span>Giá/đêm</span>
+                                    <strong id="admin-room-price">--</strong>
+                                </div>
+                                <div class="review-meta-card">
+                                    <span>Trạng thái bán</span>
+                                    <strong id="admin-room-sale-status">--</strong>
+                                </div>
+                            </div>
+
+                            <form id="admin-room-review-form" class="review-form">
+                                <input type="hidden" id="admin-room-id" />
+
+                                <div class="review-copy-block">
+                                    <div class="review-copy-block__label">Chỉnh sửa hồ sơ trước khi duyệt</div>
+                                    <p>
+                                        Admin có thể cập nhật toàn bộ thông tin phòng do partner gửi lên rồi mới
+                                        xác nhận duyệt hoặc từ chối.
+                                    </p>
+                                </div>
+
+                                <div class="review-form__grid">
+                                    <div class="form-group">
+                                        <label class="form-label">Tên phòng <span class="required">*</span></label>
+                                        <input id="admin-room-name-input" type="text" class="form-control"
+                                            placeholder="Nhập tên phòng" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Tên cơ sở <span class="required">*</span></label>
+                                        <input id="admin-room-property-input" type="text" class="form-control"
+                                            placeholder="Nhập tên cơ sở" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Loại phòng <span class="required">*</span></label>
+                                        <select id="admin-room-type" class="form-control">
+                                            <option value="">Chọn loại phòng</option>
+                                            <option value="Villa">Villa</option>
+                                            <option value="Hotel">Hotel</option>
+                                            <option value="Homestay">Homestay</option>
+                                            <option value="Resort">Resort</option>
+                                        </select>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Sức chứa</label>
+                                        <input id="admin-room-capacity-input" type="text" class="form-control"
+                                            placeholder="Ví dụ: 2 khách" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Diện tích</label>
+                                        <input id="admin-room-size-input" type="text" class="form-control"
+                                            placeholder="Ví dụ: 32m²" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Giá/đêm <span class="required">*</span></label>
+                                        <input id="admin-room-price-input" type="number" class="form-control"
+                                            placeholder="Ví dụ: 1650000" />
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0">
+                                        <label class="form-label">Trạng thái bán sau khi duyệt</label>
+                                        <select id="admin-room-sale-status-input" class="form-control">
+                                            <option value="Đang bán">Đang bán</option>
+                                            <option value="Tạm khóa bán">Tạm khóa bán</option>
+                                            <option value="Tạm ẩn">Tạm ẩn</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 0">
+                                    <label class="form-label">Tiện ích nổi bật</label>
+                                    <textarea id="admin-room-amenities-input" class="form-control" rows="3"
+                                        placeholder="Ví dụ: Ban công riêng, Bồn tắm, Wi-Fi tốc độ cao"></textarea>
+                                    <div class="review-helper">Nhập danh sách tiện ích, cách nhau bằng dấu phẩy.</div>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 0">
+                                    <label class="form-label">Mô tả / ghi chú của partner</label>
+                                    <textarea id="admin-room-partner-note-input" class="form-control" rows="4"
+                                        placeholder="Mô tả ngắn về phòng hoặc ghi chú cho hồ sơ."></textarea>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 0">
+                                    <label class="form-label">Ghi chú admin</label>
+                                    <textarea id="admin-room-note" class="form-control" rows="5"
+                                        placeholder="Ví dụ: Hồ sơ hợp lệ, xếp vào nhóm Hotel và cho phép mở bán."></textarea>
+                                </div>
+
+                                <div class="review-copy-block">
+                                    <div class="review-copy-block__label">Lịch sử admin</div>
+                                    <p id="admin-room-admin-history">Chưa có lịch sử duyệt.</p>
+                                </div>
+
+                                <div class="review-form__actions">
+                                    <button type="submit" class="btn btn--primary" id="admin-room-approve-btn">
+                                        Duyệt và lưu
+                                    </button>
+                                    <button type="button" class="btn btn--danger" id="admin-room-reject-btn">
+                                        Từ chối
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </aside>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/admin.js"></script>
+    <script src="../assets/js/room-store.js"></script>
+    <script src="../assets/js/admin-room-types.js"></script>
+</body>
+
 </html>

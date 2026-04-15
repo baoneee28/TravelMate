@@ -1,133 +1,250 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="vi">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Thêm nội thất - Partner TravelMate</title>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-            rel="stylesheet"
-        />
-        <link rel="stylesheet" href="../assets/base.css" />
-        <link rel="stylesheet" href="../assets/layout.css" />
-        <link rel="stylesheet" href="../assets/components.css" />
-        <link rel="stylesheet" href="../assets/pages/admin.css" />
-        <link rel="stylesheet" href="../assets/pages/partners.css" />
-        <link rel="stylesheet" href="../assets/responsive.css" />
-    </head>
-    <body>
-        <div class="admin-wrapper">
-            <aside class="admin-sidebar">
-                <div class="admin-sidebar__header">
-                    <a href="rooms.html" class="admin-sidebar__logo">
-                        <div class="admin-sidebar__logo-icon">TM</div>
-                        <div>
-                            <div class="admin-sidebar__logo-text">Travel<span>Mate</span></div>
-                            <span class="admin-sidebar__badge">PARTNER CENTER</span>
-                        </div>
-                    </a>
-                </div>
-                <nav class="admin-sidebar__nav">
-                    <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
-                    <a href="rooms.html" class="admin-sidebar__link">
-                        <span class="admin-sidebar__link-icon">🛏</span> Danh sách phòng
-                    </a>
-                    <a href="add-room.html" class="admin-sidebar__link">
-                        <span class="admin-sidebar__link-icon">＋</span> Thêm phòng
-                    </a>
-                    <a href="pending-room.html" class="admin-sidebar__link">
-                        <span class="admin-sidebar__link-icon">⏳</span> Chờ duyệt
-                    </a>
-                    <div class="admin-sidebar__section-title">Tiện ích</div>
-                    <a href="add-furniture.html" class="admin-sidebar__link active">
-                        <span class="admin-sidebar__link-icon">🪑</span> Thêm nội thất
-                    </a>
-                    <a href="add-voucher.html" class="admin-sidebar__link">
-                        <span class="admin-sidebar__link-icon">🎟</span> Thêm voucher
-                    </a>
-                </nav>
-                <div class="admin-sidebar__footer">
-                    <div class="admin-sidebar__user">
-                        <div class="admin-sidebar__user-avatar">PT</div>
-                        <div class="admin-sidebar__user-info">
-                            <div class="admin-sidebar__user-name">Sunrise Sapa Lodge</div>
-                            <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-            <div class="admin-sidebar-overlay"></div>
 
-            <div class="admin-main">
-                <header class="admin-topbar">
-                    <div style="display: flex; align-items: center; gap: var(--space-4)">
-                        <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
-                        <h1 class="admin-topbar__title">Thêm nội thất cho phòng</h1>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thêm nội thất - Partner TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/base.css" />
+    <link rel="stylesheet" href="../assets/layout.css" />
+    <link rel="stylesheet" href="../assets/components.css" />
+    <link rel="stylesheet" href="../assets/pages/admin.css" />
+    <link rel="stylesheet" href="../assets/pages/partners.css" />
+    <link rel="stylesheet" href="../assets/responsive.css" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+
+<body>
+    <div class="admin-wrapper">
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar__header">
+                <a href="rooms.html" class="sidebar-logo">
+                    <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                    <div>
+                        <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                        <span class="admin-sidebar__badge">PARTNER CENTER</span>
                     </div>
-                </header>
-                <main class="admin-content">
-                    <div class="partner-grid">
+                </a>
+            </div>
+            <nav class="admin-sidebar__nav">
+                <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
+                <a href="rooms.html" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🛏</span> Danh sách phòng
+                </a>
+                <a href="add-room.html" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">＋</span> Thêm phòng
+                </a>
+                <a href="pending-room.html" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">⏳</span> Chờ duyệt
+                </a>
+                <div class="admin-sidebar__section-title">Tiện ích</div>
+                <a href="add-furniture.html" class="admin-sidebar__link active">
+                    <span class="admin-sidebar__link-icon">🪑</span> Thêm nội thất
+                </a>
+                <a href="add-voucher.html" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🎟</span> Add voucher
+                </a>
+            </nav>
+            <div class="admin-sidebar__footer">
+                <div class="admin-sidebar__user">
+                    <div class="admin-sidebar__user-avatar">PT</div>
+                    <div class="admin-sidebar__user-info">
+                        <div class="admin-sidebar__user-name">Sunrise Sapa Lodge</div>
+                        <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <div class="admin-sidebar-overlay"></div>
+
+        <div class="admin-main">
+            <header class="admin-topbar">
+                <div style="display: flex; align-items: center; gap: var(--space-4)">
+                    <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                    <h1 class="admin-topbar__title">Thêm nội thất cho phòng</h1>
+                </div>
+            </header>
+            <main class="admin-content">
+                <div class="partner-grid">
+                    <section class="partner-panel">
+                        <div class="partner-panel__body">
+                            <div class="page-header" style="margin-bottom: var(--space-6)">
+                                <div>
+                                    <h2 class="page-header__title">Danh mục nội thất</h2>
+                                    <p class="page-header__subtitle">Lưu cập nhật nội thất theo từng phòng để đối soát
+                                        lại hồ sơ lưu trú.</p>
+                                </div>
+                            </div>
+
+                            <form id="partner-furniture-form" class="partner-form">
+                                <div class="partner-form__grid" style="grid-template-columns: 1fr;">
+                                    <div class="form-group">
+                                        <label class="form-label">Phòng đã được duyệt</label>
+                                        <select class="form-control" id="partner-furniture-room" name="roomId"></select>
+                                    </div>
+                                </div>
+                                <div class="furniture-category">
+                                    <h4
+                                        style="margin-bottom:12px;font-size:15px;color:var(--color-primary);font-weight:600;">
+                                        Tiện ích chung</h4>
+                                    <div class="partner-checklist" style="margin-bottom: 24px;">
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Hồ bơi" /> <span class="form-check-label">Hồ bơi</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Ban công" /> <span class="form-check-label">Ban
+                                                công</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Bãi đỗ xe" /> <span class="form-check-label">Bãi đỗ
+                                                xe</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Trạm sạc xe điện" /> <span class="form-check-label">Trạm sạc xe
+                                                điện</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Quầy bar / café" /> <span class="form-check-label">Quầy bar /
+                                                café</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Phòng gym" /> <span class="form-check-label">Phòng
+                                                gym</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Spa / massage" /> <span class="form-check-label">Spa /
+                                                massage</span></label>
+                                    </div>
+                                </div>
+                                <div class="furniture-category">
+                                    <h4
+                                        style="margin-top:20px;margin-bottom:12px;font-size:15px;color:var(--color-primary);font-weight:600;">
+                                        Phòng chính</h4>
+                                    <div class="partner-checklist" style="margin-bottom: 24px;">
+
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Tủ quần áo" /> <span class="form-check-label">Tủ quần
+                                                áo</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Bàn làm việc" /> <span class="form-check-label">Bàn làm
+                                                việc</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Sofa" /> <span class="form-check-label">Sofa</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Gương đứng" /> <span class="form-check-label">Gương
+                                                đứng</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Kệ TV" /> <span class="form-check-label">Kệ TV</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Tủ lạnh" /> <span class="form-check-label">Tủ lạnh</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Máy lạnh" /> <span class="form-check-label">Máy
+                                                lạnh</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Tivi" /> <span class="form-check-label">Tivi</span></label>
+                                    </div>
+                                </div>
+
+                                <div class="furniture-category">
+                                    <h4
+                                        style="margin-bottom:12px;font-size:15px;color:var(--color-primary);font-weight:600;">
+                                        Phòng tắm</h4>
+                                    <div class="partner-checklist" style="margin-bottom: 24px;">
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Bồn tắm nằm" /> <span class="form-check-label">Bồn tắm
+                                                nằm</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Bồn tắm ngồi" /> <span class="form-check-label">Bồn tắm
+                                                ngồi</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Bồn tắm đôi" /> <span class="form-check-label">Bồn tắm
+                                                đôi</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Máy sấy" /> <span class="form-check-label">Máy sấy</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Máy duỗi tóc" /> <span class="form-check-label">Máy duỗi
+                                                tóc</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Đồ dùng cá nhân" /> <span class="form-check-label">Đồ dùng cá
+                                                nhân</span></label>
+                                    </div>
+                                </div>
+
+                                <div class="furniture-category">
+                                    <h4
+                                        style="margin-bottom:12px;font-size:15px;color:var(--color-primary);font-weight:600;">
+                                        Khu minibar</h4>
+                                    <div class="partner-checklist" style="margin-bottom: 24px;">
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Tủ lạnh mini" /> <span class="form-check-label">Tủ lạnh
+                                                mini</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Ấm đun nước" /> <span class="form-check-label">Ấm đun
+                                                nước</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Máy pha cà phê" /> <span class="form-check-label">Máy pha cà
+                                                phê</span></label>
+                                    </div>
+                                </div>
+
+                                <div class="furniture-category">
+                                    <h4
+                                        style="margin-bottom:12px;font-size:15px;color:var(--color-primary);font-weight:600;">
+                                        Khu bếp</h4>
+                                    <div class="partner-checklist" style="margin-bottom: 24px;">
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Tủ bếp" /> <span class="form-check-label">Tủ bếp</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Chậu rửa" /> <span class="form-check-label">Chậu
+                                                rửa</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Bếp điện" /> <span class="form-check-label">Bếp
+                                                điện</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Máy hút mùi" /> <span class="form-check-label">Máy hút
+                                                mùi</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Lò vi sóng" /> <span class="form-check-label">Lò vi
+                                                sóng</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Tủ lạnh (Khu bếp)" /> <span class="form-check-label">Tủ
+                                                lạnh</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Kệ chén bát" /> <span class="form-check-label">Kệ chén
+                                                bát</span></label>
+                                        <label class="form-check"><input type="checkbox" name="furnitureItems"
+                                                value="Dụng cụ ăn uống" /> <span class="form-check-label">Dụng cụ ăn
+                                                uống</span></label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 0">
+                                    <label class="form-label">Ghi chú cập nhật</label>
+                                    <textarea name="note" class="form-control" rows="5"
+                                        placeholder="Ví dụ: thay mới bộ sofa trong tháng 4, bổ sung gương toàn thân..."></textarea>
+                                </div>
+
+                                <div class="partner-form__actions">
+                                    <button class="btn btn--primary" type="submit">Cập nhật nội thất</button>
+                                </div>
+                            </form>
+                        </div>
+                    </section>
+
+                    <aside class="partner-shell">
                         <section class="partner-panel">
                             <div class="partner-panel__body">
-                                <div class="page-header" style="margin-bottom: var(--space-6)">
-                                    <div>
-                                        <h2 class="page-header__title">Danh mục nội thất</h2>
-                                        <p class="page-header__subtitle">Lưu cập nhật nội thất theo từng phòng để đối soát lại hồ sơ lưu trú.</p>
-                                    </div>
-                                </div>
-
-                                <form id="partner-furniture-form" class="partner-form">
-                                    <div class="partner-form__grid">
-                                        <div class="form-group">
-                                            <label class="form-label">Chọn phòng</label>
-                                            <select class="form-control" id="partner-furniture-room" name="roomId"></select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">Nhóm nội thất</label>
-                                            <select class="form-control" name="furnitureGroup">
-                                                <option>Phòng ngủ</option>
-                                                <option>Phòng tắm</option>
-                                                <option>Ban công</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="partner-checklist">
-                                        <label class="form-check"><input type="checkbox" name="furnitureItems" value="Giường king size" checked /> <span class="form-check-label">Giường king size</span></label>
-                                        <label class="form-check"><input type="checkbox" name="furnitureItems" value="Tủ quần áo" checked /> <span class="form-check-label">Tủ quần áo</span></label>
-                                        <label class="form-check"><input type="checkbox" name="furnitureItems" value="Bàn làm việc" checked /> <span class="form-check-label">Bàn làm việc</span></label>
-                                        <label class="form-check"><input type="checkbox" name="furnitureItems" value="Sofa thư giãn" checked /> <span class="form-check-label">Sofa thư giãn</span></label>
-                                        <label class="form-check"><input type="checkbox" name="furnitureItems" value="Bồn tắm nằm" /> <span class="form-check-label">Bồn tắm nằm</span></label>
-                                        <label class="form-check"><input type="checkbox" name="furnitureItems" value="Bàn trà ngoài trời" checked /> <span class="form-check-label">Bàn trà ngoài trời</span></label>
-                                    </div>
-
-                                    <div class="form-group" style="margin-bottom: 0">
-                                        <label class="form-label">Ghi chú cập nhật</label>
-                                        <textarea name="note" class="form-control" rows="5" placeholder="Ví dụ: thay mới bộ sofa trong tháng 4, bổ sung gương toàn thân..."></textarea>
-                                    </div>
-
-                                    <div class="partner-form__actions">
-                                        <button class="btn btn--primary" type="submit">Cập nhật nội thất</button>
-                                    </div>
-                                </form>
+                                <div class="partner-form__heading" style="margin-bottom: var(--space-4)">Lần cập nhật đã
+                                    lưu</div>
+                                <div class="partner-chip-list" id="partner-furniture-list"></div>
                             </div>
                         </section>
-
-                        <aside class="partner-shell">
-                            <section class="partner-panel">
-                                <div class="partner-panel__body">
-                                    <div class="partner-form__heading" style="margin-bottom: var(--space-4)">Lần cập nhật đã lưu</div>
-                                    <div class="partner-chip-list" id="partner-furniture-list"></div>
-                                </div>
-                            </section>
-                        </aside>
-                    </div>
-                </main>
-            </div>
+                    </aside>
+                </div>
+            </main>
         </div>
-        <script src="../assets/js/main.js"></script>
-        <script src="../assets/js/admin.js"></script>
-        <script src="../assets/js/partners.js"></script>
-    </body>
+    </div>
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/admin.js"></script>
+    <script src="../assets/js/room-store.js"></script>
+    <script src="../assets/js/partners.js"></script>
+</body>
+
 </html>

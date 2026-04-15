@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TravelMate - Kho Voucher</title>
+
+    <!-- Font Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+
+    <!-- Icon FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <link rel="stylesheet" href="../assets/style.css" />
+    <link rel="stylesheet" href="../assets/pages/travel.css" />
+    <link rel="stylesheet" href="../assets/pages/voucher.css" />
+</head>
+
+<body>
+    <!-- ===== SIDEBAR ===== -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar-menu" id="sidebarMenu">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                <span class="s-logo-text">TRAVEL<span>MATE</span></span>
+            </div>
+            <button class="sidebar-close-btn" id="sidebarCloseBtn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="sidebar-nav-label">Chức năng</div>
+            <a href="hotels.html"><span class="s-icon"><i class="fa-solid fa-bed"></i></span>Đặt phòng</a>
+            <a href="travel.html"><span class="s-icon"><i class="fa-solid fa-map-location-dot"></i></span>Gợi ý du
+                lịch</a>
+            <a href="news.html"><span class="s-icon"><i class="fa-solid fa-newspaper"></i></span>Tin tức</a>
+            <a href="contact.html"><span class="s-icon"><i class="fa-solid fa-headset"></i></span>Liên hệ</a>
+            <a href="voucher.html" class="active-sidebar"><span class="s-icon"><i
+                        class="fa-solid fa-ticket"></i></span>Kho voucher</a>
+        </nav>
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-auth" id="sidebarAuth"></div>
+    </aside>
+
+    <!-- ===== HEADER ===== -->
+    <header class="header travel-header" id="header">
+        <div class="container navbar">
+            <div class="logo-wrapper">
+                <a href="index.html" class="logo">
+                    <div class="logo-icon"><i class="fa-solid fa-building"></i></div>
+                    <span class="logo-text"><span class="logo-blue">TRAVEL</span><span
+                            class="logo-yellow">MATE</span></span>
+                </a>
+                <button class="hamburger-btn" id="hamburgerBtn">
+                    <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+                </button>
+            </div>
+            <nav class="menu">
+                <ul class="menu-list">
+                    <li><a href="index.html">TRANG CHỦ</a></li>
+                    <li><a href="travel.html">GỢI Ý DU LỊCH</a></li>
+                    <li><a href="news.html">TIN TỨC</a></li>
+                    <li><a href="contact.html">LIÊN HỆ</a></li>
+                    <li><a href="mybooking.html" class="my-booking"><i class="fa-solid fa-bed"></i> Đặt phòng của
+                            tôi</a></li>
+                </ul>
+            </nav>
+            <a href="login.html" class="login-btn">ĐĂNG NHẬP</a>
+        </div>
+    </header>
+
+    <!-- ===== HERO VOUCHER ===== -->
+    <section class="travel-hero">
+        <div class="travel-hero-bg"
+            style="background-image: url('https://images.unsplash.com/photo-1571867424488-4565932edb41?q=80&w=1920');">
+        </div>
+        <div class="travel-hero-overlay"></div>
+        <div class="container travel-hero-content">
+            <h1 class="travel-title-left">KHÁM PHÁ ƯU ĐÃI &</h1>
+            <h1 class="travel-title-right"><span class="text-gradient">KHO VOUCHER</span></h1>
+            <p class="travel-hero-desc">Theo dõi các chương trình khuyến mãi hấp dẫn và lên kế hoạch tiết kiệm cho
+                chuyến đi tiếp theo của bạn.</p>
+        </div>
+        <div class="travel-hero-bottom"></div>
+    </section>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <section class="campaign-section">
+        <div class="container">
+            <div class="campaign-header">
+                <h2><i class="fa-solid fa-bullhorn text-sky"></i> Chiến Dịch Đặc Biệt</h2>
+                <a href="#" class="view-more">Xem thêm <i class="fa-solid fa-chevron-right text-sm"></i></a>
+            </div>
+
+            <div class="campaign-grid" id="voucherContainer">
+                <!-- Vouchers sẽ được render ở đây qua JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER TẠM ===== -->
+    <footer class="footer">
+        <div class="container footer-content">
+            <div class="logo">
+                <div class="logo-icon bg-sky"><i class="fa-solid fa-building"></i></div>
+                <span class="logo-text text-white">TRAVEL<span class="logo-yellow">MATE</span></span>
+            </div>
+            <p>&copy; 2024 TravelMate. Đồ án Cơ sở lập trình Web.</p>
+        </div>
+    </footer>
+
+    <!-- JS -->
+    <script src="../assets/js/voucher-store.js"></script>
+    <script>
+        // Header scroll
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 40) header.classList.add('scrolled');
+            else header.classList.remove('scrolled');
+        });
+
+        // Sidebar
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const sidebarMenu = document.getElementById('sidebarMenu');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+
+        [hamburgerBtn, sidebarCloseBtn, sidebarOverlay].forEach(btn => {
+            if (btn) btn.addEventListener('click', () => {
+                sidebarMenu.classList.toggle('active');
+                sidebarOverlay.classList.toggle('active');
+            });
+        });
+
+        // Render Vouchers
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('voucherContainer');
+            if (!container || !window.TravelMateVoucherStore) return;
+
+            // Lấy voucher dành cho user và đang hoạt động
+            const vouchers = window.TravelMateVoucherStore.getVouchers().filter(v =>
+                v.target === 'user' && v.status === 'Đang hoạt động'
+            );
+
+            if (vouchers.length === 0) {
+                container.innerHTML = '<div class="campaign-empty"><i class="fa-solid fa-ticket-slash text-4xl mb-3 text-slate-300"></i><p>Hiện chưa có chiến dịch khuyến mại nào dành cho bạn.</p></div>';
+                return;
+            }
+
+            // Hình ảnh placeholder ngẫu nhiên để minh họa
+            const placeholderImages = [
+                'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=600',
+                'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=600',
+                'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=600',
+                'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=600'
+            ];
+
+            container.innerHTML = vouchers.map((v, idx) => {
+                const imgUrl = placeholderImages[idx % placeholderImages.length];
+                const formatV = typeof window.TravelMateVoucherStore.formatDiscount === 'function' ? window.TravelMateVoucherStore.formatDiscount(v) : (v.discountValue + (v.discountType === 'percent' ? '%' : 'đ'));
+
+                const start = v.startDate ? new Date(v.startDate).toLocaleDateString('vi-VN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Không giới hạn';
+                const end = v.endDate ? new Date(v.endDate).toLocaleDateString('vi-VN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Không giới hạn';
+
+                return `
+                    <div class="campaign-card">
+                        <div class="campaign-card-img" style="background-image: url('${imgUrl}')">
+                            <span class="campaign-card-badge">Giảm ${formatV}</span>
+                        </div>
+                        <div class="campaign-card-body">
+                            <div class="campaign-card-title">${v.title || 'Ưu đãi Đặc Biệt'}</div>
+                            <div class="campaign-card-details">
+                                <div class="campaign-card-details-col">
+                                    Thời gian khuyến mại
+                                    <strong>${start} - ${end}</strong>
+                                </div>
+                                <div class="campaign-card-details-col">
+                                    Điều kiện
+                                    <strong>${v.condition || 'Theo sản phẩm'}</strong>
+                                </div>
+                            </div>
+                            <button class="campaign-card-btn" onclick="alert('Đã lưu mã: ${v.code}')">Xem Khuyến Mại</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        });
+    </script>
+</body>
+
+</html>
