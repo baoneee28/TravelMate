@@ -12,7 +12,6 @@
     <link rel="stylesheet" href="../assets/components.css" />
     <link rel="stylesheet" href="../assets/pages/admin.css" />
     <link rel="stylesheet" href="../assets/responsive.css" />
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 </head>
 
@@ -32,12 +31,13 @@
 
             <nav class="admin-sidebar__nav">
                 <div class="admin-sidebar__section-title">Tổng quan</div>
-                <a href="dashboard.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span>
+                <a href="dashboard.html" class="admin-sidebar__link active"><span
+                        class="admin-sidebar__link-icon">📊</span>
                     Dashboard</a>
                 <div class="admin-sidebar__section-title">Quản lý</div>
                 <a href="hotels.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Danh
                     sách khách sạn</a>
-                <a href="rooms.html" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">🛏</span>
+                <a href="rooms.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span>
                     Duyệt phòng</a>
                 <a href="bookings.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt
                     phòng</a>
@@ -48,6 +48,10 @@
                 <a href="vouchers.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span>
                     Voucher</a>
 
+                <div class="admin-sidebar__section-title">Hỗ trợ</div>
+                <a href="support.html" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ
+                </a>
                 <div class="admin-sidebar__section-title">Hệ thống</div>
                 <a href="../user/index.html" class="admin-sidebar__link" target="_blank">
                     <span class="admin-sidebar__link-icon">🌐</span> Xem trang User
@@ -77,7 +81,7 @@
                     <h1 class="admin-topbar__title">Dashboard</h1>
                 </div>
                 <div class="admin-topbar__actions">
-                    <span class="text-sm text-muted">📅 18/03/2025</span>
+                    <span class="text-sm text-muted" id="dash-date">📅 17/04/2026</span>
                     <a href="../user/index.html" class="btn btn--outline btn--sm" target="_blank">🌐 Xem site</a>
                     <a href="../user/login.html" class="btn btn--ghost btn--sm">🚪 Đăng xuất</a>
                 </div>
@@ -85,38 +89,51 @@
 
             <!-- Content -->
             <main class="admin-content">
-                <!-- Stats Cards -->
-                <div class="stats-grid">
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fill,minmax(200px,1fr));">
                     <div class="stats-card">
                         <div class="stats-card__icon stats-card__icon--blue">🏨</div>
                         <div>
-                            <div class="stats-card__value">48</div>
-                            <div class="stats-card__label">Khách sạn</div>
-                            <div class="stats-card__trend stats-card__trend--up">↑ 2 mới trong tháng</div>
+                            <div class="stats-card__value" data-dash="totalRooms">--</div>
+                            <div class="stats-card__label">Tổng phòng</div>
+                            <div class="stats-card__trend stats-card__trend--up" data-dash-trend="rooms">↑ Đang tải...
+                            </div>
                         </div>
                     </div>
                     <div class="stats-card">
-                        <div class="stats-card__icon stats-card__icon--amber">📋</div>
+                        <div class="stats-card__icon stats-card__icon--amber">⏳</div>
                         <div>
-                            <div class="stats-card__value">1.248</div>
-                            <div class="stats-card__label">Tổng booking</div>
-                            <div class="stats-card__trend stats-card__trend--up">↑ 12% so với tháng trước</div>
+                            <div class="stats-card__value" data-dash="pendingRooms">--</div>
+                            <div class="stats-card__label">Chờ duyệt</div>
+                            <div class="stats-card__trend stats-card__trend--up" data-dash-trend="pending">↑ Đang tải...
+                            </div>
                         </div>
                     </div>
                     <div class="stats-card">
-                        <div class="stats-card__icon stats-card__icon--green">👥</div>
+                        <div class="stats-card__icon stats-card__icon--green">✅</div>
                         <div>
-                            <div class="stats-card__value">3.542</div>
-                            <div class="stats-card__label">Người dùng</div>
-                            <div class="stats-card__trend stats-card__trend--up">↑ 89 người mới</div>
+                            <div class="stats-card__value" data-dash="approvedRooms">--</div>
+                            <div class="stats-card__label">Phòng đã duyệt</div>
+                            <div class="stats-card__trend stats-card__trend--up" data-dash-trend="approved">↑ Đang
+                                tải...</div>
+                        </div>
+                    </div>
+
+                    <div class="stats-card">
+                        <div class="stats-card__icon stats-card__icon--blue">📋</div>
+                        <div>
+                            <div class="stats-card__value" data-dash="totalBookings">--</div>
+                            <div class="stats-card__label">Tổng đặt phòng</div>
+                            <div class="stats-card__trend stats-card__trend--up" data-dash-trend="bookings">↑ Đang
+                                tải...</div>
                         </div>
                     </div>
                     <div class="stats-card">
-                        <div class="stats-card__icon stats-card__icon--red">💰</div>
+                        <div class="stats-card__icon stats-card__icon--green">💵</div>
                         <div>
-                            <div class="stats-card__value">842M</div>
-                            <div class="stats-card__label">Doanh thu (VNĐ)</div>
-                            <div class="stats-card__trend stats-card__trend--up">↑ 18% tháng này</div>
+                            <div class="stats-card__value" data-dash="totalRevenue">--</div>
+                            <div class="stats-card__label">Doanh thu</div>
+                            <div class="stats-card__trend stats-card__trend--up" data-dash-trend="revenue">Đang tải...
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -212,66 +229,47 @@
                     </div>
                 </div>
 
-                <!-- Recent Bookings + Quick Actions -->
+                <!-- Recent Rooms + Room Status -->
                 <div class="recent-section-grid">
-                    <!-- Recent Bookings -->
+                    <!-- Recent Rooms -->
                     <div class="card">
                         <div class="card__header">
-                            <h3 class="card__header-title">📋 Đặt phòng gần đây</h3>
-                            <a href="bookings.html" class="btn btn--ghost btn--sm">Xem tất cả →</a>
+                            <h3 class="card__header-title">🏨 Phòng gần đây</h3>
+                            <a href="rooms.html" class="btn btn--ghost btn--sm">Xem tất cả →</a>
                         </div>
                         <div class="table-wrap" style="border: none; border-radius: 0">
                             <table class="table data-table">
                                 <thead>
                                     <tr>
-                                        <th>Mã</th>
-                                        <th>Khách hàng</th>
-                                        <th>Khách sạn</th>
-                                        <th>Ngày</th>
-                                        <th>Trạng thái</th>
+                                        <th>Tên phòng</th>
+                                        <th>Cơ sở</th>
+                                        <th>Loại</th>
+                                        <th>Trạng thái phòng</th>
+                                        <th>Phê duyệt</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr data-status="confirmed">
-                                        <td style="font-family: monospace; font-size: 12px">TM-0042</td>
-                                        <td>Nguyễn Văn An</td>
-                                        <td>InterContinental HN</td>
-                                        <td>20/03 – 23/03</td>
-                                        <td><span class="badge badge--primary">Xác nhận</span></td>
-                                    </tr>
-                                    <tr data-status="pending">
-                                        <td style="font-family: monospace; font-size: 12px">TM-0041</td>
-                                        <td>Trần Thị Bình</td>
-                                        <td>Fusion Maia Đà Nẵng</td>
-                                        <td>25/03 – 28/03</td>
-                                        <td><span class="badge badge--warning">Chờ duyệt</span></td>
-                                    </tr>
-                                    <tr data-status="completed">
-                                        <td style="font-family: monospace; font-size: 12px">TM-0040</td>
-                                        <td>Lê Minh Cường</td>
-                                        <td>Park Hyatt Saigon</td>
-                                        <td>15/03 – 17/03</td>
-                                        <td><span class="badge badge--success">Hoàn thành</span></td>
-                                    </tr>
-                                    <tr data-status="cancelled">
-                                        <td style="font-family: monospace; font-size: 12px">TM-0039</td>
-                                        <td>Phạm Lan Anh</td>
-                                        <td>La Résidence HN</td>
-                                        <td>10/03 – 12/03</td>
-                                        <td><span class="badge badge--danger">Đã hủy</span></td>
+                                <tbody id="dash-recent-rooms">
+                                    <tr>
+                                        <td colspan="5"
+                                            style="text-align:center;color:var(--color-text-muted);padding:16px;">Đang
+                                            tải...</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
 
-                    <!-- Quick Actions -->
+                    <!-- Room Status Stats -->
                     <div class="card">
                         <div class="card__header">
-                            <h3 class="card__header-title">⚡ Thao tác nhanh</h3>
+                            <h3 class="card__header-title">📊 Trạng thái phòng</h3>
                         </div>
-                        <div class="card__body">
-                            <div class="quick-actions">
+                        <div class="card__body" id="dash-room-status-stats" style="padding: var(--space-4)">
+                            <div style="color:var(--color-text-muted);font-size:13px;padding:8px 0;">Đang tải...</div>
+                        </div>
+                        <div class="card__body"
+                            style="padding: 0 var(--space-4) var(--space-4); border-top: 1px solid var(--color-border);">
+                            <div class="quick-actions" style="margin-top: var(--space-3);">
                                 <a href="rooms.html" class="quick-action-item">
                                     <div class="quick-action-item__icon">🛏</div>
                                     Duyệt phòng
@@ -286,7 +284,7 @@
                                 </a>
                                 <a href="vouchers.html" class="quick-action-item">
                                     <div class="quick-action-item__icon">🎟</div>
-                                    Quản lý Voucher
+                                    Voucher
                                 </a>
                             </div>
                         </div>
@@ -302,6 +300,10 @@
 
     <script src="../assets/js/main.js"></script>
     <script src="../assets/js/admin.js"></script>
+    <script src="../assets/js/room-store.js"></script>
+    <script src="../assets/js/booking-store.js"></script>
+    <script src="../assets/js/voucher-store.js"></script>
+    <script src="../assets/js/admin-dashboard.js"></script>
 </body>
 
 </html>

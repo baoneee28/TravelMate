@@ -1,10 +1,10 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="vi">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Thêm phòng - Partner TravelMate</title>
+    <title>Chỉnh sửa phòng - Partner TravelMate</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="../assets/base.css" />
@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="../assets/pages/admin.css" />
     <link rel="stylesheet" href="../assets/pages/partners.css" />
     <link rel="stylesheet" href="../assets/responsive.css" />
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 </head>
 
@@ -71,41 +70,59 @@
             <header class="admin-topbar">
                 <div style="display: flex; align-items: center; gap: var(--space-4)">
                     <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
-                    <h1 class="admin-topbar__title">Thêm phòng mới</h1>
+                    <h1 class="admin-topbar__title" id="edit-room-topbar-title">Chỉnh sửa phòng</h1>
                 </div>
+                <a href="rooms.html" class="btn btn--ghost btn--sm">← Quay lại danh sách</a>
             </header>
+
             <main class="admin-content">
-                <div class="partner-grid">
+                <!-- Alert: không tìm thấy phòng -->
+                <div id="edit-room-not-found" hidden>
+                    <div class="alert alert--danger" style="margin-bottom: var(--space-5);">
+                        <strong>⚠ Không tìm thấy phòng.</strong>
+                        Hãy quay lại <a href="rooms.html">danh sách phòng</a> và chọn phòng cần sửa.
+                    </div>
+                </div>
+
+                <!-- Alert: phòng đang chờ duyệt lại -->
+                <div id="edit-room-pending-notice" class="alert alert--info" style="margin-bottom: var(--space-5);"
+                    hidden>
+                    <strong>⏳ Lưu ý:</strong> Sau khi chỉnh sửa, phòng sẽ được đặt lại thành <strong>Chờ duyệt</strong>.
+                    Admin cần duyệt lại trước khi phòng được hiển thị công khai.
+                </div>
+
+                <div id="edit-room-form-wrap" class="partner-grid">
                     <section class="partner-panel">
                         <div class="partner-panel__body">
                             <div class="page-header" style="margin-bottom: var(--space-6)">
                                 <div>
-                                    <h2 class="page-header__title">Khai báo phòng mới</h2>
+                                    <h2 class="page-header__title">Cập nhật thông tin phòng</h2>
                                     <p class="page-header__subtitle">
-                                        Partner có thể tự chọn loại phòng trước. Sau khi gửi, admin vẫn có thể
-                                        chỉnh lại toàn bộ thông tin trước khi duyệt hiển thị.
+                                        Chỉnh sửa thông tin bên dưới. Sau khi lưu, phòng sẽ được gửi lại để admin duyệt.
                                     </p>
                                 </div>
                             </div>
 
-                            <form id="partner-add-room-form" class="partner-form">
+                            <form id="partner-edit-room-form" class="partner-form">
+                                <input type="hidden" id="edit-room-id" />
+
                                 <div class="partner-form__section">
                                     <div class="partner-form__heading">Thông tin cơ bản</div>
                                     <div class="partner-form__grid">
                                         <div class="form-group">
                                             <label class="form-label">Tên phòng <span class="required">*</span></label>
-                                            <input name="roomName" type="text" class="form-control"
+                                            <input id="edit-roomName" name="roomName" type="text" class="form-control"
                                                 placeholder="Ví dụ: Deluxe Mountain View" required />
                                         </div>
                                         <div class="form-group">
                                             <label class="form-label">Tên cơ sở <span class="required">*</span></label>
-                                            <input name="propertyName" type="text" class="form-control"
-                                                placeholder="Sunrise Sapa Lodge" required />
+                                            <input id="edit-propertyName" name="propertyName" type="text"
+                                                class="form-control" placeholder="Sunrise Sapa Lodge" required />
                                         </div>
                                         <div class="form-group">
                                             <label class="form-label">Loại phòng</label>
-                                            <select name="roomType" class="form-control">
-                                                <option value="Hotel" selected>Hotel</option>
+                                            <select id="edit-roomType" name="roomType" class="form-control">
+                                                <option value="Hotel">Hotel</option>
                                                 <option value="Villa">Villa</option>
                                                 <option value="Homestay">Homestay</option>
                                                 <option value="Resort">Resort</option>
@@ -113,7 +130,7 @@
                                         </div>
                                         <div class="form-group">
                                             <label class="form-label">Sức chứa</label>
-                                            <select name="capacity" class="form-control">
+                                            <select id="edit-capacity" name="capacity" class="form-control">
                                                 <option>2 khách</option>
                                                 <option>3 khách</option>
                                                 <option>4 khách</option>
@@ -122,36 +139,36 @@
                                         </div>
                                         <div class="form-group">
                                             <label class="form-label">Diện tích</label>
-                                            <input name="size" type="text" class="form-control" placeholder="32m²" />
+                                            <input id="edit-size" name="size" type="text" class="form-control"
+                                                placeholder="32m²" />
                                         </div>
                                         <div class="form-group">
                                             <label class="form-label">Giá mỗi đêm <span
                                                     class="required">*</span></label>
-                                            <input name="price" type="number" class="form-control" placeholder="1650000"
-                                                required />
+                                            <input id="edit-price" name="price" type="number" class="form-control"
+                                                placeholder="1650000" required />
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="partner-form__section">
                                     <div class="partner-form__heading">Tiện nghi nổi bật</div>
-                                    <div class="partner-checklist">
-                                        <label class="form-check"><input type="checkbox" checked />
+                                    <div class="partner-checklist" id="edit-amenities-list">
+                                        <label class="form-check"><input type="checkbox" value="Ban công riêng" />
                                             <span class="form-check-label">Ban công riêng</span></label>
-                                        <label class="form-check"><input type="checkbox" checked />
+                                        <label class="form-check"><input type="checkbox" value="Bồn tắm" />
                                             <span class="form-check-label">Bồn tắm</span></label>
-                                        <label class="form-check"><input type="checkbox" checked />
+                                        <label class="form-check"><input type="checkbox" value="Máy lạnh" />
                                             <span class="form-check-label">Máy lạnh</span></label>
-                                        <label class="form-check"><input type="checkbox" />
+                                        <label class="form-check"><input type="checkbox" value="Bếp từ" />
                                             <span class="form-check-label">Bếp từ</span></label>
-                                        <label class="form-check"><input type="checkbox" checked />
+                                        <label class="form-check"><input type="checkbox" value="Wi-Fi tốc độ cao" />
                                             <span class="form-check-label">Wi-Fi tốc độ cao</span></label>
-                                        <label class="form-check"><input type="checkbox" />
+                                        <label class="form-check"><input type="checkbox" value="Smart TV" />
                                             <span class="form-check-label">Smart TV</span></label>
-                                        <label class="form-check"><input type="checkbox" />
+                                        <label class="form-check"><input type="checkbox" value="Tủ lạnh" />
                                             <span class="form-check-label">Tủ lạnh</span></label>
-
-                                        <label class="form-check"><input type="checkbox" />
+                                        <label class="form-check"><input type="checkbox" value="Hồ bơi" />
                                             <span class="form-check-label">Hồ bơi</span></label>
                                     </div>
                                 </div>
@@ -159,28 +176,27 @@
                                 <div class="partner-form__section">
                                     <div class="form-group" style="margin-bottom: 0">
                                         <label class="form-label">Mô tả / ghi chú cho admin</label>
-                                        <textarea name="note" class="form-control" rows="5"
-                                            placeholder="Mô tả ngắn về phòng, góc nhìn, nội thất mới hoặc điểm cần admin lưu ý khi duyệt."></textarea>
+                                        <textarea id="edit-note" name="note" class="form-control" rows="5"
+                                            placeholder="Cập nhật mô tả phòng hoặc ghi chú thay đổi mới."></textarea>
                                     </div>
                                 </div>
 
                                 <div class="partner-form__actions">
-                                    <a href="rooms.html" class="btn btn--ghost">Quay lại</a>
-                                    <button type="submit" class="btn btn--primary">Gửi phòng chờ duyệt</button>
+                                    <a href="rooms.html" class="btn btn--ghost">Hủy</a>
+                                    <button type="submit" class="btn btn--primary">💾 Lưu thay đổi</button>
                                 </div>
                             </form>
                         </div>
                     </section>
 
                     <aside class="partner-shell">
-                        <section class="partner-panel">
+                        <!-- Thông tin hiện tại -->
+                        <section class="partner-panel" id="edit-room-current-info">
                             <div class="partner-panel__body">
                                 <div class="partner-note">
-                                    <div class="partner-note__title">Quy trình duyệt phòng</div>
-                                    <div class="partner-note__list">
-                                        <div>1. Bạn chọn loại phòng đề xuất trước khi gửi hồ sơ.</div>
-                                        <div>2. Admin kiểm tra và có thể chỉnh toàn bộ thông tin phòng khi duyệt.</div>
-                                        <div>3. Chỉ các phòng đã duyệt mới hiển thị trong danh sách mở bán.</div>
+                                    <div class="partner-note__title">Thông tin hiện tại</div>
+                                    <div class="partner-note__list" id="edit-room-info-list">
+                                        <span>Đang tải...</span>
                                     </div>
                                 </div>
                             </div>
@@ -188,14 +204,15 @@
 
                         <section class="partner-panel">
                             <div class="partner-panel__body">
-                                <div class="partner-form__heading" style="margin-bottom: var(--space-4)">
-                                    Gợi ý nhanh
-                                </div>
-                                <div class="partner-chip-list">
-                                    <span class="partner-chip">Ảnh thật từ phòng</span>
-                                    <span class="partner-chip">Giá đã bao gồm thuế</span>
-                                    <span class="partner-chip">Nội thất đồng bộ</span>
-                                    <span class="partner-chip">Mô tả dưới 300 ký tự</span>
+                                <div class="partner-note">
+                                    <div class="partner-note__title">⚠ Lưu ý khi chỉnh sửa</div>
+                                    <div class="partner-note__list">
+                                        <div>1. Sau khi lưu, phòng sẽ chuyển về trạng thái <strong>Chờ duyệt</strong>.
+                                        </div>
+                                        <div>2. Admin sẽ xem xét lại và có thể chỉnh sửa thêm trước khi duyệt.</div>
+                                        <div>3. Phòng sẽ tạm ẩn khỏi danh sách công khai trong thời gian chờ duyệt.
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </section>
@@ -207,6 +224,7 @@
     <script src="../assets/js/main.js"></script>
     <script src="../assets/js/admin.js"></script>
     <script src="../assets/js/room-store.js"></script>
+    <script src="../assets/js/voucher-store.js"></script>
     <script src="../assets/js/partners.js"></script>
 </body>
 

@@ -85,13 +85,18 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ── Active Sidebar Link ──────────────────────
-  const currentPath = window.location.pathname.split('/').pop();
+  const currentPath = window.location.pathname.split('/').pop() || 'index.html';
   document.querySelectorAll('.admin-sidebar__link').forEach(link => {
-    const href = link.getAttribute('href');
-    if (href && href.includes(currentPath)) {
+    // Xóa active cũ (có thể bị hardcode sai trong HTML)
+    link.classList.remove('active');
+    const href = link.getAttribute('href') || '';
+    // Lấy tên file từ href (bỏ query string nếu có)
+    const hrefFile = href.split('?')[0].split('/').pop();
+    if (hrefFile && hrefFile === currentPath) {
       link.classList.add('active');
     }
   });
+
 
   // ── Bar Chart Animation ──────────────────────
   document.querySelectorAll('.chart-bar').forEach(bar => {

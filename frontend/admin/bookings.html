@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="vi">
 
 <head>
@@ -11,8 +11,8 @@
     <link rel="stylesheet" href="../assets/layout.css" />
     <link rel="stylesheet" href="../assets/components.css" />
     <link rel="stylesheet" href="../assets/pages/admin.css" />
+    <link rel="stylesheet" href="../assets/pages/booking.css" />
     <link rel="stylesheet" href="../assets/responsive.css" />
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 </head>
 
@@ -35,9 +35,9 @@
                 <div class="admin-sidebar__section-title">Quản lý</div>
                 <a href="hotels.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Danh
                     sách khách sạn</a>
-                <a href="rooms.html" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">🛏</span>
+                <a href="rooms.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span>
                     Duyệt phòng</a>
-                <a href="bookings.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt
+                <a href="bookings.html" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">📋</span> Đặt
                     phòng</a>
                 <a href="users.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người
                     dùng</a>
@@ -46,6 +46,10 @@
                 <a href="vouchers.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span>
                     Voucher</a>
 
+                <div class="admin-sidebar__section-title">Hỗ trợ</div>
+                <a href="support.html" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ
+                </a>
                 <div class="admin-sidebar__section-title">Hệ thống</div>
                 <a href="../user/index.html" class="admin-sidebar__link" target="_blank">
                     <span class="admin-sidebar__link-icon">🌐</span> Xem trang User
@@ -64,44 +68,94 @@
         <div class="admin-sidebar-overlay"></div>
 
         <div class="admin-main">
+            <header class="admin-topbar">
+                <div style="display: flex; align-items: center; gap: var(--space-4)">
+                    <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                    <h1 class="admin-topbar__title">Quản lý đặt phòng</h1>
+                </div>
+            </header>
 
             <main class="admin-content">
                 <div class="page-header">
                     <div>
-                        <h2 class="page-header__title">📋 Quản lý đặt phòng</h2>
-                        <p class="page-header__subtitle">1.248 booking tổng cộng</p>
+                        <h2 class="page-header__title">📋 Đặt phòng</h2>
+                        <p class="page-header__subtitle">Theo dõi, duyệt và quản lý toàn bộ đơn đặt phòng.</p>
                     </div>
                 </div>
 
-                <!-- Status Tabs -->
-                <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-5); flex-wrap: wrap">
-                    <button class="filter-tab active" data-filter="all">Tất cả (1248)</button>
-                    <button class="filter-tab" data-filter="pending">Chờ duyệt (45)</button>
-                    <button class="filter-tab" data-filter="confirmed">Xác nhận (620)</button>
-                    <button class="filter-tab" data-filter="completed">Hoàn thành (503)</button>
-                    <button class="filter-tab" data-filter="cancelled">Đã hủy (80)</button>
+                <!-- Stats row -->
+                <div class="stats-grid" style="margin-bottom: var(--space-5);">
+                    <div class="stats-card" style="cursor:pointer;" onclick="document.querySelector('[data-booking-filter=all]').click()">
+                        <div class="stats-card__icon stats-card__icon--blue">📋</div>
+                        <div>
+                            <div class="stats-card__value" id="stat-total">--</div>
+                            <div class="stats-card__label">Tổng đơn</div>
+                        </div>
+                    </div>
+                    <div class="stats-card" style="cursor:pointer;" onclick="document.querySelector('[data-booking-filter=pending]').click()">
+                        <div class="stats-card__icon stats-card__icon--amber">⏳</div>
+                        <div>
+                            <div class="stats-card__value" id="stat-pending">--</div>
+                            <div class="stats-card__label">Chờ duyệt</div>
+                        </div>
+                    </div>
+                    <div class="stats-card" style="cursor:pointer;" onclick="document.querySelector('[data-booking-filter=confirmed]').click()">
+                        <div class="stats-card__icon stats-card__icon--blue">✅</div>
+                        <div>
+                            <div class="stats-card__value" id="stat-confirmed">--</div>
+                            <div class="stats-card__label">Đã xác nhận</div>
+                        </div>
+                    </div>
+                    <div class="stats-card" style="cursor:pointer;" onclick="document.querySelector('[data-booking-filter=completed]').click()">
+                        <div class="stats-card__icon stats-card__icon--green">🏁</div>
+                        <div>
+                            <div class="stats-card__value" id="stat-completed">--</div>
+                            <div class="stats-card__label">Hoàn thành</div>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Filter Tabs -->
+                <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-5); flex-wrap: wrap; align-items:center;">
+                    <button class="filter-tab active" data-booking-filter="all">
+                        Tất cả <span data-tab-count></span>
+                    </button>
+                    <button class="filter-tab" data-booking-filter="pending">
+                        Chờ duyệt <span data-tab-count></span>
+                    </button>
+                    <button class="filter-tab" data-booking-filter="confirmed">
+                        Xác nhận <span data-tab-count></span>
+                    </button>
+                    <button class="filter-tab" data-booking-filter="completed">
+                        Hoàn thành <span data-tab-count></span>
+                    </button>
+                    <button class="filter-tab" data-booking-filter="cancelled">
+                        Đã hủy <span data-tab-count></span>
+                    </button>
+                    <span style="margin-left:auto;font-size:13px;color:var(--color-text-muted);" id="booking-result-count"></span>
+                </div>
+
+                <!-- Toolbar -->
                 <div class="table-toolbar">
                     <div class="input-group table-toolbar__search">
                         <span class="input-group__icon">🔍</span>
-                        <input type="text" class="form-control" id="table-search"
-                            placeholder="Tìm mã booking, tên khách..." />
+                        <input type="text" class="form-control" id="booking-search"
+                            placeholder="Tìm mã booking, tên khách, khách sạn..." />
                     </div>
                     <div class="table-toolbar__actions">
-                        <input type="date" class="form-control" style="width: 160px" title="Từ ngày" />
-                        <input type="date" class="form-control" style="width: 160px" title="Đến ngày" />
-                        <button class="btn btn--outline btn--sm">📥 Xuất Excel</button>
+                        <input type="date" class="form-control" id="booking-from-date" style="width: 160px" title="Từ ngày nhận phòng" />
+                        <input type="date" class="form-control" id="booking-to-date" style="width: 160px" title="Đến ngày nhận phòng" />
                     </div>
                 </div>
 
+                <!-- Table -->
                 <div class="table-wrap">
                     <table class="table data-table">
                         <thead>
                             <tr>
                                 <th>Mã booking</th>
                                 <th>Khách hàng</th>
-                                <th>Khách sạn</th>
+                                <th>Khách sạn / Phòng</th>
                                 <th>Nhận phòng</th>
                                 <th>Trả phòng</th>
                                 <th>Số đêm</th>
@@ -110,112 +164,12 @@
                                 <th>Thao tác</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr data-status="confirmed">
-                                <td style="font-family: monospace; font-size: 12px; color: var(--color-primary)">
-                                    TM-2025-0042
-                                </td>
-                                <td>
-                                    <div style="font-weight: 600">Nguyễn Văn An</div>
-                                    <div style="font-size: 12px; color: var(--color-text-muted)">0901 234 567</div>
-                                </td>
-                                <td>InterContinental HN</td>
-                                <td>20/03/2025</td>
-                                <td>23/03/2025</td>
-                                <td>3</td>
-                                <td style="font-weight: 600; color: var(--color-primary)">5.827.500đ</td>
-                                <td><span class="badge badge--primary">Xác nhận</span></td>
-                                <td>
-                                    <div class="table__actions">
-                                        <button class="btn btn--success btn--sm"
-                                            style="background: var(--color-success); color: #fff; border: none">
-                                            ✓ Duyệt
-                                        </button>
-                                        <button class="btn btn--danger btn--sm btn-delete" data-name="TM-0042">
-                                            Hủy
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr data-status="pending">
-                                <td style="font-family: monospace; font-size: 12px; color: var(--color-primary)">
-                                    TM-2025-0041
-                                </td>
-                                <td>
-                                    <div style="font-weight: 600">Trần Thị Bình</div>
-                                    <div style="font-size: 12px; color: var(--color-text-muted)">0912 345 678</div>
-                                </td>
-                                <td>Fusion Maia Đà Nẵng</td>
-                                <td>25/03/2025</td>
-                                <td>28/03/2025</td>
-                                <td>3</td>
-                                <td style="font-weight: 600; color: var(--color-primary)">6.600.000đ</td>
-                                <td><span class="badge badge--warning">Chờ duyệt</span></td>
-                                <td>
-                                    <div class="table__actions">
-                                        <button class="btn btn--sm" style="
-                                                    background: var(--color-success);
-                                                    color: #fff;
-                                                    border: none;
-                                                    border-radius: 6px;
-                                                    padding: 6px 12px;
-                                                ">
-                                            ✓ Duyệt
-                                        </button>
-                                        <button class="btn btn--danger btn--sm btn-delete" data-name="TM-0041">
-                                            Hủy
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr data-status="completed">
-                                <td style="font-family: monospace; font-size: 12px; color: var(--color-primary)">
-                                    TM-2025-0040
-                                </td>
-                                <td>
-                                    <div style="font-weight: 600">Lê Minh Cường</div>
-                                    <div style="font-size: 12px; color: var(--color-text-muted)">0923 456 789</div>
-                                </td>
-                                <td>Park Hyatt Saigon</td>
-                                <td>15/03/2025</td>
-                                <td>17/03/2025</td>
-                                <td>2</td>
-                                <td style="font-weight: 600; color: var(--color-primary)">6.200.000đ</td>
-                                <td><span class="badge badge--success">Hoàn thành</span></td>
-                                <td>
-                                    <button class="btn btn--outline btn--sm">Chi tiết</button>
-                                </td>
-                            </tr>
-                            <tr data-status="cancelled">
-                                <td style="font-family: monospace; font-size: 12px; color: var(--color-text-muted)">
-                                    TM-2025-0039
-                                </td>
-                                <td>
-                                    <div style="font-weight: 600">Phạm Lan Anh</div>
-                                    <div style="font-size: 12px; color: var(--color-text-muted)">0934 567 890</div>
-                                </td>
-                                <td>La Résidence HN</td>
-                                <td>10/03/2025</td>
-                                <td>12/03/2025</td>
-                                <td>2</td>
-                                <td style="text-decoration: line-through; color: var(--color-text-muted)">
-                                    1.960.000đ
-                                </td>
-                                <td><span class="badge badge--danger">Đã hủy</span></td>
-                                <td>
-                                    <button class="btn btn--outline btn--sm">Chi tiết</button>
-                                </td>
+                        <tbody id="admin-bookings-table">
+                            <tr>
+                                <td colspan="9" style="text-align:center;padding:32px;color:var(--color-text-muted);">Đang tải...</td>
                             </tr>
                         </tbody>
                     </table>
-                </div>
-
-                <div class="pagination" style="justify-content: flex-start; margin-top: var(--space-4)">
-                    <span class="pagination__item disabled">‹</span>
-                    <span class="pagination__item active" data-page="1">1</span>
-                    <span class="pagination__item" data-page="2">2</span>
-                    <span class="pagination__item" data-page="3">3</span>
-                    <span class="pagination__item">›</span>
                 </div>
             </main>
         </div>
@@ -223,6 +177,21 @@
 
     <script src="../assets/js/main.js"></script>
     <script src="../assets/js/admin.js"></script>
+    <script src="../assets/js/booking-store.js"></script>
+    <script src="../assets/js/admin-bookings.js"></script>
+    <script>
+        // Cập nhật stats cards từ store
+        document.addEventListener('DOMContentLoaded', () => {
+            const store = window.TravelMateBookingStore;
+            if (!store) return;
+            const s = store.getStats();
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            set('stat-total',     s.total);
+            set('stat-pending',   s.pending);
+            set('stat-confirmed', s.confirmed);
+            set('stat-completed', s.completed);
+        });
+    </script>
 </body>
 
 </html>

@@ -107,6 +107,91 @@ document.addEventListener('DOMContentLoaded', () => {
     return rooms;
   }
 
+  const ROOM_STATUS_CONFIG = {
+    'Phòng trống':     { color: '#16a34a', bg: '#dcfce7', dot: '#22c55e' },
+    'Đang được thuê':  { color: '#c2410c', bg: '#ffedd5', dot: '#f97316' },
+    'Đã đặt trước':    { color: '#b45309', bg: '#fef9c3', dot: '#eab308' },
+    'Hủy đặt phòng':  { color: '#b91c1c', bg: '#fee2e2', dot: '#ef4444' },
+    'Gia hạn thuê':    { color: '#9d174d', bg: '#fce7f3', dot: '#ec4899' },
+  };
+
+  function getRoomStatusBadge(status) {
+    const cfg = ROOM_STATUS_CONFIG[status];
+    if (!cfg) {
+      return `<span style="font-size:13px;color:#6b7280;">${escapeHtml(status || '--')}</span>`;
+    }
+    return `
+      <span style="
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 3px 10px; border-radius: 999px;
+        font-size: 12px; font-weight: 600;
+        background: ${cfg.bg}; color: ${cfg.color};
+        white-space: nowrap;
+      ">
+        <span style="width:8px;height:8px;border-radius:50%;background:${cfg.dot};flex-shrink:0;"></span>
+        ${escapeHtml(status)}
+      </span>`;
+  }
+
+  function renderEditRoom() {
+    const form = document.getElementById('partner-edit-room-form');
+    if (!form) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const roomId = params.get('roomId') || roomStore.getLatestRoomId();
+    const room = roomStore.getRoomById(roomId);
+
+    const notFoundEl = document.getElementById('edit-room-not-found');
+    const formWrapEl = document.getElementById('edit-room-form-wrap');
+    const pendingNoticeEl = document.getElementById('edit-room-pending-notice');
+    const topbarTitle = document.getElementById('edit-room-topbar-title');
+    const infoList = document.getElementById('edit-room-info-list');
+
+    if (!room) {
+      if (notFoundEl) notFoundEl.hidden = false;
+      if (formWrapEl) formWrapEl.hidden = true;
+      return;
+    }
+
+    if (topbarTitle) topbarTitle.textContent = `Sửa phòng: ${room.roomName}`;
+    if (pendingNoticeEl) pendingNoticeEl.hidden = false;
+
+    // Load giá trị hiện tại vào form
+    document.getElementById('edit-room-id').value = room.id;
+    document.getElementById('edit-roomName').value = room.roomName || '';
+    document.getElementById('edit-propertyName').value = room.propertyName || '';
+    document.getElementById('edit-roomType').value = room.roomType || 'Hotel';
+    document.getElementById('edit-price').value = room.price || '';
+    document.getElementById('edit-size').value = room.size || '';
+    document.getElementById('edit-note').value = room.note || '';
+
+    const capacitySelect = document.getElementById('edit-capacity');
+    if (capacitySelect) {
+      [...capacitySelect.options].forEach((opt) => {
+        opt.selected = opt.value === room.capacity;
+      });
+    }
+
+    // Check amenities
+    const amenitiesChecklist = document.getElementById('edit-amenities-list');
+    if (amenitiesChecklist) {
+      amenitiesChecklist.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+        cb.checked = room.amenities?.includes(cb.value) || false;
+      });
+    }
+
+    // Hiển thị thông tin hiện tại
+    if (infoList) {
+      infoList.innerHTML = `
+        <span>🏠 Cơ sở: ${escapeHtml(room.propertyName)}</span>
+        <span>🏷 Loại: ${escapeHtml(roomStore.getRoomTypeLabel(room))}</span>
+        <span>💰 Giá/đêm: ${escapeHtml(roomStore.formatCurrency(room.price))}</span>
+        <span>📊 Trạng thái: ${escapeHtml(room.approvalStatus)}</span>
+        <span>🗓 Gửi: ${escapeHtml(room.submittedAt || '--')}</span>
+      `;
+    }
+  }
+
   function renderRoomsTable() {
     const tbody = document.getElementById('partner-rooms-table');
     if (!tbody) return;
@@ -156,6 +241,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
               `;
 
+        const roomStatusOptions = (window.TravelMateRoomStore?.ROOM_STATUSES || ['Phòng trống', 'Đang được thuê', 'Đã đặt trước', 'Hủy đặt phòng', 'Gia hạn thuê'])
+          .map((s) => `<option value="${escapeHtml(s)}" ${room.roomStatus === s ? 'selected' : ''}>${escapeHtml(s)}</option>`)
+          .join('');
+
         return `
           <tr>
             <td>${index + 1}</td>
@@ -169,14 +258,22 @@ document.addEventListener('DOMContentLoaded', () => {
             <td>${escapeHtml(room.capacity)}</td>
             <td>${escapeHtml(room.size || '--')}</td>
             <td style="font-weight: 600; color: var(--color-primary)">${escapeHtml(roomStore.formatCurrency(room.price))}</td>
-            <td><span class="status-dot ${roomStore.getStatusClass(room.status)}">${escapeHtml(room.status)}</span></td>
+            <td>${getRoomStatusBadge(room.roomStatus || room.status)}</td>
             <td><span class="status-dot ${roomStore.getStatusClass(room.approvalStatus)}">${escapeHtml(room.approvalStatus)}</span></td>
             <td>
               <div class="table__actions">
                 ${actionButtons}
+                <button class="btn btn--outline btn--sm btn-edit-room" data-room-id="${escapeHtml(room.id)}">
+                  Sửa
+                </button>
                 <button class="btn btn--danger btn--sm btn-delete-room" data-room-id="${escapeHtml(room.id)}" data-name="${escapeHtml(room.roomName)}">
                   Xóa
                 </button>
+              </div>
+              <div style="margin-top:8px;">
+                <select class="form-control btn-change-room-status" data-room-id="${escapeHtml(room.id)}" style="font-size:12px;padding:4px 8px;border-radius:6px;">
+                  ${roomStatusOptions}
+                </select>
               </div>
               ${
                 isApproved
@@ -417,6 +514,7 @@ document.addEventListener('DOMContentLoaded', () => {
         amenities: getAmenityLabels(),
         furniture: [],
         status: 'Tạm khóa bán',
+        roomStatus: 'Phòng trống',
         approvalStatus: 'Chờ duyệt',
         adminNote: '',
         submittedAt: timestamp,
@@ -429,7 +527,57 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ── Edit Room Form ─────────────────────────────────────────────────────────
+  const editRoomForm = document.getElementById('partner-edit-room-form');
+  if (editRoomForm) {
+    editRoomForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const roomId = document.getElementById('edit-room-id')?.value || '';
+      if (!roomId) return;
+
+      const roomName = (document.getElementById('edit-roomName')?.value || '').trim();
+      const propertyName = (document.getElementById('edit-propertyName')?.value || '').trim();
+      const roomType = document.getElementById('edit-roomType')?.value || '';
+      const capacity = document.getElementById('edit-capacity')?.value || '2 khách';
+      const size = (document.getElementById('edit-size')?.value || '').trim() || '--';
+      const price = (document.getElementById('edit-price')?.value || '').trim();
+      const note = (document.getElementById('edit-note')?.value || '').trim();
+      const amenities = [...editRoomForm.querySelectorAll('#edit-amenities-list input:checked')].map((cb) => cb.value);
+
+      if (!roomName) {
+        if (typeof showToast === 'function') showToast('Hãy nhập tên phòng.', 'error');
+        return;
+      }
+      if (!price) {
+        if (typeof showToast === 'function') showToast('Hãy nhập giá phòng.', 'error');
+        return;
+      }
+
+      const timestamp = new Date().toLocaleString('vi-VN');
+      roomStore.updateRoom(roomId, {
+        roomName,
+        propertyName,
+        roomType,
+        capacity,
+        size,
+        price,
+        note,
+        amenities,
+        approvalStatus: 'Chờ duyệt',
+        reviewedAt: '',
+        submittedAt: timestamp,
+      });
+
+      if (typeof showToast === 'function') {
+        showToast(`Đã cập nhật "${roomName}" — chờ admin duyệt lại.`, 'success');
+      }
+
+      setTimeout(() => { window.location.href = 'rooms.html'; }, 800);
+    });
+  }
+
   const furnitureForm = document.getElementById('partner-furniture-form');
+
   if (furnitureForm) {
     const approvedRooms = populateApprovedRoomOptions('#partner-furniture-room');
     const submitButton = furnitureForm.querySelector('button[type="submit"]');
@@ -553,8 +701,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const roomsTable = document.getElementById('partner-rooms-table');
   if (roomsTable) {
+    // Lắng nghe change cho dropdown trạng thái phòng inline
+    roomsTable.addEventListener('change', (event) => {
+      const statusSelect = event.target.closest('.btn-change-room-status');
+      if (!statusSelect) return;
+      const roomId = statusSelect.getAttribute('data-room-id');
+      const newStatus = statusSelect.value;
+      roomStore.updateRoom(roomId, { roomStatus: newStatus });
+      renderRoomsTable();
+      if (typeof showToast === 'function') {
+        showToast(`Đã cập nhật: ${newStatus}`, 'success');
+      }
+    });
+
+
     roomsTable.addEventListener('click', (event) => {
       const deleteButton = event.target.closest('.btn-delete-room');
+
       if (deleteButton) {
         const roomId = deleteButton.getAttribute('data-room-id');
         const roomName = deleteButton.getAttribute('data-name') || 'phòng';
@@ -585,10 +748,31 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      const editButton = event.target.closest('.btn-edit-room');
+      if (editButton) {
+        const roomId = editButton.getAttribute('data-room-id');
+        roomStore.setLatestRoomId(roomId);
+        window.location.href = `edit-room.html?roomId=${encodeURIComponent(roomId)}`;
+        return;
+      }
+
       const manageButton = event.target.closest('.btn-manage-room');
       if (manageButton) {
         roomStore.setLatestRoomId(manageButton.getAttribute('data-room-id'));
         window.location.href = 'add-furniture.html';
+      }
+
+      // Inline roomStatus dropdown
+      const statusSelect = event.target.closest('.btn-change-room-status');
+      if (statusSelect) {
+        const roomId = statusSelect.getAttribute('data-room-id');
+        const newStatus = statusSelect.value;
+        roomStore.updateRoom(roomId, { roomStatus: newStatus });
+        renderRoomsTable();
+        if (typeof showToast === 'function') {
+          showToast(`Đã cập nhật trạng thái phòng: ${newStatus}`, 'success');
+        }
+        return;
       }
     });
   }
@@ -597,4 +781,5 @@ document.addEventListener('DOMContentLoaded', () => {
   renderPendingRoom();
   renderFurnitureUpdates();
   renderVouchers();
+  renderEditRoom();
 });

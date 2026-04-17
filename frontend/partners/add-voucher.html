@@ -1,128 +1,135 @@
 ﻿<!doctype html>
 <html lang="vi">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Add voucher - Partner TravelMate</title>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-            rel="stylesheet"
-        />
-        <link rel="stylesheet" href="../assets/base.css" />
-        <link rel="stylesheet" href="../assets/layout.css" />
-        <link rel="stylesheet" href="../assets/components.css" />
-        <link rel="stylesheet" href="../assets/pages/admin.css" />
-        <link rel="stylesheet" href="../assets/pages/partners.css" />
-        <link rel="stylesheet" href="../assets/responsive.css" />
-    
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add voucher - Partner TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/base.css" />
+    <link rel="stylesheet" href="../assets/layout.css" />
+    <link rel="stylesheet" href="../assets/components.css" />
+    <link rel="stylesheet" href="../assets/pages/admin.css" />
+    <link rel="stylesheet" href="../assets/pages/partners.css" />
+    <link rel="stylesheet" href="../assets/responsive.css" />
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 </head>
-    <body>
-        <div class="admin-wrapper">
-            <aside class="admin-sidebar">
-                <div class="admin-sidebar__header">
-                    <a href="rooms.html" class="sidebar-logo">
+
+<body>
+    <div class="admin-wrapper">
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar__header">
+                <a href="rooms.html" class="sidebar-logo">
                     <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
                     <div>
                         <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
                         <span class="admin-sidebar__badge">PARTNER CENTER</span>
                     </div>
                 </a>
-                </div>
-                <nav class="admin-sidebar__nav">
-                    <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
-                    <a href="rooms.html" class="admin-sidebar__link">
-                        <span class="admin-sidebar__link-icon">🛏</span> Danh sách phòng
-                    </a>
-                    <a href="add-room.html" class="admin-sidebar__link">
-                        <span class="admin-sidebar__link-icon">＋</span> Thêm phòng
-                    </a>
-                    <a href="pending-room.html" class="admin-sidebar__link">
-                        <span class="admin-sidebar__link-icon">⏳</span> Chờ duyệt
-                    </a>
-                    <div class="admin-sidebar__section-title">Tiện ích</div>
-                    <a href="add-furniture.html" class="admin-sidebar__link">
-                        <span class="admin-sidebar__link-icon">🪑</span> Thêm nội thất
-                    </a>
-                    <a href="add-voucher.html" class="admin-sidebar__link active">
-                        <span class="admin-sidebar__link-icon">🎟</span> Add voucher
-                    </a>
-                </nav>
-                <div class="admin-sidebar__footer">
-                    <div class="admin-sidebar__user">
-                        <div class="admin-sidebar__user-avatar">PT</div>
-                        <div class="admin-sidebar__user-info">
-                            <div class="admin-sidebar__user-name">Sunrise Sapa Lodge</div>
-                            <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
-                        </div>
+            </div>
+            <nav class="admin-sidebar__nav">
+                <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
+                <a href="rooms.html" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🛏</span> Danh sách phòng
+                </a>
+                <a href="add-room.html" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">＋</span> Thêm phòng
+                </a>
+                <a href="pending-room.html" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">⏳</span> Chờ duyệt
+                </a>
+                <a href="bookings.html" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">📋</span> Lịch sử đặt phòng
+                </a>
+                <div class="admin-sidebar__section-title">Tiện ích</div>
+                <a href="add-furniture.html" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🪑</span> Thêm nội thất
+                </a>
+                <a href="add-voucher.html" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🎟</span> Add voucher
+                </a>
+                <div class="admin-sidebar__section-title">Hỗ trợ</div>
+                <a href="support.html" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ
+                </a>
+            </nav>
+            <div class="admin-sidebar__footer">
+                <div class="admin-sidebar__user">
+                    <div class="admin-sidebar__user-avatar">PT</div>
+                    <div class="admin-sidebar__user-info">
+                        <div class="admin-sidebar__user-name">Sunrise Sapa Lodge</div>
+                        <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
                     </div>
                 </div>
-            </aside>
-            <div class="admin-sidebar-overlay"></div>
+            </div>
+        </aside>
+        <div class="admin-sidebar-overlay"></div>
 
-            <div class="admin-main">
-                <header class="admin-topbar">
-                    <div style="display: flex; align-items: center; gap: var(--space-4)">
-                        <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
-                        <h1 class="admin-topbar__title">Add voucher cho phòng</h1>
-                    </div>
-                </header>
-                <main class="admin-content">
-                    <div class="partner-grid">
+        <div class="admin-main">
+            <header class="admin-topbar">
+                <div style="display: flex; align-items: center; gap: var(--space-4)">
+                    <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                    <h1 class="admin-topbar__title">Add voucher cho phòng</h1>
+                </div>
+            </header>
+            <main class="admin-content">
+                <div class="partner-grid">
+                    <section class="partner-panel">
+                        <div class="partner-panel__body">
+                            <div class="page-header" style="margin-bottom: var(--space-6)">
+                                <div>
+                                    <h2 class="page-header__title">Chọn voucher admin cho phòng</h2>
+                                    <p class="page-header__subtitle">
+                                        Partner chỉ có thể gán voucher cho các phòng đã được admin duyệt.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <form id="partner-voucher-form" class="partner-form">
+                                <div class="form-group">
+                                    <label class="form-label">Phòng đã được duyệt</label>
+                                    <select class="form-control" id="partner-voucher-room" name="roomId"></select>
+                                </div>
+
+                                <div class="partner-note" id="partner-voucher-room-summary">
+                                    <div class="partner-note__title">Thông tin phòng</div>
+                                    <div class="partner-note__list">Chọn một phòng để xem voucher có thể gán.</div>
+                                </div>
+
+                                <div class="partner-form__section">
+                                    <div class="partner-form__heading">Voucher admin đang hoạt động</div>
+                                    <div class="partner-voucher-options" id="partner-voucher-options"></div>
+                                </div>
+
+                                <div class="partner-form__actions">
+                                    <a href="rooms.html" class="btn btn--ghost">Về danh sách phòng</a>
+                                    <button class="btn btn--primary" type="submit">Lưu voucher cho phòng</button>
+                                </div>
+                            </form>
+                        </div>
+                    </section>
+
+                    <aside class="partner-shell">
                         <section class="partner-panel">
                             <div class="partner-panel__body">
-                                <div class="page-header" style="margin-bottom: var(--space-6)">
-                                    <div>
-                                        <h2 class="page-header__title">Chọn voucher admin cho phòng</h2>
-                                        <p class="page-header__subtitle">
-                                            Partner chỉ có thể gán voucher cho các phòng đã được admin duyệt.
-                                        </p>
-                                    </div>
+                                <div class="partner-form__heading" style="margin-bottom: var(--space-4)">
+                                    Voucher đang gán
                                 </div>
-
-                                <form id="partner-voucher-form" class="partner-form">
-                                    <div class="form-group">
-                                        <label class="form-label">Phòng đã được duyệt</label>
-                                        <select class="form-control" id="partner-voucher-room" name="roomId"></select>
-                                    </div>
-
-                                    <div class="partner-note" id="partner-voucher-room-summary">
-                                        <div class="partner-note__title">Thông tin phòng</div>
-                                        <div class="partner-note__list">Chọn một phòng để xem voucher có thể gán.</div>
-                                    </div>
-
-                                    <div class="partner-form__section">
-                                        <div class="partner-form__heading">Voucher admin đang hoạt động</div>
-                                        <div class="partner-voucher-options" id="partner-voucher-options"></div>
-                                    </div>
-
-                                    <div class="partner-form__actions">
-                                        <a href="rooms.html" class="btn btn--ghost">Về danh sách phòng</a>
-                                        <button class="btn btn--primary" type="submit">Lưu voucher cho phòng</button>
-                                    </div>
-                                </form>
+                                <div class="partner-chip-list" id="partner-voucher-list"></div>
                             </div>
                         </section>
-
-                        <aside class="partner-shell">
-                            <section class="partner-panel">
-                                <div class="partner-panel__body">
-                                    <div class="partner-form__heading" style="margin-bottom: var(--space-4)">
-                                        Voucher đang gán
-                                    </div>
-                                    <div class="partner-chip-list" id="partner-voucher-list"></div>
-                                </div>
-                            </section>
-                        </aside>
-                    </div>
-                </main>
-            </div>
+                    </aside>
+                </div>
+            </main>
         </div>
-        <script src="../assets/js/main.js"></script>
-        <script src="../assets/js/admin.js"></script>
-        <script src="../assets/js/room-store.js"></script>
-        <script src="../assets/js/voucher-store.js"></script>
-        <script src="../assets/js/partners.js"></script>
-    </body>
+    </div>
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/admin.js"></script>
+    <script src="../assets/js/room-store.js"></script>
+    <script src="../assets/js/voucher-store.js"></script>
+    <script src="../assets/js/partners.js"></script>
+</body>
+
 </html>

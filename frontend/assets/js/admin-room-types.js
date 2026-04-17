@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const sizeInput = document.getElementById('admin-room-size-input');
   const priceInput = document.getElementById('admin-room-price-input');
   const saleStatusInput = document.getElementById('admin-room-sale-status-input');
+  const roomStatusInput = document.getElementById('admin-room-status-input');
   const amenitiesInput = document.getElementById('admin-room-amenities-input');
   const partnerNoteInput = document.getElementById('admin-room-partner-note-input');
   const adminNoteInput = document.getElementById('admin-room-note');
@@ -46,6 +47,20 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
+  }
+
+  const ROOM_STATUS_CONFIG = {
+    'Phòng trống':    { color: '#16a34a', bg: '#dcfce7', dot: '#22c55e' },
+    'Đang được thuê': { color: '#c2410c', bg: '#ffedd5', dot: '#f97316' },
+    'Đã đặt trước':   { color: '#b45309', bg: '#fef9c3', dot: '#eab308' },
+    'Hủy đặt phòng': { color: '#b91c1c', bg: '#fee2e2', dot: '#ef4444' },
+    'Gia hạn thuê':   { color: '#9d174d', bg: '#fce7f3', dot: '#ec4899' },
+  };
+
+  function getRoomStatusBadge(status) {
+    const cfg = ROOM_STATUS_CONFIG[status];
+    if (!cfg) return `<span style="font-size:13px;color:#6b7280;">${escapeHtml(status || '--')}</span>`;
+    return `<span style="display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;background:${cfg.bg};color:${cfg.color};white-space:nowrap;"><span style="width:7px;height:7px;border-radius:50%;background:${cfg.dot};flex-shrink:0;"></span>${escapeHtml(status)}</span>`;
   }
 
   function getApprovalBadgeClass(status) {
@@ -153,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td>${escapeHtml(room.propertyName)}</td>
             <td><span class="badge ${roomTypeClass}">${escapeHtml(roomTypeLabel)}</span></td>
             <td style="font-weight: 600; color: var(--color-primary)">${escapeHtml(roomStore.formatCurrency(room.price))}</td>
-            <td><span class="status-dot ${roomStore.getStatusClass(room.status)}">${escapeHtml(room.status)}</span></td>
+            <td>${getRoomStatusBadge(room.roomStatus || room.status)}</td>
             <td><span class="status-dot ${roomStore.getStatusClass(room.approvalStatus)}">${escapeHtml(room.approvalStatus)}</span></td>
             <td>${escapeHtml(room.submittedAt)}</td>
             <td>
@@ -203,6 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (sizeInput) sizeInput.disabled = true;
       if (priceInput) priceInput.disabled = true;
       if (saleStatusInput) saleStatusInput.disabled = true;
+      if (roomStatusInput) roomStatusInput.disabled = true;
       if (amenitiesInput) amenitiesInput.disabled = true;
       if (partnerNoteInput) partnerNoteInput.disabled = true;
       if (adminNoteInput) adminNoteInput.disabled = true;
@@ -220,6 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sizeInput.value = room.size || '';
     priceInput.value = room.price || '';
     saleStatusInput.value = room.status || 'Đang bán';
+    if (roomStatusInput) roomStatusInput.value = room.roomStatus || 'Phòng trống';
     amenitiesInput.value = room.amenities.join(', ');
     partnerNoteInput.value = room.note || '';
     adminNoteInput.value = room.adminNote || '';
@@ -233,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (capacity) capacity.textContent = room.capacity || '--';
     if (size) size.textContent = room.size || '--';
     if (price) price.textContent = roomStore.formatCurrency(room.price);
-    if (saleStatus) saleStatus.textContent = room.status || '--';
+    if (saleStatus) saleStatus.textContent = room.roomStatus || room.status || '--';
     if (adminHistory) adminHistory.textContent = room.adminNote || 'Chưa có lịch sử duyệt.';
 
     if (approveButton) approveButton.disabled = false;
@@ -245,6 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sizeInput) sizeInput.disabled = false;
     if (priceInput) priceInput.disabled = false;
     if (saleStatusInput) saleStatusInput.disabled = false;
+    if (roomStatusInput) roomStatusInput.disabled = false;
     if (amenitiesInput) amenitiesInput.disabled = false;
     if (partnerNoteInput) partnerNoteInput.disabled = false;
     if (adminNoteInput) adminNoteInput.disabled = false;
@@ -312,6 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
       amenities: parseAmenities(amenitiesInput.value),
       note: partnerNoteInput.value.trim(),
       status: saleStatusInput.value || 'Đang bán',
+      roomStatus: roomStatusInput ? roomStatusInput.value : 'Phòng trống',
       approvalStatus: 'Đã duyệt',
       adminNote:
         adminNoteInput.value.trim() || `Admin đã duyệt và phân loại phòng vào nhóm ${roomType}.`,
@@ -339,6 +358,7 @@ document.addEventListener('DOMContentLoaded', () => {
       amenities: parseAmenities(amenitiesInput.value),
       note: partnerNoteInput.value.trim(),
       status: 'Tạm ẩn',
+      roomStatus: 'Hủy đặt phòng',
       approvalStatus: 'Từ chối',
       adminNote:
         adminNoteInput.value.trim() ||

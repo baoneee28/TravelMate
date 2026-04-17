@@ -8,6 +8,7 @@
   const ROOM_CATEGORIES = ['Villa', 'Hotel', 'Homestay', 'Resort'];
   const APPROVAL_STATUSES = ['Chờ duyệt', 'Đã duyệt', 'Từ chối'];
   const SALE_STATUSES = ['Đang bán', 'Tạm khóa bán', 'Tạm ẩn'];
+  const ROOM_STATUSES = ['Phòng trống', 'Đang được thuê', 'Đã đặt trước', 'Hủy đặt phòng', 'Gia hạn thuê'];
 
   const DEFAULT_ROOMS = [
     {
@@ -209,6 +210,7 @@
       amenities: toList(room.amenities),
       furniture: toList(room.furniture),
       status: normalizeSaleStatus(room.status, approvalStatus),
+      roomStatus: ROOM_STATUSES.includes(room.roomStatus) ? room.roomStatus : (approvalStatus === 'Từ chối' ? 'Hủy đặt phòng' : 'Phòng trống'),
       approvalStatus,
       submittedAt: normalizeDate(room.submittedAt || room.createdAt, fallbackDate),
       reviewedAt: normalizeDate(room.reviewedAt, ''),
@@ -355,6 +357,7 @@
     ROOM_CATEGORIES,
     APPROVAL_STATUSES,
     SALE_STATUSES,
+    ROOM_STATUSES,
     getRooms,
     saveRooms,
     getRoomById,
