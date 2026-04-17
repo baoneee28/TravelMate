@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head>
@@ -20,59 +20,8 @@
     <script th:src="@{/assets/js/main.js}"></script>
     <script th:src="@{/assets/js/user.js}"></script>
 
-    <!-- SIDEBAR OVERLAY -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    <aside class="sidebar-menu" id="sidebarMenu" role="dialog" aria-label="Menu điều hướng">
-        <div class="sidebar-header">
-            <div class="sidebar-logo">
-                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                <span class="s-logo-text">TRAVEL<span>MATE</span></span>
-            </div>
-            <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Đóng menu">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <nav class="sidebar-nav">
-            <div class="sidebar-nav-label">Chức năng</div>
-            <a th:href="@{/accommodations}" id="sb-hotels"><span class="s-icon"><i class="fa-solid fa-bed"></i></span> Đặt
-                phòng</a>
-            <a th:href="@{/travel}" id="sb-travel"><span class="s-icon"><i
-                        class="fa-solid fa-map-location-dot"></i></span> Gợi ý du lịch</a>
-            <a th:href="@{/news}" id="sb-news"><span class="s-icon"><i class="fa-solid fa-newspaper"></i></span> Tin
-                tức</a>
-            <a th:href="@{/contact}" id="sb-contact"><span class="s-icon"><i class="fa-solid fa-headset"></i></span> Liên
-                hệ</a>
-        </nav>
-        <div class="sidebar-divider"></div>
-        <div class="sidebar-auth" id="sidebarAuth"></div>
-    </aside>
-
-    <!-- HEADER -->
-    <header class="header scrolled" id="header">
-        <div class="container navbar">
-            <div class="logo-wrapper">
-                <a th:href="@{/}" class="logo">
-                    <div class="logo-icon"><i class="fa-solid fa-building"></i></div>
-                    <span class="logo-text"><span class="logo-blue">TRAVEL</span><span
-                            class="logo-yellow">MATE</span></span>
-                </a>
-                <button class="hamburger-btn" id="hamburgerBtn" aria-label="Mở menu" aria-expanded="false">
-                    <span class="bar"></span><span class="bar"></span><span class="bar"></span>
-                </button>
-            </div>
-            <nav class="menu">
-                <ul class="menu-list">
-                    <li><a th:href="@{/}">TRANG CHỦ</a></li>
-                    <li><a th:href="@{/travel}">GỢI Ý DU LỊCH</a></li>
-                    <li><a th:href="@{/news}">TIN TỨC</a></li>
-                    <li><a th:href="@{/contact}">LIÊN HỆ</a></li>
-                    <li><a th:href="@{/user/mybooking}" class="my-booking active-menu"><i class="fa-solid fa-bed"></i> Đặt
-                            phòng của tôi</a></li>
-                </ul>
-            </nav>
-            <a th:href="@{/login}" class="login-btn">ĐĂNG NHẬP</a>
-        </div>
-    </header>
+    <!-- ===== HEADER (dùng fragment chung) ===== -->
+    <div th:replace="~{fragments/header :: user-header}"></div>
 
     <!-- MAIN CONTENT -->
     <main class="mb-main">
@@ -80,32 +29,21 @@
 
             <!-- LEFT PANEL -->
             <aside class="mb-aside">
-                <!-- User card -->
+                <!-- User card — hiển thị tên user đang đăng nhập -->
                 <div class="mb-user-card" id="mbUserCard">
                     <div class="mb-avatar" id="mbAvatar">
-                        <span id="mbAvatarText">?</span>
+                        <!--
+                            Hiển thị chữ cái đầu tiên của tên user.
+                            sec:authentication="principal.username" lấy email đang đăng nhập.
+                            Dùng JS bên dưới để lấy chữ cái đầu.
+                        -->
+                        <span id="mbAvatarText" sec:authentication="principal.username">?</span>
                     </div>
                     <div class="mb-user-info">
-                        <h3 id="mbUserName">Khách</h3>
-                        <span class="mb-user-provider" id="mbProvider">Chưa đăng nhập</span>
+                        <h3 id="mbUserName" sec:authentication="principal.username">Khách</h3>
+                        <span class="mb-user-provider">TravelMate</span>
                     </div>
                 </div>
-
-                <!-- Membership -->
-                <!-- <div class="mb-membership" id="mbMembership">
-                    <div class="mb-membership-inner">
-                        <i class="fa-solid fa-crown"></i>
-                        <span>Thành viên <strong>Silver</strong></span>
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </div>
-                </div> -->
-
-                <!-- Points -->
-                <!-- <div class="mb-points">
-                    <div class="mb-points-icon"><i class="fa-solid fa-coins"></i></div>
-                    <span id="mbPoints">0</span>
-                    <span class="mb-points-label">điểm thưởng</span>
-                </div> -->
 
                 <!-- Nav menu -->
                 <nav class="mb-nav">
@@ -125,9 +63,16 @@
                     <a href="#" class="mb-nav-item" data-tab="settings">
                         <i class="fa-solid fa-gear"></i> Cài đặt tài khoản
                     </a>
-                    <a href="#" class="mb-nav-item mb-nav-logout" id="mbLogoutBtn">
-                        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
-                    </a>
+                    <!--
+                        Đăng xuất: dùng form POST /logout (Spring Security xử lý).
+                        Không dùng localStorage.removeItem nữa vì đã chuyển sang server-side session.
+                    -->
+                    <form th:action="@{/logout}" method="post" style="margin:0">
+                        <button type="submit" class="mb-nav-item mb-nav-logout"
+                            style="width:100%; background:none; border:none; cursor:pointer; font-family:inherit; font-size:inherit; text-align:left;">
+                            <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                        </button>
+                    </form>
                 </nav>
             </aside>
 
@@ -151,21 +96,139 @@
                 <!-- TAB: BOOKINGS (default) -->
                 <div class="mb-tab-content active" id="tab-bookings">
                     <div class="mb-section-header">
-                        <h2><i class="fa-solid fa-calendar-check"></i> Đặt phòng hiện tại</h2>
+                        <h2>
+                            <i class="fa-solid fa-calendar-check"></i> Đặt phòng hiện tại
+                            <!-- Hiển thị tổng số booking -->
+                            <span th:if="${totalBookings > 0}"
+                                style="font-size: 0.8rem; font-weight: 600; color: #64748b; margin-left: 8px;"
+                                th:text="'(' + ${totalBookings} + ' đơn)'"></span>
+                        </h2>
                     </div>
 
-                    <!-- Booking list (rendered by JS) -->
-                    <div class="mb-booking-list" id="mbBookingList">
-                        <!-- JS renders here -->
+                    <!--
+                        BOOKING LIST — Render từ server bằng Thymeleaf
+                        th:each: lặp qua danh sách bookings từ Model
+                        th:if: chỉ hiện list khi có booking
+                    -->
+                    <div class="mb-booking-list" th:if="${!bookings.isEmpty()}">
+                        <!--
+                            Mỗi booking card hiển thị:
+                            - Ảnh nơi lưu trú
+                            - Badge trạng thái (PENDING/CONFIRMED/CANCELLED/COMPLETED)
+                            - Tên nơi lưu trú
+                            - Địa chỉ, ngày check-in/out, số khách
+                            - Tổng tiền
+                            - Nút Chi tiết / Hủy
+                        -->
+                        <div class="mb-booking-card" th:each="booking, iterStat : ${bookings}"
+                            th:style="'animation-delay:' + ${iterStat.index * 0.08} + 's;'">
+
+                            <!-- Ảnh + Badge trạng thái -->
+                            <div class="booking-card-img">
+                                <img th:src="${booking.accommodationThumbnail != null and !booking.accommodationThumbnail.isEmpty()}
+                                         ? ${booking.accommodationThumbnail}
+                                         : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=400'"
+                                    th:alt="${booking.accommodationName}" />
+
+                                <!-- Badge trạng thái -->
+                                <span class="booking-status" th:classappend="${booking.statusCssClass}">
+                                    <!-- Icon khác nhau cho mỗi trạng thái -->
+                                    <i th:if="${booking.bookingStatus.name() == 'PENDING'}"
+                                        class="fa-solid fa-clock"></i>
+                                    <i th:if="${booking.bookingStatus.name() == 'CONFIRMED'}"
+                                        class="fa-solid fa-circle-check"></i>
+                                    <i th:if="${booking.bookingStatus.name() == 'CANCELLED'}"
+                                        class="fa-solid fa-xmark"></i>
+                                    <i th:if="${booking.bookingStatus.name() == 'COMPLETED'}"
+                                        class="fa-solid fa-check"></i>
+                                    <span th:text="${booking.statusLabel}">Trạng thái</span>
+                                </span>
+                            </div>
+
+                            <!-- Thông tin booking -->
+                            <div class="booking-card-body">
+                                <h3 th:text="${booking.accommodationName}">Tên nơi lưu trú</h3>
+
+                                <div class="booking-info-row">
+                                    <span>
+                                        <i class="fa-solid fa-location-dot"></i>
+                                        <span th:text="${booking.accommodationCity}">Thành phố</span>
+                                    </span>
+                                    <span>
+                                        <i class="fa-solid fa-door-open"></i>
+                                        <span th:text="${booking.propertyTypeLabel}">Loại lưu trú</span>
+                                    </span>
+                                </div>
+
+                                <div class="booking-info-row">
+                                    <span>
+                                        <i class="fa-solid fa-calendar"></i>
+                                        <span th:text="${booking.checkIn} + ' → ' + ${booking.checkOut}">
+                                            Ngày check-in → check-out
+                                        </span>
+                                    </span>
+                                    <span>
+                                        <i class="fa-solid fa-user-group"></i>
+                                        <span th:text="${booking.totalGuests} + ' khách · ' + ${booking.numNights} + ' đêm'">
+                                            Số khách · Số đêm
+                                        </span>
+                                    </span>
+                                </div>
+
+                                <!-- Footer: Giá + Actions -->
+                                <div class="booking-card-footer">
+                                    <div class="booking-price">
+                                        <span class="price-label">Tổng tiền</span>
+                                        <span class="price-value"
+                                            th:text="${booking.totalPriceFormatted} + '₫'">0₫</span>
+                                    </div>
+                                    <div class="booking-actions">
+                                        <!-- Nút xem chi tiết accommodation -->
+                                        <a th:href="@{/accommodations/{id}(id=${booking.accommodationId})}"
+                                            class="btn-booking-detail" style="text-decoration:none;">
+                                            <i class="fa-solid fa-eye"></i> Chi tiết
+                                        </a>
+
+                                        <!--
+                                            Nút hủy: chỉ hiện khi status = PENDING hoặc CONFIRMED.
+                                            Booking đã COMPLETED hoặc CANCELLED thì không hiện nút hủy.
+                                        -->
+                                        <button class="btn-booking-cancel"
+                                            th:if="${booking.bookingStatus.name() == 'PENDING' or booking.bookingStatus.name() == 'CONFIRMED'}"
+                                            th:attr="data-booking-id=${booking.id}"
+                                            onclick="cancelBooking(this)">
+                                            <i class="fa-solid fa-xmark"></i> Hủy
+                                        </button>
+
+                                        <!--
+                                            Nút đánh giá: chỉ hiện khi COMPLETED.
+                                            - Nếu chưa review → nút "Đánh giá"
+                                            - Nếu đã review → badge "Đã đánh giá"
+                                        -->
+                                        <button class="btn-booking-review"
+                                            th:if="${booking.bookingStatus.name() == 'COMPLETED' and !booking.reviewed}"
+                                            th:attr="data-booking-id=${booking.id},data-accommodation-name=${booking.accommodationName}"
+                                            onclick="openReviewModal(this)">
+                                            <i class="fa-solid fa-star"></i> Đánh giá
+                                        </button>
+                                        <span class="btn-booking-reviewed"
+                                            th:if="${booking.bookingStatus.name() == 'COMPLETED' and booking.reviewed}">
+                                            <i class="fa-solid fa-circle-check"></i> Đã đánh giá
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Empty state -->
-                    <div class="mb-empty" id="mbEmptyBookings" style="display:none;">
+                    <!-- Empty state — hiện khi không có booking nào -->
+                    <div class="mb-empty" th:if="${bookings.isEmpty()}">
                         <div class="mb-empty-icon"><i class="fa-solid fa-bed"></i></div>
                         <h3>Chưa có đặt phòng nào</h3>
                         <p>Mọi đặt phòng sẽ hiển thị tại đây. Hãy khám phá và đặt phòng ngay!</p>
-                        <a th:href="@{/accommodations}" class="mb-empty-btn"><i class="fa-solid fa-magnifying-glass"></i> Tìm
-                            phòng ngay</a>
+                        <a th:href="@{/accommodations}" class="mb-empty-btn">
+                            <i class="fa-solid fa-magnifying-glass"></i> Tìm phòng ngay
+                        </a>
                     </div>
                 </div>
 
@@ -174,22 +237,39 @@
                     <div class="mb-section-header">
                         <h2><i class="fa-solid fa-receipt"></i> Lịch sử giao dịch</h2>
                     </div>
-                    <div class="mb-transactions-table-wrap">
-                        <table class="mb-transactions-table" id="mbTransactionsTable">
+
+                    <!-- Bảng giao dịch — dùng dữ liệu bookings từ server -->
+                    <div class="mb-transactions-table-wrap" th:if="${!bookings.isEmpty()}">
+                        <table class="mb-transactions-table">
                             <thead>
                                 <tr>
                                     <th>Mã GD</th>
-                                    <th>Khách sạn</th>
-                                    <th>Ngày</th>
+                                    <th>Nơi lưu trú</th>
+                                    <th>Ngày đặt</th>
                                     <th>Số tiền</th>
                                     <th>Trạng thái</th>
                                 </tr>
                             </thead>
-                            <tbody id="mbTransactionsBody">
+                            <tbody>
+                                <tr th:each="booking : ${bookings}">
+                                    <td>
+                                        <span class="td-code"
+                                            th:text="'#TM' + ${#strings.padLeft(booking.id.toString(), 5, '0')}">
+                                            #TM00001
+                                        </span>
+                                    </td>
+                                    <td th:text="${booking.accommodationName}">Tên nơi lưu trú</td>
+                                    <td th:text="${booking.checkIn}">Ngày</td>
+                                    <td class="td-price" th:text="${booking.totalPriceFormatted} + '₫'">0₫</td>
+                                    <td>
+                                        <span class="td-status" th:classappend="${booking.statusCssClass}"
+                                            th:text="${booking.statusLabel}">Trạng thái</span>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
-                    <div class="mb-empty" id="mbEmptyTransactions" style="display:none;">
+                    <div class="mb-empty" th:if="${bookings.isEmpty()}">
                         <div class="mb-empty-icon"><i class="fa-solid fa-receipt"></i></div>
                         <h3>Chưa có giao dịch</h3>
                         <p>Xem <a href="#">lịch sử giao dịch</a> của bạn tại đây.</p>
@@ -201,7 +281,7 @@
                     <div class="mb-section-header">
                         <h2><i class="fa-solid fa-rotate-left"></i> Yêu cầu hoàn tiền</h2>
                     </div>
-                    <div class="mb-empty" id="mbEmptyRefunds">
+                    <div class="mb-empty">
                         <div class="mb-empty-icon"><i class="fa-solid fa-rotate-left"></i></div>
                         <h3>Chưa có yêu cầu hoàn tiền</h3>
                         <p>Nếu bạn cần hoàn tiền, hãy chọn đặt phòng cần hủy từ tab "Đặt phòng của tôi".</p>
@@ -213,14 +293,14 @@
                     <div class="mb-section-header">
                         <h2><i class="fa-solid fa-heart"></i> Phòng đã lưu</h2>
                     </div>
-                    <div class="mb-saved-grid" id="mbSavedGrid">
-                    </div>
-                    <div class="mb-empty" id="mbEmptySaved">
+                    <div class="mb-saved-grid" id="mbSavedGrid"></div>
+                    <div class="mb-empty">
                         <div class="mb-empty-icon"><i class="fa-regular fa-heart"></i></div>
                         <h3>Chưa lưu phòng nào</h3>
                         <p>Nhấn <i class="fa-regular fa-heart"></i> trên các phòng yêu thích để lưu tại đây.</p>
-                        <a th:href="@{/accommodations}" class="mb-empty-btn"><i class="fa-solid fa-magnifying-glass"></i> Khám phá
-                            khách sạn</a>
+                        <a th:href="@{/accommodations}" class="mb-empty-btn">
+                            <i class="fa-solid fa-magnifying-glass"></i> Khám phá nơi lưu trú
+                        </a>
                     </div>
                 </div>
 
@@ -305,142 +385,34 @@
             const sidebarMenu = document.getElementById('sidebarMenu');
             const sidebarOverlay = document.getElementById('sidebarOverlay');
             const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
-            const sidebarAuth = document.getElementById('sidebarAuth');
-            function isLoggedIn() { return !!localStorage.getItem('travelmate_user'); }
-            function renderAuth() {
-                if (isLoggedIn()) {
-                    sidebarAuth.innerHTML = `<a href="#" class="btn-logout-side" id="sidebarLogoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a>`;
-                    document.getElementById('sidebarLogoutBtn').addEventListener('click', function (e) { e.preventDefault(); localStorage.removeItem('travelmate_user'); closeSidebar(); location.reload(); });
-                } else {
-                    sidebarAuth.innerHTML = `<a th:href="@{/login}" class="btn-login-side"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</a><a th:href="@{/register}" class="btn-register-side"><i class="fa-solid fa-user-plus"></i> Đăng ký</a>`;
-                }
+
+            function openSidebar() {
+                sidebarMenu.classList.add('active');
+                sidebarOverlay.classList.add('active');
+                hamburgerBtn.setAttribute('aria-expanded', 'true');
+                document.body.style.overflow = 'hidden';
             }
-            function openSidebar() { sidebarMenu.classList.add('active'); sidebarOverlay.classList.add('active'); hamburgerBtn.setAttribute('aria-expanded', 'true'); document.body.style.overflow = 'hidden'; renderAuth(); }
-            function closeSidebar() { sidebarMenu.classList.remove('active'); sidebarOverlay.classList.remove('active'); hamburgerBtn.setAttribute('aria-expanded', 'false'); document.body.style.overflow = ''; }
+            function closeSidebar() {
+                sidebarMenu.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+                hamburgerBtn.setAttribute('aria-expanded', 'false');
+                document.body.style.overflow = '';
+            }
             hamburgerBtn.addEventListener('click', openSidebar);
             sidebarCloseBtn.addEventListener('click', closeSidebar);
             sidebarOverlay.addEventListener('click', closeSidebar);
             document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSidebar(); });
         })();
 
-        // ===== USER DATA =====
-        const USER_KEY = 'travelmate_user';
-        const BOOKINGS_KEY = 'travelmate_bookings';
-
-        function getUser() {
-            try { return JSON.parse(localStorage.getItem(USER_KEY)); } catch { return null; }
-        }
-
-        function getBookings() {
-            try { return JSON.parse(localStorage.getItem(BOOKINGS_KEY)) || []; } catch { return []; }
-        }
-
-        // ===== RENDER USER PANEL =====
-        function renderUserPanel() {
-            const user = getUser();
-            const avatarEl = document.getElementById('mbAvatarText');
-            const nameEl = document.getElementById('mbUserName');
-            const providerEl = document.getElementById('mbProvider');
-
-            if (user) {
-                const name = user.name || user.email || 'Người dùng';
-                nameEl.textContent = name;
-                avatarEl.textContent = name.charAt(0).toUpperCase();
-                providerEl.textContent = user.provider || 'TravelMate';
-            } else {
-                nameEl.textContent = 'Khách';
-                avatarEl.textContent = '?';
-                providerEl.textContent = 'Chưa đăng nhập';
+        // ===== FIX AVATAR TEXT: chỉ lấy chữ cái đầu =====
+        (function() {
+            const avatarText = document.getElementById('mbAvatarText');
+            if (avatarText) {
+                const fullText = avatarText.textContent.trim();
+                // Lấy chữ cái đầu tiên và viết hoa
+                avatarText.textContent = fullText.charAt(0).toUpperCase();
             }
-        }
-
-        // ===== RENDER BOOKINGS =====
-        function renderBookings() {
-            const bookings = getBookings();
-            const list = document.getElementById('mbBookingList');
-            const empty = document.getElementById('mbEmptyBookings');
-
-            if (bookings.length === 0) {
-                list.style.display = 'none';
-                empty.style.display = 'flex';
-                return;
-            }
-
-            empty.style.display = 'none';
-            list.style.display = 'flex';
-            list.innerHTML = bookings.map((b, i) => `
-                <div class="mb-booking-card" style="animation-delay:${i * 0.08}s;">
-                    <div class="booking-card-img">
-                        <img src="${b.image || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=400'}" alt="${b.hotel}" />
-                        <span class="booking-status status-${b.status || 'confirmed'}">
-                            ${b.status === 'completed' ? '<i class="fa-solid fa-check"></i> Hoàn thành' :
-                    b.status === 'cancelled' ? '<i class="fa-solid fa-xmark"></i> Đã hủy' :
-                        '<i class="fa-solid fa-circle-check"></i> Đã xác nhận'}
-                        </span>
-                    </div>
-                    <div class="booking-card-body">
-                        <h3>${b.hotel || 'Khách sạn'}</h3>
-                        <div class="booking-info-row">
-                            <span><i class="fa-solid fa-location-dot"></i> ${b.location || 'Chưa xác định'}</span>
-                            <span><i class="fa-solid fa-door-open"></i> ${b.room || 'Phòng Standard'}</span>
-                        </div>
-                        <div class="booking-info-row">
-                            <span><i class="fa-solid fa-calendar"></i> ${b.checkin || '--/--'} → ${b.checkout || '--/--'}</span>
-                            <span><i class="fa-solid fa-user-group"></i> ${b.guests || 1} khách</span>
-                        </div>
-                        <div class="booking-card-footer">
-                            <div class="booking-price">
-                                <span class="price-label">Tổng tiền</span>
-                                <span class="price-value">${b.price ? Number(b.price).toLocaleString('vi-VN') + '₫' : 'Liên hệ'}</span>
-                            </div>
-                            <div class="booking-actions">
-                                <button class="btn-booking-detail" onclick="alert('Chi tiết đặt phòng #${b.id || i + 1}')"><i class="fa-solid fa-eye"></i> Chi tiết</button>
-                                ${b.status !== 'cancelled' && b.status !== 'completed' ?
-                    `<button class="btn-booking-cancel" onclick="cancelBooking(${i})"><i class="fa-solid fa-xmark"></i> Hủy</button>` : ''}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // ===== CANCEL BOOKING =====
-        function cancelBooking(idx) {
-            if (!confirm('Bạn có chắc muốn hủy đặt phòng này?')) return;
-            const bookings = getBookings();
-            if (bookings[idx]) {
-                bookings[idx].status = 'cancelled';
-                localStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
-                renderBookings();
-                renderTransactions();
-            }
-        }
-
-        // ===== RENDER TRANSACTIONS =====
-        function renderTransactions() {
-            const bookings = getBookings();
-            const tbody = document.getElementById('mbTransactionsBody');
-            const empty = document.getElementById('mbEmptyTransactions');
-            const table = document.getElementById('mbTransactionsTable');
-
-            if (bookings.length === 0) {
-                table.style.display = 'none';
-                empty.style.display = 'flex';
-                return;
-            }
-
-            empty.style.display = 'none';
-            table.style.display = '';
-            tbody.innerHTML = bookings.map((b, i) => `
-                <tr>
-                    <td><span class="td-code">#TM${String(b.id || i + 1).padStart(5, '0')}</span></td>
-                    <td>${b.hotel || 'Khách sạn'}</td>
-                    <td>${b.checkin || '--/--'}</td>
-                    <td class="td-price">${b.price ? Number(b.price).toLocaleString('vi-VN') + '₫' : '—'}</td>
-                    <td><span class="td-status status-${b.status || 'confirmed'}">${b.status === 'completed' ? 'Hoàn thành' : b.status === 'cancelled' ? 'Đã hủy' : 'Đã xác nhận'}</span></td>
-                </tr>
-            `).join('');
-        }
+        })();
 
         // ===== TAB NAVIGATION =====
         (function () {
@@ -461,55 +433,224 @@
             });
         })();
 
-        // ===== LOGOUT =====
-        document.getElementById('mbLogoutBtn').addEventListener('click', (e) => {
-            e.preventDefault();
-            if (confirm('Bạn muốn đăng xuất?')) {
-                localStorage.removeItem(USER_KEY);
-                location.reload();
-            }
-        });
+        // ===== HỦY BOOKING — Gọi API =====
+        function cancelBooking(btnElement) {
+            const bookingId = btnElement.getAttribute('data-booking-id');
 
-        // ===== SETTINGS SAVE =====
+            if (!confirm('Bạn có chắc muốn hủy đặt phòng #TM' +
+                String(bookingId).padStart(5, '0') + '?')) {
+                return;
+            }
+
+            // Disable nút để tránh click nhiều lần
+            btnElement.disabled = true;
+            btnElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang hủy...';
+
+            // Gọi API hủy booking
+            fetch('/api/bookings/' + bookingId + '/cancel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Thành công → reload trang để cập nhật giao diện
+                    alert('✅ ' + data.message);
+                    window.location.reload();
+                } else {
+                    // Lỗi
+                    alert('❌ ' + (data.message || 'Có lỗi xảy ra'));
+                    btnElement.disabled = false;
+                    btnElement.innerHTML = '<i class="fa-solid fa-xmark"></i> Hủy';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ Lỗi kết nối. Vui lòng thử lại.');
+                btnElement.disabled = false;
+                btnElement.innerHTML = '<i class="fa-solid fa-xmark"></i> Hủy';
+            });
+        }
+
+        // ===== SETTINGS (placeholder — chưa kết nối API) =====
         document.getElementById('settingSaveBtn').addEventListener('click', () => {
-            const user = getUser() || {};
-            user.name = document.getElementById('settingName').value || user.name;
-            user.email = document.getElementById('settingEmail').value || user.email;
-            user.phone = document.getElementById('settingPhone').value || user.phone;
-            localStorage.setItem(USER_KEY, JSON.stringify(user));
-            renderUserPanel();
-            alert('Đã lưu thay đổi!');
+            alert('Tính năng đang phát triển. Sẽ hoàn thiện trong phiên bản tiếp theo.');
         });
 
-        // ===== LOAD SETTINGS =====
-        function loadSettings() {
-            const user = getUser();
-            if (user) {
-                document.getElementById('settingName').value = user.name || '';
-                document.getElementById('settingEmail').value = user.email || '';
-                document.getElementById('settingPhone').value = user.phone || '';
+        // ===== REVIEW MODAL =====
+        let selectedRating = 0;
+        let reviewBookingId = null;
+
+        const ratingLabels = {
+            1: 'Rất tệ 😞',
+            2: 'Tệ 😕',
+            3: 'Bình thường 😐',
+            4: 'Tốt 😊',
+            5: 'Tuyệt vời 🤩'
+        };
+
+        // Mở modal
+        function openReviewModal(btnElement) {
+            reviewBookingId = btnElement.getAttribute('data-booking-id');
+            const accName = btnElement.getAttribute('data-accommodation-name');
+
+            document.getElementById('reviewAccommodationName').textContent = accName;
+            document.getElementById('reviewComment').value = '';
+            document.getElementById('reviewCharCount').textContent = '0';
+            document.getElementById('reviewRatingLabel').textContent = 'Chọn số sao';
+            selectedRating = 0;
+            updateStars(0);
+
+            document.getElementById('reviewModalOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Đóng modal
+        function closeReviewModal() {
+            document.getElementById('reviewModalOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+            reviewBookingId = null;
+            selectedRating = 0;
+        }
+
+        document.getElementById('reviewModalClose').addEventListener('click', closeReviewModal);
+        document.getElementById('reviewModalOverlay').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeReviewModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeReviewModal();
+        });
+
+        // Star rating
+        function updateStars(rating) {
+            document.querySelectorAll('.review-star').forEach(star => {
+                const starRating = parseInt(star.dataset.rating);
+                star.classList.toggle('active', starRating <= rating);
+            });
+        }
+
+        document.querySelectorAll('.review-star').forEach(star => {
+            star.addEventListener('click', () => {
+                selectedRating = parseInt(star.dataset.rating);
+                updateStars(selectedRating);
+                document.getElementById('reviewRatingLabel').textContent = ratingLabels[selectedRating];
+            });
+
+            star.addEventListener('mouseenter', () => {
+                updateStars(parseInt(star.dataset.rating));
+            });
+
+            star.addEventListener('mouseleave', () => {
+                updateStars(selectedRating);
+            });
+        });
+
+        // Character counter
+        document.getElementById('reviewComment').addEventListener('input', function () {
+            document.getElementById('reviewCharCount').textContent = this.value.length;
+        });
+
+        // Submit review
+        document.getElementById('reviewSubmitBtn').addEventListener('click', function () {
+            const comment = document.getElementById('reviewComment').value.trim();
+
+            // Validate
+            if (selectedRating === 0) {
+                alert('⚠️ Vui lòng chọn số sao đánh giá');
+                return;
             }
-        }
+            if (!comment) {
+                alert('⚠️ Vui lòng nhập nhận xét');
+                return;
+            }
 
-        // ===== DEMO: Add sample bookings if empty (for demo) =====
-        function addDemoBookings() {
-            const existing = getBookings();
-            if (existing.length > 0) return;
-            const demos = [
-                { id: 1, hotel: 'Vinpearl Resort Nha Trang', location: 'Nha Trang', room: 'Deluxe Ocean View', checkin: '15/04/2026', checkout: '18/04/2026', guests: 2, price: 4500000, status: 'confirmed', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=400' },
-                { id: 2, hotel: 'Mường Thanh Luxury Đà Nẵng', location: 'Đà Nẵng', room: 'Superior Twin', checkin: '01/04/2026', checkout: '03/04/2026', guests: 3, price: 2800000, status: 'completed', image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?q=80&w=400' },
-                { id: 3, hotel: 'La Siesta Premium Hà Nội', location: 'Hà Nội', room: 'Junior Suite', checkin: '20/03/2026', checkout: '22/03/2026', guests: 1, price: 3200000, status: 'cancelled', image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=400' },
-            ];
-            localStorage.setItem(BOOKINGS_KEY, JSON.stringify(demos));
-        }
+            // Disable button
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...';
 
-        // ===== INIT =====
-        addDemoBookings();
-        renderUserPanel();
-        renderBookings();
-        renderTransactions();
-        loadSettings();
+            // Gọi API
+            fetch('/api/reviews', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    bookingId: parseInt(reviewBookingId),
+                    rating: selectedRating,
+                    comment: comment
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    closeReviewModal();
+                    window.location.reload();
+                } else {
+                    alert('❌ ' + (data.message || 'Có lỗi xảy ra'));
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi đánh giá';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ Lỗi kết nối. Vui lòng thử lại.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi đánh giá';
+            });
+        });
     </script>
+
+    <!-- REVIEW MODAL -->
+    <div class="review-modal-overlay" id="reviewModalOverlay">
+        <div class="review-modal" id="reviewModal">
+            <button class="review-modal-close" id="reviewModalClose" aria-label="Đóng">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="review-modal-header">
+                <div class="review-modal-icon">
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <h3>Đánh giá trải nghiệm</h3>
+                <p class="review-modal-subtitle" id="reviewAccommodationName">Tên nơi lưu trú</p>
+            </div>
+
+            <!-- Rating Stars -->
+            <div class="review-stars-container">
+                <div class="review-stars" id="reviewStars">
+                    <button type="button" class="review-star" data-rating="1" aria-label="1 sao">
+                        <i class="fa-solid fa-star"></i>
+                    </button>
+                    <button type="button" class="review-star" data-rating="2" aria-label="2 sao">
+                        <i class="fa-solid fa-star"></i>
+                    </button>
+                    <button type="button" class="review-star" data-rating="3" aria-label="3 sao">
+                        <i class="fa-solid fa-star"></i>
+                    </button>
+                    <button type="button" class="review-star" data-rating="4" aria-label="4 sao">
+                        <i class="fa-solid fa-star"></i>
+                    </button>
+                    <button type="button" class="review-star" data-rating="5" aria-label="5 sao">
+                        <i class="fa-solid fa-star"></i>
+                    </button>
+                </div>
+                <span class="review-rating-label" id="reviewRatingLabel">Chọn số sao</span>
+            </div>
+
+            <!-- Comment -->
+            <div class="review-comment-group">
+                <label for="reviewComment"><i class="fa-solid fa-pen"></i> Nhận xét của bạn</label>
+                <textarea id="reviewComment" rows="4" maxlength="1000"
+                    placeholder="Chia sẻ trải nghiệm của bạn về nơi lưu trú này..."></textarea>
+                <span class="review-char-count"><span id="reviewCharCount">0</span>/1000</span>
+            </div>
+
+            <!-- Submit -->
+            <button class="review-submit-btn" id="reviewSubmitBtn">
+                <i class="fa-solid fa-paper-plane"></i> Gửi đánh giá
+            </button>
+        </div>
+    </div>
 
     <!-- CHAT AI -->
     <div class="ai-chat-widget">

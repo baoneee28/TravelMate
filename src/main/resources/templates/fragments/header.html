@@ -1,0 +1,153 @@
+<!--
+    Fragment: header.html
+    Dung chung cho cac trang USER (public pages).
+
+    Cach su dung trong page:
+    <div th:replace="~{fragments/header :: user-header}"></div>
+
+    sec:authorize="isAnonymous()"     → chỉ hiện khi CHƯA đăng nhập
+    sec:authorize="isAuthenticated()" → chỉ hiện khi ĐÃ đăng nhập
+-->
+<div th:fragment="user-header"
+     xmlns:th="http://www.thymeleaf.org"
+     xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+    <!-- ===== SIDEBAR OVERLAY ===== -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ===== SIDEBAR MENU (Mobile) ===== -->
+    <aside class="sidebar-menu" id="sidebarMenu" role="dialog" aria-label="Menu điều hướng">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                <span class="s-logo-text">TRAVEL<span>MATE</span></span>
+            </div>
+            <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Đóng menu">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="sidebar-nav-label">Chức năng</div>
+
+            <a th:href="@{/accommodations}" id="sb-hotels">
+                <span class="s-icon"><i class="fa-solid fa-bed"></i></span>
+                Đặt phòng
+            </a>
+
+            <a th:href="@{/travel}" id="sb-travel">
+                <span class="s-icon"><i class="fa-solid fa-map-location-dot"></i></span>
+                Gợi ý du lịch
+            </a>
+
+            <a th:href="@{/news}" id="sb-news">
+                <span class="s-icon"><i class="fa-solid fa-newspaper"></i></span>
+                Tin tức
+            </a>
+
+            <a th:href="@{/contact}" id="sb-contact">
+                <span class="s-icon"><i class="fa-solid fa-headset"></i></span>
+                Liên hệ
+            </a>
+        </nav>
+
+        <div class="sidebar-divider"></div>
+
+        <!-- Sidebar auth: hiện theo trạng thái đăng nhập -->
+        <div class="sidebar-auth" id="sidebarAuth">
+            <!-- Chưa đăng nhập -->
+            <a sec:authorize="isAnonymous()" th:href="@{/login}" class="sidebar-login-btn">
+                <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
+            </a>
+            <!-- Đã đăng nhập -->
+            <div sec:authorize="isAuthenticated()" class="sidebar-user-info">
+                <div class="sidebar-avatar">
+                    <i class="fa-solid fa-circle-user"></i>
+                </div>
+                <div>
+                    <div class="sidebar-username" sec:authentication="name"></div>
+                    <a th:href="@{/logout}" class="sidebar-logout-link">
+                        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                    </a>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ===== HEADER ===== -->
+    <header class="header" id="header">
+        <div class="container navbar">
+            <!-- Logo + hamburger button -->
+            <div class="logo-wrapper">
+                <a th:href="@{/}" class="logo">
+                    <div class="logo-icon"><i class="fa-solid fa-building"></i></div>
+                    <span class="logo-text"><span class="logo-blue">TRAVEL</span><span
+                            class="logo-yellow">MATE</span></span>
+                </a>
+                <button class="hamburger-btn" id="hamburgerBtn" aria-label="Mở menu" aria-expanded="false">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
+            </div>
+
+            <nav class="menu">
+                <ul class="menu-list">
+                    <li><a th:href="@{/}">TRANG CHỦ</a></li>
+                    <li><a th:href="@{/travel}">GỢI Ý DU LỊCH</a></li>
+                    <li><a th:href="@{/news}">TIN TỨC</a></li>
+                    <li><a th:href="@{/contact}">LIÊN HỆ</a></li>
+                    <li sec:authorize="isAuthenticated()">
+                        <a th:href="@{/user/mybooking}" class="my-booking">
+                            <i class="fa-solid fa-bed"></i> Đặt phòng của tôi
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Chưa đăng nhập → nút ĐĂNG NHẬP -->
+            <a sec:authorize="isAnonymous()" th:href="@{/login}" class="login-btn">ĐĂNG NHẬP</a>
+
+            <!-- Đã đăng nhập → dropdown user với avatar + tên -->
+            <div sec:authorize="isAuthenticated()" class="user-nav-dropdown" id="userNavDropdown">
+                <button class="user-nav-btn" id="userNavBtn" aria-label="Tài khoản">
+                    <div class="user-nav-avatar">
+                        <i class="fa-solid fa-circle-user"></i>
+                    </div>
+                    <span class="user-nav-name" sec:authentication="name"></span>
+                    <i class="fa-solid fa-chevron-down user-nav-arrow"></i>
+                </button>
+
+                <div class="user-nav-menu" id="userNavMenu">
+                    <a th:href="@{/user/mybooking}" class="user-nav-item">
+                        <i class="fa-solid fa-calendar-check"></i> Đặt phòng của tôi
+                    </a>
+                    <div class="user-nav-divider"></div>
+                    <a th:href="@{/logout}" class="user-nav-item user-nav-logout">
+                        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Script toggle dropdown user -->
+    <script>
+        (function () {
+            const btn  = document.getElementById('userNavBtn');
+            const menu = document.getElementById('userNavMenu');
+            if (!btn || !menu) return;
+
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                menu.classList.toggle('open');
+                btn.classList.toggle('active');
+            });
+
+            document.addEventListener('click', function () {
+                menu.classList.remove('open');
+                btn.classList.remove('active');
+            });
+        })();
+    </script>
+</div>

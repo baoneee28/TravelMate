@@ -1,0 +1,61 @@
+<!--
+    Fragment: footer.html
+    Dung chung cho cac trang USER (public pages).
+
+    Cach su dung trong page:
+    <footer th:replace="~{fragments/footer :: user-footer}"></footer>
+
+    Fragment nay bao gom:
+    - Footer grid voi brand, links, contact
+    - Footer bottom voi copyright
+-->
+<footer th:fragment="user-footer" class="footer"
+        xmlns:th="http://www.thymeleaf.org">
+
+    <div class="container footer-grid">
+        <div class="footer-brand">
+            <div class="logo">
+                <div class="logo-icon bg-sky"><i class="fa-solid fa-building"></i></div>
+                <span class="logo-text text-white">TRAVEL<span class="logo-yellow">MATE</span></span>
+            </div>
+            <p class="footer-desc">TravelMate giúp bạn tìm được nơi nghỉ dưỡng hoàn hảo với giá tốt nhất và trải
+                nghiệm tối ưu. Khởi hành dễ dàng, an tâm tận hưởng.</p>
+        </div>
+
+        <div class="footer-links">
+            <h4>Khám phá</h4>
+            <ul>
+                <li><a th:href="@{/accommodations}">Nơi lưu trú</a></li>
+                <li><a th:href="@{/travel}">Gợi ý du lịch</a></li>
+                <li><a th:href="@{/news}">Tin tức</a></li>
+                <li><a href="#">Ưu đãi đặc biệt</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-links">
+            <h4>Hỗ trợ</h4>
+            <ul>
+                <li><a href="#">Câu hỏi thường gặp</a></li>
+                <li><a href="#">Chính sách hoàn tiền</a></li>
+                <li><a href="#">Hướng dẫn đặt phòng</a></li>
+                <li><a th:href="@{/contact}">Liên hệ</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-contact">
+            <h4>Liên hệ</h4>
+            <p><i class="fa-solid fa-phone"></i> +84 123 456 789</p>
+            <p><i class="fa-solid fa-envelope"></i> support@travelmate.vn</p>
+            <div class="social-links">
+                <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <p>&copy; 2024 TravelMate. Đồ án Cơ sở lập trình Web.</p>
+        <p>Thiết kế đẹp, trải nghiệm nhanh.</p>
+    </div>
+</footer>

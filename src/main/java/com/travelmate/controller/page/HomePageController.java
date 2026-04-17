@@ -1,109 +1,151 @@
 package com.travelmate.controller.page;
 
+import com.travelmate.dto.response.AccommodationResponse;
+import com.travelmate.enums.PropertyType;
+import com.travelmate.exception.ResourceNotFoundException;
+import com.travelmate.service.AccommodationService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 /**
- * HomePageController - Controller xu ly cac trang PUBLIC cua TravelMate.
+ * HomePageController - Xử lý các trang PUBLIC của TravelMate.
  *
- * Day la controller chinh phuc vu giao dien cho tat ca nguoi dung
- * (ke ca chua dang nhap). Dung @Controller (khong phai @RestController)
- * de tra ve TEN VIEW thay vi JSON.
+ * Ai cũng truy cập được (kể cả chưa đăng nhập).
+ * Dùng @Controller (không phải @RestController) vì trả về TÊN VIEW (HTML),
+ * không phải JSON.
  *
- * Cach hoat dong:
- * 1. User truy cap URL (vd: http://localhost:8080/)
- * 2. Spring MVC goi method tuong ung (vd: homePage())
- * 3. Method tra ve ten view (vd: "user/index")
- * 4. Thymeleaf tim file templates/user/index.html va render
- * 5. Tra HTML ve trinh duyet
- *
- * Annotation giai thich:
- * - @Controller: danh dau day la MVC controller, tra ve view name
- *   (khac voi @RestController tra ve JSON)
+ * @RequiredArgsConstructor: Lombok tự tạo constructor inject AccommodationService
+ * (thay cho @Autowired — constructor injection là cách khuyến nghị).
  */
 @Controller
+@RequiredArgsConstructor
 public class HomePageController {
 
-    // ============================================================
-    // TRANG CHU - Trang dau tien khi user truy cap TravelMate
+    private final AccommodationService accommodationService;
+
+    // ====================================================================
+    // TRANG CHỦ
     // URL: http://localhost:8080/
-    // ============================================================
+    // ====================================================================
     @GetMapping("/")
     public String homePage() {
-        // Tra ve "user/index" => Thymeleaf se tim file:
-        // src/main/resources/templates/user/index.html
         return "user/index";
     }
 
-    // ============================================================
-    // TRANG DANG NHAP
+    // ====================================================================
+    // TRANG ĐĂNG NHẬP
     // URL: http://localhost:8080/login
-    // Ai cung truy cap duoc (permitAll trong SecurityConfig)
-    // ============================================================
+    // ====================================================================
     @GetMapping("/login")
     public String loginPage() {
         return "user/login";
     }
 
-    // ============================================================
-    // TRANG DANG KY
+    // ====================================================================
+    // TRANG ĐĂNG KÝ
     // URL: http://localhost:8080/register
-    // Ai cung truy cap duoc
-    // ============================================================
+    // ====================================================================
     @GetMapping("/register")
     public String registerPage() {
         return "user/register";
     }
 
-    // ============================================================
-    // TRANG GOI Y DU LICH
+    // ====================================================================
+    // TRANG GỢI Ý DU LỊCH (static)
     // URL: http://localhost:8080/travel
-    // Trang cong khai, hien thi dia diem du lich noi tieng
-    // ============================================================
+    // ====================================================================
     @GetMapping("/travel")
     public String travelPage() {
         return "user/travel";
     }
 
-    // ============================================================
-    // TRANG TIN TUC
+    // ====================================================================
+    // TRANG TIN TỨC (static)
     // URL: http://localhost:8080/news
-    // Trang cong khai, hien thi tin tuc du lich
-    // ============================================================
+    // ====================================================================
     @GetMapping("/news")
     public String newsPage() {
         return "user/news";
     }
 
-    // ============================================================
-    // TRANG LIEN HE
+    // ====================================================================
+    // TRANG LIÊN HỆ (static)
     // URL: http://localhost:8080/contact
-    // Trang cong khai, form lien he voi TravelMate
-    // ============================================================
+    // ====================================================================
     @GetMapping("/contact")
     public String contactPage() {
         return "user/contact";
     }
 
-    // ============================================================
-    // TRANG DANH SACH NƠI LUU TRU (Hotels, Homestay, Villa...)
+    // ====================================================================
+    // TRANG DANH SÁCH NƠI LƯU TRÚ
     // URL: http://localhost:8080/accommodations
-    // Trang cong khai, hien thi danh sach noi luu tru
-    // ============================================================
+    //      http://localhost:8080/accommodations?city=Đà+Nẵng
+    //      http://localhost:8080/accommodations?city=Hà+Nội&type=HOTEL
+    //
+    // @RequestParam(required = false): tham số URL không bắt buộc
+    // Nếu không truyền → giá trị null → service bỏ qua filter đó
+    // ====================================================================
     @GetMapping("/accommodations")
-    public String accommodationsPage() {
-        // Tam thoi dung file hotels.html (se rename sau khi du tien do)
-        return "user/hotels";
+    public String accommodationsPage(
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String type,
+            Model model) {
+
+        // Chuyển chuỗi "type" từ URL thành enum PropertyType
+        // Ví dụ: "HOTEL" → PropertyType.HOTEL
+        // Nếu type không hợp lệ → giữ null để không filter
+        PropertyType propertyType = null;
+        if (type != null && !type.isBlank()) {
+            try {
+                propertyType = PropertyType.valueOf(type.toUpperCase());
+            } catch (IllegalArgumentException ignored) {
+                // type không hợp lệ (vd: "abc") → bỏ qua, không crash
+            }
+        }
+
+        // Lấy danh sách từ DB — chỉ trả về accommodation đã APPROVED
+        List<AccommodationResponse> accommodations =
+                accommodationService.searchApproved(city, propertyType);
+
+        // Truyền data vào Model để Thymeleaf đọc trong template
+        model.addAttribute("accommodations", accommodations);
+        model.addAttribute("totalCount", accommodations.size());
+        model.addAttribute("searchCity",  city != null ? city : "");
+        model.addAttribute("searchType",  type != null ? type : "");
+
+        return "user/accommodations";
     }
 
-    // ============================================================
-    // TRANG CHI TIET NOI LUU TRU
+    // ====================================================================
+    // TRANG CHI TIẾT NƠI LƯU TRÚ
     // URL: http://localhost:8080/accommodations/{id}
-    // Trang cong khai, hien thi chi tiet 1 noi luu tru
-    // Sau nay se truyen id tu URL vao Model de query DB
-    // ============================================================
+    //
+    // Chỉ hiển thị nếu accommodation có approvalStatus = APPROVED.
+    // Nếu không tìm thấy hoặc chưa duyệt → redirect trang lỗi.
+    // ====================================================================
     @GetMapping("/accommodations/{id}")
-    public String accommodationDetailPage() {
-        return "user/hotel-detail";
+    public String accommodationDetailPage(@PathVariable Long id, Model model) {
+
+        // Try-catch vì GlobalExceptionHandler chỉ xử lý REST controllers.
+        // Page controller tự bắt exception và quyết định hiển thị gì.
+        try {
+            AccommodationResponse accommodation = accommodationService.findApprovedById(id);
+            model.addAttribute("accommodation", accommodation);
+            return "user/accommodation-detail";
+
+        } catch (ResourceNotFoundException e) {
+            // Nơi lưu trú không tồn tại hoặc chưa được duyệt
+            model.addAttribute("errorMessage",
+                    "Nơi lưu trú không tồn tại hoặc chưa được duyệt.");
+            model.addAttribute("errorTitle", "Không tìm thấy nơi lưu trú");
+            return "error";
+        }
     }
 }

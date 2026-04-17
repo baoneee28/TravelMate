@@ -1,0 +1,1200 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TravelMate – Tìm kiếm khách sạn</title>
+
+    <!-- Font Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+
+    <!-- Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <!-- Base styles từ trang chủ -->
+    <link rel="stylesheet" th:href="@{/assets/css/style.css}" />
+
+    <style>
+        /* ===== SEARCH NAV BAR (sticky dưới header) ===== */
+        .search-nav {
+            background: #fff;
+            border-bottom: 1px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 0;
+        }
+
+        /* Category tabs trong search-nav */
+        .snav-tabs {
+            display: flex;
+            gap: 0;
+            padding: 0 0 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .snav-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 14px 20px;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #64748b;
+            border: none;
+            background: transparent;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            white-space: nowrap;
+        }
+
+        .snav-tab.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+        }
+
+        .snav-tab:hover {
+            color: #1e40af;
+        }
+
+        /* Mini search bar */
+        .mini-search-bar {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            padding: 10px 0;
+        }
+
+        .msb-field {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 18px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: border-color 0.18s;
+            min-width: 0;
+        }
+
+        .msb-field:hover {
+            border-color: #93c5fd;
+            background: #fff;
+        }
+
+        .msb-field:focus-within {
+            border-color: #2563eb;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .msb-field i {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+
+        .msb-field input {
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #1e293b;
+            width: 100%;
+        }
+
+        .msb-field input::placeholder {
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        .msb-divider {
+            width: 1px;
+            height: 32px;
+            background: #e2e8f0;
+            margin: 0 6px;
+            flex-shrink: 0;
+        }
+
+        .msb-submit {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 22px;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            transition:
+                background 0.18s,
+                transform 0.15s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .msb-submit:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .mini-search-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mini-search-container .msb-field {
+            flex: 1;
+        }
+
+        .mini-search-container .msb-field:first-child {
+            flex: 1.4;
+        }
+
+        /* ===== MAIN LAYOUT ===== */
+        .search-page {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 20px;
+            padding: 20px 0 40px;
+        }
+
+        /* ===== FILTER SIDEBAR ===== */
+        .filter-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .filter-card {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid #e9ecef;
+            padding: 18px;
+        }
+
+        .filter-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .filter-card-title {
+            font-size: 0.9375rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .filter-reset-link {
+            font-size: 0.8125rem;
+            color: #2563eb;
+            font-weight: 600;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        /* Recent filter chips */
+        .filter-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .filter-chip {
+            padding: 5px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 999px;
+            font-size: 0.8125rem;
+            color: #475569;
+            cursor: pointer;
+            background: #f8fafc;
+            transition: all 0.15s;
+        }
+
+        .filter-chip.active,
+        .filter-chip:hover {
+            border-color: #2563eb;
+            color: #1d4ed8;
+            background: rgba(37, 99, 235, 0.06);
+        }
+
+        /* Price range */
+        .price-range-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .price-sub {
+            font-size: 0.8125rem;
+            color: #94a3b8;
+            margin-bottom: 14px;
+        }
+
+        .range-slider-wrap {
+            position: relative;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            margin: 16px 0;
+        }
+
+        .range-track {
+            position: absolute;
+            height: 4px;
+            background: #2563eb;
+            border-radius: 2px;
+            left: 0;
+            right: 0;
+        }
+
+        .range-input {
+            position: absolute;
+            top: -8px;
+            width: 100%;
+            height: 20px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            pointer-events: none;
+        }
+
+        .range-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #fff;
+            border: 2.5px solid #2563eb;
+            border-radius: 50%;
+            cursor: pointer;
+            pointer-events: all;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .price-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .price-label-item {
+            font-size: 0.8rem;
+            color: #475569;
+            font-weight: 500;
+        }
+
+        .price-label-item span {
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        /* Filter checkboxes */
+        .filter-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .filter-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .filter-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            accent-color: #2563eb;
+            flex-shrink: 0;
+            margin-top: 2px;
+            cursor: pointer;
+        }
+
+        .filter-item label {
+            font-size: 0.875rem;
+            color: #374151;
+            line-height: 1.45;
+            cursor: pointer;
+        }
+
+        .filter-see-all {
+            display: inline-block;
+            margin-top: 8px;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: #2563eb;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        /* Star rating filter */
+        .star-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .star-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .star-item input[type="checkbox"] {
+            accent-color: #2563eb;
+            width: 16px;
+            height: 16px;
+        }
+
+        .stars-display {
+            display: flex;
+            gap: 2px;
+        }
+
+        .stars-display i {
+            color: #f59e0b;
+            font-size: 0.875rem;
+        }
+
+        /* ===== RESULTS AREA ===== */
+        .results-area {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .results-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .results-title span {
+            color: #64748b;
+            font-weight: 400;
+            font-size: 0.875rem;
+        }
+
+        .results-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ctrl-label {
+            font-size: 0.8125rem;
+            color: #64748b;
+        }
+
+        .ctrl-select {
+            padding: 7px 28px 7px 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #1e293b;
+            background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%2394a3b8' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 8px center;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .view-toggle {
+            display: flex;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .vtg-btn {
+            padding: 7px 10px;
+            border: none;
+            background: #fff;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .vtg-btn.active,
+        .vtg-btn:hover {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        /* ===== HOTEL CARD (LIST VIEW) ===== */
+        .hotel-card-list {
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid #e9ecef;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            min-height: 200px;
+            transition:
+                box-shadow 0.2s,
+                transform 0.2s;
+        }
+
+        .hotel-card-list:hover {
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Image section */
+        .hcl-images {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 2px;
+            background: #e2e8f0;
+        }
+
+        .hcl-images .main-img {
+            grid-column: 1 / 2;
+            grid-row: 1 / 3;
+        }
+
+        .hcl-images img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .hcl-images .view-photos-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            padding: 5px 12px;
+            background: rgba(0, 0, 0, 0.55);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+        }
+
+        .hcl-deal-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 4px 10px;
+            background: #f97316;
+            color: #fff;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .hcl-wishlist {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            transition: all 0.15s;
+        }
+
+        .hcl-wishlist:hover {
+            color: #ef4444;
+        }
+
+        /* Content section */
+        .hcl-content {
+            padding: 18px 16px 16px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            grid-template-rows: auto 1fr auto;
+            gap: 0;
+        }
+
+        .hcl-info {
+            grid-column: 1;
+        }
+
+        .hcl-price-box {
+            grid-column: 2;
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: space-between;
+            padding-left: 16px;
+            min-width: 180px;
+        }
+
+        .hcl-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 5px;
+            line-height: 1.35;
+        }
+
+        .hcl-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .hcl-type {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+
+        .hcl-stars {
+            display: flex;
+            gap: 2px;
+        }
+
+        .hcl-stars i {
+            color: #f59e0b;
+            font-size: 0.72rem;
+        }
+
+        .hcl-location {
+            font-size: 0.8125rem;
+            color: #64748b;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .hcl-amenities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .hcl-amenity {
+            padding: 3px 8px;
+            background: #f0f9ff;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: #0369a1;
+        }
+
+        .hcl-perks {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .perk-xu {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #fef3c7;
+            color: #b45309;
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .perk-voucher {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #ecfdf5;
+            color: #059669;
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Price box */
+        .hcl-rating-box {
+            text-align: right;
+            margin-bottom: 10px;
+        }
+
+        .rating-score {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            background: #1d4ed8;
+            color: #fff;
+            border-radius: 8px 8px 0 8px;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .rating-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #1d4ed8;
+            margin-top: 3px;
+        }
+
+        .rating-count {
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+
+        .hcl-price-original {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-decoration: line-through;
+        }
+
+        .hcl-price-current {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #ef4444;
+            margin: 2px 0;
+        }
+
+        .hcl-price-note {
+            font-size: 0.72rem;
+            color: #94a3b8;
+            line-height: 1.4;
+            max-width: 160px;
+        }
+
+        .btn-choose {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 18px;
+            background: #f97316;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.18s;
+            margin-top: 10px;
+            white-space: nowrap;
+        }
+
+        .btn-choose:hover {
+            background: #ea6c0a;
+        }
+
+        .tag-family {
+            display: inline-block;
+            padding: 3px 8px;
+            background: #eff6ff;
+            color: #3b82f6;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        /* Filter accordion */
+        .filter-accordion-btn {
+            width: 100%;
+            background: none;
+            border: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9375rem;
+            font-weight: 700;
+            color: #0f172a;
+            cursor: pointer;
+            padding: 0;
+            margin-bottom: 14px;
+        }
+
+        .filter-accordion-btn i {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .pg-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #fff;
+            color: #475569;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+
+        .pg-btn.active {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #fff;
+        }
+
+        .pg-btn:hover:not(.active) {
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+
+        /* Search nav wrapper */
+        .search-nav-inner {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ===== HEADER (dùng fragment chung) ===== -->
+    <div th:replace="~{fragments/header :: user-header}"></div>
+
+    <!-- ===== SEARCH NAV BAR (sticky) ===== -->
+    <div class="search-nav">
+        <div class="container search-nav-inner">
+            <div class="mini-search-bar">
+                <!-- Form GET: submit sẽ gọi GET /accommodations?city=... -->
+                <form th:action="@{/accommodations}" method="get"
+                      class="mini-search-container" style="flex: 1; display: flex; gap: 6px; align-items: center">
+                    <div class="msb-field" style="flex: 1.4">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <!-- name="city" để Spring nhận @RequestParam city -->
+                        <!-- th:value giữ lại giá trị đã tìm khi reload -->
+                        <input type="text" id="msb-dest" name="city"
+                               th:value="${searchCity}"
+                               placeholder="Thành phố, điểm đến..." />
+                    </div>
+                    <div class="msb-divider"></div>
+                    <div class="msb-field" style="flex: 1.2">
+                        <i class="fa-regular fa-calendar-days"></i>
+                        <input type="text" id="msb-date" placeholder="Nhận phòng → Trả phòng" readonly />
+                    </div>
+                    <div class="msb-divider"></div>
+                    <div class="msb-field" style="flex: 1">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" id="msb-guest" placeholder="Khách & Phòng" readonly />
+                    </div>
+                    <!-- type="submit" để form GET submit khi bấm nút -->
+                    <button type="submit" class="msb-submit">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        Tìm kiếm
+                    </button>
+                </form>
+            </div>
+            <!-- Sub-nav tabs -->
+            <div class="snav-tabs">
+                <button class="snav-tab active" data-type="hotel">
+                    <i class="fa-solid fa-hotel"></i> Khách sạn
+                </button>
+                <button class="snav-tab" data-type="places">
+                    <i class="fa-solid fa-map-location-dot"></i> Địa điểm du lịch gần đây
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MAIN ===== -->
+    <main>
+        <div class="container">
+            <div class="search-page">
+                <!-- ======= FILTER SIDEBAR ======= -->
+                <aside class="filter-sidebar">
+                    <!-- Lọc gần đây -->
+                    <div class="filter-card">
+                        <div class="filter-card-header">
+                            <span class="filter-card-title">Lọc gần đây</span>
+                            <button class="filter-reset-link">Xóa</button>
+                        </div>
+                        <div class="filter-chips">
+                            <button class="filter-chip active">Hotel</button>
+                            <button class="filter-chip active">Resort</button>
+                            <button class="filter-chip active">Homestay</button>
+                            <button class="filter-chip active">Villa</button>
+                        </div>
+                    </div>
+
+                    <!-- Khoảng giá -->
+                    <div class="filter-card">
+                        <button class="filter-accordion-btn" onclick="toggleAccordion('price-body')">
+                            <span class="filter-card-title">Khoảng giá</span>
+                            <i class="fa-solid fa-chevron-up" id="price-icon"></i>
+                        </button>
+                        <div id="price-body">
+                            <div class="price-sub">1 phòng, 1 đêm</div>
+                            <div class="range-slider-wrap">
+                                <div class="range-track" id="range-track"></div>
+                                <input type="range" class="range-input" id="range-min" min="0" max="24000000" value="0"
+                                    step="100000" />
+                                <input type="range" class="range-input" id="range-max" min="0" max="24000000"
+                                    value="24000000" step="100000" />
+                            </div>
+                            <div class="price-labels">
+                                <div class="price-label-item"><span id="price-min-label">0</span> VND</div>
+                                <div class="price-label-item"><span id="price-max-label">24.000.000</span> VND</div>
+                            </div>
+                            <div style="display: flex; justify-content: flex-end; margin-top: 10px">
+                                <button class="filter-reset-link">Đặt lại</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lọc phổ biến -->
+                    <div class="filter-card">
+                        <button class="filter-accordion-btn" onclick="toggleAccordion('popular-body')">
+                            <span class="filter-card-title">Lọc phổ biến</span>
+                            <i class="fa-solid fa-chevron-up" id="popular-icon"></i>
+                        </button>
+                        <div id="popular-body">
+                            <div class="filter-list">
+                                <label class="filter-item">
+                                    <input type="checkbox" checked />
+                                    <label>Phòng sang giá tốt</label>
+                                </label>
+                                <label class="filter-item">
+                                    <input type="checkbox" checked />
+                                    <label>Ở lâu giảm sâu</label>
+                                </label>
+                                <label class="filter-item">
+                                    <input type="checkbox" checked />
+                                    <label>Lựa chọn hàng đầu du lịch gần nhà</label>
+                                </label>
+                                <label class="filter-item">
+                                    <input type="checkbox" checked />
+                                    <label>Có bữa sáng</label>
+                                </label>
+                                <label class="filter-item">
+                                    <input type="checkbox" checked />
+                                    <label>4-5 sao giá tốt</label>
+                                </label>
+                            </div>
+                            <button class="filter-see-all">Xem Tất cả</button>
+                        </div>
+                    </div>
+
+                    <!-- Khuyến mãi & Giảm giá -->
+                    <div class="filter-card">
+                        <button class="filter-accordion-btn" onclick="toggleAccordion('promo-body')">
+                            <span class="filter-card-title">Khuyến mãi & Giảm giá</span>
+                            <i class="fa-solid fa-chevron-up" id="promo-icon"></i>
+                        </button>
+                        <div id="promo-body">
+                            <div class="filter-list">
+                                <label class="filter-item">
+                                    <input type="checkbox" checked />
+                                    <label>Khuyến mãi dành cho bạn</label>
+                                </label>
+                                <label class="filter-item">
+                                    <input type="checkbox" checked />
+                                    <label>Được yêu thích nhất</label>
+                                </label>
+                                <label class="filter-item">
+                                    <input type="checkbox" checked />
+                                    <label>Phù hợp cho gia đình</label>
+                                </label>
+                                <label class="filter-item">
+                                    <input type="checkbox" />
+                                    <label>Có bữa sáng</label>
+                                </label>
+                                <label class="filter-item">
+                                    <input type="checkbox" />
+                                    <label>Vị trí thuận tiện</label>
+                                </label>
+                            </div>
+                            <button class="filter-see-all">Xem Tất cả</button>
+                        </div>
+                    </div>
+
+                    <!-- Đánh giá sao -->
+                    <div class="filter-card">
+                        <button class="filter-accordion-btn" onclick="toggleAccordion('star-body')">
+                            <span class="filter-card-title">Đánh giá sao</span>
+                            <i class="fa-solid fa-chevron-up" id="star-icon"></i>
+                        </button>
+                        <div id="star-body">
+                            <div class="star-list">
+                                <label class="star-item">
+                                    <input type="checkbox" />
+                                    <div class="stars-display">
+                                        <i class="fa-solid fa-star"></i>
+                                    </div>
+                                </label>
+                                <label class="star-item">
+                                    <input type="checkbox" />
+                                    <div class="stars-display">
+                                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                                    </div>
+                                </label>
+                                <label class="star-item">
+                                    <input type="checkbox" checked />
+                                    <div class="stars-display">
+                                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+                                            class="fa-solid fa-star"></i>
+                                    </div>
+                                </label>
+                                <label class="star-item">
+                                    <input type="checkbox" checked />
+                                    <div class="stars-display">
+                                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+                                            class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                                    </div>
+                                </label>
+                                <label class="star-item">
+                                    <input type="checkbox" checked />
+                                    <div class="stars-display">
+                                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+                                            class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+                                            class="fa-solid fa-star"></i>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- ======= RESULTS AREA ======= -->
+                <section class="results-area">
+                    <!-- Results header — data từ Model (controller đã truyền) -->
+                    <div class="results-header">
+                        <div>
+                            <div class="results-title">
+                                <!-- Hiển thị tên thành phố nếu đang filter, không thì "Tất cả" -->
+                                <span th:text="${searchCity != null and !searchCity.isEmpty() ? searchCity : 'Tất cả nơi lưu trú'}">Nơi lưu trú</span>
+                                <span th:text="'– ' + ${totalCount} + ' nơi lưu trú được tìm thấy'">– 0 nơi lưu trú</span>
+                            </div>
+                        </div>
+                        <div class="results-controls">
+                            <span class="ctrl-label">Xếp theo:</span>
+                            <select class="ctrl-select">
+                                <option>Độ phổ biến</option>
+                                <option>Giá thấp nhất</option>
+                                <option>Đánh giá cao nhất</option>
+                            </select>
+                            <span class="ctrl-label">Hiển thị giá:</span>
+                            <select class="ctrl-select">
+                                <option>Tổng giá (bao gồm thuế v...</option>
+                            </select>
+                            <div class="view-toggle">
+                                <button class="vtg-btn"><i class="fa-solid fa-grip"></i></button>
+                                <button class="vtg-btn active"><i class="fa-solid fa-list"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ─── Empty State: không có kết quả ─── -->
+                    <div th:if="${#lists.isEmpty(accommodations)}"
+                         style="text-align: center; padding: 60px 20px; color: #64748b; background: #fff; border-radius: 16px; border: 1px solid #e9ecef;">
+                        <i class="fa-solid fa-magnifying-glass" style="font-size: 2.5rem; margin-bottom: 16px; display: block; color: #cbd5e1;"></i>
+                        <p style="font-size: 1rem; font-weight: 700; color: #374151; margin-bottom: 8px;">Không tìm thấy nơi lưu trú nào</p>
+                        <p style="font-size: 0.875rem; margin-bottom: 16px;">Thử thay đổi từ khoá hoặc xoá bộ lọc</p>
+                        <a th:href="@{/accommodations}" style="color: #2563eb; font-weight: 700; font-size: 0.875rem;">
+                            <i class="fa-solid fa-arrow-left"></i> Xem tất cả nơi lưu trú
+                        </a>
+                    </div>
+
+                    <!-- ─── Danh sách từ DB (th:each lặp qua List<AccommodationResponse>) ─── -->
+                    <!--
+                        th:each="acc : ${accommodations}":
+                        - accommodations là List truyền từ HomePageController
+                        - acc là biến đại diện cho từng AccommodationResponse trong vòng lặp
+                        - Thymeleaf tự render nhiều card, mỗi card là 1 accommodation
+                    -->
+                    <div th:each="acc : ${accommodations}" class="hotel-card-list">
+
+                        <!-- Phần ảnh: dùng thumbnail từ DB, fallback ảnh mặc định nếu null -->
+                        <div class="hcl-images">
+                            <a th:href="@{/accommodations/{id}(id=${acc.id})}" class="main-img">
+                                <img th:src="${acc.thumbnailUrl != null and !acc.thumbnailUrl.isEmpty()}
+                                             ? ${acc.thumbnailUrl}
+                                             : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=70'"
+                                     th:alt="${acc.name}"
+                                     style="width: 100%; height: 100%; object-fit: cover;" />
+                            </a>
+                            <button class="hcl-wishlist"><i class="fa-regular fa-bookmark"></i></button>
+                        </div>
+
+                        <!-- Phần nội dung: tên, loại, địa chỉ, giá -->
+                        <div class="hcl-content">
+                            <div class="hcl-info">
+                                <!-- Tên nơi lưu trú từ DB -->
+                                <div class="hcl-name" th:text="${acc.name}">Tên nơi lưu trú</div>
+
+                                <div class="hcl-meta">
+                                    <!-- Loại lưu trú: "Khách sạn", "Homestay", "Villa", "Căn hộ" -->
+                                    <span class="hcl-type">
+                                        <i class="fa-solid fa-hotel"></i>
+                                        <span th:text="${acc.propertyTypeLabel}">Loại</span>
+                                    </span>
+                                </div>
+
+                                <!-- Địa chỉ + thành phố -->
+                                <div class="hcl-location">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    <span th:text="${acc.address != null and !acc.address.isEmpty()}
+                                                   ? ${acc.address + ', ' + acc.city}
+                                                   : ${acc.city}">Địa chỉ</span>
+                                </div>
+
+                                <!-- Sức chứa: field có trong entity -->
+                                <div class="hcl-amenities">
+                                    <span class="hcl-amenity">
+                                        <i class="fa-solid fa-user-group"></i>
+                                        Tối đa <span th:text="${acc.maxGuests}">2</span> khách
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Phần giá và nút chọn phòng -->
+                            <div class="hcl-price-box">
+                                <div>
+                                    <!-- Giá đã được format: "1.200.000 VNĐ" -->
+                                    <div class="hcl-price-current">
+                                        <span th:text="${acc.priceFormatted}">0</span> VNĐ
+                                    </div>
+                                    <div class="hcl-price-note">/ đêm · đã bao gồm thuế</div>
+
+                                    <!-- Link đến trang chi tiết -->
+                                    <a th:href="@{/accommodations/{id}(id=${acc.id})}">
+                                        <button class="btn-choose">Chọn phòng</button>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="pagination">
+                        <button class="pg-btn"><i class="fa-solid fa-chevron-left"></i></button>
+                        <button class="pg-btn active">1</button>
+                        <button class="pg-btn">2</button>
+                        <button class="pg-btn">3</button>
+                        <button class="pg-btn">4</button>
+                        <button class="pg-btn">5</button>
+                        <button class="pg-btn"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        /* ── Sub-nav tab switching ── */
+        document.querySelectorAll(".snav-tab").forEach((tab) => {
+            tab.addEventListener("click", () => {
+                document.querySelectorAll(".snav-tab").forEach((t) => t.classList.remove("active"));
+                tab.classList.add("active");
+            });
+        });
+
+        /* ── Price range slider ── */
+        const rangeMin = document.getElementById("range-min");
+        const rangeMax = document.getElementById("range-max");
+        const track = document.getElementById("range-track");
+        const labelMin = document.getElementById("price-min-label");
+        const labelMax = document.getElementById("price-max-label");
+        const MAX = 24000000;
+
+        function formatPrice(v) {
+            return parseInt(v).toLocaleString("vi-VN");
+        }
+
+        function updateSlider() {
+            let minVal = parseInt(rangeMin.value);
+            let maxVal = parseInt(rangeMax.value);
+            if (minVal > maxVal - 500000) {
+                minVal = maxVal - 500000;
+                rangeMin.value = minVal;
+            }
+            const leftPct = (minVal / MAX) * 100;
+            const rightPct = 100 - (maxVal / MAX) * 100;
+            track.style.left = leftPct + "%";
+            track.style.right = rightPct + "%";
+            labelMin.textContent = formatPrice(minVal);
+            labelMax.textContent = formatPrice(maxVal);
+        }
+
+        rangeMin.addEventListener("input", updateSlider);
+        rangeMax.addEventListener("input", updateSlider);
+        updateSlider();
+
+        /* ── Filter accordion ── */
+        function toggleAccordion(id) {
+            const body = document.getElementById(id);
+            const iconId = id.replace("-body", "-icon");
+            const icon = document.getElementById(iconId);
+            if (body.style.display === "none") {
+                body.style.display = "";
+                icon.className = "fa-solid fa-chevron-up";
+            } else {
+                body.style.display = "none";
+                icon.className = "fa-solid fa-chevron-down";
+            }
+        }
+
+        /* ── Search form (trang chủ → trang này) ── */
+        // Khi load trang, lấy param từ URL nếu có
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("dest")) document.getElementById("msb-dest").value = urlParams.get("dest");
+        if (urlParams.get("dates")) document.getElementById("msb-date").value = urlParams.get("dates");
+        if (urlParams.get("guests")) document.getElementById("msb-guest").value = urlParams.get("guests");
+    </script>
+</body>
+
+</html>

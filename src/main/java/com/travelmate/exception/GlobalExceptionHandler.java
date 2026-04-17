@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.HashMap;
@@ -20,10 +21,12 @@ import java.util.Map;
  * - Voi handler nay, MOI loi deu tra ve cung format ApiResponse,
  *   sach se, de hieu, chuyen nghiep
  *
- * @RestControllerAdvice: danh dau day la handler toan cuc (global),
- *   tu dong bat exception tu tat ca controller.
+ * @RestControllerAdvice(annotations = RestController.class):
+ *   Chỉ bắt exception từ các class annotated @RestController (API controllers).
+ *   Page controllers (@Controller) sẽ KHÔNG bị bắt ở đây — chúng tự xử lý
+ *   và redirect về error page thay vì trả JSON.
  */
-@RestControllerAdvice
+@RestControllerAdvice(annotations = RestController.class)
 public class GlobalExceptionHandler {
 
     /**

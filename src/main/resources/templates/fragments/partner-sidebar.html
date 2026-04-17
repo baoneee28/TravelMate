@@ -1,0 +1,60 @@
+<!--
+    Fragment: partner-sidebar.html
+    Sidebar dung chung cho TAT CA trang Partner.
+
+    Cach su dung trong page:
+    <aside th:replace="~{fragments/partner-sidebar :: partner-sidebar}"></aside>
+
+    Luu y:
+    - Tuong tu admin-sidebar nhung cho role PARTNER
+    - Sidebar hien thi cac chuc nang quan ly listing cua Partner
+-->
+<aside th:fragment="partner-sidebar" class="admin-sidebar"
+       xmlns:th="http://www.thymeleaf.org">
+
+    <div class="admin-sidebar__header">
+        <a th:href="@{/partner/rooms}" class="admin-sidebar__logo">
+            <div class="admin-sidebar__logo-icon">TM</div>
+            <div>
+                <div class="admin-sidebar__logo-text">Travel<span>Mate</span></div>
+                <span class="admin-sidebar__badge">PARTNER CENTER</span>
+            </div>
+        </a>
+    </div>
+
+    <nav class="admin-sidebar__nav">
+        <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
+        <a th:href="@{/partner/rooms}" class="admin-sidebar__link"
+           th:classappend="${#httpServletRequest.requestURI == '/partner/rooms'} ? 'active'">
+            <span class="admin-sidebar__link-icon">🛏</span> Danh sách phòng
+        </a>
+        <a th:href="@{/partner/add-room}" class="admin-sidebar__link"
+           th:classappend="${#httpServletRequest.requestURI == '/partner/add-room'} ? 'active'">
+            <span class="admin-sidebar__link-icon">＋</span> Thêm phòng
+        </a>
+        <a th:href="@{/partner/pending-room}" class="admin-sidebar__link"
+           th:classappend="${#httpServletRequest.requestURI == '/partner/pending-room'} ? 'active'">
+            <span class="admin-sidebar__link-icon">⏳</span> Chờ duyệt
+        </a>
+
+        <div class="admin-sidebar__section-title">Tiện ích</div>
+        <a th:href="@{/partner/add-furniture}" class="admin-sidebar__link"
+           th:classappend="${#httpServletRequest.requestURI == '/partner/add-furniture'} ? 'active'">
+            <span class="admin-sidebar__link-icon">🪑</span> Thêm nội thất
+        </a>
+        <a th:href="@{/partner/add-voucher}" class="admin-sidebar__link"
+           th:classappend="${#httpServletRequest.requestURI == '/partner/add-voucher'} ? 'active'">
+            <span class="admin-sidebar__link-icon">🎟</span> Thêm voucher
+        </a>
+    </nav>
+
+    <div class="admin-sidebar__footer">
+        <div class="admin-sidebar__user">
+            <div class="admin-sidebar__user-avatar">PT</div>
+            <div class="admin-sidebar__user-info">
+                <div class="admin-sidebar__user-name">Partner TravelMate</div>
+                <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
+            </div>
+        </div>
+    </div>
+</aside>

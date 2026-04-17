@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head>
@@ -21,84 +21,8 @@
 <body>
     <script th:src="@{/assets/js/main.js}"></script>
     <script th:src="@{/assets/js/user.js}"></script>
-    <!-- ===== HEADER ===== -->
-    <!-- ===== SIDEBAR OVERLAY ===== -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-    <!-- ===== SIDEBAR MENU ===== -->
-    <aside class="sidebar-menu" id="sidebarMenu" role="dialog" aria-label="Menu điều hướng">
-        <div class="sidebar-header">
-            <div class="sidebar-logo">
-                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                <span class="s-logo-text">TRAVEL<span>MATE</span></span>
-            </div>
-            <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Đóng menu">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-
-        <nav class="sidebar-nav">
-            <div class="sidebar-nav-label">Chức năng</div>
-
-            <a th:href="@{/accommodations}" id="sb-hotels">
-                <span class="s-icon"><i class="fa-solid fa-bed"></i></span>
-                Đặt phòng
-            </a>
-
-            <a th:href="@{/travel}" id="sb-travel">
-                <span class="s-icon"><i class="fa-solid fa-map-location-dot"></i></span>
-                Gợi ý du lịch
-            </a>
-
-            <a th:href="@{/news}" id="sb-news">
-                <span class="s-icon"><i class="fa-solid fa-newspaper"></i></span>
-                Tin tức
-            </a>
-
-            <a th:href="@{/contact}" id="sb-contact">
-                <span class="s-icon"><i class="fa-solid fa-headset"></i></span>
-                Liên hệ
-            </a>
-        </nav>
-
-        <div class="sidebar-divider"></div>
-
-        <!-- Auth section: hiển thị động theo trạng thái đăng nhập -->
-        <div class="sidebar-auth" id="sidebarAuth">
-            <!-- Nội dung sẽ được render bởi JS -->
-        </div>
-    </aside>
-
-    <header class="header" id="header">
-        <div class="container navbar">
-            <!-- Logo + hamburger button xếp dọc -->
-            <div class="logo-wrapper">
-                <a th:href="@{/}" class="logo">
-                    <div class="logo-icon"><i class="fa-solid fa-building"></i></div>
-                    <span class="logo-text"><span class="logo-blue">TRAVEL</span><span
-                            class="logo-yellow">MATE</span></span>
-                </a>
-                <button class="hamburger-btn" id="hamburgerBtn" aria-label="Mở menu" aria-expanded="false">
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                </button>
-            </div>
-
-            <nav class="menu">
-                <ul class="menu-list">
-                    <li><a th:href="@{/}">TRANG CHỦ</a></li>
-                    <li><a th:href="@{/travel}">GỢI Ý DU LỊCH</a></li>
-                    <li><a th:href="@{/news}">TIN TỨC</a></li>
-                    <li><a th:href="@{/contact}">LIÊN HỆ</a></li>
-                    <li><a th:href="@{/user/mybooking}" class="my-booking"><i class="fa-solid fa-bed"></i> Đặt phòng của
-                            tôi</a></li>
-                </ul>
-            </nav>
-
-            <a th:href="@{/login}" class="login-btn">ĐĂNG NHẬP</a>
-        </div>
-    </header>
+    <!-- ===== HEADER (dùng fragment chung — xử lý đăng nhập/đăng xuất) ===== -->
+    <div th:replace="~{fragments/header :: user-header}"></div>
 
     <!-- ===== HERO / BANNER ===== -->
     <section class="hero-section">

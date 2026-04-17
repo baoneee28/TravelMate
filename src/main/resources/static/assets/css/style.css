@@ -460,6 +460,201 @@ img {
     background-color: #bae6fd;
 }
 
+/* ===== USER NAV DROPDOWN (khi đã đăng nhập) ===== */
+.user-nav-dropdown {
+    position: relative;
+}
+
+.user-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50px;
+    padding: 8px 14px 8px 8px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+}
+
+.header.scrolled .user-nav-btn {
+    background: #e0f2fe;
+    border-color: #bae6fd;
+    color: var(--primary-blue);
+}
+
+.user-nav-btn:hover,
+.user-nav-btn.active {
+    background: rgba(255, 255, 255, 0.22);
+    transform: translateY(-1px);
+}
+
+.header.scrolled .user-nav-btn:hover,
+.header.scrolled .user-nav-btn.active {
+    background: #bae6fd;
+}
+
+.user-nav-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--primary-blue);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.user-nav-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: white;
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.header.scrolled .user-nav-name {
+    color: var(--primary-blue);
+}
+
+.user-nav-arrow {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    transition: transform 0.25s ease;
+}
+
+.header.scrolled .user-nav-arrow {
+    color: var(--primary-blue);
+}
+
+.user-nav-btn.active .user-nav-arrow {
+    transform: rotate(180deg);
+}
+
+/* Dropdown menu */
+.user-nav-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    min-width: 210px;
+    background: white;
+    border-radius: 18px;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    padding: 8px;
+    z-index: 1001;
+    animation: dropdownFadeIn 0.2s ease;
+}
+
+.user-nav-menu.open {
+    display: block;
+}
+
+@keyframes dropdownFadeIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.user-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+}
+
+.user-nav-item:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.user-nav-item i {
+    width: 18px;
+    text-align: center;
+    color: var(--primary-blue);
+    font-size: 15px;
+}
+
+.user-nav-divider {
+    height: 1px;
+    background: #f1f5f9;
+    margin: 6px 0;
+}
+
+.user-nav-logout {
+    color: #dc2626;
+}
+
+.user-nav-logout:hover {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.user-nav-logout i {
+    color: #dc2626;
+}
+
+/* ===== SIDEBAR USER INFO (khi đã đăng nhập) ===== */
+.sidebar-login-btn {
+    background: var(--primary-blue);
+    color: white !important;
+    border-radius: 12px;
+}
+
+.sidebar-login-btn:hover {
+    background: var(--primary-blue-hover) !important;
+    transform: translateY(-1px);
+}
+
+.sidebar-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-avatar {
+    font-size: 28px;
+    color: rgba(255, 255, 255, 0.85);
+    flex-shrink: 0;
+}
+
+.sidebar-username {
+    font-weight: 700;
+    font-size: 14px;
+    color: white;
+    margin-bottom: 4px;
+    word-break: break-all;
+}
+
+.sidebar-logout-link {
+    font-size: 13px;
+    color: #fca5a5 !important;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+}
+
+.sidebar-logout-link:hover {
+    color: #fecaca !important;
+}
+
 /* ===== HERO SECTION ===== */
 .hero-section {
     position: relative;

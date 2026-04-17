@@ -1,47 +1,110 @@
 package com.travelmate.controller.page;
 
+import com.travelmate.dto.response.AccommodationResponse;
+import com.travelmate.dto.response.BookingResponse;
+import com.travelmate.exception.ResourceNotFoundException;
+import com.travelmate.service.AccommodationService;
+import com.travelmate.service.BookingService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 /**
- * UserPageController - Controller xu ly cac trang danh cho USER da dang nhap.
+ * UserPageController - Controller xử lý các trang dành cho USER đã đăng nhập.
  *
- * Tat ca URL bat dau bang /user/** se duoc bao ve boi Spring Security:
- * - Phai dang nhap moi truy cap duoc
- * - Role USER (hoac bat ky role da dang nhap) deu co the vao
+ * Tất cả URL bắt đầu bằng /user/** được bảo vệ bởi Spring Security:
+ * - Phải đăng nhập mới truy cập được
+ * - Role USER hoặc ADMIN đều có thể vào (cấu hình trong SecurityConfig)
  *
- * Sau nay khi co du lieu thuc tu DB, cac method se them:
- * - @ModelAttribute hoac Model de truyen data sang Thymeleaf
- * - Goi Service de lay booking, thong tin user, v.v.
+ * Các trang chính:
+ * - /user/booking?accommodationId=X  → Trang tạo đơn đặt phòng mới
+ * - /user/mybooking                   → Trang danh sách đặt phòng của tôi
  *
  * Annotation:
- * - @Controller: tra ve view name (khong phai JSON)
- * - @RequestMapping("/user"): tat ca URL trong controller bat dau bang /user
+ * - @Controller: trả về view name (HTML), không phải JSON
+ * - @RequestMapping("/user"): tất cả URL bắt đầu bằng /user
+ * - @RequiredArgsConstructor: Lombok inject dependencies qua constructor
  */
 @Controller
 @RequestMapping("/user")
+@RequiredArgsConstructor
 public class UserPageController {
 
+    private final AccommodationService accommodationService;
+    private final BookingService bookingService;
+
     // ============================================================
-    // TRANG DAT PHONG
-    // URL: http://localhost:8080/user/booking
-    // Chi user da dang nhap moi xem duoc
+    // TRANG ĐẶT PHÒNG (Form tạo booking)
+    // URL: /user/booking?accommodationId=1
+    //
+    // Khi user nhấn "Đặt phòng" trên trang chi tiết accommodation:
+    // → Redirect đến /user/booking?accommodationId={id}
+    // → Controller load thông tin accommodation và truyền vào template
+    // → Template hiển thị form đặt phòng với thông tin nơi lưu trú
     // ============================================================
     @GetMapping("/booking")
-    public String bookingPage() {
-        // Sau nay se truyen thong tin user, danh sach phong vao Model
-        return "user/booking";
+    public String bookingPage(
+            @RequestParam(required = false) Long accommodationId,
+            Model model,
+            Authentication auth) {
+
+        // Nếu không có accommodationId → hiển thị trang lỗi
+        if (accommodationId == null) {
+            model.addAttribute("errorTitle", "Không tìm thấy thông tin");
+            model.addAttribute("errorMessage",
+                    "Vui lòng chọn nơi lưu trú trước khi đặt phòng.");
+            return "error";
+        }
+
+        try {
+            // Lấy thông tin accommodation từ DB (chỉ APPROVED)
+            AccommodationResponse accommodation =
+                    accommodationService.findApprovedById(accommodationId);
+
+            // Truyền data vào template để hiển thị
+            model.addAttribute("accommodation", accommodation);
+
+            // Truyền email user đang đăng nhập (dùng hiển thị form)
+            if (auth != null) {
+                model.addAttribute("userEmail", auth.getName());
+            }
+
+            return "user/booking";
+
+        } catch (ResourceNotFoundException e) {
+            model.addAttribute("errorTitle", "Không tìm thấy nơi lưu trú");
+            model.addAttribute("errorMessage",
+                    "Nơi lưu trú không tồn tại hoặc chưa được duyệt.");
+            return "error";
+        }
     }
 
     // ============================================================
-    // TRANG DAT PHONG CUA TOI
-    // URL: http://localhost:8080/user/mybooking
-    // Hien thi danh sach booking cua user dang dang nhap
+    // TRANG ĐẶT PHÒNG CỦA TÔI (Danh sách bookings)
+    // URL: /user/mybooking
+    //
+    // Hiển thị tất cả booking của user đang đăng nhập.
+    // Dữ liệu lấy từ DB (không còn dùng localStorage demo).
     // ============================================================
     @GetMapping("/mybooking")
-    public String myBookingPage() {
-        // Sau nay: model.addAttribute("bookings", bookingService.getMyBookings(userId))
+    public String myBookingPage(Model model, Authentication auth) {
+
+        // Lấy email user đang đăng nhập từ Spring Security
+        String userEmail = auth.getName();
+
+        // Gọi service lấy danh sách booking từ DB
+        List<BookingResponse> bookings = bookingService.getMyBookings(userEmail);
+
+        // Truyền data vào template
+        model.addAttribute("bookings", bookings);
+        model.addAttribute("totalBookings", bookings.size());
+
         return "user/mybooking";
     }
 }

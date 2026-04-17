@@ -14,19 +14,28 @@ import org.springframework.web.bind.annotation.*;
 /**
  * AuthApiController - REST API xu ly xac thuc (dang ky, dang nhap).
  *
- * Day la API bo tro, dung khi frontend can goi AJAX (khong reload trang).
- * Vi du: form login dung fetch/axios gui JSON len server.
+ * === QUAN TRONG: THONG NHAT LOGIN FLOW ===
+ * TravelMate da chot dung Spring Security form login + session la CHINH.
+ * Nghia la:
+ *   - Dang nhap CHINH: form HTML tai /login (POST /login do Spring Security xu ly)
+ *   - Dang nhap PHU: API /api/auth/login (chi dung cho AJAX, Postman, test)
  *
- * Luu y: Sau khi chuyen sang MVC + Thymeleaf, viec dang nhap chinh
- * se qua Spring Security form login (POST /login).
- * API nay van giu lai de:
- * - Ho tro AJAX login neu can
- * - Ho tro mobile app sau nay
- * - Test bang Postman
+ * Khi nao dung API nay:
+ *   1. Test bang Postman trong qua trinh phat trien
+ *   2. AJAX login dac biet (neu frontend can login khong reload trang)
+ *   3. Ho tro mobile app sau nay (neu co)
+ *
+ * Khi nao KHONG dung API nay:
+ *   - KHONG dung lam login chinh cho trang web
+ *   - KHONG code them login logic moi vao day
+ *   - Moi thay doi login phai sua o SecurityConfig + form login truoc
+ *
+ * API dang ky (/api/auth/register) van dung binh thuong vi form register
+ * gui du lieu bang fetch/AJAX len endpoint nay.
  *
  * Cac API:
  * - POST /api/auth/register : dang ky tai khoan moi
- * - POST /api/auth/login    : dang nhap
+ * - POST /api/auth/login    : dang nhap (BO TRO, khong phai login chinh)
  *
  * Annotation giai thich:
  * - @RestController: response tu dong chuyen thanh JSON

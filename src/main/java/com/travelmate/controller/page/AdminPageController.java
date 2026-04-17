@@ -55,7 +55,8 @@ public class AdminPageController {
     // ============================================================
     @GetMapping("/listings")
     public String listingsPage() {
-        return "admin/hotels";
+        // Tra ve trang quan ly listings (tat ca loai luu tru)
+        return "admin/listings";
     }
 
     // ============================================================

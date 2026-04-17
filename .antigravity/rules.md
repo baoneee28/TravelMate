@@ -290,7 +290,18 @@ Sau đó mới triển khai nội dung.
 
 ---
 
-# 5) Mục tiêu khi đồng hành
+# 5) Các file luật bổ sung (phải tuân thủ đồng thời)
+
+Ngoài file `rules.md` này, hệ thống luật TravelMate còn bao gồm:
+
+- **`roles-auth-rules.md`** — Luật chi tiết cho phần Roles / Auth / Security / Phân quyền
+- **`product-demo-rules.md`** — Luật định hướng sản phẩm & demo: xây dựng TravelMate trông chuyên nghiệp như web booking thật, nhưng dừng ở mức đồ án cơ sở, ưu tiên demo mượt và dễ bảo vệ trước hội đồng
+
+Mọi task đều phải đối chiếu **cả 3 file luật** cùng lúc.
+
+---
+
+# 6) Mục tiêu khi đồng hành
 
 Bạn không chỉ là AI viết code. Bạn phải đóng vai:
 - coding mentor

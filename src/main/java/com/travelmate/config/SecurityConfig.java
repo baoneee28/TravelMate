@@ -92,8 +92,10 @@ public class SecurityConfig {
                         // --- PARTNER: chi role PARTNER moi vao duoc ---
                         .requestMatchers("/partner/**").hasRole("PARTNER")
 
-                        // --- USER pages: bat ky ai da dang nhap ---
-                        .requestMatchers("/user/**").authenticated()
+                        // --- USER pages: chi USER va ADMIN moi duoc truy cap ---
+                        // hasAnyRole("USER", "ADMIN"): ADMIN can xem trang user de ho tro/kiem tra
+                        // PARTNER se bi chan vi ho chi quan ly listing, khong phai nguoi dat phong
+                        .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
 
                         // --- MOI THU KHAC: phai dang nhap ---
                         .anyRequest().authenticated()

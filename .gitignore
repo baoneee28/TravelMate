@@ -1,6 +1,7 @@
 # ============================================================
 # TravelMate - .gitignore
 # Project Spring Boot MVC + Thymeleaf
+# Root TravelMate/ la project chinh duy nhat
 # ============================================================
 
 # === Maven build output ===
@@ -9,9 +10,14 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-# === Backend legacy (đã migrate) ===
-backend/
-frontend_legacy_backup/
+# === Archive folders (KHONG PHAI project chay chinh) ===
+# Cac folder nay chi de tham chieu, khong code moi vao day
+_archive_backend_legacy/
+_archive_frontend_old/
+_archive_frontend_legacy_backup/
+
+# === Log files ===
+*.log
 
 # === STS (Spring Tool Suite) ===
 .apt_generated
@@ -23,7 +29,7 @@ frontend_legacy_backup/
 .sts4-cache
 
 # === IntelliJ IDEA ===
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr

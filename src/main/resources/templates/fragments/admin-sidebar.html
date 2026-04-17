@@ -1,0 +1,70 @@
+<!--
+    Fragment: admin-sidebar.html
+    Sidebar dung chung cho TAT CA trang Admin.
+
+    Cach su dung trong page:
+    <aside th:replace="~{fragments/admin-sidebar :: admin-sidebar}"></aside>
+
+    Luu y:
+    - Sidebar su dung class "active" de highlight trang hien tai
+    - De highlight dung trang, dung them th:classappend trong page chinh
+      hoac su dung JS kiem tra URL hien tai
+-->
+<aside th:fragment="admin-sidebar" class="admin-sidebar"
+       xmlns:th="http://www.thymeleaf.org">
+
+    <div class="admin-sidebar__header">
+        <a th:href="@{/admin/dashboard}" class="admin-sidebar__logo">
+            <div class="admin-sidebar__logo-icon">✈</div>
+            <div>
+                <div class="admin-sidebar__logo-text">Travel<span>Mate</span></div>
+                <span class="admin-sidebar__badge">ADMIN PANEL</span>
+            </div>
+        </a>
+    </div>
+
+    <nav class="admin-sidebar__nav">
+        <div class="admin-sidebar__section-title">Tổng quan</div>
+        <a th:href="@{/admin/dashboard}" class="admin-sidebar__link"
+           th:classappend="${#httpServletRequest.requestURI == '/admin/dashboard'} ? 'active'">
+            <span class="admin-sidebar__link-icon">📊</span> Dashboard
+        </a>
+
+        <div class="admin-sidebar__section-title">Quản lý</div>
+        <a th:href="@{/admin/listings}" class="admin-sidebar__link"
+           th:classappend="${#httpServletRequest.requestURI == '/admin/listings'} ? 'active'">
+            <span class="admin-sidebar__link-icon">🏨</span> Nơi lưu trú
+        </a>
+        <a th:href="@{/admin/rooms}" class="admin-sidebar__link"
+           th:classappend="${#httpServletRequest.requestURI == '/admin/rooms'} ? 'active'">
+            <span class="admin-sidebar__link-icon">🛏</span> Phòng
+        </a>
+        <a th:href="@{/admin/bookings}" class="admin-sidebar__link"
+           th:classappend="${#httpServletRequest.requestURI == '/admin/bookings'} ? 'active'">
+            <span class="admin-sidebar__link-icon">📋</span> Đặt phòng
+        </a>
+        <a th:href="@{/admin/users}" class="admin-sidebar__link"
+           th:classappend="${#httpServletRequest.requestURI == '/admin/users'} ? 'active'">
+            <span class="admin-sidebar__link-icon">👥</span> Người dùng
+        </a>
+        <a th:href="@{/admin/places}" class="admin-sidebar__link"
+           th:classappend="${#httpServletRequest.requestURI == '/admin/places'} ? 'active'">
+            <span class="admin-sidebar__link-icon">🗺</span> Địa điểm
+        </a>
+
+        <div class="admin-sidebar__section-title">Hệ thống</div>
+        <a th:href="@{/}" class="admin-sidebar__link" target="_blank">
+            <span class="admin-sidebar__link-icon">🌐</span> Xem trang User
+        </a>
+    </nav>
+
+    <div class="admin-sidebar__footer">
+        <div class="admin-sidebar__user">
+            <div class="admin-sidebar__user-avatar">AD</div>
+            <div class="admin-sidebar__user-info">
+                <div class="admin-sidebar__user-name">Admin TravelMate</div>
+                <div class="admin-sidebar__user-role">Quản trị viên</div>
+            </div>
+        </div>
+    </div>
+</aside>

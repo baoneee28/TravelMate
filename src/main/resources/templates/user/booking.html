@@ -1,10 +1,10 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TravelMate – Đặt phòng</title>
+    <title th:text="'TravelMate – Đặt phòng tại ' + ${accommodation.name}">TravelMate – Đặt phòng</title>
 
     <!-- Font Google -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -89,6 +89,7 @@
             font-family: "Montserrat", sans-serif;
             outline: none;
             transition: border-color 0.2s;
+            box-sizing: border-box;
         }
 
         .bk-input:focus {
@@ -208,10 +209,40 @@
             cursor: pointer;
             margin-top: 24px;
             transition: background 0.2s;
+            font-family: "Montserrat", sans-serif;
         }
 
         .btn-submit:hover {
             background: #2563eb;
+        }
+
+        .btn-submit:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        /* Alert / Success / Error messages */
+        .bk-alert {
+            padding: 14px 18px;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .bk-alert.alert-success {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+            display: flex;
+        }
+        .bk-alert.alert-error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            display: flex;
         }
 
         /* Modal overlay */
@@ -279,12 +310,6 @@
             width: 160px;
             height: 160px;
             display: block;
-        }
-
-        .modal-qr-brand {
-            font-size: 0.75rem;
-            color: #64748b;
-            margin-top: 8px;
         }
 
         .modal-bank-info {
@@ -369,63 +394,64 @@
 </head>
 
 <body>
-    <!-- ===== HEADER ===== -->
-    <header class="header"
-        style="background: #fff; position: relative; padding: 15px 0; border-bottom: 1px solid #e2e8f0">
-        <div class="container navbar">
-            <div class="logo">
-                <div class="logo-icon bg-sky"><i class="fa-solid fa-building"></i></div>
-                <span class="logo-text text-white">TRAVEL<span class="logo-yellow">MATE</span></span>
-            </div>
-
-            <nav class="menu">
-                <ul class="menu-list">
-                    <li><a th:href="@{/}">TRANG CHỦ</a></li>
-                    <li><a th:href="@{/accommodations}">GỢI Ý DU LỊCH</a></li>
-                    <li><a th:href="@{/news}">TIN TỨC</a></li>
-                    <li><a th:href="@{/contact}">LIÊN HỆ</a></li>
-                    <li>
-                        <a th:href="@{/user/mybooking}"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a>
-                    </li>
-                </ul>
-            </nav>
-
-            <a th:href="@{/login}" class="login-btn">ĐĂNG NHẬP</a>
-        </div>
-    </header>
+    <!-- ===== HEADER (dùng fragment chung) ===== -->
+    <div th:replace="~{fragments/header :: user-header}"></div>
 
     <main class="bk-main">
         <!-- LEFT SIDE -->
         <div class="bk-left">
+
+            <!-- Alert message (hiện khi đặt phòng thành công / lỗi) -->
+            <div class="bk-alert" id="bookingAlert"></div>
+
             <!-- Thông tin liên hệ -->
             <div class="bk-card">
                 <h2 class="bk-card-title"><i class="fa-regular fa-envelope"></i> Liên hệ đặt chỗ</h2>
                 <div class="bk-form-group">
                     <label class="bk-label">Họ tên <span>*</span></label>
-                    <input type="text" class="bk-input" placeholder="Nhập họ và tên" />
+                    <input type="text" class="bk-input" id="bookingFullName" placeholder="Nhập họ và tên" />
                     <div class="bk-note">Nhập tên như trên CMND/CCCD/Hộ chiếu</div>
                 </div>
                 <div class="bk-row">
                     <div class="bk-col bk-form-group">
                         <label class="bk-label">Điện thoại di động <span>*</span></label>
-                        <input type="text" class="bk-input" placeholder="+84" />
+                        <input type="text" class="bk-input" id="bookingPhone" placeholder="+84" />
                     </div>
                     <div class="bk-col bk-form-group">
                         <label class="bk-label">Email <span>*</span></label>
-                        <input type="email" class="bk-input" placeholder="vidu@email.com" />
+                        <input type="email" class="bk-input" id="bookingEmail"
+                            th:value="${userEmail}" placeholder="vidu@email.com" />
                     </div>
                 </div>
-                <label class="bk-check-item" style="margin-top: 10px">
-                    <input type="checkbox" checked /> Tôi đặt chỗ cho chính mình
-                </label>
             </div>
 
-            <!-- Thông tin khách hàng -->
+            <!-- Thông tin đặt phòng -->
             <div class="bk-card">
-                <h2 class="bk-card-title"><i class="fa-solid fa-user-check"></i> Thông tin Khách hàng</h2>
-                <div class="bk-form-group">
-                    <label class="bk-label">Tên đầy đủ của khách <span>*</span></label>
-                    <input type="text" class="bk-input" placeholder="Tên khách hàng" />
+                <h2 class="bk-card-title"><i class="fa-solid fa-calendar-check"></i> Thông tin đặt phòng</h2>
+                <div class="bk-row">
+                    <div class="bk-col bk-form-group">
+                        <label class="bk-label">Ngày nhận phòng <span>*</span></label>
+                        <input type="date" class="bk-input" id="bookingCheckIn" />
+                    </div>
+                    <div class="bk-col bk-form-group">
+                        <label class="bk-label">Ngày trả phòng <span>*</span></label>
+                        <input type="date" class="bk-input" id="bookingCheckOut" />
+                    </div>
+                </div>
+                <div class="bk-row">
+                    <div class="bk-col bk-form-group">
+                        <label class="bk-label">Số người lớn <span>*</span></label>
+                        <input type="number" class="bk-input" id="bookingAdults" value="1" min="1"
+                            th:attr="max=${accommodation.maxGuests}" />
+                    </div>
+                    <div class="bk-col bk-form-group">
+                        <label class="bk-label">Số trẻ em</label>
+                        <input type="number" class="bk-input" id="bookingChildren" value="0" min="0" />
+                    </div>
+                </div>
+                <div class="bk-note">
+                    <i class="fa-solid fa-circle-info"></i>
+                    Sức chứa tối đa: <strong th:text="${accommodation.maxGuests}">2</strong> khách
                 </div>
             </div>
 
@@ -433,14 +459,11 @@
             <div class="bk-card">
                 <h2 class="bk-card-title"><i class="fa-regular fa-comment-dots"></i> Yêu cầu đặc biệt</h2>
                 <div class="bk-note" style="margin-bottom: 16px">
-                    Tất cả các yêu cầu đặc biệt tùy thuộc vào tình trạng sẵn có của khách sạn và không được đảm bảo.
-                    Bạn có thể phải trả thêm phụ phí cho một số yêu cầu.
+                    Các yêu cầu đặc biệt tùy thuộc vào tình trạng sẵn có và không được đảm bảo.
                 </div>
-                <div class="bk-checks">
-                    <label class="bk-check-item"><input type="checkbox" /> Phòng không hút thuốc</label>
-                    <label class="bk-check-item"><input type="checkbox" /> Phòng liên thông</label>
-                    <label class="bk-check-item"><input type="checkbox" /> Tầng cao</label>
-                </div>
+                <textarea class="bk-input" id="bookingNotes" rows="3"
+                    placeholder="Nhập ghi chú hoặc yêu cầu đặc biệt (không bắt buộc)..."
+                    style="resize: vertical;"></textarea>
             </div>
 
             <!-- Chính sách -->
@@ -455,53 +478,62 @@
             </div>
         </div>
 
-        <!-- RIGHT SIDE -->
+        <!-- RIGHT SIDE — Tóm tắt giá -->
         <div class="bk-right">
             <div class="bk-card">
                 <h2 class="bk-summary-title">
                     <i class="fa-solid fa-tag" style="margin-right: 8px"></i> Chi tiết giá
                 </h2>
 
-                <div class="bk-hotel-name">LATA Hotel &amp; Apartments</div>
-                <div class="bk-room-name">(2x) Standard King Room</div>
+                <!-- Tên nơi lưu trú từ DB -->
+                <div class="bk-hotel-name" th:text="${accommodation.name}">Tên nơi lưu trú</div>
+                <div class="bk-room-name">
+                    <span th:text="${accommodation.propertyTypeLabel}">Loại</span>
+                    · <span th:text="${accommodation.city}">Thành phố</span>
+                </div>
 
+                <!-- Ngày nhận / trả phòng (cập nhật bằng JS khi user chọn ngày) -->
                 <div class="bk-info-grid">
                     <div>
                         <div class="bk-info-lbl">Nhận phòng</div>
-                        <div class="bk-info-val">19 Th. 3 2026</div>
+                        <div class="bk-info-val" id="summaryCheckIn">Chọn ngày</div>
                         <div class="bk-info-lbl" style="margin-top: 4px">Từ 14:00</div>
                     </div>
                     <div>
                         <div class="bk-info-lbl">Trả phòng</div>
-                        <div class="bk-info-val">20 Th. 3 2026</div>
+                        <div class="bk-info-val" id="summaryCheckOut">Chọn ngày</div>
                         <div class="bk-info-lbl" style="margin-top: 4px">Trước 12:00</div>
                     </div>
                 </div>
 
+                <!-- Số khách -->
                 <div class="bk-info-grid" style="grid-template-columns: 1fr">
                     <div>
                         <div class="bk-info-lbl">Số lượng</div>
-                        <div class="bk-info-val">2 Khách, 2 Phòng, 1 Đêm</div>
+                        <div class="bk-info-val" id="summaryGuests">1 Khách, 1 Đêm</div>
                     </div>
                 </div>
 
                 <div style="margin-top: 24px"></div>
 
+                <!-- Giá chi tiết -->
                 <div class="bk-price-row">
-                    <span>Giá phòng (2x)</span>
-                    <span>1.105.194 VND</span>
+                    <span>Giá mỗi đêm</span>
+                    <span th:text="${accommodation.priceFormatted + ' VNĐ'}">0 VNĐ</span>
                 </div>
                 <div class="bk-price-row">
-                    <span>Thuế và phí</span>
-                    <span>171.306 VND</span>
+                    <span>Số đêm</span>
+                    <span id="summaryNights">0 đêm</span>
                 </div>
 
                 <div class="bk-price-total">
                     <span>Tổng thanh toán</span>
-                    <span>1.276.500 VND</span>
+                    <span id="summaryTotal">0 VNĐ</span>
                 </div>
 
-                <button class="btn-submit" onclick="document.getElementById('qrModal').classList.add('open')">
+                <!-- Nút thanh toán → mở QR modal → gọi API tạo booking -->
+                <button class="btn-submit" id="btnPayment"
+                    onclick="document.getElementById('qrModal').classList.add('open')">
                     Thanh toán
                 </button>
                 <div class="bk-note" style="text-align: center; margin-top: 15px; font-size: 0.75rem">
@@ -522,7 +554,6 @@
             <p class="modal-title">Xác nhận thanh toán đặt phòng</p>
 
             <div class="modal-qr-wrap">
-                <!-- QR VietQR từ MB Bank thật của người dùng -->
                 <img src="https://img.vietqr.io/image/MB-028282004-compact2.png?addInfo=TravelMate+Booking&accountName=Y+BAO+MLO"
                     alt="VietQR MB Bank" style="width: 180px; height: auto" />
             </div>
@@ -542,7 +573,7 @@
                 </div>
                 <div class="modal-bank-row highlight">
                     <span class="lbl" style="color: #2563eb">SỐ TIỀN:</span>
-                    <span class="val" style="color: #2563eb; font-size: 1.2rem">1.276.500đ</span>
+                    <span class="val" style="color: #2563eb; font-size: 1.2rem" id="modalTotalPrice">0đ</span>
                 </div>
                 <div class="modal-bank-row">
                     <span class="lbl">NỘI DUNG CK:</span>
@@ -559,18 +590,183 @@
                 <button class="btn-cancel-modal" onclick="document.getElementById('qrModal').classList.remove('open')">
                     ✕ HỦY BỎ
                 </button>
-                <button class="btn-confirm-modal" onclick="handlePaymentConfirm()">✔ ĐÃ CHUYỂN KHOẢN</button>
+                <button class="btn-confirm-modal" id="btnConfirmPayment" onclick="handlePaymentConfirm()">
+                    ✔ ĐÃ CHUYỂN KHOẢN
+                </button>
             </div>
         </div>
     </div>
 
-    <script>
-        function handlePaymentConfirm() {
-            document.getElementById("qrModal").classList.remove("open");
-            alert(
-                "✅ Cảm ơn bạn! Đặt phòng của bạn đã được ghi nhận.\nChúng tôi sẽ xác nhận thanh toán và liên hệ lại trong vòng 30 phút.",
-            );
+    <!--
+        JAVASCRIPT — Xử lý logic trang đặt phòng
+        1. Tính toán giá tự động khi user chọn ngày / số khách
+        2. Gửi API tạo booking khi xác nhận thanh toán
+        3. Hiển thị thông báo thành công / lỗi
+    -->
+    <script th:inline="javascript">
+        // ===== DỮ LIỆU TỪ SERVER (Thymeleaf inline) =====
+        // Thymeleaf tự inject giá trị Java vào JavaScript
+        const ACCOMMODATION_ID = /*[[${accommodation.id}]]*/ 0;
+        const PRICE_PER_NIGHT  = /*[[${accommodation.pricePerNight}]]*/ 0;
+        const MAX_GUESTS       = /*[[${accommodation.maxGuests}]]*/ 2;
+
+        // ===== DOM Elements =====
+        const checkInInput   = document.getElementById('bookingCheckIn');
+        const checkOutInput  = document.getElementById('bookingCheckOut');
+        const adultsInput    = document.getElementById('bookingAdults');
+        const childrenInput  = document.getElementById('bookingChildren');
+        const notesInput     = document.getElementById('bookingNotes');
+
+        // Summary panel elements
+        const summaryCheckIn  = document.getElementById('summaryCheckIn');
+        const summaryCheckOut = document.getElementById('summaryCheckOut');
+        const summaryGuests   = document.getElementById('summaryGuests');
+        const summaryNights   = document.getElementById('summaryNights');
+        const summaryTotal    = document.getElementById('summaryTotal');
+        const modalTotalPrice = document.getElementById('modalTotalPrice');
+
+        // ===== SET MIN DATE cho check-in (hôm nay) =====
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        checkInInput.min = todayStr;
+
+        // ===== FORMAT TIỀN VIỆT NAM =====
+        function formatVND(amount) {
+            return new Intl.NumberFormat('vi-VN').format(amount) + ' VNĐ';
         }
+
+        // ===== FORMAT NGÀY =====
+        function formatDate(dateStr) {
+            if (!dateStr) return 'Chọn ngày';
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('vi-VN', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        // ===== CẬP NHẬT TÓM TẮT GIÁ =====
+        function updateSummary() {
+            const checkIn  = checkInInput.value;
+            const checkOut = checkOutInput.value;
+            const adults   = parseInt(adultsInput.value) || 1;
+            const children = parseInt(childrenInput.value) || 0;
+            const totalGuests = adults + children;
+
+            // Cập nhật ngày
+            summaryCheckIn.textContent  = formatDate(checkIn);
+            summaryCheckOut.textContent = formatDate(checkOut);
+
+            // Tính số đêm
+            let numNights = 0;
+            if (checkIn && checkOut) {
+                const d1 = new Date(checkIn);
+                const d2 = new Date(checkOut);
+                numNights = Math.max(0, Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24)));
+            }
+
+            // Cập nhật tóm tắt
+            summaryGuests.textContent = totalGuests + ' Khách, ' + numNights + ' Đêm';
+            summaryNights.textContent = numNights + ' đêm';
+
+            // Tính tổng tiền
+            const total = PRICE_PER_NIGHT * numNights;
+            summaryTotal.textContent    = formatVND(total);
+            modalTotalPrice.textContent = formatVND(total);
+
+            // Set min cho check-out = check-in + 1 ngày
+            if (checkIn) {
+                const nextDay = new Date(checkIn);
+                nextDay.setDate(nextDay.getDate() + 1);
+                checkOutInput.min = nextDay.toISOString().split('T')[0];
+            }
+        }
+
+        // Lắng nghe sự kiện thay đổi trên form
+        checkInInput.addEventListener('change', updateSummary);
+        checkOutInput.addEventListener('change', updateSummary);
+        adultsInput.addEventListener('change', updateSummary);
+        childrenInput.addEventListener('change', updateSummary);
+
+        // ===== HIỂN THỊ THÔNG BÁO =====
+        function showAlert(message, type) {
+            const alertEl = document.getElementById('bookingAlert');
+            alertEl.className = 'bk-alert alert-' + type;
+            alertEl.innerHTML = '<i class="fa-solid ' +
+                (type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation') +
+                '"></i> ' + message;
+            alertEl.style.display = 'flex';
+
+            // Scroll lên để user thấy thông báo
+            alertEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // ===== GỬI API TẠO BOOKING =====
+        function handlePaymentConfirm() {
+            // Đóng modal
+            document.getElementById('qrModal').classList.remove('open');
+
+            // Validate cơ bản phía client
+            const checkIn  = checkInInput.value;
+            const checkOut = checkOutInput.value;
+            const adults   = parseInt(adultsInput.value) || 1;
+            const children = parseInt(childrenInput.value) || 0;
+
+            if (!checkIn || !checkOut) {
+                showAlert('Vui lòng chọn ngày nhận phòng và trả phòng.', 'error');
+                return;
+            }
+
+            if (adults + children > MAX_GUESTS) {
+                showAlert('Số khách vượt quá sức chứa tối đa (' + MAX_GUESTS + ' khách).', 'error');
+                return;
+            }
+
+            // Disable nút để tránh click nhiều lần
+            const btnSubmit = document.getElementById('btnPayment');
+            const btnConfirm = document.getElementById('btnConfirmPayment');
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = 'Đang xử lý...';
+
+            // Gọi API tạo booking
+            fetch('/api/bookings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    accommodationId: ACCOMMODATION_ID,
+                    checkIn:  checkIn,
+                    checkOut: checkOut,
+                    numAdults:   adults,
+                    numChildren: children,
+                    notes: notesInput.value || null
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Thành công
+                    showAlert(data.message + ' — Chuyển đến trang đặt phòng của tôi trong 3 giây...', 'success');
+
+                    // Redirect sau 3 giây
+                    setTimeout(() => {
+                        window.location.href = '/user/mybooking';
+                    }, 3000);
+                } else {
+                    // Lỗi từ server
+                    showAlert(data.message || 'Có lỗi xảy ra, vui lòng thử lại.', 'error');
+                    btnSubmit.disabled = false;
+                    btnSubmit.textContent = 'Thanh toán';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Lỗi kết nối. Vui lòng kiểm tra mạng và thử lại.', 'error');
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = 'Thanh toán';
+            });
+        }
+
+        // ===== INIT =====
+        updateSummary();
     </script>
 </body>
 
