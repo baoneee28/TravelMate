@@ -1,0 +1,577 @@
+﻿<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TravelMate – Đặt phòng</title>
+
+    <!-- Font Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+
+    <!-- Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <!-- Base styles -->
+    <link rel="stylesheet" th:href="@{/assets/css/style.css}" />
+
+    <style>
+        body {
+            background: #f8fafc;
+            color: #334155;
+        }
+
+        .bk-main {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px 100px;
+            display: flex;
+            align-items: flex-start;
+            gap: 30px;
+        }
+
+        .bk-left {
+            flex: 7;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .bk-right {
+            flex: 3;
+            position: sticky;
+            top: 100px;
+        }
+
+        .bk-card {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            padding: 24px;
+        }
+
+        .bk-card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Form */
+        .bk-form-group {
+            margin-bottom: 20px;
+        }
+
+        .bk-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 8px;
+        }
+
+        .bk-label span {
+            color: #ef4444;
+        }
+
+        .bk-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: "Montserrat", sans-serif;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .bk-input:focus {
+            border-color: #2563eb;
+        }
+
+        .bk-row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .bk-col {
+            flex: 1;
+        }
+
+        .bk-note {
+            font-size: 0.8125rem;
+            color: #64748b;
+            margin-top: 6px;
+        }
+
+        /* Checkbox list */
+        .bk-checks {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .bk-check-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.875rem;
+            color: #334155;
+            cursor: pointer;
+        }
+
+        /* Right Panel */
+        .bk-summary-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #0f172a;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 16px;
+        }
+
+        .bk-hotel-name {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #0f172a;
+            margin-bottom: 6px;
+        }
+
+        .bk-room-name {
+            font-size: 0.875rem;
+            color: #475569;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .bk-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .bk-info-lbl {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
+        .bk-info-val {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .bk-price-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            margin-bottom: 10px;
+            color: #475569;
+        }
+
+        .bk-price-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #0f172a;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 10px;
+        }
+
+        .bk-price-total span:last-child {
+            color: #f97316;
+            font-size: 1.25rem;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: #3b82f6;
+            color: #fff;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 24px;
+            transition: background 0.2s;
+        }
+
+        .btn-submit:hover {
+            background: #2563eb;
+        }
+
+        /* Modal overlay */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 30px 28px;
+            max-width: 440px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+            position: relative;
+            text-align: center;
+        }
+
+        .modal-box .modal-close {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            background: #334155;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: #334155;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 18px;
+        }
+
+        .modal-qr-wrap {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            display: inline-block;
+            margin-bottom: 24px;
+        }
+
+        .modal-qr-wrap img {
+            width: 160px;
+            height: 160px;
+            display: block;
+        }
+
+        .modal-qr-brand {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 8px;
+        }
+
+        .modal-bank-info {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: left;
+            margin-bottom: 16px;
+        }
+
+        .modal-bank-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.875rem;
+        }
+
+        .modal-bank-row:last-child {
+            border-bottom: none;
+        }
+
+        .modal-bank-row .lbl {
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .modal-bank-row .val {
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .modal-bank-row.highlight .val {
+            color: #2563eb;
+            font-size: 1.1rem;
+        }
+
+        .modal-note {
+            font-size: 0.78rem;
+            color: #64748b;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+
+        .modal-btns {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-cancel-modal {
+            flex: 1;
+            background: #64748b;
+            color: #fff;
+            border: none;
+            padding: 14px;
+            border-radius: 24px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-confirm-modal {
+            flex: 1.4;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            padding: 14px;
+            border-radius: 24px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ===== HEADER ===== -->
+    <header class="header"
+        style="background: #fff; position: relative; padding: 15px 0; border-bottom: 1px solid #e2e8f0">
+        <div class="container navbar">
+            <div class="logo">
+                <div class="logo-icon bg-sky"><i class="fa-solid fa-building"></i></div>
+                <span class="logo-text text-white">TRAVEL<span class="logo-yellow">MATE</span></span>
+            </div>
+
+            <nav class="menu">
+                <ul class="menu-list">
+                    <li><a th:href="@{/}">TRANG CHỦ</a></li>
+                    <li><a th:href="@{/accommodations}">GỢI Ý DU LỊCH</a></li>
+                    <li><a th:href="@{/news}">TIN TỨC</a></li>
+                    <li><a th:href="@{/contact}">LIÊN HỆ</a></li>
+                    <li>
+                        <a th:href="@{/user/mybooking}"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a>
+                    </li>
+                </ul>
+            </nav>
+
+            <a th:href="@{/login}" class="login-btn">ĐĂNG NHẬP</a>
+        </div>
+    </header>
+
+    <main class="bk-main">
+        <!-- LEFT SIDE -->
+        <div class="bk-left">
+            <!-- Thông tin liên hệ -->
+            <div class="bk-card">
+                <h2 class="bk-card-title"><i class="fa-regular fa-envelope"></i> Liên hệ đặt chỗ</h2>
+                <div class="bk-form-group">
+                    <label class="bk-label">Họ tên <span>*</span></label>
+                    <input type="text" class="bk-input" placeholder="Nhập họ và tên" />
+                    <div class="bk-note">Nhập tên như trên CMND/CCCD/Hộ chiếu</div>
+                </div>
+                <div class="bk-row">
+                    <div class="bk-col bk-form-group">
+                        <label class="bk-label">Điện thoại di động <span>*</span></label>
+                        <input type="text" class="bk-input" placeholder="+84" />
+                    </div>
+                    <div class="bk-col bk-form-group">
+                        <label class="bk-label">Email <span>*</span></label>
+                        <input type="email" class="bk-input" placeholder="vidu@email.com" />
+                    </div>
+                </div>
+                <label class="bk-check-item" style="margin-top: 10px">
+                    <input type="checkbox" checked /> Tôi đặt chỗ cho chính mình
+                </label>
+            </div>
+
+            <!-- Thông tin khách hàng -->
+            <div class="bk-card">
+                <h2 class="bk-card-title"><i class="fa-solid fa-user-check"></i> Thông tin Khách hàng</h2>
+                <div class="bk-form-group">
+                    <label class="bk-label">Tên đầy đủ của khách <span>*</span></label>
+                    <input type="text" class="bk-input" placeholder="Tên khách hàng" />
+                </div>
+            </div>
+
+            <!-- Yêu cầu đặc biệt -->
+            <div class="bk-card">
+                <h2 class="bk-card-title"><i class="fa-regular fa-comment-dots"></i> Yêu cầu đặc biệt</h2>
+                <div class="bk-note" style="margin-bottom: 16px">
+                    Tất cả các yêu cầu đặc biệt tùy thuộc vào tình trạng sẵn có của khách sạn và không được đảm bảo.
+                    Bạn có thể phải trả thêm phụ phí cho một số yêu cầu.
+                </div>
+                <div class="bk-checks">
+                    <label class="bk-check-item"><input type="checkbox" /> Phòng không hút thuốc</label>
+                    <label class="bk-check-item"><input type="checkbox" /> Phòng liên thông</label>
+                    <label class="bk-check-item"><input type="checkbox" /> Tầng cao</label>
+                </div>
+            </div>
+
+            <!-- Chính sách -->
+            <div class="bk-card">
+                <h2 class="bk-card-title"><i class="fa-solid fa-shield-halved"></i> Chính sách Chỗ ở</h2>
+                <div class="bk-note" style="line-height: 1.6">
+                    <strong>Chính sách bổ sung</strong><br />
+                    Chính sách dành cho trẻ em: Trẻ từ 0 đến 5 tuổi được miễn phí sử dụng giường có sẵn.<br /><br />
+                    <strong>Nhận và trả phòng:</strong><br />
+                    Nhận phòng từ: 14:00 - Trả phòng trước: 12:00.
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE -->
+        <div class="bk-right">
+            <div class="bk-card">
+                <h2 class="bk-summary-title">
+                    <i class="fa-solid fa-tag" style="margin-right: 8px"></i> Chi tiết giá
+                </h2>
+
+                <div class="bk-hotel-name">LATA Hotel &amp; Apartments</div>
+                <div class="bk-room-name">(2x) Standard King Room</div>
+
+                <div class="bk-info-grid">
+                    <div>
+                        <div class="bk-info-lbl">Nhận phòng</div>
+                        <div class="bk-info-val">19 Th. 3 2026</div>
+                        <div class="bk-info-lbl" style="margin-top: 4px">Từ 14:00</div>
+                    </div>
+                    <div>
+                        <div class="bk-info-lbl">Trả phòng</div>
+                        <div class="bk-info-val">20 Th. 3 2026</div>
+                        <div class="bk-info-lbl" style="margin-top: 4px">Trước 12:00</div>
+                    </div>
+                </div>
+
+                <div class="bk-info-grid" style="grid-template-columns: 1fr">
+                    <div>
+                        <div class="bk-info-lbl">Số lượng</div>
+                        <div class="bk-info-val">2 Khách, 2 Phòng, 1 Đêm</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 24px"></div>
+
+                <div class="bk-price-row">
+                    <span>Giá phòng (2x)</span>
+                    <span>1.105.194 VND</span>
+                </div>
+                <div class="bk-price-row">
+                    <span>Thuế và phí</span>
+                    <span>171.306 VND</span>
+                </div>
+
+                <div class="bk-price-total">
+                    <span>Tổng thanh toán</span>
+                    <span>1.276.500 VND</span>
+                </div>
+
+                <button class="btn-submit" onclick="document.getElementById('qrModal').classList.add('open')">
+                    Thanh toán
+                </button>
+                <div class="bk-note" style="text-align: center; margin-top: 15px; font-size: 0.75rem">
+                    Bằng cách tiến hành thanh toán, bạn đã đồng ý với Điều khoản và Điều kiện, Chính sách Bảo mật
+                    của TravelMate.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ===== QR PAYMENT MODAL ===== -->
+    <div class="modal-overlay" id="qrModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="document.getElementById('qrModal').classList.remove('open')">
+                ✕
+            </button>
+
+            <p class="modal-title">Xác nhận thanh toán đặt phòng</p>
+
+            <div class="modal-qr-wrap">
+                <!-- QR VietQR từ MB Bank thật của người dùng -->
+                <img src="https://img.vietqr.io/image/MB-028282004-compact2.png?addInfo=TravelMate+Booking&accountName=Y+BAO+MLO"
+                    alt="VietQR MB Bank" style="width: 180px; height: auto" />
+            </div>
+
+            <div class="modal-bank-info">
+                <div class="modal-bank-row">
+                    <span class="lbl">NGÂN HÀNG:</span>
+                    <span class="val">MB BANK</span>
+                </div>
+                <div class="modal-bank-row">
+                    <span class="lbl">SỐ TÀI KHOẢN:</span>
+                    <span class="val">028282004</span>
+                </div>
+                <div class="modal-bank-row">
+                    <span class="lbl">CHỦ TÀI KHOẢN:</span>
+                    <span class="val">Y BAO MLO</span>
+                </div>
+                <div class="modal-bank-row highlight">
+                    <span class="lbl" style="color: #2563eb">SỐ TIỀN:</span>
+                    <span class="val" style="color: #2563eb; font-size: 1.2rem">1.276.500đ</span>
+                </div>
+                <div class="modal-bank-row">
+                    <span class="lbl">NỘI DUNG CK:</span>
+                    <span class="val" style="font-size: 0.8rem; color: #475569">TravelMate Booking</span>
+                </div>
+            </div>
+
+            <div class="modal-note">
+                Vui lòng chuyển đúng số tiền và nội dung. Sau khi chuyển khoản thành công, nhấn "Đã chuyển khoản"
+                bên dưới.
+            </div>
+
+            <div class="modal-btns">
+                <button class="btn-cancel-modal" onclick="document.getElementById('qrModal').classList.remove('open')">
+                    ✕ HỦY BỎ
+                </button>
+                <button class="btn-confirm-modal" onclick="handlePaymentConfirm()">✔ ĐÃ CHUYỂN KHOẢN</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function handlePaymentConfirm() {
+            document.getElementById("qrModal").classList.remove("open");
+            alert(
+                "✅ Cảm ơn bạn! Đặt phòng của bạn đã được ghi nhận.\nChúng tôi sẽ xác nhận thanh toán và liên hệ lại trong vòng 30 phút.",
+            );
+        }
+    </script>
+</body>
+
+</html>

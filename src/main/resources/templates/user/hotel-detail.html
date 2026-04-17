@@ -1,0 +1,1144 @@
+﻿<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TravelMate – Chi tiết khách sạn</title>
+
+    <!-- Font Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+
+    <!-- Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <!-- Base styles -->
+    <link rel="stylesheet" th:href="@{/assets/css/style.css}" />
+
+    <style>
+        /* CSS from hotels.html for Search nav (thanh màu xanh dính chặt) */
+        .search-nav {
+            background: #fff;
+            border-bottom: 1px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .mini-search-bar {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            padding: 10px 0;
+        }
+
+        .msb-field {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 18px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: border-color 0.18s;
+            min-width: 0;
+        }
+
+        .msb-field:hover {
+            border-color: #93c5fd;
+            background: #fff;
+        }
+
+        .msb-field i {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+
+        .msb-field input {
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #1e293b;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .msb-divider {
+            width: 1px;
+            height: 32px;
+            background: #e2e8f0;
+            margin: 0 6px;
+            flex-shrink: 0;
+        }
+
+        .msb-submit {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 22px;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.18s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .msb-submit:hover {
+            background: #1d4ed8;
+        }
+
+        .mini-search-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            justify-content: space-between;
+        }
+
+        /* ====== HOTEL DETAILS SPECIFIC CSS ====== */
+        body {
+            background: #f8fafc;
+            color: #334155;
+        }
+
+        /* Sticky Tabs Nav */
+        .hd-tabs-nav {
+            position: sticky;
+            top: 72px;
+            /* Dưới search bar */
+            z-index: 99;
+            background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+        }
+
+        .hd-tabs-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .hd-tabs {
+            display: flex;
+            gap: 24px;
+        }
+
+        .hd-tab {
+            padding: 16px 0;
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #64748b;
+            text-decoration: none;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .hd-tab.active,
+        .hd-tab:hover {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+        }
+
+        .hd-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .hd-actions button {
+            background: none;
+            border: none;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #2563eb;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hd-actions button:hover {
+            color: #1d4ed8;
+        }
+
+        /* Layout */
+        .hd-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 20px 100px;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            font-size: 0.8125rem;
+            color: #64748b;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .breadcrumb span.b-link {
+            color: #2563eb;
+            cursor: pointer;
+        }
+
+        /* Gallery */
+        .hd-gallery {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            grid-template-rows: 400px;
+            gap: 10px;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .hg-main {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .hg-main img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .hg-main:hover img {
+            transform: scale(1.02);
+        }
+
+        .hg-side {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .hg-side-img {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hg-side-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .hg-side-img:hover img {
+            transform: scale(1.05);
+        }
+
+        .hg-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .hg-overlay:hover {
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        /* Header Info */
+        .hd-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            background: #fff;
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 30px;
+        }
+
+        .hd-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        .hd-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hd-type {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #eff6ff;
+            color: #2563eb;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .hd-stars {
+            color: #f59e0b;
+            font-size: 0.8rem;
+        }
+
+        .hd-price-box {
+            text-align: right;
+        }
+
+        .hp-label {
+            font-size: 0.8125rem;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
+        .hp-price {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #f97316;
+            margin-bottom: 12px;
+        }
+
+        .btn-choose-big {
+            background: #f97316;
+            color: #fff;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-choose-big:hover {
+            background: #ea580c;
+        }
+
+        /* Sections */
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 16px;
+        }
+
+        .hd-card {
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+
+        /* ROOMS */
+        .alert-banner {
+            background: #1e3a8a;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filter-tools {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .ft-left p {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 10px;
+        }
+
+        .ft-chips {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .ft-chip {
+            padding: 8px 16px;
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 20px;
+            font-size: 0.8125rem;
+            color: #2563eb;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .ft-chip:hover,
+        .ft-chip.active {
+            background: #eff6ff;
+            border-color: #2563eb;
+        }
+
+        .ft-right label {
+            font-size: 0.75rem;
+            color: #64748b;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .ft-select {
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.8125rem;
+            background: #fff;
+            color: #0f172a;
+            font-weight: 600;
+            outline: none;
+        }
+
+        .room-type {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .rt-header {
+            background: #f1f5f9;
+            padding: 14px 20px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #0f172a;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .rt-body {
+            display: flex;
+        }
+
+        .rt-img-col {
+            width: 300px;
+            padding: 20px;
+            border-right: 1px solid #e2e8f0;
+            background: #fff;
+        }
+
+        .rt-img-col img {
+            width: 100%;
+            border-radius: 10px;
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
+
+        .rt-table-col {
+            flex: 1;
+            background: #fff;
+        }
+
+        .rt-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .rt-table th {
+            background: #f8fafc;
+            padding: 12px 16px;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: #475569;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .rt-table td {
+            padding: 20px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
+        }
+
+        .rt-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .rt-opt-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #0f172a;
+            margin-bottom: 6px;
+        }
+
+        .rt-bed {
+            font-size: 0.8125rem;
+            color: #475569;
+            margin-bottom: 12px;
+        }
+
+        .rt-perk {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .rt-perk i {
+            margin-top: 3px;
+        }
+
+        .rt-note {
+            font-size: 0.75rem;
+            margin-left: 20px;
+            margin-bottom: 10px;
+        }
+
+        .text-blue {
+            color: #2563eb;
+        }
+
+        .text-green {
+            color: #16a34a;
+        }
+
+        .text-fade {
+            color: #64748b;
+            font-weight: 400;
+        }
+
+        .price-col {
+            text-align: right;
+        }
+
+        .deal-badge {
+            display: inline-block;
+            background: #fef3c7;
+            color: #d97706;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .price-old {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-decoration: line-through;
+        }
+
+        .price-new {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #ef4444;
+            margin: 4px 0;
+        }
+
+        .price-tax {
+            font-size: 0.72rem;
+            color: #64748b;
+        }
+
+        .action-col {
+            text-align: center;
+        }
+
+        .btn-choose {
+            background: #3b82f6;
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 6px;
+        }
+
+        .btn-choose:hover {
+            background: #2563eb;
+        }
+
+        .stock-warn {
+            font-size: 0.75rem;
+            color: #ef4444;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        /* AMENITIES */
+        .am-gallery {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .am-img-box {
+            position: relative;
+            width: 220px;
+            height: 140px;
+            border-radius: 12px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .am-img-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .am-lbl {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+            color: #fff;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .am-lists {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .am-col-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .am-col-title i {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        .am-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .am-list li {
+            padding-left: 18px;
+            position: relative;
+            font-size: 0.875rem;
+            color: #334155;
+            margin-bottom: 12px;
+        }
+
+        .am-list li::before {
+            content: "";
+            position: absolute;
+            left: 4px;
+            top: 7px;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            border: 1.5px solid #94a3b8;
+        }
+
+        /* Sticky Bottom Bar */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #475569;
+            color: #fff;
+            padding: 12px 0;
+            z-index: 1000;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .bb-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bb-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .bb-left i {
+            color: #facc15;
+            font-size: 1.2rem;
+        }
+
+        .bb-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .bb-price-box {
+            text-align: right;
+        }
+
+        .bb-price {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+
+        .bb-note {
+            font-size: 0.75rem;
+            color: #cbd5e1;
+        }
+
+        .btn-bb {
+            background: #fff;
+            color: #2563eb;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+
+        .btn-bb:hover {
+            background: #f8fafc;
+        }
+
+        .btn-close-bb {
+            background: none;
+            border: none;
+            color: #cbd5e1;
+            font-size: 0.8125rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-close-bb:hover {
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ===== HEADER (giống trang chủ) ===== -->
+    <header class="header"
+        style="background: #fff; position: relative; padding: 15px 0; border-bottom: 1px solid #e2e8f0">
+        <div class="container navbar">
+            <a th:href="@{/}" class="logo">
+                <i class="fa-solid fa-building"></i>
+                <span class="logo-blue">TRAVEL</span><span class="logo-yellow">MATE</span>
+            </a>
+
+            <nav class="menu">
+                <ul class="menu-list">
+                    <li><a th:href="@{/}">TRANG CHỦ</a></li>
+                    <li><a th:href="@{/accommodations}">GỢI Ý DU LỊCH</a></li>
+                    <li><a th:href="@{/news}">TIN TỨC</a></li>
+                    <li><a th:href="@{/contact}">LIÊN HỆ</a></li>
+                    <li>
+                        <a th:href="@{/user/mybooking}"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a>
+                    </li>
+                </ul>
+            </nav>
+
+            <a th:href="@{/login}" class="login-btn">ĐĂNG NHẬP</a>
+        </div>
+    </header>
+
+    <!-- ===== SEARCH NAV BAR (sticky) ===== -->
+    <div class="search-nav">
+        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px">
+            <div class="mini-search-bar" style="padding: 12px 0">
+                <div class="mini-search-container">
+                    <div class="msb-field" style="flex: 1.4">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <input type="text" value="Đà Lạt" readonly />
+                    </div>
+                    <div class="msb-divider"></div>
+                    <div class="msb-field" style="flex: 1.2">
+                        <i class="fa-regular fa-calendar-days"></i>
+                        <input type="text" value="19 thg 3 2026 - 20 thg 3 2026" readonly />
+                    </div>
+                    <div class="msb-divider"></div>
+                    <div class="msb-field" style="flex: 1">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" value="1 khách, 1 phòng" readonly />
+                    </div>
+                    <button class="msb-submit" onclick="window.location.href = 'hotels.html'">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        Tìm khách sạn
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TABS NAV (sticky) ===== -->
+    <div class="hd-tabs-nav">
+        <div class="hd-tabs-container">
+            <div class="hd-tabs">
+                <a href="#overview" class="hd-tab active">Tổng quan</a>
+                <a href="#rooms" class="hd-tab">Phòng</a>
+                <a href="#amenities" class="hd-tab">Tiện ích</a>
+                <a href="#policies" class="hd-tab">Chính sách</a>
+                <a href="#reviews" class="hd-tab">Đánh giá</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="hd-main">
+        <!-- Gallery & Overview Anchor -->
+        <div class="hd-gallery" id="overview" style="
+                    margin-bottom: 24px;
+                    border-radius: 12px;
+                    overflow: hidden;
+                    display: block;
+                    grid-template-columns: none;
+                ">
+            <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80" alt="Hotel Image"
+                style="width: 100%; height: 450px; object-fit: cover; display: block" />
+        </div>
+
+        <!-- Info / Price -->
+        <div class="hd-info">
+            <div>
+                <h1 class="hd-title">LATA Hotel &amp; Apartments</h1>
+                <div class="hd-meta">
+                    <span class="hd-type">Căn hộ</span>
+                    <span class="hd-stars">
+                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+                            class="fa-solid fa-star"></i><i class="fa-regular fa-star-half-stroke"></i>
+                    </span>
+                </div>
+                <div style="margin-top: 12px; font-size: 0.875rem; color: #475569">
+                    <i class="fa-solid fa-location-dot" style="color: #64748b; margin-right: 6px"></i> Phường 6, Đà
+                    Lạt
+                </div>
+            </div>
+            <div class="hd-price-box">
+                <div class="hp-label">Tổng giá từ</div>
+                <div class="hp-price">1.276.500 VND</div>
+                <button class="btn-choose-big"
+                    onclick="document.getElementById('rooms').scrollIntoView({ behavior: 'smooth' })">
+                    Chọn phòng
+                </button>
+            </div>
+        </div>
+
+        <!-- ROOMS SECTION -->
+        <div class="hd-card" id="rooms">
+            <h2 class="section-title">Những phòng còn trống tại LATA Hotel &amp; Apartments</h2>
+
+            <!-- Room 1 -->
+            <div class="room-type">
+                <div class="rt-header">Phòng Tiêu Chuẩn Giường King</div>
+                <div class="rt-body">
+                    <div class="rt-img-col">
+                        <img src="/assets/images/phong-1.jpg" alt="Phòng King" />
+                        <div style="font-size: 0.8125rem; color: #2563eb; font-weight: 600; cursor: pointer">
+                            <i class="fa-solid fa-image"></i> Xem chi tiết phòng
+                        </div>
+                    </div>
+                    <div class="rt-table-col">
+                        <table class="rt-table">
+                            <thead>
+                                <tr>
+                                    <th>Lựa chọn phòng</th>
+                                    <th class="text-center">Khách</th>
+                                    <th class="text-right">Tổng giá</th>
+                                    <th class="text-center">Phòng</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="rt-opt-title">Phòng Tiêu Chuẩn Giường King</div>
+                                        <div class="rt-bed"><i class="fa-solid fa-bed"></i> 1 giường cỡ king</div>
+                                        <div style="font-size: 0.8125rem; color: #475569; margin-top: 8px">
+                                            Không gồm bữa sáng
+                                        </div>
+                                    </td>
+                                    <td class="text-center" style="color: #64748b">
+                                        <i class="fa-solid fa-user-group"></i> 2 Người lớn
+                                    </td>
+                                    <td class="price-col">
+                                        <div class="price-new"
+                                            style="color: #0f172a; font-size: 1.1rem; margin-top: 10px">
+                                            1.276.500 VND
+                                        </div>
+                                        <div class="price-tax">/ đêm</div>
+                                    </td>
+                                    <td class="text-center" style="font-weight: 700; color: #475569">x2</td>
+                                    <td class="action-col">
+                                        <button class="btn-choose" onclick="window.location.href = 'booking.html'"
+                                            style="margin-top: 10px">
+                                            Đặt phòng
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AMENITIES SECTION -->
+        <div class="hd-card" id="amenities">
+            <h2 class="section-title">Tất cả những tiện ích tại LATA Hotel &amp; Apartments</h2>
+
+            <div class="am-gallery">
+                <div class="am-img-box">
+                    <img src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=300&q=70" />
+                    <div class="am-lbl">Sảnh chức năng</div>
+                </div>
+                <div class="am-img-box">
+                    <img src="https://images.unsplash.com/photo-1618221118493-9cfa1a1c00da?w=300&q=70" />
+                    <div class="am-lbl">Khu vực công cộng</div>
+                </div>
+                <div class="am-img-box">
+                    <img src="https://images.unsplash.com/photo-1582719478250-c89af14eb3cd?w=300&q=70" />
+                    <div class="am-lbl">Sảnh chờ</div>
+                </div>
+                <div class="am-img-box">
+                    <img src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=300&q=70" />
+                    <div class="am-lbl">Bên ngoài</div>
+                </div>
+                <div class="am-img-box">
+                    <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=300&q=70" />
+                    <div class="am-lbl">Phòng ngủ</div>
+                </div>
+            </div>
+
+            <div class="am-lists">
+                <div>
+                    <h3 class="am-col-title"><i class="fa-solid fa-concierge-bell"></i> Dịch vụ khách sạn</h3>
+                    <ul class="am-list">
+                        <li>Thức uống chào mừng miễn phí</li>
+                        <li>Dịch vụ concierge/hỗ trợ khách</li>
+                        <li>EARLY_CHECK_IN</li>
+                        <li>Dịch vụ nhận phòng cấp tốc</li>
+                        <li>Dịch vụ trả phòng cấp tốc</li>
+                        <li>Quầy lễ tân</li>
+                        <li>Lễ tân 24h</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="am-col-title"><i class="fa-solid fa-bed"></i> Tiện nghi phòng</h3>
+                    <ul class="am-list">
+                        <li>Truyền hình cáp</li>
+                        <li>Bàn làm việc</li>
+                        <li>Máy sấy tóc</li>
+                        <li>Nhà bếp mini</li>
+                        <li>Lò vi sóng</li>
+                        <li>Minibar</li>
+                        <li>Tủ lạnh</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="am-col-title"><i class="fa-solid fa-store"></i> Các tiện ích lân cận</h3>
+                    <ul class="am-list">
+                        <li>Máy ATM/Ngân hàng</li>
+                        <li>Thẩm mỹ viện</li>
+                        <li>Cửa hàng quà tặng</li>
+                        <li>Cửa hàng thực phẩm</li>
+                        <li>Hiệu làm tóc</li>
+                        <li>Giặt ủi</li>
+                        <li>Cửa hàng tiện lợi</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- POLICIES SECTION -->
+        <div class="hd-card" id="policies" style="margin-bottom: 30px">
+            <h2 class="section-title">Chính sách khách sạn</h2>
+            <div style="font-size: 0.9rem; line-height: 1.6; color: #334155">
+                <p style="margin-bottom: 8px">
+                    <strong><i class="fa-regular fa-clock"></i> Thời gian nhận/trả phòng:</strong>
+                </p>
+                <ul style="margin-bottom: 16px; padding-left: 24px; color: #475569">
+                    <li>Giờ nhận phòng: Từ 14:00</li>
+                    <li>Giờ trả phòng: Trước 12:00</li>
+                </ul>
+                <p style="margin-bottom: 8px">
+                    <strong><i class="fa-solid fa-child"></i> Chính sách trẻ em và giường phụ:</strong>
+                </p>
+                <ul style="padding-left: 24px; color: #475569">
+                    <li>Trẻ em dưới 6 tuổi: Miễn phí khi ở chung giường với bố mẹ.</li>
+                    <li>Trẻ em từ 6 đến 11 tuổi: Phụ thu 150.000 VNĐ/đêm/trẻ (không kê thêm giường phụ).</li>
+                    <li>
+                        Trẻ từ 12 tuổi trở lên: Tính như người lớn, bắt buộc kê thêm giường phụ (Phụ thu 300.000
+                        VNĐ/đêm).
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- REVIEWS SECTION -->
+        <div class="hd-card" id="reviews" style="margin-bottom: 30px">
+            <h2 class="section-title">Đánh giá của khách hàng</h2>
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 24px">
+                <div style="font-size: 2.5rem; font-weight: 800; color: #2563eb">8.6</div>
+                <div>
+                    <div style="font-weight: 700; font-size: 1.1rem; color: #0f172a">Rất tốt</div>
+                    <div style="font-size: 0.85rem; color: #64748b">Dựa trên 771 đánh giá</div>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 16px">
+                <div style="padding: 16px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px">
+                        <div style="font-weight: 700; color: #0f172a">Nguyễn Văn A</div>
+                        <div style="color: #f59e0b; font-size: 0.8rem">
+                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+                                class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+                                class="fa-solid fa-star"></i>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px">
+                        Đánh giá ngày 15/10/2025
+                    </div>
+                    <div style="font-size: 0.9rem; color: #334155">
+                        Phòng rất sạch sẽ, nhân viên nhiệt tình, vị trí thuận lợi gần trung tâm. Lần sau sẽ tiếp tục
+                        ủng hộ khách sạn này.
+                    </div>
+                </div>
+
+                <div style="padding: 16px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px">
+                        <div style="font-weight: 700; color: #0f172a">Trần Thị B</div>
+                        <div style="color: #f59e0b; font-size: 0.8rem">
+                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+                                class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+                                class="fa-regular fa-star"></i>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px">
+                        Đánh giá ngày 02/11/2025
+                    </div>
+                    <div style="font-size: 0.9rem; color: #334155">
+                        Giá cả hợp lý. Tuy nhiên wifi buổi tối hơi yếu. Nhìn chung là đáng tiền so với các chỗ khác
+                        cùng khu vực.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Tab switching effect (scroll to section)
+        const tabs = document.querySelectorAll(".hd-tab");
+        tabs.forEach((tab) => {
+            tab.addEventListener("click", function (e) {
+                e.preventDefault();
+                // Remove active class
+                tabs.forEach((t) => t.classList.remove("active"));
+                // Add active class
+                this.classList.add("active");
+
+                // Scroll to section
+                const targetId = this.getAttribute("href").substr(1);
+                const targetEl = document.getElementById(targetId);
+                if (targetEl) {
+                    // Adjust for sticky headers heights (130px offset)
+                    window.scrollTo({
+                        top: targetEl.offsetTop - 150,
+                        behavior: "smooth",
+                    });
+                }
+            });
+        });
+
+        // Handle scroll to highlight active tab
+        window.addEventListener("scroll", () => {
+            let current = "overview";
+            const sections = [
+                document.getElementById("overview"),
+                document.getElementById("rooms"),
+                document.getElementById("amenities"),
+                document.getElementById("policies"),
+                document.getElementById("reviews"),
+            ];
+
+            sections.forEach((sec) => {
+                if (sec) {
+                    const secTop = sec.offsetTop;
+                    if (pageYOffset >= secTop - 200) {
+                        current = sec.getAttribute("id");
+                    }
+                }
+            });
+
+            tabs.forEach((tab) => {
+                tab.classList.remove("active");
+                // Only add active class if current is not empty and matches the tab's href
+                if (current && tab.getAttribute("href") === "#" + current) {
+                    tab.classList.add("active");
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

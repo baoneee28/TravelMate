@@ -1,0 +1,183 @@
+﻿<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Phòng chờ duyệt - Partner TravelMate</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" th:href="@{/assets/css/base.css}" />
+        <link rel="stylesheet" th:href="@{/assets/css/layout.css}" />
+        <link rel="stylesheet" th:href="@{/assets/css/components.css}" />
+        <link rel="stylesheet" th:href="@{/assets/pages/admin.css}" />
+        <link rel="stylesheet" th:href="@{/assets/pages/partners.css}" />
+        <link rel="stylesheet" th:href="@{/assets/css/responsive.css}" />
+    </head>
+    <body>
+        <div class="admin-wrapper">
+            <aside class="admin-sidebar">
+                <div class="admin-sidebar__header">
+                    <a th:href="@{/partner/rooms}" class="admin-sidebar__logo">
+                        <div class="admin-sidebar__logo-icon">TM</div>
+                        <div>
+                            <div class="admin-sidebar__logo-text">Travel<span>Mate</span></div>
+                            <span class="admin-sidebar__badge">PARTNER CENTER</span>
+                        </div>
+                    </a>
+                </div>
+                <nav class="admin-sidebar__nav">
+                    <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
+                    <a th:href="@{/partner/rooms}" class="admin-sidebar__link">
+                        <span class="admin-sidebar__link-icon">🛏</span> Danh sách phòng
+                    </a>
+                    <a th:href="@{/partner/add-room}" class="admin-sidebar__link">
+                        <span class="admin-sidebar__link-icon">＋</span> Thêm phòng
+                    </a>
+                    <a th:href="@{/partner/pending-room}" class="admin-sidebar__link active">
+                        <span class="admin-sidebar__link-icon">⏳</span> Chờ duyệt
+                    </a>
+                    <div class="admin-sidebar__section-title">Tiện ích</div>
+                    <a th:href="@{/partner/add-furniture}" class="admin-sidebar__link">
+                        <span class="admin-sidebar__link-icon">🪑</span> Thêm nội thất
+                    </a>
+                    <a th:href="@{/partner/add-voucher}" class="admin-sidebar__link">
+                        <span class="admin-sidebar__link-icon">🎟</span> Thêm voucher
+                    </a>
+                </nav>
+                <div class="admin-sidebar__footer">
+                    <div class="admin-sidebar__user">
+                        <div class="admin-sidebar__user-avatar">PT</div>
+                        <div class="admin-sidebar__user-info">
+                            <div class="admin-sidebar__user-name">Sunrise Sapa Lodge</div>
+                            <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            <div class="admin-sidebar-overlay"></div>
+
+            <div class="admin-main">
+                <header class="admin-topbar">
+                    <div style="display: flex; align-items: center; gap: var(--space-4)">
+                        <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                        <h1 class="admin-topbar__title">Phòng chờ duyệt</h1>
+                    </div>
+                    <a th:href="@{/partner/rooms}" class="btn btn--outline btn--sm">Về danh sách phòng</a>
+                </header>
+                <main class="admin-content">
+                    <div class="partner-grid">
+                        <section class="partner-panel">
+                            <div class="partner-panel__body">
+                                <div class="alert alert--info">
+                                    <div>Thông tin phòng đã được gửi thành công. Hệ thống sẽ kiểm tra và phản hồi trong vòng 24 giờ.</div>
+                                </div>
+
+                                <div class="partner-highlight">
+                                    <div class="partner-highlight__icon">⏳</div>
+                                    <div>
+                                        <div class="partner-highlight__title" data-pending-room="roomName">Deluxe Mountain View</div>
+                                        <p>Trạng thái hiện tại: <strong>Đang chờ đội TravelMate phê duyệt</strong></p>
+                                        <div class="partner-highlight__meta">
+                                            <span class="partner-chip" data-pending-room="propertyName">Sunrise Sapa Lodge</span>
+                                            <span class="partner-chip" data-pending-room="roomType">Deluxe</span>
+                                            <span class="partner-chip" data-pending-room="capacity">2 khách</span>
+                                            <span class="partner-chip"><span data-pending-room="price">1650000</span>đ/đêm</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="partner-form__section" style="margin-top: var(--space-6)">
+                                    <div class="partner-form__heading">Thông tin vừa gửi</div>
+                                    <div class="table-wrap">
+                                        <table class="table">
+                                            <tbody>
+                                                <tr>
+                                                    <td style="width: 220px">Tên phòng</td>
+                                                    <td data-pending-room="roomName">Deluxe Mountain View</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Cơ sở</td>
+                                                    <td data-pending-room="propertyName">Sunrise Sapa Lodge</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Loại phòng</td>
+                                                    <td data-pending-room="roomType">Deluxe</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Sức chứa</td>
+                                                    <td data-pending-room="capacity">2 khách</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Diện tích</td>
+                                                    <td data-pending-room="size">32m²</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Giá/đêm</td>
+                                                    <td><span data-pending-room="price">1650000</span>đ</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Ghi chú</td>
+                                                    <td data-pending-room="note">Đang cập nhật nội thất và bổ sung ảnh thực tế.</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Thời gian gửi</td>
+                                                    <td data-pending-room="submittedAt">14/04/2026 10:00:00</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <aside class="partner-shell">
+                            <section class="partner-panel">
+                                <div class="partner-panel__body">
+                                    <div class="partner-form__heading" style="margin-bottom: var(--space-4)">Các bước tiếp theo</div>
+                                    <div class="partner-timeline">
+                                        <div class="partner-timeline__item">
+                                            <div class="partner-timeline__dot">1</div>
+                                            <div class="partner-timeline__content">
+                                                <strong>Kiểm tra hồ sơ</strong>
+                                                <p>Đối soát tên phòng, giá và nội thất với dữ liệu đối tác.</p>
+                                            </div>
+                                        </div>
+                                        <div class="partner-timeline__item">
+                                            <div class="partner-timeline__dot">2</div>
+                                            <div class="partner-timeline__content">
+                                                <strong>Duyệt hiển thị</strong>
+                                                <p>Nếu hợp lệ, phòng sẽ xuất hiện trong danh sách đang bán.</p>
+                                            </div>
+                                        </div>
+                                        <div class="partner-timeline__item">
+                                            <div class="partner-timeline__dot">3</div>
+                                            <div class="partner-timeline__content">
+                                                <strong>Thông báo kết quả</strong>
+                                                <p>Đối tác nhận cập nhật và có thể chỉnh sửa nếu bị từ chối.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section class="partner-panel">
+                                <div class="partner-panel__body">
+                                    <div class="partner-form__heading" style="margin-bottom: var(--space-4)">Lưu ý</div>
+                                    <div class="partner-empty-inline">
+                                        Nếu cần cập nhật lại thông tin trước khi được duyệt, quay lại trang thêm phòng và gửi lại hồ sơ mới.
+                                    </div>
+                                </div>
+                            </section>
+                        </aside>
+                    </div>
+                </main>
+            </div>
+        </div>
+        <script th:src="@{/assets/js/main.js}"></script>
+        <script th:src="@{/assets/js/admin.js}"></script>
+        <script th:src="@{/assets/js/partners.js}"></script>
+    </body>
+</html>

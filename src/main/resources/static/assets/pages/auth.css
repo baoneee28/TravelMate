@@ -1,0 +1,206 @@
+/* ===== RESET & BASE (AUTH PAGES) ===== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+    height: 100%;
+    font-family: 'Montserrat', sans-serif;
+    background: #f3f4f6;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* PAGE WRAPPER */
+.pg {
+    display: flex; height: calc(100vh - 64px);
+    padding: 16px; gap: 0;
+}
+
+/* ===== LEFT: IMAGE PANEL ===== */
+.lp-img {
+    flex: 1; border-radius: 18px; overflow: hidden;
+    position: relative;
+}
+.lp-img img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; filter: brightness(0.82);
+}
+/* Layered gradient */
+.lp-img::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(15,30,70,0) 0%, rgba(15,30,70,0.2) 45%, rgba(10,22,55,0.92) 100%);
+}
+.lp-copy {
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 2;
+    padding: 36px 40px;
+}
+.lp-copy .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(245,158,11,0.18); border: 1px solid rgba(245,158,11,0.4);
+    color: #fbbf24; font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.6px; padding: 4px 12px; border-radius: 100px;
+    margin-bottom: 14px;
+}
+.lp-copy h2 {
+    font-size: 2rem; font-weight: 800; color: #fff;
+    line-height: 1.2; margin-bottom: 10px; letter-spacing: -0.5px;
+}
+.lp-copy h2 em { color: #f59e0b; font-style: normal; }
+.lp-copy p {
+    font-size: 0.82rem; color: rgba(255,255,255,0.72);
+    line-height: 1.65; margin-bottom: 22px; max-width: 320px;
+}
+.lp-feat { display: flex; flex-direction: column; gap: 10px; }
+.lp-feat-item { display: flex; align-items: center; gap: 12px; }
+.lp-feat-icon {
+    width: 32px; height: 32px; border-radius: 9px;
+    background: rgba(255,255,255,0.08); backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; flex-shrink: 0;
+}
+.lp-feat-item span { font-size: 0.78rem; color: rgba(255,255,255,0.85); font-weight: 500; }
+
+/* ===== RIGHT: FORM PANEL ===== */
+.lp-form {
+    width: 420px; flex-shrink: 0;
+    background: #fff; border-radius: 0 18px 18px 0;
+    display: flex; flex-direction: column;
+    justify-content: center; padding: 36px 44px;
+}
+
+/* Adjust width for register page specially */
+body[data-page="register"] .lp-form { width: 460px; padding: 30px 42px; }
+
+/* Logo in form */
+.ff-logo {
+    display: flex; align-items: center; gap: 8px;
+    text-decoration: none; margin-bottom: 28px;
+}
+body[data-page="register"] .ff-logo { margin-bottom: 20px; }
+
+.ff-logo i { color: #2563eb; font-size: 1rem; }
+.ff-logo .lb { color: #2563eb; font-size: 1rem; font-weight: 800; }
+.ff-logo .ly { color: #eab308; font-size: 1rem; font-weight: 800; }
+
+/* Title block */
+.ff-title { font-size: 1.65rem; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; margin-bottom: 4px; }
+body[data-page="register"] .ff-title { font-size: 1.5rem; margin-bottom: 3px; }
+
+.ff-sub { font-size: 0.78rem; color: #94a3b8; margin-bottom: 24px; font-weight: 500; }
+body[data-page="register"] .ff-sub { font-size: 0.75rem; margin-bottom: 18px; }
+
+.ff-sub a { color: #2563eb; font-weight: 600; text-decoration: none; }
+.ff-sub a:hover { text-decoration: underline; }
+
+/* Input group */
+.ff-field { margin-bottom: 14px; }
+.ff-row { display: flex; gap: 14px; }
+.ff-row .ff-field { flex: 1; }
+
+.ff-label {
+    display: block; font-size: 0.7rem; font-weight: 700;
+    color: #374151; text-transform: uppercase; letter-spacing: 0.7px;
+    margin-bottom: 6px;
+}
+body[data-page="register"] .ff-label { font-size: 0.67rem; margin-bottom: 5px; }
+
+.ff-label .req { color: #ef4444; margin-left: 2px; }
+.ff-wrap { position: relative; }
+.ff-wrap i {
+    position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+    color: #c0ccda; font-size: 0.82rem; transition: color 0.2s;
+    pointer-events: none;
+}
+.ff-input {
+    width: 100%; height: 46px;
+    padding: 0 16px 0 42px;
+    border: 1.5px solid #e5e9f0;
+    border-radius: 12px;
+    font-size: 0.875rem; font-weight: 500;
+    font-family: 'Montserrat', sans-serif;
+    color: #0f172a; background: #f9fafb;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+body[data-page="register"] .ff-input { height: 44px; padding: 0 14px 0 38px; font-size: 0.82rem; }
+
+.ff-input::placeholder { color: #b0bac8; font-weight: 400; }
+.ff-input:focus {
+    border-color: #2563eb; background: #fff;
+    box-shadow: 0 0 0 4px rgba(37,99,235,0.08);
+}
+.ff-input:focus + i, .ff-wrap:focus-within i { color: #2563eb; }
+
+/* Utility row */
+.ff-util {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px; margin-top: -2px;
+}
+.ff-check {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 0.75rem; color: #64748b; cursor: pointer; font-weight: 500;
+}
+.ff-check input { accent-color: #2563eb; width: 14px; height: 14px; }
+.ff-forget { font-size: 0.75rem; color: #2563eb; font-weight: 600; text-decoration: none; }
+.ff-forget:hover { text-decoration: underline; }
+
+/* Terms checkbox for register */
+.ff-chk-terms {
+    display: flex; align-items: flex-start; gap: 8px;
+    font-size: 0.72rem; color: #64748b; line-height: 1.55; margin-bottom: 16px; margin-top: 4px;
+}
+.ff-chk-terms input { accent-color: #2563eb; width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px; }
+.ff-chk-terms a { color: #2563eb; font-weight: 600; text-decoration: none; }
+.ff-chk-terms a:hover { text-decoration: underline; }
+
+/* Primary button */
+.btn-cta {
+    width: 100%; height: 48px; background: #0f172a; color: #fff;
+    border: none; border-radius: 10px;
+    font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.07em;
+    text-transform: uppercase;
+    font-family: 'Montserrat', sans-serif;
+    cursor: pointer; transition: all 0.2s;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 14px rgba(15,23,42,0.25);
+}
+body[data-page="register"] .btn-cta { height: 46px; margin-bottom: 14px; box-shadow: 0 4px 14px rgba(15,23,42,0.22); }
+
+.btn-cta:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(29,78,216,0.3);
+}
+body[data-page="register"] .btn-cta:hover { box-shadow: 0 6px 20px rgba(29,78,216,0.28); }
+
+.btn-cta:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(15,23,42,0.15); }
+body[data-page="register"] .btn-cta:active { box-shadow: none; }
+
+/* Divider */
+.ff-divider {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 0.7rem; font-weight: 600; color: #c0ccda;
+    letter-spacing: 0.5px; margin-bottom: 16px;
+    text-transform: uppercase;
+}
+.ff-divider::before, .ff-divider::after { content: ''; flex: 1; height: 1px; background: #eff2f7; }
+
+/* Google button */
+.btn-google {
+    width: 100%; height: 46px;
+    background: #fff; border: 1.5px solid #e5e9f0;
+    border-radius: 12px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    font-size: 0.82rem; font-weight: 600; color: #374151;
+    font-family: 'Montserrat', sans-serif;
+    transition: background 0.15s, border-color 0.15s, transform 0.15s;
+    margin-bottom: 20px;
+}
+body[data-page="register"] .btn-google { height: 44px; font-size: 0.8rem; margin-bottom: 16px; }
+
+.btn-google:hover { background: #f8faff; border-color: #bfdbfe; transform: translateY(-1px); }
+
+/* Footer note */
+.ff-note { font-size: 0.68rem; color: #b0bac8; text-align: center; line-height: 1.65; font-weight: 500; }
+body[data-page="register"] .ff-note { font-size: 0.67rem; }
+.ff-note a { color: #2563eb; text-decoration: none; font-weight: 600; }

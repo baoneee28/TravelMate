@@ -1,0 +1,303 @@
+/* ==============================================
+   places.css - Tourist Places Pages
+   ============================================== */
+
+/* ── Places List ────────────────────────────── */
+.places-hero {
+  background: linear-gradient(135deg, #1a3a4e 0%, #1A6B9A 100%);
+  padding: var(--space-16) 0;
+  text-align: center;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.places-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+.places-hero__title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: #fff;
+  margin-bottom: var(--space-3);
+  position: relative;
+}
+
+.places-hero__desc {
+  color: rgba(255,255,255,0.75);
+  font-size: var(--font-size-md);
+  margin-bottom: var(--space-8);
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+}
+
+.places-search-bar {
+  max-width: 540px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.places-search-bar .form-control {
+  height: 52px;
+  font-size: var(--font-size-base);
+  border-radius: var(--radius-full);
+  padding: 0 var(--space-6) 0 var(--space-12);
+  border: none;
+  box-shadow: var(--shadow-lg);
+}
+
+.places-search-bar .input-group__icon {
+  left: var(--space-5);
+  font-size: var(--font-size-md);
+}
+
+.places-search-bar .search-submit {
+  position: absolute;
+  right: var(--space-2);
+  top: 50%;
+  transform: translateY(-50%);
+  height: 38px;
+  border-radius: var(--radius-full);
+}
+
+/* Category Filter */
+.place-categories {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: var(--space-6) 0;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border-light);
+  position: sticky;
+  top: 68px;
+  z-index: 50;
+}
+
+.place-category-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.place-category-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.place-category-btn.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+/* Places Grid */
+.places-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+}
+
+@media (max-width: 1024px) {
+  .places-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .places-grid { grid-template-columns: 1fr; }
+}
+
+/* Place List Item (alternative) */
+.place-list-card {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: var(--space-4);
+  transition: box-shadow var(--transition-normal);
+}
+
+.place-list-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.place-list-card__image {
+  width: 300px;
+  height: 200px;
+  object-fit: cover;
+}
+
+.place-list-card__body {
+  padding: var(--space-5) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.place-list-card__name {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin-bottom: var(--space-2);
+}
+
+.place-list-card__desc {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-loose);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .place-list-card {
+    grid-template-columns: 1fr;
+  }
+  .place-list-card__image {
+    width: 100%;
+    height: 200px;
+  }
+}
+
+/* ── Place Detail ───────────────────────────── */
+.place-detail-hero {
+  position: relative;
+  height: 480px;
+  overflow: hidden;
+}
+
+.place-detail-hero__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.place-detail-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 60%, transparent 100%);
+}
+
+.place-detail-hero__content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: var(--space-10) var(--space-8);
+}
+
+.place-detail-hero__name {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: #fff;
+  margin-bottom: var(--space-3);
+}
+
+.place-detail-hero__meta {
+  display: flex;
+  gap: var(--space-5);
+  color: rgba(255,255,255,0.8);
+  font-size: var(--font-size-sm);
+}
+
+.place-detail-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: var(--space-8);
+  padding: var(--space-8) 0;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .place-detail-layout { grid-template-columns: 1fr; }
+}
+
+.place-detail-sidebar-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  position: sticky;
+  top: 84px;
+}
+
+.place-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.place-info-item {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+
+.place-info-item__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: var(--font-size-sm);
+}
+
+.place-info-item__label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-bottom: 2px;
+}
+
+.place-info-item__value {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+}
+
+/* Photo Gallery */
+.place-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.place-gallery__item {
+  aspect-ratio: 4/3;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.place-gallery__item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.place-gallery__item:hover img {
+  transform: scale(1.05);
+}

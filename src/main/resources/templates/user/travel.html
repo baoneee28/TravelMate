@@ -1,0 +1,571 @@
+﻿<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TravelMate - Gợi ý du lịch</title>
+
+    <!-- Font Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+
+    <!-- Icon FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <link rel="stylesheet" th:href="@{/assets/css/style.css}" />
+    <link rel="stylesheet" th:href="@{/assets/pages/news.css}" />
+    <link rel="stylesheet" th:href="@{/assets/pages/travel.css}" />
+</head>
+
+<body>
+    <!-- ===== SIDEBAR OVERLAY ===== -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ===== SIDEBAR MENU ===== -->
+    <aside class="sidebar-menu" id="sidebarMenu" role="dialog" aria-label="Menu điều hướng">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                <span class="s-logo-text">TRAVEL<span>MATE</span></span>
+            </div>
+            <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Đóng menu">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="sidebar-nav-label">Chức năng</div>
+
+            <a th:href="@{/accommodations}" id="sb-hotels">
+                <span class="s-icon"><i class="fa-solid fa-bed"></i></span>
+                Đặt phòng
+            </a>
+
+            <a th:href="@{/travel}" id="sb-travel" class="active-sidebar">
+                <span class="s-icon"><i class="fa-solid fa-map-location-dot"></i></span>
+                Gợi ý du lịch
+            </a>
+
+            <a th:href="@{/news}" id="sb-news">
+                <span class="s-icon"><i class="fa-solid fa-newspaper"></i></span>
+                Tin tức
+            </a>
+
+            <a th:href="@{/contact}" id="sb-contact">
+                <span class="s-icon"><i class="fa-solid fa-headset"></i></span>
+                Liên hệ
+            </a>
+        </nav>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-auth" id="sidebarAuth"></div>
+    </aside>
+
+    <!-- ===== HEADER ===== -->
+    <header class="header travel-header" id="header">
+        <div class="container navbar">
+            <!-- Logo + hamburger button xếp dọc -->
+            <div class="logo-wrapper">
+                <a th:href="@{/}" class="logo">
+                    <div class="logo-icon">
+                        <i class="fa-solid fa-building"></i>
+                    </div>
+                    <span class="logo-text">
+                        <span class="logo-blue">TRAVEL</span><span class="logo-yellow">MATE</span>
+                    </span>
+                </a>
+                <button class="hamburger-btn" id="hamburgerBtn" aria-label="Mở menu" aria-expanded="false">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
+            </div>
+
+            <nav class="menu">
+                <ul class="menu-list">
+                    <li><a th:href="@{/}">TRANG CHỦ</a></li>
+                    <li><a th:href="@{/travel}" class="active-menu">GỢI Ý DU LỊCH</a></li>
+                    <li><a th:href="@{/news}">TIN TỨC</a></li>
+                    <li><a th:href="@{/contact}">LIÊN HỆ</a></li>
+                    <li>
+                        <a href="#" class="my-booking">
+                            <i class="fa-solid fa-bed"></i> Đặt phòng của tôi
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <a th:href="@{/login}" class="login-btn">ĐĂNG NHẬP</a>
+        </div>
+    </header>
+
+    <!-- ===== HERO GỢI Ý DU LỊCH ===== -->
+    <section class="travel-hero">
+        <!-- 
+            THAY ẢNH NỀN TẠI ĐÂY
+            Nếu dùng ảnh máy:
+            background-image: url('images/goi-y-du-lich-banner.jpg');
+        -->
+        <div class="travel-hero-bg"
+            style="background-image: url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1920');">
+        </div>
+        <div class="travel-hero-overlay"></div>
+
+        <div class="container travel-hero-content">
+            <h1 class="travel-title-left">
+                KHÁM PHÁ ĐIỂM ĐẾN &
+            </h1>
+            <h1 class="travel-title-right">
+                <span class="text-gradient">CẨM NANG DU LỊCH</span>
+            </h1>
+            <p class="travel-hero-desc">
+                Lên kế hoạch cho chuyến đi, tìm cảm hứng và lựa chọn những địa điểm
+                đáng nhớ cùng TravelMate.
+            </p>
+        </div>
+        <div class="travel-search-box">
+            <div class="travel-location-select">
+                <i class="fa-solid fa-location-dot"></i>
+                <select id="travelLocation">
+                    <option value="">Chọn một địa điểm</option>
+                    <option value="Đà Nẵng">Đà Nẵng</option>
+                    <option value="Hội An">Hội An</option>
+                    <option value="Hà Nội">Hà Nội</option>
+                    <option value="Đà Lạt">Đà Lạt</option>
+                    <option value="Nha Trang">Nha Trang</option>
+                    <option value="Phú Quốc">Phú Quốc</option>
+                </select>
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+
+            <div class="travel-keyword-input">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="travelKeyword"
+                    placeholder="Tìm kiếm địa điểm, hoạt động hoặc kinh nghiệm du lịch" />
+            </div>
+
+            <button class="travel-search-btn" id="travelSearchBtn">Tìm kiếm</button>
+        </div>
+
+
+        <div class="travel-hero-bottom"></div>
+    </section>
+
+    <!-- ===== THANH CHỨC NĂNG ===== -->
+    <section class="travel-feature-nav-section">
+        <div class="container">
+            <div class="travel-feature-nav">
+                <a href="#" class="travel-feature-item active">
+                    <span class="feature-icon">
+                        <i class="fa-solid fa-book-open"></i>
+                    </span>
+                    <span>CẨM NANG</span>
+                </a>
+
+                <a href="#" class="travel-feature-item">
+                    <span class="feature-icon">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                    </span>
+                    <span>ĐỊA ĐIỂM THAM QUAN</span>
+                </a>
+
+                <a href="#" class="travel-feature-item">
+                    <span class="feature-icon">
+                        <i class="fa-solid fa-suitcase-rolling"></i>
+                    </span>
+                    <span>CẦN THIẾT CHO DU LỊCH</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== ADD TRAVEL LINK ===== -->
+    <section class="news-add-section" style="padding-top: 40px; margin-bottom: 20px;">
+        <div class="container">
+            <div class="news-add-card" id="newsAddCard">
+                <div class="add-card-header" id="addCardToggle">
+                    <div class="add-card-title">
+                        <i class="fa-solid fa-link"></i>
+                        <span>Thêm bài viết hữu ích (Từ link)</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-down add-card-arrow" id="addCardArrow"></i>
+                </div>
+                <div class="add-card-body" id="addCardBody">
+                    <p class="add-card-desc">Dán link bài viết hoặc video du lịch vào mục tương ứng</p>
+                    <div class="add-link-form">
+                        <div class="add-link-input-wrap">
+                            <i class="fa-solid fa-paste"></i>
+                            <input type="url" id="travelLinkInput" placeholder="Dán link tại đây..."
+                                style="border:none; outline:none; font-family:inherit; color:#334155; font-size:15px; width:100%;" />
+                        </div>
+                        <div class="add-link-location-wrap" style="position:relative;">
+                            <i class="fa-solid fa-list"></i>
+                            <select id="travelCategoryInput"
+                                style="border:none; outline:none; font-family:inherit; color:#334155; font-size:15px; width:100%; appearance:none; background:transparent; cursor:pointer;">
+                                <option value="cam-nang">Cẩm nang</option>
+                                <option value="dia-diem">Địa điểm tham quan</option>
+                                <option value="can-thiet">Cần thiết cho du lịch</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down"
+                                style="position:absolute; right:15px; color:#94a3b8; pointer-events:none;"></i>
+                        </div>
+                        <button type="button" class="add-link-btn" id="addLinkBtn">
+                            <i class="fa-solid fa-plus"></i> Thêm bài
+                        </button>
+                    </div>
+                    <div class="add-link-preview" id="addLinkPreview" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <section class="travel-main-section" style="padding: 20px 0 80px;">
+        <div class="container">
+            <!-- CẨM NANG -->
+            <div class="travel-tab-content active" id="tab-cam-nang">
+                <div class="news-more-header">
+                    <h2><i class="fa-solid fa-book-open"></i> Cẩm nang du lịch</h2>
+                </div>
+                <div class="news-grid" id="grid-cam-nang">
+                    <!-- Demo Item -->
+                    <a href="https://vnexpress.net/cam-nang-du-lich-da-nang-4470111.html" target="_blank"
+                        class="news-grid-card">
+                        <div class="grid-card-img"><img
+                                src="https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?q=80&w=500" alt="" />
+                        </div>
+                        <div class="grid-card-body">
+                            <span class="grid-card-tag">Cẩm nang</span>
+                            <h3>Cẩm nang kinh nghiệm du lịch Đà Nẵng 2026</h3>
+                            <p>Tổng hợp những mẹo vặt khi đi du lịch tiết kiệm và an toàn nhất cho chuyến đi của bạn...
+                            </p>
+                            <div class="grid-card-meta">
+                                <span><i class="fa-regular fa-clock"></i> 2 ngày trước</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- ĐỊA ĐIỂM THAM QUAN -->
+            <div class="travel-tab-content" id="tab-dia-diem" style="display:none;">
+                <div class="news-more-header">
+                    <h2><i class="fa-solid fa-map-location-dot"></i> Địa điểm tham quan</h2>
+                </div>
+                <div class="news-grid" id="grid-dia-diem">
+                    <!-- Demo Item -->
+                    <a href="https://cellphones.com.vn/sforum/cac-dia-diem-du-lich-o-hue" target="_blank"
+                        class="news-grid-card">
+                        <div class="grid-card-img"><img src="/assets/images/MienTrung/Hue.jpg" alt="" />
+                        </div>
+                        <div class="grid-card-body">
+                            <span class="grid-card-tag">Địa điểm</span>
+                            <h3>Top 10 địa điểm không thể bỏ qua tại Huế</h3>
+                            <p>Đến Huế, bạn sẽ được chiêm ngưỡng vẻ đẹp cổ kính của Cố đô, khám phá những di tích lịch
+                                sử và thưởng thức ẩm thực đặc sắc...</p>
+                            <div class="grid-card-meta">
+                                <span><i class="fa-regular fa-clock"></i> 3 ngày trước</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- CẦN THIẾT CHO DU LỊCH -->
+            <div class="travel-tab-content" id="tab-can-thiet" style="display:none;">
+                <div class="news-more-header">
+                    <h2><i class="fa-solid fa-suitcase-rolling"></i> Cần thiết cho du lịch</h2>
+                </div>
+                <div class="news-grid" id="grid-can-thiet">
+                    <!-- Demo Item -->
+                    <a href="https://vietsuntravel.com/tin-tuc/nhung-mon-do-bat-buoc-phai-co-di-du-lich" target="_blank"
+                        class="news-grid-card">
+                        <div class="grid-card-img"><img src="/assets/images/Dungcu.jpg" alt="" />
+                        </div>
+                        <div class="grid-card-body">
+                            <span class="grid-card-tag">Cần thiết</span>
+                            <h3>Những món đồ bắt buộc phải có khi đi du lịch</h3>
+                            <p>Từ kem chống nắng, thuốc men đến sạc dự phòng, đây là danh sách những vật dụng không thể
+                                thiếu cho chuyến đi của bạn...</p>
+                            <div class="grid-card-meta">
+                                <span><i class="fa-regular fa-clock"></i> 1 tuần trước</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER TẠM ===== -->
+    <footer class="footer">
+        <div class="container footer-content">
+            <div class="logo">
+                <div class="logo-icon bg-sky">
+                    <i class="fa-solid fa-building"></i>
+                </div>
+                <span class="logo-text text-white">
+                    TRAVEL<span class="logo-yellow">MATE</span>
+                </span>
+            </div>
+            <p>&copy; 2024 TravelMate. Đồ án Cơ sở lập trình Web.</p>
+        </div>
+    </footer>
+
+    <!-- ===== JAVASCRIPT ===== -->
+    <script>
+        // Header đổi nền khi cuộn
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 40) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Demo nút tìm kiếm
+        const searchBtn = document.getElementById('travelSearchBtn');
+        const locationSelect = document.getElementById('travelLocation');
+        const keywordInput = document.getElementById('travelKeyword');
+
+        searchBtn.addEventListener('click', () => {
+            const location = locationSelect.value.trim();
+            const keyword = keywordInput.value.trim();
+
+            if (!location && !keyword) {
+                alert('Vui lòng chọn địa điểm hoặc nhập từ khóa tìm kiếm.');
+                return;
+            }
+
+            alert(
+                'Bạn đang tìm kiếm:\n' +
+                '- Địa điểm: ' + (location || 'Chưa chọn') + '\n' +
+                '- Từ khóa: ' + (keyword || 'Chưa nhập')
+            );
+        });
+
+        // ===== TAB SWITCHING =====
+        const featureItems = document.querySelectorAll('.travel-feature-item');
+        const tabContents = {
+            'CẨM NANG': document.getElementById('tab-cam-nang'),
+            'ĐỊA ĐIỂM THAM QUAN': document.getElementById('tab-dia-diem'),
+            'CẦN THIẾT CHO DU LỊCH': document.getElementById('tab-can-thiet')
+        };
+
+        featureItems.forEach(item => {
+            item.addEventListener('click', function (e) {
+                e.preventDefault();
+                // Bỏ active tất cả tab
+                featureItems.forEach(el => el.classList.remove('active'));
+                this.classList.add('active');
+
+                // Ẩn tất cả nội dung
+                Object.values(tabContents).forEach(tab => {
+                    if (tab) tab.style.display = 'none';
+                });
+
+                // Hiện nội dung tương ứng
+                const tabName = this.querySelector('span:nth-child(2)').textContent.trim();
+                const targetTab = tabContents[tabName];
+                if (targetTab) {
+                    targetTab.style.display = 'block';
+                    // Thêm animation fade in nhẹ
+                    targetTab.style.animation = 'newsCardFadeIn 0.4s ease forwards';
+                }
+            });
+        });
+
+        // ===== ADD TRAVEL LINK FUNCTIONALITY =====
+        (function () {
+            const toggle = document.getElementById('addCardToggle');
+            const body = document.getElementById('addCardBody');
+            const arrow = document.getElementById('addCardArrow');
+            const linkInput = document.getElementById('travelLinkInput');
+            const catInput = document.getElementById('travelCategoryInput');
+            const addBtn = document.getElementById('addLinkBtn');
+            const preview = document.getElementById('addLinkPreview');
+
+            let isOpen = false;
+
+            if (toggle && body && arrow) {
+                toggle.addEventListener('click', () => {
+                    isOpen = !isOpen;
+                    body.style.display = isOpen ? 'block' : 'none';
+                    arrow.style.transform = isOpen ? 'rotate(180deg)' : '';
+                });
+            }
+
+            if (addBtn) {
+                addBtn.addEventListener('click', () => {
+                    const url = linkInput.value.trim();
+                    const cat = catInput.value;
+
+                    if (!url) { linkInput.focus(); return; }
+
+                    try { new URL(url); } catch { alert('Link không hợp lệ!'); return; }
+
+                    // Get stored
+                    const stored = JSON.parse(localStorage.getItem('travelmate_custom_travel') || '[]');
+
+                    const newItem = {
+                        id: Date.now(),
+                        url: url,
+                        category: cat,
+                        title: extractTitle(url),
+                        time: 'Vừa thêm',
+                        source: extractSource(url)
+                    };
+
+                    stored.unshift(newItem);
+                    localStorage.setItem('travelmate_custom_travel', JSON.stringify(stored));
+
+                    // Add to DOM
+                    addLinkToGrid(newItem);
+
+                    // Reset
+                    linkInput.value = '';
+
+                    // Show success
+                    preview.style.display = 'flex';
+                    preview.innerHTML = `<i class="fa-solid fa-check-circle" style="color:#10b981;font-size:20px;"></i><div><strong>Đã thêm bài viết thành công!</strong><br><small style="color:#64748b;">${url}</small></div>`;
+                    setTimeout(() => { preview.style.display = 'none'; }, 3000);
+                });
+            }
+
+            function extractSource(url) {
+                try { return new URL(url).hostname.replace('www.', ''); } catch { return 'Nguồn'; }
+            }
+
+            function extractTitle(url) {
+                const parts = url.split('/').filter(p => p && !p.includes('.'));
+                const last = parts[parts.length - 1] || 'Bài viết du lịch';
+                let title = decodeURIComponent(last).replace(/-/g, ' ');
+                if (title.length > 50) title = title.substring(0, 50) + '...';
+                return title.replace(/^\w/, c => c.toUpperCase());
+            }
+
+            function getTagNames(cat) {
+                const tags = {
+                    'cam-nang': 'Cẩm nang',
+                    'dia-diem': 'Địa điểm',
+                    'can-thiet': 'Cần thiết'
+                };
+                return tags[cat] || 'Bài viết';
+            }
+
+            function addLinkToGrid(item) {
+                const gridId = 'grid-' + item.category;
+                const grid = document.getElementById(gridId);
+                if (!grid) return;
+
+                const card = document.createElement('a');
+                card.href = item.url;
+                card.target = '_blank';
+                card.className = 'news-grid-card user-added';
+                card.style.animation = 'newsCardFadeIn 0.5s ease forwards';
+
+                const tagLabel = getTagNames(item.category);
+
+                card.innerHTML = `
+                    <div class="grid-card-img"><div class="grid-card-placeholder" style="background:#f1f5f9;display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:30px;"><i class="fa-solid fa-link"></i></div></div>
+                    <div class="grid-card-body">
+                        <span class="grid-card-tag">${tagLabel}</span>
+                        <h3>${item.title}</h3>
+                        <p>${item.source}</p>
+                        <div class="grid-card-meta">
+                            <span><i class="fa-regular fa-clock"></i> ${item.time}</span>
+                            <button class="remove-travel-btn" data-id="${item.id}" title="Xóa bài viết" style="border:none;background:none;color:#ef4444;cursor:pointer;padding:5px;"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </div>`;
+                grid.insertBefore(card, grid.firstChild);
+            }
+
+            // Load stored
+            const stored = JSON.parse(localStorage.getItem('travelmate_custom_travel') || '[]');
+            stored.forEach(item => addLinkToGrid(item));
+
+            // Remove
+            document.addEventListener('click', (e) => {
+                const btn = e.target.closest('.remove-travel-btn');
+                if (!btn) return;
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (!confirm('Bạn có chắc muốn xóa bài viết này không?')) return;
+
+                const id = parseInt(btn.dataset.id);
+                const stored = JSON.parse(localStorage.getItem('travelmate_custom_travel') || '[]');
+                localStorage.setItem('travelmate_custom_travel', JSON.stringify(stored.filter(s => s.id !== id)));
+                btn.closest('.news-grid-card').remove();
+            });
+        })();
+    </script>
+
+    <!-- ===== HAMBURGER SIDEBAR SCRIPT ===== -->
+    <script>
+        (function () {
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const sidebarMenu = document.getElementById('sidebarMenu');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+            const sidebarAuth = document.getElementById('sidebarAuth');
+
+            function isLoggedIn() {
+                return !!localStorage.getItem('travelmate_user');
+            }
+
+            function renderAuth() {
+                if (isLoggedIn()) {
+                    sidebarAuth.innerHTML = `
+                        <a href="#" class="btn-logout-side" id="sidebarLogoutBtn">
+                            <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                        </a>`;
+                    document.getElementById('sidebarLogoutBtn').addEventListener('click', function (e) {
+                        e.preventDefault();
+                        localStorage.removeItem('travelmate_user');
+                        closeSidebar();
+                        renderAuth();
+                    });
+                } else {
+                    sidebarAuth.innerHTML = `
+                        <a th:href="@{/login}" class="btn-login-side">
+                            <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
+                        </a>
+                        <a th:href="@{/register}" class="btn-register-side">
+                            <i class="fa-solid fa-user-plus"></i> Đăng ký
+                        </a>`;
+                }
+            }
+
+            function openSidebar() {
+                sidebarMenu.classList.add('active');
+                sidebarOverlay.classList.add('active');
+                hamburgerBtn.setAttribute('aria-expanded', 'true');
+                document.body.style.overflow = 'hidden';
+                renderAuth();
+            }
+
+            function closeSidebar() {
+                sidebarMenu.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+                hamburgerBtn.setAttribute('aria-expanded', 'false');
+                document.body.style.overflow = '';
+            }
+
+            hamburgerBtn.addEventListener('click', openSidebar);
+            sidebarCloseBtn.addEventListener('click', closeSidebar);
+            sidebarOverlay.addEventListener('click', closeSidebar);
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeSidebar();
+            });
+        })();
+    </script>
+</body>
+
+</html>
