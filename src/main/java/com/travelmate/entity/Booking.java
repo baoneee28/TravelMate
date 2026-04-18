@@ -34,7 +34,8 @@ import java.time.LocalDate;
         @Index(name = "idx_booking_user",          columnList = "user_id"),
         @Index(name = "idx_booking_accommodation", columnList = "accommodation_id"),
         @Index(name = "idx_booking_status",        columnList = "booking_status"),
-        @Index(name = "idx_booking_checkin",        columnList = "check_in")
+        @Index(name = "idx_booking_checkin",        columnList = "check_in"),
+        @Index(name = "idx_booking_code",           columnList = "booking_code", unique = true)
 })
 @Getter
 @Setter
@@ -115,6 +116,15 @@ public class Booking extends BaseEntity {
     @Column(name = "booking_status", nullable = false, length = 20)
     @Builder.Default
     private BookingStatus bookingStatus = BookingStatus.PENDING;
+
+    /**
+     * Mã đặt phòng duy nhất — dạng TM20260418-001.
+     * Format: TM{yyyyMMdd}-{sequence 3 chữ số}.
+     * Được sinh trong BookingServiceImpl sau khi save (có ID).
+     * UNIQUE trong DB để đảm bảo không trùng.
+     */
+    @Column(name = "booking_code", length = 20, unique = true)
+    private String bookingCode;
 
     /**
      * Ghi chú của khách (tuỳ chọn).

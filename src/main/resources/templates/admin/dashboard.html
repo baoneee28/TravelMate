@@ -5,10 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Dashboard – Admin TravelMate</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-            rel="stylesheet"
-        />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <link rel="stylesheet" th:href="@{/assets/css/base.css}" />
         <link rel="stylesheet" th:href="@{/assets/css/layout.css}" />
         <link rel="stylesheet" th:href="@{/assets/css/components.css}" />
@@ -17,134 +14,91 @@
     </head>
     <body>
         <div class="admin-wrapper">
-            <!-- ══ SIDEBAR (dung chung tu fragment) ══ -->
             <aside th:replace="~{fragments/admin-sidebar :: admin-sidebar}"></aside>
-
-            <!-- Sidebar overlay (mobile) -->
             <div class="admin-sidebar-overlay"></div>
 
-            <!-- ══ MAIN ══ -->
             <div class="admin-main">
-                <!-- Topbar -->
                 <header class="admin-topbar">
                     <div style="display: flex; align-items: center; gap: var(--space-4)">
                         <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
                         <h1 class="admin-topbar__title">Dashboard</h1>
                     </div>
                     <div class="admin-topbar__actions">
-                        <span class="text-sm text-muted">📅 18/03/2025</span>
                         <a th:href="@{/}" class="btn btn--outline btn--sm" target="_blank">🌐 Xem site</a>
-                        <a th:href="@{/logout}" class="btn btn--ghost btn--sm">🚪 Đăng xuất</a>
+                        <form th:action="@{/logout}" method="post" style="margin:0;padding:0">
+                            <button type="submit" class="btn btn--ghost btn--sm" style="cursor:pointer">🚪 Đăng xuất</button>
+                        </form>
                     </div>
                 </header>
 
-                <!-- Content -->
                 <main class="admin-content">
                     <!-- Stats Cards -->
                     <div class="stats-grid">
                         <div class="stats-card">
                             <div class="stats-card__icon stats-card__icon--blue">🏨</div>
                             <div>
-                                <div class="stats-card__value">48</div>
-                                <div class="stats-card__label">Khách sạn</div>
-                                <div class="stats-card__trend stats-card__trend--up">↑ 2 mới trong tháng</div>
+                                <div class="stats-card__value" th:text="${stats.totalAccommodations}">0</div>
+                                <div class="stats-card__label">Nơi lưu trú</div>
+                                <div class="stats-card__trend stats-card__trend--up"
+                                     th:text="'↑ ' + ${stats.pendingAccommodations} + ' chờ duyệt'">↑ 0 chờ duyệt</div>
                             </div>
                         </div>
                         <div class="stats-card">
                             <div class="stats-card__icon stats-card__icon--amber">📋</div>
                             <div>
-                                <div class="stats-card__value">1.248</div>
+                                <div class="stats-card__value" th:text="${stats.totalBookings}">0</div>
                                 <div class="stats-card__label">Tổng booking</div>
-                                <div class="stats-card__trend stats-card__trend--up">↑ 12% so với tháng trước</div>
+                                <div class="stats-card__trend stats-card__trend--up"
+                                     th:text="'↑ ' + ${stats.pendingBookings} + ' chờ xác nhận'">↑ 0 chờ xác nhận</div>
                             </div>
                         </div>
                         <div class="stats-card">
                             <div class="stats-card__icon stats-card__icon--green">👥</div>
                             <div>
-                                <div class="stats-card__value">3.542</div>
+                                <div class="stats-card__value" th:text="${stats.totalUsers}">0</div>
                                 <div class="stats-card__label">Người dùng</div>
-                                <div class="stats-card__trend stats-card__trend--up">↑ 89 người mới</div>
+                                <div class="stats-card__trend stats-card__trend--up"
+                                     th:text="'+ ' + ${stats.totalPartners} + ' đối tác'">+ 0 đối tác</div>
                             </div>
                         </div>
                         <div class="stats-card">
-                            <div class="stats-card__icon stats-card__icon--red">💰</div>
+                            <div class="stats-card__icon stats-card__icon--red">⭐</div>
                             <div>
-                                <div class="stats-card__value">842M</div>
-                                <div class="stats-card__label">Doanh thu (VNĐ)</div>
-                                <div class="stats-card__trend stats-card__trend--up">↑ 18% tháng này</div>
+                                <div class="stats-card__value" th:text="${stats.totalReviews}">0</div>
+                                <div class="stats-card__label">Đánh giá</div>
+                                <div class="stats-card__trend stats-card__trend--up"
+                                     th:text="'✓ ' + ${stats.completedBookings} + ' booking hoàn thành'">✓ 0 hoàn thành</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Charts Row -->
+                    <!-- Charts Row (mock chart — giữ nguyên cho đẹp) -->
                     <div class="charts-grid">
-                        <!-- Bar Chart -->
                         <div class="chart-card">
                             <div class="chart-card__header">
                                 <h3 class="chart-card__title">📊 Booking theo tháng</h3>
-                                <select class="form-control" style="width: auto; padding: 6px 28px 6px 10px">
-                                    <option>2025</option>
-                                    <option>2024</option>
-                                </select>
                             </div>
                             <div class="chart-placeholder">
-                                <div class="chart-bar" data-height="40%" style="height: 40%">
-                                    <div class="chart-bar__tooltip">85</div>
-                                </div>
-                                <div class="chart-bar" data-height="60%" style="height: 60%">
-                                    <div class="chart-bar__tooltip">124</div>
-                                </div>
-                                <div class="chart-bar" data-height="75%" style="height: 75%">
-                                    <div class="chart-bar__tooltip">156</div>
-                                </div>
-                                <div class="chart-bar" data-height="55%" style="height: 55%">
-                                    <div class="chart-bar__tooltip">112</div>
-                                </div>
-                                <div class="chart-bar" data-height="90%" style="height: 90%">
-                                    <div class="chart-bar__tooltip">185</div>
-                                </div>
-                                <div class="chart-bar" data-height="80%" style="height: 80%">
-                                    <div class="chart-bar__tooltip">168</div>
-                                </div>
-                                <div class="chart-bar" data-height="65%" style="height: 65%">
-                                    <div class="chart-bar__tooltip">134</div>
-                                </div>
-                                <div class="chart-bar" data-height="85%" style="height: 85%">
-                                    <div class="chart-bar__tooltip">178</div>
-                                </div>
-                                <div class="chart-bar" data-height="70%" style="height: 70%">
-                                    <div class="chart-bar__tooltip">142</div>
-                                </div>
-                                <div class="chart-bar" data-height="95%" style="height: 95%">
-                                    <div class="chart-bar__tooltip">197</div>
-                                </div>
-                                <div
-                                    class="chart-bar"
-                                    data-height="100%"
-                                    style="height: 100%; background: var(--color-primary)"
-                                >
-                                    <div class="chart-bar__tooltip">208</div>
-                                </div>
-                                <div class="chart-bar" data-height="30%" style="height: 30%">
-                                    <div class="chart-bar__tooltip">62</div>
-                                </div>
+                                <div class="chart-bar" style="height:40%"><div class="chart-bar__tooltip">T1</div></div>
+                                <div class="chart-bar" style="height:60%"><div class="chart-bar__tooltip">T2</div></div>
+                                <div class="chart-bar" style="height:75%"><div class="chart-bar__tooltip">T3</div></div>
+                                <div class="chart-bar" style="height:55%"><div class="chart-bar__tooltip">T4</div></div>
+                                <div class="chart-bar" style="height:90%"><div class="chart-bar__tooltip">T5</div></div>
+                                <div class="chart-bar" style="height:80%"><div class="chart-bar__tooltip">T6</div></div>
+                                <div class="chart-bar" style="height:65%"><div class="chart-bar__tooltip">T7</div></div>
+                                <div class="chart-bar" style="height:85%"><div class="chart-bar__tooltip">T8</div></div>
+                                <div class="chart-bar" style="height:70%"><div class="chart-bar__tooltip">T9</div></div>
+                                <div class="chart-bar" style="height:95%"><div class="chart-bar__tooltip">T10</div></div>
+                                <div class="chart-bar" style="height:100%;background:var(--color-primary)"><div class="chart-bar__tooltip">T11</div></div>
+                                <div class="chart-bar" style="height:30%"><div class="chart-bar__tooltip">T12</div></div>
                             </div>
-                            <div
-                                style="
-                                    display: flex;
-                                    justify-content: space-between;
-                                    padding: 8px 4px 0;
-                                    font-size: 11px;
-                                    color: var(--color-text-muted);
-                                "
-                            >
-                                <span>T1</span><span>T2</span><span>T3</span><span>T4</span><span>T5</span
-                                ><span>T6</span> <span>T7</span><span>T8</span><span>T9</span><span>T10</span
-                                ><span>T11</span><span>T12</span>
+                            <div style="display:flex;justify-content:space-between;padding:8px 4px 0;font-size:11px;color:var(--color-text-muted)">
+                                <span>T1</span><span>T2</span><span>T3</span><span>T4</span><span>T5</span>
+                                <span>T6</span><span>T7</span><span>T8</span><span>T9</span><span>T10</span>
+                                <span>T11</span><span>T12</span>
                             </div>
                         </div>
 
-                        <!-- Donut Chart -->
                         <div class="chart-card">
                             <div class="chart-card__header">
                                 <h3 class="chart-card__title">🥧 Trạng thái booking</h3>
@@ -153,20 +107,20 @@
                                 <div class="donut-chart"></div>
                                 <div class="donut-legend">
                                     <div class="donut-legend__item">
-                                        <div class="donut-legend__dot" style="background: var(--color-primary)"></div>
-                                        <span>Đã xác nhận (45%)</span>
+                                        <div class="donut-legend__dot" style="background:var(--color-primary)"></div>
+                                        <span th:text="'Đã xác nhận (' + ${stats.confirmedBookings} + ')'">Đã xác nhận (0)</span>
                                     </div>
                                     <div class="donut-legend__item">
-                                        <div class="donut-legend__dot" style="background: var(--color-accent)"></div>
-                                        <span>Chờ xác nhận (25%)</span>
+                                        <div class="donut-legend__dot" style="background:var(--color-accent)"></div>
+                                        <span th:text="'Chờ xác nhận (' + ${stats.pendingBookings} + ')'">Chờ xác nhận (0)</span>
                                     </div>
                                     <div class="donut-legend__item">
-                                        <div class="donut-legend__dot" style="background: var(--color-success)"></div>
-                                        <span>Hoàn thành (15%)</span>
+                                        <div class="donut-legend__dot" style="background:var(--color-success)"></div>
+                                        <span th:text="'Hoàn thành (' + ${stats.completedBookings} + ')'">Hoàn thành (0)</span>
                                     </div>
                                     <div class="donut-legend__item">
-                                        <div class="donut-legend__dot" style="background: var(--color-border)"></div>
-                                        <span>Đã hủy (15%)</span>
+                                        <div class="donut-legend__dot" style="background:var(--color-border)"></div>
+                                        <span th:text="'Đã hủy (' + ${stats.cancelledBookings} + ')'">Đã hủy (0)</span>
                                     </div>
                                 </div>
                             </div>
@@ -175,58 +129,39 @@
 
                     <!-- Recent Bookings + Quick Actions -->
                     <div class="recent-section-grid">
-                        <!-- Recent Bookings -->
                         <div class="card">
                             <div class="card__header">
                                 <h3 class="card__header-title">📋 Đặt phòng gần đây</h3>
                                 <a th:href="@{/admin/bookings}" class="btn btn--ghost btn--sm">Xem tất cả →</a>
                             </div>
-                            <div class="table-wrap" style="border: none; border-radius: 0">
+                            <div class="table-wrap" style="border:none;border-radius:0">
                                 <table class="table data-table">
                                     <thead>
                                         <tr>
                                             <th>Mã</th>
                                             <th>Khách hàng</th>
-                                            <th>Khách sạn</th>
+                                            <th>Nơi lưu trú</th>
                                             <th>Ngày</th>
                                             <th>Trạng thái</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr data-status="confirmed">
-                                            <td style="font-family: monospace; font-size: 12px">TM-0042</td>
-                                            <td>Nguyễn Văn An</td>
-                                            <td>InterContinental HN</td>
-                                            <td>20/03 – 23/03</td>
-                                            <td><span class="badge badge--primary">Xác nhận</span></td>
+                                        <tr th:each="b : ${recentBookings}">
+                                            <td style="font-family:monospace;font-size:12px;color:var(--color-primary)"
+                                                th:text="'#' + ${b.id}">-</td>
+                                            <td th:text="${b.userName}">-</td>
+                                            <td th:text="${b.accommodationName}">-</td>
+                                            <td th:text="${#temporals.format(b.checkIn,'dd/MM')} + ' – ' + ${#temporals.format(b.checkOut,'dd/MM')}">-</td>
+                                            <td><span class="badge" th:classappend="${b.statusBadgeClass}" th:text="${b.statusLabel}">-</span></td>
                                         </tr>
-                                        <tr data-status="pending">
-                                            <td style="font-family: monospace; font-size: 12px">TM-0041</td>
-                                            <td>Trần Thị Bình</td>
-                                            <td>Fusion Maia Đà Nẵng</td>
-                                            <td>25/03 – 28/03</td>
-                                            <td><span class="badge badge--warning">Chờ duyệt</span></td>
-                                        </tr>
-                                        <tr data-status="completed">
-                                            <td style="font-family: monospace; font-size: 12px">TM-0040</td>
-                                            <td>Lê Minh Cường</td>
-                                            <td>Park Hyatt Saigon</td>
-                                            <td>15/03 – 17/03</td>
-                                            <td><span class="badge badge--success">Hoàn thành</span></td>
-                                        </tr>
-                                        <tr data-status="cancelled">
-                                            <td style="font-family: monospace; font-size: 12px">TM-0039</td>
-                                            <td>Phạm Lan Anh</td>
-                                            <td>La Résidence HN</td>
-                                            <td>10/03 – 12/03</td>
-                                            <td><span class="badge badge--danger">Đã hủy</span></td>
+                                        <tr th:if="${#lists.isEmpty(recentBookings)}">
+                                            <td colspan="5" style="text-align:center;color:var(--color-text-muted)">Chưa có booking nào</td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
 
-                        <!-- Quick Actions -->
                         <div class="card">
                             <div class="card__header">
                                 <h3 class="card__header-title">⚡ Thao tác nhanh</h3>
@@ -235,23 +170,23 @@
                                 <div class="quick-actions">
                                     <a th:href="@{/admin/listings}" class="quick-action-item">
                                         <div class="quick-action-item__icon">🏨</div>
-                                        Thêm khách sạn
-                                    </a>
-                                    <a th:href="@{/admin/rooms}" class="quick-action-item">
-                                        <div class="quick-action-item__icon">🛏</div>
-                                        Thêm phòng
-                                    </a>
-                                    <a th:href="@{/admin/places}" class="quick-action-item">
-                                        <div class="quick-action-item__icon">🗺</div>
-                                        Thêm địa điểm
-                                    </a>
-                                    <a th:href="@{/admin/users}" class="quick-action-item">
-                                        <div class="quick-action-item__icon">👥</div>
-                                        Xem người dùng
+                                        Duyệt listing
                                     </a>
                                     <a th:href="@{/admin/bookings}" class="quick-action-item">
                                         <div class="quick-action-item__icon">📋</div>
                                         Xem booking
+                                    </a>
+                                    <a th:href="@{/admin/users}" class="quick-action-item">
+                                        <div class="quick-action-item__icon">👥</div>
+                                        Người dùng
+                                    </a>
+                                    <a th:href="@{/admin/reviews}" class="quick-action-item">
+                                        <div class="quick-action-item__icon">⭐</div>
+                                        Đánh giá
+                                    </a>
+                                    <a th:href="@{/admin/places}" class="quick-action-item">
+                                        <div class="quick-action-item__icon">🗺</div>
+                                        Địa điểm
                                     </a>
                                     <a th:href="@{/}" class="quick-action-item" target="_blank">
                                         <div class="quick-action-item__icon">🌐</div>
@@ -261,13 +196,9 @@
                             </div>
                         </div>
                     </div>
-                    <!-- /.recent-section-grid -->
                 </main>
-                <!-- /.admin-content -->
             </div>
-            <!-- /.admin-main -->
         </div>
-        <!-- /.admin-wrapper -->
 
         <script th:src="@{/assets/js/main.js}"></script>
         <script th:src="@{/assets/js/admin.js}"></script>

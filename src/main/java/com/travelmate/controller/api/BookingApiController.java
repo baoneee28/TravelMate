@@ -2,13 +2,17 @@ package com.travelmate.controller.api;
 
 import com.travelmate.dto.request.BookingRequest;
 import com.travelmate.dto.response.ApiResponse;
+import com.travelmate.dto.response.AvailabilityResponse;
 import com.travelmate.dto.response.BookingResponse;
 import com.travelmate.service.BookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 /**
  * BookingApiController - REST API xử lý đặt phòng.
@@ -19,18 +23,14 @@ import org.springframework.web.bind.annotation.*;
  * Base URL: /api/bookings
  *
  * Các endpoint:
- * - POST   /api/bookings        — Tạo booking mới
- * - POST   /api/bookings/{id}/cancel — Hủy booking
+ * - GET    /api/bookings/availability  — Kiểm tra phòng còn trống (chống trùng ngày)
+ * - POST   /api/bookings               — Tạo booking mới
+ * - POST   /api/bookings/{id}/cancel   — Hủy booking
  *
  * BẢO MẬT:
  * - Tất cả endpoint yêu cầu đăng nhập (Spring Security kiểm tra)
  * - User chỉ thao tác được trên booking của chính mình (Service kiểm tra)
  * - CSRF được tắt cho /api/** trong SecurityConfig
- *
- * Annotation giải thích:
- * - @RestController: mỗi method trả về JSON (không phải view name)
- * - @RequestMapping("/api/bookings"): base URL cho tất cả endpoint
- * - @RequiredArgsConstructor: Lombok inject BookingService qua constructor
  */
 @RestController
 @RequestMapping("/api/bookings")
@@ -38,6 +38,40 @@ import org.springframework.web.bind.annotation.*;
 public class BookingApiController {
 
     private final BookingService bookingService;
+
+    /**
+     * KIỂM TRA TÌNH TRẠNG PHÒNG TRỐNG
+     *
+     * GET /api/bookings/availability?accommodationId=1&checkIn=2026-05-01&checkOut=2026-05-04
+     *
+     * Được gọi bởi JavaScript (AJAX) khi user chọn ngày trên form đặt phòng.
+     * Trả về ngay lập tức để UI có thể cảnh báo trước khi user nhấn "Thanh toán".
+     *
+     * checkIn và checkOut là optional:
+     * - Nếu không có → chỉ trả về danh sách ngày đã bận (dùng để tô màu date-picker)
+     * - Nếu có → kiểm tra overlap + trả về available true/false
+     *
+     * Response (JSON):
+     * {
+     *   "success": true,
+     *   "data": {
+     *     "available": false,
+     *     "conflictMessage": "Đã bận từ 01/05 → 04/05...",
+     *     "bookedRanges": [
+     *       { "checkIn": "2026-05-01", "checkOut": "2026-05-04" }
+     *     ]
+     *   }
+     * }
+     */
+    @GetMapping("/availability")
+    public ResponseEntity<ApiResponse<AvailabilityResponse>> checkAvailability(
+            @RequestParam Long accommodationId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkIn,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOut) {
+
+        AvailabilityResponse result = bookingService.checkAvailability(accommodationId, checkIn, checkOut);
+        return ResponseEntity.ok(ApiResponse.success("OK", result));
+    }
 
     /**
      * TẠO BOOKING MỚI
@@ -61,6 +95,9 @@ public class BookingApiController {
      *   "data": { ...BookingResponse... }
      * }
      *
+     * [CHỐNG TRÙNG NGÀY] Service sẽ kiểm tra overlap trước khi lưu.
+     * Nếu trùng → trả về 400 Bad Request với message mô tả ngày bị bận.
+     *
      * @param request  DTO chứa thông tin đặt phòng
      * @param auth     Spring Security authentication object — chứa email user đang đăng nhập
      * @return ApiResponse<BookingResponse> chứa thông tin booking vừa tạo
@@ -79,8 +116,13 @@ public class BookingApiController {
 
         BookingResponse booking = bookingService.createBooking(request, userEmail);
 
+        // Ưu tiên hiển thị bookingCode chuẩn (TM20260418-001), fallback về #TM{id} nếu null
+        String displayCode = (booking.getBookingCode() != null)
+                ? booking.getBookingCode()
+                : "#TM" + booking.getId();
+
         return ResponseEntity.ok(
-                ApiResponse.success("Đặt phòng thành công! Mã đặt phòng: #TM" + booking.getId(), booking)
+                ApiResponse.success("Đặt phòng thành công! Mã đặt phòng: " + displayCode, booking)
         );
     }
 
@@ -117,4 +159,44 @@ public class BookingApiController {
                 ApiResponse.success("Đã hủy đặt phòng thành công", booking)
         );
     }
+
+    /**
+     * XÁC NHẬN ĐÃ THANH TOÁN (MOCK FLOW)
+     *
+     * POST /api/bookings/{id}/confirm-payment
+     *
+     * Được gọi khi user bấm "Tôi đã chuyển khoản" trên modal QR.
+     * Cập nhật:
+     * - payment.paymentStatus: UNPAID → PAID
+     * - payment.paidAt: now()
+     * - booking.bookingStatus: PENDING → CONFIRMED
+     *
+     * Response (JSON):
+     * {
+     *   "success": true,
+     *   "message": "Xác nhận thanh toán thành công! Booking đã được xác nhận.",
+     *   "data": { ...BookingResponse với status CONFIRMED + payment PAID... }
+     * }
+     *
+     * @param id   ID booking cần xác nhận thanh toán
+     * @param auth Spring Security authentication
+     */
+    @PostMapping("/{id}/confirm-payment")
+    public ResponseEntity<ApiResponse<BookingResponse>> confirmPayment(
+            @PathVariable Long id,
+            Authentication auth) {
+
+        String userEmail = auth.getName();
+
+        BookingResponse booking = bookingService.confirmPayment(id, userEmail);
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "✅ Xác nhận thanh toán thành công! Mã đặt phòng " +
+                        (booking.getBookingCode() != null ? booking.getBookingCode() : "#TM" + id) +
+                        " đã được xác nhận.",
+                        booking)
+        );
+    }
 }
+

@@ -25,7 +25,7 @@
     <div th:replace="~{fragments/header :: user-header}"></div>
 
     <!-- ===== HERO / BANNER ===== -->
-    <section class="hero-section">
+    <section class="hero-section" style="margin-top: -80px;">
         <div class="hero-slider">
             <div class="slide-track">
                 <!-- Slides sử dụng ảnh thực tế -->
@@ -82,12 +82,12 @@
                     <button type="button" class="tab" data-type="apartment"><i class="fa-solid fa-building"></i>
                         Resort</button>
                 </div>
-                <form class="search-form">
+                <form class="search-form" action="/accommodations" method="get">
                     <div class="field">
                         <label>Thành phố, điểm đến</label>
                         <div class="input-wrap">
                             <i class="fa-solid fa-location-dot"></i>
-                            <input type="text" id="destInput" placeholder="Ví dụ Trung tâm mua sắm AEON Narita" />
+                            <input type="text" id="destInput" name="city" placeholder="Ví dụ Trung tâm mua sắm AEON Narita" />
                         </div>
                     </div>
 
@@ -164,6 +164,7 @@
                         </div>
                     </div>
 
+                    <input type="hidden" id="searchType" name="type" value="hotel" />
                     <button type="submit" class="search-btn">
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <span class="btn-text">TÌM KIẾM</span>
@@ -561,11 +562,13 @@
             apartment: 'Ví dụ: Resort cao cấp Phú Quốc'
         };
 
+        const searchTypeInput = document.getElementById('searchType');
         searchTabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 searchTabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 destInput.placeholder = placeholders[tab.dataset.type] || 'Nhập điểm đến...';
+                searchTypeInput.value = tab.dataset.type;
             });
         });
 

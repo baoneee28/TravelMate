@@ -116,6 +116,27 @@ CREATE TABLE IF NOT EXISTS bookings (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Lịch đặt phòng của USER — trạng thái: PENDING→CONFIRMED→COMPLETED';
 
+-- CHỐNG TRÙNG NGÀY (Double-booking Prevention)
+-- Không dùng UNIQUE constraint ở DB vì logic phức tạp (interval overlap + trạng thái),
+-- thay vào đó kiểm tra ở tầng Service (BookingServiceImpl.createBooking).
+--
+-- Logic overlap (interval math):
+--   Booking A và B chồng nhau khi: A.check_in < B.check_out AND A.check_out > B.check_in
+--   Chỉ tính booking status IN ('PENDING', 'CONFIRMED') — bỏ qua CANCELLED / COMPLETED.
+--
+-- Query kiểm tra thủ công (dùng để demo/debug):
+-- SELECT b1.id AS booking1_id, b2.id AS booking2_id,
+--        b1.accommodation_id, b1.check_in, b1.check_out,
+--        b2.check_in AS conflict_check_in, b2.check_out AS conflict_check_out
+-- FROM bookings b1
+-- JOIN bookings b2 ON b1.accommodation_id = b2.accommodation_id
+--                 AND b1.id < b2.id
+--                 AND b1.booking_status IN ('PENDING','CONFIRMED')
+--                 AND b2.booking_status IN ('PENDING','CONFIRMED')
+--                 AND b1.check_in  < b2.check_out
+--                 AND b1.check_out > b2.check_in;
+-- (Kết quả rỗng = không có conflict — ổn!)
+
 
 -- -----------------------------------------------------------------------------
 -- BẢNG 4: payments  (Thanh toán)
@@ -199,24 +220,24 @@ INSERT IGNORE INTO users (full_name, email, password, phone, role, status) VALUE
 -- ADMIN — quản trị hệ thống
 ('Admin TravelMate',
  'admin@travelmate.vn',
- '$2a$10$slYQmyNdgzFoDeloNFfkA.62Yq3G8lGiYpDPH5vOMEZj8bm3MRJIG',
+ '$2a$10$LWK.MjfPDjseZlKsKCRimewXrQtJTHbYC4v8IwwiS0o27Hbqr1Kxq',
  '0901111111', 'ADMIN', 'ACTIVE'),
 
 -- PARTNER — chủ nơi lưu trú
 ('Nguyễn Văn Đối Tác',
  'partner@travelmate.vn',
- '$2a$10$slYQmyNdgzFoDeloNFfkA.62Yq3G8lGiYpDPH5vOMEZj8bm3MRJIG',
+ '$2a$10$LWK.MjfPDjseZlKsKCRimewXrQtJTHbYC4v8IwwiS0o27Hbqr1Kxq',
  '0902222222', 'PARTNER', 'ACTIVE'),
 
 -- USER — khách đặt phòng
 ('Trần Thị Bình',
  'user1@gmail.com',
- '$2a$10$slYQmyNdgzFoDeloNFfkA.62Yq3G8lGiYpDPH5vOMEZj8bm3MRJIG',
+ '$2a$10$LWK.MjfPDjseZlKsKCRimewXrQtJTHbYC4v8IwwiS0o27Hbqr1Kxq',
  '0903333333', 'USER', 'ACTIVE'),
 
 ('Lê Văn Minh',
  'user2@gmail.com',
- '$2a$10$slYQmyNdgzFoDeloNFfkA.62Yq3G8lGiYpDPH5vOMEZj8bm3MRJIG',
+ '$2a$10$LWK.MjfPDjseZlKsKCRimewXrQtJTHbYC4v8IwwiS0o27Hbqr1Kxq',
  '0904444444', 'USER', 'ACTIVE');
 
 -- Nếu dùng cách đăng ký qua app, chạy 2 lệnh này để cập nhật role:

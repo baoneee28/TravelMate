@@ -66,9 +66,11 @@
                 </div>
                 <div>
                     <div class="sidebar-username" sec:authentication="name"></div>
-                    <a th:href="@{/logout}" class="sidebar-logout-link">
-                        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
-                    </a>
+                    <form th:action="@{/logout}" method="post" style="margin:0;padding:0">
+                        <button type="submit" class="sidebar-logout-link">
+                            <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -123,9 +125,11 @@
                         <i class="fa-solid fa-calendar-check"></i> Đặt phòng của tôi
                     </a>
                     <div class="user-nav-divider"></div>
-                    <a th:href="@{/logout}" class="user-nav-item user-nav-logout">
-                        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
-                    </a>
+                    <form th:action="@{/logout}" method="post" style="margin:0;padding:0">
+                        <button type="submit" class="user-nav-item user-nav-logout">
+                            <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

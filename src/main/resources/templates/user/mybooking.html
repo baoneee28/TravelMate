@@ -14,11 +14,161 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link rel="stylesheet" th:href="@{/assets/css/style.css}" />
     <link rel="stylesheet" th:href="@{/assets/pages/mybooking.css}" />
+    <style>
+        /* Payment status badges */
+        .payment-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.3px;
+            margin-top: 6px;
+        }
+        .badge-unpaid  { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+        .badge-paid    { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+        .badge-failed  { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+        .badge-refunded{ background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; }
+
+        /* Transaction code display */
+        .tx-code {
+            font-size: 0.7rem;
+            color: #64748b;
+            font-family: monospace;
+            margin-top: 3px;
+            display: block;
+        }
+        /* Booking code chip */
+        .booking-code-chip {
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            color: #0ea5e9;
+            background: #e0f2fe;
+            border: 1px solid #bae6fd;
+            border-radius: 6px;
+            padding: 2px 8px;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+        /* Payment method label */
+        .payment-method-label {
+            font-size: 0.68rem;
+            color: #94a3b8;
+            margin-top: 2px;
+            display: block;
+        }
+        .payment-method-label i { margin-right: 3px; }
+
+        /* === SUCCESS TOAST === */
+        .success-toast {
+            display: none;
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            z-index: 9999;
+            background: #f0fdf4;
+            border: 1.5px solid #4ade80;
+            border-radius: 14px;
+            padding: 14px 20px;
+            box-shadow: 0 8px 32px rgba(34,197,94,0.2);
+            max-width: 320px;
+            animation: slideIn 0.3s ease;
+        }
+        .success-toast.show { display: flex; gap: 12px; align-items: flex-start; }
+        .success-toast .toast-icon { font-size: 1.5rem; color: #22c55e; flex-shrink:0; }
+        .success-toast .toast-body { flex:1; }
+        .success-toast .toast-title { font-weight:700; color:#166534; margin-bottom:2px; font-size:0.9rem; }
+        .success-toast .toast-msg   { font-size:0.78rem; color:#15803d; }
+        .success-toast .toast-close { background:none; border:none; cursor:pointer; font-size:1rem; color:#64748b; margin-left:8px; }
+        @keyframes slideIn { from { opacity:0; transform: translateX(30px); } to { opacity:1; transform:translateX(0); } }
+
+        /* === Nút thanh toán cho UNPAID === */
+        .btn-booking-pay {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 7px 14px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            font-family: inherit;
+        }
+        .btn-booking-pay:hover { opacity: 0.88; }
+
+        /* === BOOKING DETAIL MODAL === */
+        .bk-detail-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 9998;
+            align-items: center;
+            justify-content: center;
+        }
+        .bk-detail-overlay.open { display: flex; }
+        .bk-detail-modal {
+            background: #fff;
+            border-radius: 16px;
+            padding: 28px;
+            max-width: 480px;
+            width: 92%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+            position: relative;
+        }
+        .bk-detail-modal .dm-close {
+            position: absolute;
+            top: 14px; right: 14px;
+            background: #334155;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 28px; height: 28px;
+            cursor: pointer;
+            display: flex; align-items:center; justify-content:center;
+            font-size: 0.85rem;
+        }
+        .dm-section { margin-bottom: 16px; }
+        .dm-label   { font-size:0.72rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+        .dm-row     { display:flex; justify-content:space-between; font-size:0.85rem; padding:5px 0; border-bottom:1px solid #f1f5f9; }
+        .dm-row:last-child { border-bottom:none; }
+        .dm-row .dlbl { color: #64748b; }
+        .dm-row .dval { font-weight: 600; color: #0f172a; }
+        .dm-qr-wrap {
+            text-align: center;
+            background: #f8fafc;
+            border: 1.5px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 16px;
+        }
+    </style>
 </head>
 
 <body>
     <script th:src="@{/assets/js/main.js}"></script>
     <script th:src="@{/assets/js/user.js}"></script>
+
+    <!-- ===== SUCCESS TOAST (hiện khi redirect về với ?newBooking=true) ===== -->
+    <div class="success-toast" id="successToast">
+        <div class="toast-icon"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="toast-body">
+            <div class="toast-title">Đặt phòng thành công! 🎉</div>
+            <div class="toast-msg" id="toastMsg">Mã đặt phòng của bạn đã được tạo.</div>
+        </div>
+        <button class="toast-close" onclick="document.getElementById('successToast').classList.remove('show')">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
 
     <!-- ===== HEADER (dùng fragment chung) ===== -->
     <div th:replace="~{fragments/header :: user-header}"></div>
@@ -143,10 +293,29 @@
                                         class="fa-solid fa-check"></i>
                                     <span th:text="${booking.statusLabel}">Trạng thái</span>
                                 </span>
+
+                                <!-- Badge trạng thái thanh toán (cam/xanh/tím/đỏ) -->
+                                <span class="payment-badge"
+                                    th:classappend="${booking.paymentStatusCssClass}"
+                                    th:if="${booking.paymentStatusLabel != null}">
+                                    <i th:if="${booking.paymentStatusCssClass == 'badge-unpaid'}" class="fa-solid fa-clock"></i>
+                                    <i th:if="${booking.paymentStatusCssClass == 'badge-paid'}" class="fa-solid fa-circle-check"></i>
+                                    <i th:if="${booking.paymentStatusCssClass == 'badge-failed'}" class="fa-solid fa-circle-xmark"></i>
+                                    <i th:if="${booking.paymentStatusCssClass == 'badge-refunded'}" class="fa-solid fa-rotate-left"></i>
+                                    <span th:text="${booking.paymentStatusLabel}">Thanh toán</span>
+                                </span>
                             </div>
 
                             <!-- Thông tin booking -->
                             <div class="booking-card-body">
+                                <!-- Booking Code chip -->
+                                <span class="booking-code-chip"
+                                    th:if="${booking.bookingCode != null}"
+                                    th:text="${booking.bookingCode}">TM20260418-001</span>
+                                <span class="booking-code-chip"
+                                    th:unless="${booking.bookingCode != null}"
+                                    th:text="'#TM' + ${#strings.padLeft(booking.id.toString(), 5, '0')}">#TM00001</span>
+
                                 <h3 th:text="${booking.accommodationName}">Tên nơi lưu trú</h3>
 
                                 <div class="booking-info-row">
@@ -181,6 +350,12 @@
                                         <span class="price-label">Tổng tiền</span>
                                         <span class="price-value"
                                             th:text="${booking.totalPriceFormatted} + '₫'">0₫</span>
+                                        <!-- Payment method label -->
+                                        <span class="payment-method-label"
+                                            th:if="${booking.paymentMethodLabel != null}">
+                                            <i class="fa-solid fa-credit-card"></i>
+                                            <span th:text="${booking.paymentMethodLabel}">Chuyển khoản QR</span>
+                                        </span>
                                     </div>
                                     <div class="booking-actions">
                                         <!-- Nút xem chi tiết accommodation -->
@@ -189,15 +364,21 @@
                                             <i class="fa-solid fa-eye"></i> Chi tiết
                                         </a>
 
-                                        <!--
-                                            Nút hủy: chỉ hiện khi status = PENDING hoặc CONFIRMED.
-                                            Booking đã COMPLETED hoặc CANCELLED thì không hiện nút hủy.
-                                        -->
+                                        <!-- Nút hủy có title -->
                                         <button class="btn-booking-cancel"
                                             th:if="${booking.bookingStatus.name() == 'PENDING' or booking.bookingStatus.name() == 'CONFIRMED'}"
-                                            th:attr="data-booking-id=${booking.id}"
-                                            onclick="cancelBooking(this)">
+                                            th:attr="data-booking-id=${booking.id},data-booking-code=${booking.bookingCode},data-check-in=${booking.checkIn}"
+                                            onclick="cancelBooking(this)"
+                                            title="Chỉ hủy được trước 2 ngày nhận phòng">
                                             <i class="fa-solid fa-xmark"></i> Hủy
+                                        </button>
+
+                                        <!-- Nút Thanh toán ngay: chỉ hiện khi payment = UNPAID -->
+                                        <button class="btn-booking-pay"
+                                            th:if="${booking.paymentStatusCssClass == 'badge-unpaid' and (booking.bookingStatus.name() == 'PENDING' or booking.bookingStatus.name() == 'CONFIRMED')}"
+                                            th:attr="data-booking-id=${booking.id},data-booking-code=${booking.bookingCode},data-total=${booking.totalPriceFormatted}"
+                                            onclick="openPaymentModal(this)">
+                                            <i class="fa-solid fa-qrcode"></i> Thanh toán
                                         </button>
 
                                         <!--
@@ -243,24 +424,48 @@
                         <table class="mb-transactions-table">
                             <thead>
                                 <tr>
-                                    <th>Mã GD</th>
+                                    <th>Mã đặt phòng</th>
                                     <th>Nơi lưu trú</th>
                                     <th>Ngày đặt</th>
+                                    <th>Phương thức</th>
                                     <th>Số tiền</th>
-                                    <th>Trạng thái</th>
+                                    <th>Thanh toán</th>
+                                    <th>Đặt phòng</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr th:each="booking : ${bookings}">
                                     <td>
+                                        <!-- Ưu tiên bookingCode, fallback về #TM{id} -->
+                                        <span class="booking-code-chip"
+                                            th:if="${booking.bookingCode != null}"
+                                            th:text="${booking.bookingCode}">TM20260418-001</span>
                                         <span class="td-code"
-                                            th:text="'#TM' + ${#strings.padLeft(booking.id.toString(), 5, '0')}">
-                                            #TM00001
-                                        </span>
+                                            th:unless="${booking.bookingCode != null}"
+                                            th:text="'#TM' + ${#strings.padLeft(booking.id.toString(), 5, '0')}">#TM00001</span>
+                                        <!-- Mã giao dịch phụ -->
+                                        <span class="tx-code"
+                                            th:if="${booking.transactionCode != null}"
+                                            th:text="${booking.transactionCode}"></span>
                                     </td>
                                     <td th:text="${booking.accommodationName}">Tên nơi lưu trú</td>
-                                    <td th:text="${booking.checkIn}">Ngày</td>
+                                    <td th:text="${#temporals.format(booking.createdAt, 'dd/MM/yyyy')}">Ngày</td>
+                                    <td>
+                                        <span th:if="${booking.paymentMethodLabel != null}"
+                                            th:text="${booking.paymentMethodLabel}">QR</span>
+                                        <span th:unless="${booking.paymentMethodLabel != null}">—</span>
+                                    </td>
                                     <td class="td-price" th:text="${booking.totalPriceFormatted} + '₫'">0₫</td>
+                                    <td>
+                                        <!-- Trạng thái thanh toán -->
+                                        <span class="payment-badge"
+                                            th:classappend="${booking.paymentStatusCssClass}"
+                                            th:if="${booking.paymentStatusLabel != null}"
+                                            th:text="${booking.paymentStatusLabel}">Chờ thanh toán</span>
+                                        <span class="td-status" th:classappend="${booking.statusCssClass}"
+                                            th:if="${booking.paymentStatusLabel == null}"
+                                            th:text="${booking.statusLabel}">Trạng thái</span>
+                                    </td>
                                     <td>
                                         <span class="td-status" th:classappend="${booking.statusCssClass}"
                                             th:text="${booking.statusLabel}">Trạng thái</span>
@@ -275,6 +480,7 @@
                         <p>Xem <a href="#">lịch sử giao dịch</a> của bạn tại đây.</p>
                     </div>
                 </div>
+
 
                 <!-- TAB: REFUNDS -->
                 <div class="mb-tab-content" id="tab-refunds">
@@ -433,12 +639,38 @@
             });
         })();
 
+        // ===== SUCCESS TOAST — hiện khi redirect về với ?newBooking=true =====
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('newBooking') === 'true') {
+                const toast = document.getElementById('successToast');
+                const bookingId = params.get('bookingId');
+                if (bookingId) {
+                    document.getElementById('toastMsg').textContent =
+                        'Đặt phòng thành công! Vui lòng thanh toán để xác nhận chỗ ở.';
+                }
+                toast.classList.add('show');
+                // Tự đóng sau 7 giây
+                setTimeout(() => toast.classList.remove('show'), 7000);
+                // Cleanup URL (tránh hiện toast khi F5)
+                const cleanUrl = window.location.pathname;
+                window.history.replaceState({}, '', cleanUrl);
+            }
+        })();
+
         // ===== HỦY BOOKING — Gọi API =====
         function cancelBooking(btnElement) {
             const bookingId = btnElement.getAttribute('data-booking-id');
+            const bookingCode = btnElement.getAttribute('data-booking-code') ||
+                '#TM' + String(bookingId).padStart(5, '0');
+            const checkIn = btnElement.getAttribute('data-check-in');
 
-            if (!confirm('Bạn có chắc muốn hủy đặt phòng #TM' +
-                String(bookingId).padStart(5, '0') + '?')) {
+            // Hiển thị thông tin chính sách hủy trong confirm
+            const policyNote = checkIn
+                ? '\n\n⚠️ Chính sách: Chỉ hủy miễn phí trước 2 ngày nhận phòng.'
+                : '';
+
+            if (!confirm('Bạn có chắc muốn hủy đặt phòng ' + bookingCode + '?' + policyNote)) {
                 return;
             }
 
@@ -458,7 +690,7 @@
                     alert('✅ ' + data.message);
                     window.location.reload();
                 } else {
-                    // Lỗi
+                    // Lỗi — thường là do policy hủy (< 2 ngày check-in)
                     alert('❌ ' + (data.message || 'Có lỗi xảy ra'));
                     btnElement.disabled = false;
                     btnElement.innerHTML = '<i class="fa-solid fa-xmark"></i> Hủy';
@@ -471,6 +703,74 @@
                 btnElement.innerHTML = '<i class="fa-solid fa-xmark"></i> Hủy';
             });
         }
+
+        // ===== THANH TOÁN QR CHO BOOKING UNPAID (từ mybooking page) =====
+        let payingBookingId = null;
+
+        function openPaymentModal(btnElement) {
+            payingBookingId = btnElement.getAttribute('data-booking-id');
+            const bookingCode = btnElement.getAttribute('data-booking-code') ||
+                '#TM' + String(payingBookingId).padStart(5, '0');
+            const total = btnElement.getAttribute('data-total') || '?';
+
+            // Gán data vào payment modal
+            document.getElementById('mbQrBookingCode').textContent = bookingCode;
+            document.getElementById('mbQrContent').textContent = bookingCode + ' TravelMate';
+            document.getElementById('mbQrTotal').textContent = total + '₫';
+
+            // Reset nút confirm
+            const confirmBtn = document.getElementById('mbBtnConfirm');
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="fa-solid fa-check"></i> Tôi đã chuyển khoản';
+
+            document.getElementById('mbPaymentOverlay').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMbPaymentModal() {
+            document.getElementById('mbPaymentOverlay').classList.remove('open');
+            document.body.style.overflow = '';
+            payingBookingId = null;
+        }
+
+        document.getElementById('mbPaymentOverlay').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeMbPaymentModal();
+        });
+
+        document.getElementById('mbBtnConfirm').addEventListener('click', function() {
+            if (!payingBookingId) return;
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xác nhận...';
+
+            fetch('/api/bookings/' + payingBookingId + '/confirm-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    closeMbPaymentModal();
+                    // Show toast thành công
+                    const toast = document.getElementById('successToast');
+                    document.getElementById('toastMsg').textContent =
+                        '✅ Xác nhận thanh toán thành công! Booking đã được xác nhận.';
+                    toast.classList.add('show');
+                    setTimeout(() => { toast.classList.remove('show'); window.location.reload(); }, 2500);
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Tôi đã chuyển khoản';
+                    alert('❌ ' + (data.message || 'Có lỗi xảy ra.'));
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Tôi đã chuyển khoản';
+                alert('❌ Lỗi kết nối. Vui lòng thử lại.');
+            });
+        });
+
+
 
         // ===== SETTINGS (placeholder — chưa kết nối API) =====
         document.getElementById('settingSaveBtn').addEventListener('click', () => {
@@ -599,6 +899,73 @@
             });
         });
     </script>
+
+    <!-- QR PAYMENT MODAL (cho booking UNPAID trong mybooking page) -->
+    <div class="bk-detail-overlay" id="mbPaymentOverlay">
+        <div class="bk-detail-modal" style="max-width: 440px;">
+            <button class="dm-close" onclick="closeMbPaymentModal()">✕</button>
+
+            <div style="text-align:center; margin-bottom: 20px;">
+                <div style="font-size:0.72rem; font-weight:700; color:#f97316; text-transform:uppercase; letter-spacing:0.5px; margin-bottom: 6px;">
+                    <i class="fa-solid fa-clock"></i> CHỜ THANH TOÁN
+                </div>
+                <!-- Booking code -->
+                <div style="display:inline-block; background:#e0f2fe; border:1px solid #bae6fd; border-radius:8px;
+                            padding:4px 14px; font-family:monospace; font-weight:700; font-size:1rem; color:#0284c7; margin-bottom:12px;"
+                     id="mbQrBookingCode">TM...</div>
+
+                <p style="font-size:0.95rem; font-weight:700; color:#0f172a; margin-bottom: 4px;">Quét QR để thanh toán</p>
+                <p style="font-size:0.78rem; color:#64748b;">Chuyển khoản đúng nội dung để hệ thống xác nhận.</p>
+            </div>
+
+            <!-- QR Code -->
+            <div class="dm-qr-wrap" style="margin-bottom: 16px;">
+                <img src="https://img.vietqr.io/image/MB-028282004-compact2.png?addInfo=TravelMate+Booking&accountName=TRAVELMATE"
+                    alt="VietQR MB Bank" style="width: 160px; height: auto; display:block; margin:0 auto 10px;" />
+                <div style="font-size:0.72rem; color:#64748b;">Quét bằng app ngân hàng bất kỳ</div>
+            </div>
+
+            <!-- Bank info -->
+            <div class="dm-section">
+                <div class="dm-label"><i class="fa-solid fa-building-columns"></i> Thông tin chuyển khoản</div>
+                <div class="dm-row">
+                    <span class="dlbl">Ngân hàng</span>
+                    <span class="dval">MB BANK</span>
+                </div>
+                <div class="dm-row">
+                    <span class="dlbl">Số tài khoản</span>
+                    <span class="dval">028282004</span>
+                </div>
+                <div class="dm-row">
+                    <span class="dlbl">Nội dung CK</span>
+                    <span class="dval" id="mbQrContent" style="color:#2563eb; font-size:0.82rem;">TM...</span>
+                </div>
+                <div class="dm-row">
+                    <span class="dlbl" style="color:#f97316; font-weight:700;">Số tiền</span>
+                    <span class="dval" style="color:#f97316; font-size:1.1rem;" id="mbQrTotal">0₫</span>
+                </div>
+            </div>
+
+            <p style="font-size:0.75rem; color:#64748b; font-style:italic; margin-bottom:16px; text-align:center;">
+                <i class="fa-solid fa-circle-info"></i>
+                Sau khi chuyển khoản thành công, nhấn nút bên dưới để xác nhận.
+            </p>
+
+            <div style="display:flex; gap:10px;">
+                <button onclick="closeMbPaymentModal()"
+                    style="flex:1; background:#94a3b8; color:#fff; border:none; padding:12px;
+                           border-radius:20px; font-weight:700; cursor:pointer; font-family:inherit; font-size:0.85rem;">
+                    <i class="fa-solid fa-clock"></i> Để sau
+                </button>
+                <button id="mbBtnConfirm"
+                    style="flex:1.5; background:#22c55e; color:#fff; border:none; padding:12px;
+                           border-radius:20px; font-weight:700; cursor:pointer; font-family:inherit;
+                           display:flex; align-items:center; justify-content:center; gap:8px; font-size:0.85rem;">
+                    <i class="fa-solid fa-check"></i> Tôi đã chuyển khoản
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- REVIEW MODAL -->
     <div class="review-modal-overlay" id="reviewModalOverlay">

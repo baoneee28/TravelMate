@@ -1,5 +1,6 @@
 package com.travelmate.config;
 
+import com.travelmate.security.CustomLoginSuccessHandler;
 import com.travelmate.security.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -38,8 +39,8 @@ import org.springframework.security.web.SecurityFilterChain;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    // Service lay thong tin user tu DB de xac thuc
     private final CustomUserDetailsService userDetailsService;
+    private final CustomLoginSuccessHandler loginSuccessHandler;
 
     /**
      * Cau hinh chuoi bo loc bao mat (Security Filter Chain).
@@ -85,6 +86,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
 
+                        // --- API ADMIN: chi role ADMIN moi goi duoc ---
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
                         // --- ADMIN: chi role ADMIN moi vao duoc ---
                         // hasRole("ADMIN") tuong duong hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
@@ -96,6 +100,16 @@ public class SecurityConfig {
                         // hasAnyRole("USER", "ADMIN"): ADMIN can xem trang user de ho tro/kiem tra
                         // PARTNER se bi chan vi ho chi quan ly listing, khong phai nguoi dat phong
                         .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
+
+                        // --- API BOOKING: chi USER moi duoc tao/huy booking ---
+                        // - PARTNER khong dat phong (ho la nha cung cap, khong phai khach)
+                        // - ADMIN quan ly qua /admin/**, khong dung endpoint nay
+                        // - GET /api/bookings/availability: cho phep moi authenticated user (xem lich)
+                        .requestMatchers(
+                                org.springframework.http.HttpMethod.POST,
+                                "/api/bookings", "/api/bookings/*/cancel"
+                        ).hasRole("USER")
+                        .requestMatchers("/api/bookings/**").authenticated()
 
                         // --- MOI THU KHAC: phai dang nhap ---
                         .anyRequest().authenticated()
@@ -120,8 +134,8 @@ public class SecurityConfig {
                         .loginProcessingUrl("/login")     // URL xu ly POST form login
                         .usernameParameter("email")       // Ten field email trong form HTML
                         .passwordParameter("password")    // Ten field password trong form HTML
-                        .defaultSuccessUrl("/", true)     // Sau khi login thanh cong -> ve trang chu
-                        .failureUrl("/login?error=true")  // Neu login sai -> tro lai trang login voi thong bao loi
+                        .successHandler(loginSuccessHandler) // Redirect theo role: ADMIN->/admin/dashboard, PARTNER->/partner/dashboard, USER->/
+                        .failureUrl("/login?error=true")
                         .permitAll()                      // Ai cung truy cap duoc trang login
                 )
 

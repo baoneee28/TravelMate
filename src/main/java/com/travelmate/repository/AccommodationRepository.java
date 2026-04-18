@@ -59,4 +59,17 @@ public interface AccommodationRepository extends JpaRepository<Accommodation, Lo
      * Dùng cho partner dashboard (phase sau).
      */
     long countByPartnerIdAndApprovalStatus(Long partnerId, ApprovalStatus approvalStatus);
+
+    // ── Admin queries ──────────────────────────────────────────────────────────
+
+    /** Lấy tất cả accommodation kèm partner. Dùng cho admin/listings. */
+    @Query("""
+            SELECT a FROM Accommodation a
+            JOIN FETCH a.partner
+            ORDER BY a.createdAt DESC
+            """)
+    List<Accommodation> findAllWithPartner();
+
+    /** Đếm accommodation theo trạng thái duyệt. Dùng cho admin dashboard. */
+    long countByApprovalStatus(ApprovalStatus approvalStatus);
 }

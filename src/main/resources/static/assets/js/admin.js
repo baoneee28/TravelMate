@@ -85,10 +85,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ── Active Sidebar Link ──────────────────────
-  const currentPath = window.location.pathname.split('/').pop();
-  document.querySelectorAll('.admin-sidebar__link').forEach(link => {
-    const href = link.getAttribute('href');
-    if (href && href.includes(currentPath)) {
+  const currentPath = window.location.pathname;
+  document.querySelectorAll('.admin-sidebar__link[data-nav]').forEach(link => {
+    if (link.dataset.nav === currentPath) {
       link.classList.add('active');
     }
   });

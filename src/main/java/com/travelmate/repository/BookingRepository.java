@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -84,4 +85,71 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      * Dùng cho dashboard: "Bạn có 3 booking đang chờ xác nhận".
      */
     long countByUserIdAndBookingStatus(Long userId, BookingStatus bookingStatus);
+
+    // ── Admin queries ──────────────────────────────────────────────────────────
+
+    /** Lấy tất cả booking kèm user + accommodation. Dùng cho trang admin/bookings. */
+    @Query("""
+            SELECT b FROM Booking b
+            JOIN FETCH b.user
+            JOIN FETCH b.accommodation
+            ORDER BY b.createdAt DESC
+            """)
+    List<Booking> findAllWithUserAndAccommodation();
+
+    /** Đếm booking theo trạng thái toàn hệ thống. Dùng cho admin dashboard. */
+    long countByBookingStatus(BookingStatus bookingStatus);
+
+
+    /** Đếm tổng booking của 1 user. Dùng cho admin/users để hiển thị số booking. */
+    long countByUserId(Long userId);
+
+    // ── Availability / Double-booking prevention ───────────────────────────────
+
+    /**
+     * Kiểm tra xem accommodation đã có booking nào trùng ngày chưa.
+     *
+     * LOGIC OVERLAP (chuẩn interval math):
+     *   Hai khoảng [A_in, A_out) và [B_in, B_out) bị chồng nhau khi:
+     *   A_in < B_out AND A_out > B_in
+     *
+     * Chỉ tính booking PENDING và CONFIRMED (CANCELLED và COMPLETED không block).
+     * excludeBookingId dùng khi sửa booking — bỏ qua chính booking đó.
+     *
+     * @param accommodationId  ID accommodation cần kiểm tra
+     * @param checkIn          Ngày nhận phòng yêu cầu
+     * @param checkOut         Ngày trả phòng yêu cầu
+     * @param excludeBookingId Bỏ qua booking này (dùng -1L nếu không cần loại trừ)
+     * @return true nếu có conflict
+     */
+    @Query("""
+            SELECT COUNT(b) > 0 FROM Booking b
+            WHERE b.accommodation.id = :accommodationId
+              AND b.bookingStatus IN ('PENDING', 'CONFIRMED')
+              AND b.id <> :excludeBookingId
+              AND b.checkIn  < :checkOut
+              AND b.checkOut > :checkIn
+            """)
+    boolean hasOverlappingBooking(
+            @Param("accommodationId")  Long      accommodationId,
+            @Param("checkIn")          LocalDate checkIn,
+            @Param("checkOut")         LocalDate checkOut,
+            @Param("excludeBookingId") Long      excludeBookingId
+    );
+
+    /**
+     * Lấy danh sách các khoảng ngày đang bận của 1 accommodation.
+     * Dùng cho UI: disable / highlight ngày đã có booking trên date-picker.
+     *
+     * Chỉ trả về booking PENDING và CONFIRMED (không CANCELLED / COMPLETED).
+     * Trả về Object[] = {checkIn, checkOut} để mapping thủ công (tránh DTO phức tạp).
+     */
+    @Query("""
+            SELECT b.checkIn, b.checkOut FROM Booking b
+            WHERE b.accommodation.id = :accommodationId
+              AND b.bookingStatus IN ('PENDING', 'CONFIRMED')
+              AND b.checkOut >= CURRENT_DATE
+            ORDER BY b.checkIn ASC
+            """)
+    List<Object[]> findBookedDateRanges(@Param("accommodationId") Long accommodationId);
 }

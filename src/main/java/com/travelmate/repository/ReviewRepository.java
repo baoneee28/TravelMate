@@ -43,4 +43,15 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
      */
     @Query("SELECT r.booking.id FROM Review r WHERE r.user.id = :userId")
     List<Long> findReviewedBookingIdsByUserId(@Param("userId") Long userId);
+
+    // ── Admin queries ──────────────────────────────────────────────────────────
+
+    /** Lấy tất cả review kèm user + accommodation. Dùng cho admin/reviews. */
+    @Query("""
+            SELECT r FROM Review r
+            JOIN FETCH r.user
+            JOIN FETCH r.accommodation
+            ORDER BY r.createdAt DESC
+            """)
+    List<Review> findAllWithUserAndAccommodation();
 }

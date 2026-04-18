@@ -142,6 +142,22 @@ document.addEventListener('DOMContentLoaded', () => {
       img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"%3E%3Crect fill="%23e8f4fb" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" fill="%231A6B9A" font-size="18" text-anchor="middle" dy="0.3em" font-family="sans-serif"%3ETravelMate%3C/text%3E%3C/svg%3E';
     });
   });
+  // ── Header Background on Scroll ─────────────
+  const header = document.getElementById('header');
+  if (header && document.querySelector('.hero-section')) {
+    function updateHeaderStyle() {
+      if (window.scrollY > 50) {
+        header.classList.remove('header-hero');
+        header.classList.add('scrolled');
+      } else {
+        header.classList.add('header-hero');
+        header.classList.remove('scrolled');
+      }
+    }
+    window.addEventListener('scroll', updateHeaderStyle, { passive: true });
+    updateHeaderStyle();
+  }
+
   // SCROLL TO TOP
 const scrollBtn = document.getElementById("scrollTopBtn");
 

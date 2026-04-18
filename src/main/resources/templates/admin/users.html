@@ -5,10 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Quản lý người dùng – Admin TravelMate</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-            rel="stylesheet"
-        />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <link rel="stylesheet" th:href="@{/assets/css/base.css}" />
         <link rel="stylesheet" th:href="@{/assets/css/layout.css}" />
         <link rel="stylesheet" th:href="@{/assets/css/components.css}" />
@@ -22,40 +19,38 @@
 
             <div class="admin-main">
                 <header class="admin-topbar">
-                    <div style="display: flex; align-items: center; gap: var(--space-4)">
+                    <div style="display:flex;align-items:center;gap:var(--space-4)">
                         <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
                         <h1 class="admin-topbar__title">👥 Quản lý người dùng</h1>
                     </div>
                 </header>
+
                 <main class="admin-content">
                     <div class="page-header">
                         <div>
                             <h2 class="page-header__title">Danh sách người dùng</h2>
-                            <p class="page-header__subtitle">3.542 tài khoản đã đăng ký</p>
+                            <p class="page-header__subtitle" th:text="${#lists.size(users)} + ' tài khoản đã đăng ký'">0 tài khoản</p>
                         </div>
-                        <button class="btn btn--outline btn--sm">📥 Xuất danh sách</button>
+                    </div>
+
+                    <!-- Filter Tabs -->
+                    <div style="display:flex;gap:var(--space-2);margin-bottom:var(--space-5);flex-wrap:wrap">
+                        <button class="filter-tab active" data-filter="all">Tất cả</button>
+                        <button class="filter-tab" data-filter="user">Khách</button>
+                        <button class="filter-tab" data-filter="partner">Đối tác</button>
+                        <button class="filter-tab" data-filter="admin">Admin</button>
                     </div>
 
                     <div class="table-toolbar">
                         <div class="input-group table-toolbar__search">
                             <span class="input-group__icon">🔍</span>
-                            <input
-                                type="text"
-                                class="form-control"
-                                id="table-search"
-                                placeholder="Tìm theo tên, email..."
-                            />
+                            <input type="text" class="form-control" id="table-search" placeholder="Tìm theo tên, email..." />
                         </div>
                         <div class="table-toolbar__actions">
-                            <select class="form-control" style="width: 150px">
-                                <option>Tất cả vai trò</option>
-                                <option>User</option>
-                                <option>Admin</option>
-                            </select>
-                            <select class="form-control" style="width: 150px">
-                                <option>Tất cả trạng thái</option>
-                                <option>Hoạt động</option>
-                                <option>Bị khóa</option>
+                            <select class="form-control" id="filter-status" style="width:150px">
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="active">Hoạt động</option>
+                                <option value="blocked">Bị khóa</option>
                             </select>
                         </div>
                     </div>
@@ -76,187 +71,81 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>1</td>
+                                <tr th:each="u, iter : ${users}"
+                                    th:data-role="${#strings.toLowerCase(u.role)}"
+                                    th:data-active="${u.active}">
+                                    <td th:text="${iter.count}">-</td>
                                     <td>
-                                        <div style="display: flex; align-items: center; gap: var(--space-3)">
-                                            <div
-                                                style="
-                                                    width: 34px;
-                                                    height: 34px;
-                                                    border-radius: 50%;
-                                                    background: var(--color-primary);
-                                                    color: #fff;
-                                                    display: flex;
-                                                    align-items: center;
-                                                    justify-content: center;
-                                                    font-weight: 700;
-                                                    font-size: 13px;
-                                                    flex-shrink: 0;
-                                                "
-                                            >
-                                                NA
-                                            </div>
-                                            <strong>Nguyễn Văn An</strong>
+                                        <div style="display:flex;align-items:center;gap:var(--space-3)">
+                                            <div style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;color:#fff"
+                                                 th:style="'width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;color:#fff;background:' + ${u.avatarColor}"
+                                                 th:text="${u.avatarInitials}">??</div>
+                                            <strong th:text="${u.fullName}">-</strong>
                                         </div>
                                     </td>
-                                    <td>nguyenvanan@email.com</td>
-                                    <td>0901 234 567</td>
-                                    <td><span class="badge badge--muted">User</span></td>
-                                    <td>5</td>
-                                    <td>15/01/2025</td>
-                                    <td><span class="status-dot status-dot--active">Hoạt động</span></td>
+                                    <td th:text="${u.email}">-</td>
+                                    <td th:text="${u.phone != null ? u.phone : '–'}">-</td>
+                                    <td><span class="badge" th:classappend="${u.roleBadgeClass}" th:text="${u.roleLabel}">-</span></td>
+                                    <td th:text="${u.role.name() == 'USER' ? u.bookingCount : '–'}">-</td>
+                                    <td th:text="${#temporals.format(u.createdAt,'dd/MM/yyyy')}">-</td>
                                     <td>
-                                        <div class="table__actions">
-                                            <button class="btn btn--outline btn--sm" title="Chi tiết">👁</button>
-                                            <button
-                                                class="btn btn--danger btn--sm btn-delete"
-                                                data-name="Nguyễn Văn An"
-                                                title="Khóa tài khoản"
-                                            >
-                                                🔒
-                                            </button>
-                                        </div>
+                                        <span th:if="${u.active}" class="status-dot status-dot--active">Hoạt động</span>
+                                        <span th:if="${!u.active}" class="status-dot status-dot--inactive">Bị khóa</span>
+                                    </td>
+                                    <td>
+                                        <!-- ADMIN: không thể khóa -->
+                                        <button th:if="${u.role.name() == 'ADMIN'}"
+                                                class="btn btn--ghost btn--sm" disabled>Không thể khóa</button>
+                                        <!-- USER / PARTNER đang active: nút Khóa -->
+                                        <button th:if="${u.role.name() != 'ADMIN' and u.active}"
+                                                class="btn btn--danger btn--sm btn-toggle-status"
+                                                th:data-id="${u.id}" th:data-name="${u.fullName}">
+                                            🔒 Khóa
+                                        </button>
+                                        <!-- USER / PARTNER bị khóa: nút Mở khóa -->
+                                        <button th:if="${u.role.name() != 'ADMIN' and !u.active}"
+                                                class="btn btn--sm btn-toggle-status"
+                                                style="background:var(--color-success);color:#fff;border:none;border-radius:6px;padding:6px 12px"
+                                                th:data-id="${u.id}" th:data-name="${u.fullName}">
+                                            🔓 Mở khóa
+                                        </button>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td>
-                                        <div style="display: flex; align-items: center; gap: var(--space-3)">
-                                            <div
-                                                style="
-                                                    width: 34px;
-                                                    height: 34px;
-                                                    border-radius: 50%;
-                                                    background: var(--color-accent);
-                                                    color: #fff;
-                                                    display: flex;
-                                                    align-items: center;
-                                                    justify-content: center;
-                                                    font-weight: 700;
-                                                    font-size: 13px;
-                                                    flex-shrink: 0;
-                                                "
-                                            >
-                                                TB
-                                            </div>
-                                            <strong>Trần Thị Bình</strong>
-                                        </div>
-                                    </td>
-                                    <td>trантhibinh@email.com</td>
-                                    <td>0912 345 678</td>
-                                    <td><span class="badge badge--muted">User</span></td>
-                                    <td>3</td>
-                                    <td>20/02/2025</td>
-                                    <td><span class="status-dot status-dot--active">Hoạt động</span></td>
-                                    <td>
-                                        <div class="table__actions">
-                                            <button class="btn btn--outline btn--sm">👁</button>
-                                            <button
-                                                class="btn btn--danger btn--sm btn-delete"
-                                                data-name="Trần Thị Bình"
-                                            >
-                                                🔒
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>3</td>
-                                    <td>
-                                        <div style="display: flex; align-items: center; gap: var(--space-3)">
-                                            <div
-                                                style="
-                                                    width: 34px;
-                                                    height: 34px;
-                                                    border-radius: 50%;
-                                                    background: var(--color-success);
-                                                    color: #fff;
-                                                    display: flex;
-                                                    align-items: center;
-                                                    justify-content: center;
-                                                    font-weight: 700;
-                                                    font-size: 13px;
-                                                    flex-shrink: 0;
-                                                "
-                                            >
-                                                AD
-                                            </div>
-                                            <strong>Admin System</strong>
-                                        </div>
-                                    </td>
-                                    <td>admin@travelmate.vn</td>
-                                    <td>1800 1234</td>
-                                    <td><span class="badge badge--primary">Admin</span></td>
-                                    <td>–</td>
-                                    <td>01/01/2025</td>
-                                    <td><span class="status-dot status-dot--active">Hoạt động</span></td>
-                                    <td>
-                                        <button class="btn btn--ghost btn--sm" disabled>Không thể khóa</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>4</td>
-                                    <td>
-                                        <div style="display: flex; align-items: center; gap: var(--space-3)">
-                                            <div
-                                                style="
-                                                    width: 34px;
-                                                    height: 34px;
-                                                    border-radius: 50%;
-                                                    background: #cfd8dc;
-                                                    color: var(--color-text-muted);
-                                                    display: flex;
-                                                    align-items: center;
-                                                    justify-content: center;
-                                                    font-weight: 700;
-                                                    font-size: 13px;
-                                                    flex-shrink: 0;
-                                                "
-                                            >
-                                                PL
-                                            </div>
-                                            <strong>Phạm Lan Anh</strong>
-                                        </div>
-                                    </td>
-                                    <td>phamlananh@email.com</td>
-                                    <td>0934 567 890</td>
-                                    <td><span class="badge badge--muted">User</span></td>
-                                    <td>1</td>
-                                    <td>05/03/2025</td>
-                                    <td><span class="status-dot status-dot--inactive">Bị khóa</span></td>
-                                    <td>
-                                        <div class="table__actions">
-                                            <button class="btn btn--outline btn--sm">👁</button>
-                                            <button
-                                                class="btn btn--sm"
-                                                style="
-                                                    background: var(--color-success);
-                                                    color: #fff;
-                                                    border: none;
-                                                    border-radius: 6px;
-                                                    padding: 6px 12px;
-                                                "
-                                            >
-                                                🔓 Mở khóa
-                                            </button>
-                                        </div>
-                                    </td>
+                                <tr th:if="${#lists.isEmpty(users)}">
+                                    <td colspan="9" style="text-align:center;color:var(--color-text-muted);padding:32px">Chưa có người dùng nào</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-
-                    <div class="pagination" style="justify-content: flex-start; margin-top: var(--space-4)">
-                        <span class="pagination__item disabled">‹</span>
-                        <span class="pagination__item active" data-page="1">1</span>
-                        <span class="pagination__item" data-page="2">2</span>
-                        <span class="pagination__item">›</span>
-                    </div>
                 </main>
             </div>
         </div>
+
         <script th:src="@{/assets/js/main.js}"></script>
         <script th:src="@{/assets/js/admin.js}"></script>
+        <script>
+            document.querySelectorAll('.btn-toggle-status').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const id = this.dataset.id;
+                    const name = this.dataset.name;
+                    const isLock = this.textContent.includes('Khóa') && !this.textContent.includes('Mở');
+                    if (!confirm((isLock ? 'Khóa' : 'Mở khóa') + ' tài khoản "' + name + '"?')) return;
+                    fetch('/api/admin/users/' + id + '/toggle-status', { method: 'PUT' })
+                        .then(r => r.json())
+                        .then(data => { alert(data.message); if (data.success) location.reload(); })
+                        .catch(() => alert('Lỗi kết nối server'));
+                });
+            });
+
+            // Filter by status
+            document.getElementById('filter-status').addEventListener('change', function () {
+                const val = this.value;
+                document.querySelectorAll('tbody tr[data-role]').forEach(row => {
+                    if (!val) { row.style.display = ''; return; }
+                    const isActive = row.dataset.active === 'true';
+                    row.style.display = (val === 'active' ? isActive : !isActive) ? '' : 'none';
+                });
+            });
+        </script>
     </body>
 </html>

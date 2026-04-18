@@ -1,9 +1,13 @@
 package com.travelmate.repository;
 
 import com.travelmate.entity.User;
+import com.travelmate.enums.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -50,4 +54,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * SELECT COUNT(*) > 0 FROM users WHERE email = ?
      */
     boolean existsByEmail(String email);
+
+    // ── Admin queries ──────────────────────────────────────────────────────────
+
+    /** Lấy tất cả user, mới nhất trước. Dùng cho admin/users. */
+    List<User> findAllByOrderByCreatedAtDesc();
+
+    /** Đếm user theo role. Dùng cho admin dashboard. */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.role = :role")
+    long countByRole(@Param("role") Role role);
 }

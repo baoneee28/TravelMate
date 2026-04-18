@@ -39,6 +39,7 @@ body {
     color: var(--text-main);
     line-height: 1.5;
     overflow-x: hidden;
+    padding-top: 105px;
 }
 
 a {
@@ -84,8 +85,9 @@ img {
     gap: 6px;
 }
 
-/* Nút hamburger 3 sọc */
+/* Nút hamburger 3 sọc — ẩn trên desktop, hiện trên mobile */
 .hamburger-btn {
+    display: none;
     background: none;
     border: none;
     cursor: pointer;
@@ -358,10 +360,18 @@ img {
     z-index: 1000;
     padding: 20px 0;
     transition: all 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.97);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* Chỉ dùng trên trang có hero (trang chủ), khi scroll = 0 */
+.header.header-hero {
+    background-color: transparent;
+    box-shadow: none;
 }
 
 .header.scrolled {
-    background-color: rgba(255, 255, 255, 0.95);
+    background-color: rgba(255, 255, 255, 0.97);
     backdrop-filter: blur(10px);
     padding: 12px 0;
     box-shadow: var(--shadow-sm);
@@ -565,6 +575,12 @@ img {
     align-items: center;
     gap: 12px;
     padding: 11px 14px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    width: 100%;
+    text-align: left;
     border-radius: 12px;
     font-size: 14px;
     font-weight: 600;
@@ -649,6 +665,11 @@ img {
     align-items: center;
     gap: 6px;
     transition: color 0.2s;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: inherit;
 }
 
 .sidebar-logout-link:hover {
@@ -2125,6 +2146,24 @@ img {
 @media (max-width: 768px) {
     .header {
         padding: 14px 0;
+    }
+
+    .hamburger-btn {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .menu {
+        display: none;
+    }
+
+    .user-nav-dropdown {
+        display: none;
+    }
+
+    .login-btn {
+        display: none;
     }
 
     .hero-section {

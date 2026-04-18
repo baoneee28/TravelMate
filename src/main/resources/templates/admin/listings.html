@@ -3,12 +3,9 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Quản lý khách sạn – Admin TravelMate</title>
+        <title>Quản lý nơi lưu trú – Admin TravelMate</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-            rel="stylesheet"
-        />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <link rel="stylesheet" th:href="@{/assets/css/base.css}" />
         <link rel="stylesheet" th:href="@{/assets/css/layout.css}" />
         <link rel="stylesheet" th:href="@{/assets/css/components.css}" />
@@ -22,48 +19,43 @@
 
             <div class="admin-main">
                 <header class="admin-topbar">
-                    <div style="display: flex; align-items: center; gap: var(--space-4)">
+                    <div style="display:flex;align-items:center;gap:var(--space-4)">
                         <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
-                        <h1 class="admin-topbar__title">🏨 Quản lý khách sạn</h1>
+                        <h1 class="admin-topbar__title">🏨 Quản lý nơi lưu trú</h1>
                     </div>
                     <div class="admin-topbar__actions">
-                        <a th:href="@{/accommodations}" class="btn btn--outline btn--sm" target="_blank"
-                            >🌐 Xem ngoài site</a
-                        >
+                        <a th:href="@{/accommodations}" class="btn btn--outline btn--sm" target="_blank">🌐 Xem ngoài site</a>
                     </div>
                 </header>
 
                 <main class="admin-content">
                     <div class="page-header">
                         <div>
-                            <h2 class="page-header__title">Danh sách khách sạn</h2>
-                            <p class="page-header__subtitle">Quản lý toàn bộ 48 khách sạn trên hệ thống</p>
+                            <h2 class="page-header__title">Danh sách nơi lưu trú</h2>
+                            <p class="page-header__subtitle" th:text="${#lists.size(accommodations)} + ' nơi lưu trú tổng cộng'">0 nơi lưu trú</p>
                         </div>
-                        <button class="btn btn--primary" data-modal="modal-add-hotel">+ Thêm khách sạn</button>
                     </div>
 
-                    <!-- Toolbar -->
+                    <!-- Filter Tabs -->
+                    <div style="display:flex;gap:var(--space-2);margin-bottom:var(--space-5);flex-wrap:wrap">
+                        <button class="filter-tab active" data-filter="all">Tất cả</button>
+                        <button class="filter-tab" data-filter="pending">Chờ duyệt</button>
+                        <button class="filter-tab" data-filter="approved">Đã duyệt</button>
+                        <button class="filter-tab" data-filter="rejected">Từ chối</button>
+                    </div>
+
                     <div class="table-toolbar">
                         <div class="input-group table-toolbar__search">
                             <span class="input-group__icon">🔍</span>
-                            <input
-                                type="text"
-                                class="form-control"
-                                id="table-search"
-                                placeholder="Tìm theo tên, địa điểm..."
-                            />
+                            <input type="text" class="form-control" id="table-search" placeholder="Tìm theo tên, thành phố, đối tác..." />
                         </div>
                         <div class="table-toolbar__actions">
-                            <select class="form-control" style="width: 160px">
-                                <option>Tất cả trạng thái</option>
-                                <option>Đang hoạt động</option>
-                                <option>Tạm ngưng</option>
-                            </select>
-                            <select class="form-control" style="width: 130px">
-                                <option>Tất cả sao</option>
-                                <option>5 sao</option>
-                                <option>4 sao</option>
-                                <option>3 sao</option>
+                            <select class="form-control" id="filter-type" style="width:150px">
+                                <option value="">Tất cả loại</option>
+                                <option value="HOTEL">Khách sạn</option>
+                                <option value="HOMESTAY">Homestay</option>
+                                <option value="VILLA">Villa</option>
+                                <option value="APARTMENT">Căn hộ</option>
                             </select>
                         </div>
                     </div>
@@ -73,201 +65,110 @@
                             <thead>
                                 <tr>
                                     <th>STT</th>
-                                    <th>Hình ảnh</th>
-                                    <th>Tên khách sạn</th>
-                                    <th>Địa điểm</th>
-                                    <th>Hạng sao</th>
-                                    <th>Số phòng</th>
+                                    <th>Ảnh</th>
+                                    <th>Tên nơi lưu trú</th>
+                                    <th>Loại</th>
+                                    <th>Thành phố</th>
+                                    <th>Giá/đêm</th>
+                                    <th>Đối tác</th>
                                     <th>Trạng thái</th>
                                     <th>Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>1</td>
+                                <tr th:each="a, iter : ${accommodations}"
+                                    th:data-status="${#strings.toLowerCase(a.approvalStatus)}"
+                                    th:data-type="${a.propertyType}">
+                                    <td th:text="${iter.count}">-</td>
                                     <td>
-                                        <img
-                                            src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=160&q=60"
-                                            class="table-hotel-image"
-                                            alt=""
-                                        />
+                                        <img th:if="${a.thumbnailUrl != null}"
+                                             th:src="${a.thumbnailUrl}"
+                                             class="table-hotel-image" alt=""
+                                             style="width:60px;height:45px;object-fit:cover;border-radius:6px"
+                                             onerror="this.style.display='none'" />
+                                        <div th:if="${a.thumbnailUrl == null}"
+                                             style="width:60px;height:45px;background:var(--color-surface-2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:20px">🏨</div>
                                     </td>
-                                    <td><strong>InterContinental Hanoi Westlake</strong></td>
-                                    <td>Tây Hồ, Hà Nội</td>
-                                    <td><span class="stars" style="font-size: 12px">★★★★★</span></td>
-                                    <td>156</td>
-                                    <td><span class="status-dot status-dot--active">Hoạt động</span></td>
+                                    <td>
+                                        <div style="font-weight:600" th:text="${a.name}">-</div>
+                                        <div style="font-size:12px;color:var(--color-text-muted)" th:text="${a.address}">-</div>
+                                    </td>
+                                    <td th:text="${a.propertyTypeLabel}">-</td>
+                                    <td th:text="${a.city}">-</td>
+                                    <td style="font-weight:600;color:var(--color-primary)"
+                                        th:text="${a.priceFormatted} + 'đ'">-</td>
+                                    <td>
+                                        <div style="font-size:13px" th:text="${a.partnerName}">-</div>
+                                        <div style="font-size:11px;color:var(--color-text-muted)" th:text="${a.partnerEmail}">-</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge" th:classappend="${a.approvalStatusBadgeClass}" th:text="${a.approvalStatusLabel}">-</span>
+                                    </td>
                                     <td>
                                         <div class="table__actions">
-                                            <button
-                                                class="btn btn--outline btn--sm"
-                                                data-modal="modal-add-hotel"
-                                                title="Sửa"
-                                            >
-                                                ✏
+                                            <!-- PENDING hoặc REJECTED: nút Duyệt -->
+                                            <button th:if="${a.approvalStatus.name() != 'APPROVED'}"
+                                                    class="btn btn--sm btn-approve"
+                                                    style="background:var(--color-success);color:#fff;border:none;border-radius:6px;padding:6px 12px"
+                                                    th:data-id="${a.id}" th:data-name="${a.name}">
+                                                ✓ Duyệt
                                             </button>
-                                            <button
-                                                class="btn btn--danger btn--sm btn-delete"
-                                                data-name="InterContinental"
-                                                title="Xóa"
-                                            >
-                                                🗑
+                                            <!-- PENDING hoặc APPROVED: nút Từ chối -->
+                                            <button th:if="${a.approvalStatus.name() != 'REJECTED'}"
+                                                    class="btn btn--danger btn--sm btn-reject"
+                                                    th:data-id="${a.id}" th:data-name="${a.name}">
+                                                ✕ Từ chối
                                             </button>
+                                            <!-- REJECTED: chỉ có nút Duyệt (đã hiển thị ở trên) -->
                                         </div>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td>
-                                        <img
-                                            src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=160&q=60"
-                                            class="table-hotel-image"
-                                            alt=""
-                                        />
-                                    </td>
-                                    <td><strong>Fusion Maia Resort Đà Nẵng</strong></td>
-                                    <td>Non Nước, Đà Nẵng</td>
-                                    <td><span class="stars" style="font-size: 12px">★★★★★</span></td>
-                                    <td>87</td>
-                                    <td><span class="status-dot status-dot--active">Hoạt động</span></td>
-                                    <td>
-                                        <div class="table__actions">
-                                            <button class="btn btn--outline btn--sm" data-modal="modal-add-hotel">
-                                                ✏
-                                            </button>
-                                            <button class="btn btn--danger btn--sm btn-delete" data-name="Fusion Maia">
-                                                🗑
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>3</td>
-                                    <td>
-                                        <img
-                                            src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=160&q=60"
-                                            class="table-hotel-image"
-                                            alt=""
-                                        />
-                                    </td>
-                                    <td><strong>Park Hyatt Saigon</strong></td>
-                                    <td>Quận 1, TP.HCM</td>
-                                    <td><span class="stars" style="font-size: 12px">★★★★★</span></td>
-                                    <td>245</td>
-                                    <td><span class="status-dot status-dot--active">Hoạt động</span></td>
-                                    <td>
-                                        <div class="table__actions">
-                                            <button class="btn btn--outline btn--sm" data-modal="modal-add-hotel">
-                                                ✏
-                                            </button>
-                                            <button class="btn btn--danger btn--sm btn-delete" data-name="Park Hyatt">
-                                                🗑
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>4</td>
-                                    <td>
-                                        <img
-                                            src="https://images.unsplash.com/photo-1582719508461-905c673771fd?w=160&q=60"
-                                            class="table-hotel-image"
-                                            alt=""
-                                        />
-                                    </td>
-                                    <td><strong>La Résidence Hội An</strong></td>
-                                    <td>Cẩm Nam, Hội An</td>
-                                    <td><span class="stars" style="font-size: 12px">★★★★</span></td>
-                                    <td>32</td>
-                                    <td><span class="status-dot status-dot--inactive">Tạm ngưng</span></td>
-                                    <td>
-                                        <div class="table__actions">
-                                            <button class="btn btn--outline btn--sm" data-modal="modal-add-hotel">
-                                                ✏
-                                            </button>
-                                            <button class="btn btn--danger btn--sm btn-delete" data-name="La Résidence">
-                                                🗑
-                                            </button>
-                                        </div>
-                                    </td>
+                                <tr th:if="${#lists.isEmpty(accommodations)}">
+                                    <td colspan="9" style="text-align:center;color:var(--color-text-muted);padding:32px">Chưa có nơi lưu trú nào</td>
                                 </tr>
                             </tbody>
                         </table>
-                    </div>
-
-                    <p class="text-sm text-muted mt-4">Hiển thị 4 / 48 khách sạn</p>
-                    <div class="pagination" style="justify-content: flex-start; margin-top: var(--space-4)">
-                        <span class="pagination__item disabled">‹</span>
-                        <span class="pagination__item active" data-page="1">1</span>
-                        <span class="pagination__item" data-page="2">2</span>
-                        <span class="pagination__item" data-page="3">3</span>
-                        <span class="pagination__item">›</span>
                     </div>
                 </main>
             </div>
         </div>
 
-        <!-- Modal: Add/Edit Hotel -->
-        <div class="modal-overlay" id="modal-add-hotel">
-            <div class="modal modal--lg">
-                <div class="modal__header">
-                    <h3 class="modal__title">🏨 Thêm / Sửa khách sạn</h3>
-                    <button class="modal__close">✕</button>
-                </div>
-                <div class="modal__body">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Tên khách sạn <span class="required">*</span></label>
-                            <input type="text" class="form-control" placeholder="Nhập tên khách sạn" />
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Hạng sao <span class="required">*</span></label>
-                            <select class="form-control">
-                                <option>5 sao</option>
-                                <option>4 sao</option>
-                                <option>3 sao</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Địa chỉ <span class="required">*</span></label>
-                        <input type="text" class="form-control" placeholder="Số nhà, đường, quận, thành phố" />
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Thành phố</label>
-                            <select class="form-control">
-                                <option>Hà Nội</option>
-                                <option>Đà Nẵng</option>
-                                <option>TP.HCM</option>
-                                <option>Hội An</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Trạng thái</label>
-                            <select class="form-control">
-                                <option>Hoạt động</option>
-                                <option>Tạm ngưng</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Mô tả</label>
-                        <textarea class="form-control" rows="3" placeholder="Mô tả ngắn về khách sạn..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">URL hình ảnh đại diện</label>
-                        <input type="url" class="form-control" placeholder="https://..." />
-                    </div>
-                </div>
-                <div class="modal__footer">
-                    <button class="btn btn--ghost modal__close">Hủy</button>
-                    <button class="btn btn--primary">💾 Lưu khách sạn</button>
-                </div>
-            </div>
-        </div>
-
         <script th:src="@{/assets/js/main.js}"></script>
         <script th:src="@{/assets/js/admin.js}"></script>
+        <script>
+            // Approve
+            document.querySelectorAll('.btn-approve').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const id = this.dataset.id;
+                    const name = this.dataset.name;
+                    if (!confirm('Duyệt "' + name + '"?')) return;
+                    fetch('/api/admin/accommodations/' + id + '/approve', { method: 'PUT' })
+                        .then(r => r.json())
+                        .then(data => { alert(data.message); if (data.success) location.reload(); })
+                        .catch(() => alert('Lỗi kết nối server'));
+                });
+            });
+
+            // Reject
+            document.querySelectorAll('.btn-reject').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const id = this.dataset.id;
+                    const name = this.dataset.name;
+                    if (!confirm('Từ chối "' + name + '"?')) return;
+                    fetch('/api/admin/accommodations/' + id + '/reject', { method: 'PUT' })
+                        .then(r => r.json())
+                        .then(data => { alert(data.message); if (data.success) location.reload(); })
+                        .catch(() => alert('Lỗi kết nối server'));
+                });
+            });
+
+            // Filter by type
+            document.getElementById('filter-type').addEventListener('change', function () {
+                const val = this.value;
+                document.querySelectorAll('tbody tr[data-type]').forEach(row => {
+                    row.style.display = (!val || row.dataset.type === val) ? '' : 'none';
+                });
+            });
+        </script>
     </body>
 </html>

@@ -2,7 +2,9 @@ package com.travelmate.controller.page;
 
 import com.travelmate.dto.response.AccommodationResponse;
 import com.travelmate.dto.response.BookingResponse;
+import com.travelmate.entity.User;
 import com.travelmate.exception.ResourceNotFoundException;
+import com.travelmate.repository.UserRepository;
 import com.travelmate.service.AccommodationService;
 import com.travelmate.service.BookingService;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +40,7 @@ public class UserPageController {
 
     private final AccommodationService accommodationService;
     private final BookingService bookingService;
+    private final UserRepository userRepository;
 
     // ============================================================
     // TRANG ĐẶT PHÒNG (Form tạo booking)
@@ -66,13 +69,16 @@ public class UserPageController {
             // Lấy thông tin accommodation từ DB (chỉ APPROVED)
             AccommodationResponse accommodation =
                     accommodationService.findApprovedById(accommodationId);
-
-            // Truyền data vào template để hiển thị
             model.addAttribute("accommodation", accommodation);
 
-            // Truyền email user đang đăng nhập (dùng hiển thị form)
+            // Load thông tin user đang đăng nhập từ DB
+            // → điền sẵn vào form (readonly) để chuyên nghiệp và tránh bị hỏi vặn khi demo
             if (auth != null) {
-                model.addAttribute("userEmail", auth.getName());
+                userRepository.findByEmail(auth.getName()).ifPresent(user -> {
+                    model.addAttribute("userFullName", user.getFullName());
+                    model.addAttribute("userPhone",    user.getPhone() != null ? user.getPhone() : "");
+                    model.addAttribute("userEmail",    user.getEmail());
+                });
             }
 
             return "user/booking";
@@ -108,3 +114,4 @@ public class UserPageController {
         return "user/mybooking";
     }
 }
+

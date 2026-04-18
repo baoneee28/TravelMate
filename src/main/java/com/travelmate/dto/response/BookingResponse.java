@@ -30,6 +30,12 @@ public class BookingResponse {
     /** ID booking */
     private Long id;
 
+    /**
+     * Mã đặt phòng dạng TM20260418-001.
+     * Hiển thị thay cho #TM{id} để trông chuyên nghiệp hơn.
+     */
+    private String bookingCode;
+
     /** Ngày nhận phòng */
     private LocalDate checkIn;
 
@@ -101,4 +107,24 @@ public class BookingResponse {
 
     /** Nhãn loại lưu trú: "Khách sạn", "Villa"... */
     private String propertyTypeLabel;
+
+    // ========== THÔNG TIN THANH TOÁN (embed inline để template không phải query riêng) ==========
+
+    /** ID payment tương ứng (null nếu chưa tạo — không nên xảy ra) */
+    private Long paymentId;
+
+    /** Trạng thái thanh toán: "Chưa thanh toán", "Đã thanh toán"... */
+    private String paymentStatusLabel;
+
+    /**
+     * CSS class cho badge thanh toán.
+     * "badge-unpaid" (cam), "badge-paid" (xanh), "badge-refunded" (tím), "badge-failed" (đỏ)
+     */
+    private String paymentStatusCssClass;
+
+    /** Phương thức thanh toán (VN): "Chuyển khoản QR", "VNPay", "MoMo"... */
+    private String paymentMethodLabel;
+
+    /** Mã giao dịch mock (hiển thị khi PAID) */
+    private String transactionCode;
 }

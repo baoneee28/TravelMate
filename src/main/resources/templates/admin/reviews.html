@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Quản lý đánh giá – Admin TravelMate</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <link rel="stylesheet" th:href="@{/assets/css/base.css}" />
+        <link rel="stylesheet" th:href="@{/assets/css/layout.css}" />
+        <link rel="stylesheet" th:href="@{/assets/css/components.css}" />
+        <link rel="stylesheet" th:href="@{/assets/pages/admin.css}" />
+        <link rel="stylesheet" th:href="@{/assets/css/responsive.css}" />
+    </head>
+    <body>
+        <div class="admin-wrapper">
+            <aside th:replace="~{fragments/admin-sidebar :: admin-sidebar}"></aside>
+            <div class="admin-sidebar-overlay"></div>
+
+            <div class="admin-main">
+                <header class="admin-topbar">
+                    <div style="display:flex;align-items:center;gap:var(--space-4)">
+                        <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                        <h1 class="admin-topbar__title">⭐ Quản lý đánh giá</h1>
+                    </div>
+                    <div class="admin-topbar__actions">
+                        <a th:href="@{/accommodations}" class="btn btn--outline btn--sm" target="_blank">🌐 Xem site</a>
+                    </div>
+                </header>
+
+                <main class="admin-content">
+                    <div class="page-header">
+                        <div>
+                            <h2 class="page-header__title">Danh sách đánh giá</h2>
+                            <p class="page-header__subtitle" th:text="${#lists.size(reviews)} + ' đánh giá tổng cộng'">0 đánh giá</p>
+                        </div>
+                    </div>
+
+                    <!-- Filter Tabs theo số sao -->
+                    <div style="display:flex;gap:var(--space-2);margin-bottom:var(--space-5);flex-wrap:wrap">
+                        <button class="filter-tab active" data-filter="all">Tất cả</button>
+                        <button class="filter-tab" data-filter="5">★★★★★ 5 sao</button>
+                        <button class="filter-tab" data-filter="4">★★★★☆ 4 sao</button>
+                        <button class="filter-tab" data-filter="3">★★★☆☆ 3 sao</button>
+                        <button class="filter-tab" data-filter="2">★★☆☆☆ 2 sao</button>
+                        <button class="filter-tab" data-filter="1">★☆☆☆☆ 1 sao</button>
+                    </div>
+
+                    <div class="table-toolbar">
+                        <div class="input-group table-toolbar__search">
+                            <span class="input-group__icon">🔍</span>
+                            <input type="text" class="form-control" id="table-search" placeholder="Tìm theo tên khách, nơi lưu trú, nội dung..." />
+                        </div>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="table data-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã</th>
+                                    <th>Khách hàng</th>
+                                    <th>Nơi lưu trú</th>
+                                    <th>Mã booking</th>
+                                    <th>Số sao</th>
+                                    <th>Nội dung</th>
+                                    <th>Ngày đánh giá</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="r : ${reviews}"
+                                    th:data-rating="${r.rating}">
+                                    <td style="font-family:monospace;font-size:12px;color:var(--color-primary)"
+                                        th:text="'#' + ${r.id}">-</td>
+                                    <td>
+                                        <div style="font-weight:600" th:text="${r.userName}">-</div>
+                                        <div style="font-size:12px;color:var(--color-text-muted)" th:text="${r.userEmail}">-</div>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/accommodations/{id}(id=${r.accommodationId})}"
+                                           target="_blank"
+                                           style="color:var(--color-primary);text-decoration:none;font-weight:500"
+                                           th:text="${r.accommodationName}">-</a>
+                                    </td>
+                                    <td style="font-family:monospace;font-size:12px"
+                                        th:text="'#' + ${r.bookingId}">-</td>
+                                    <td>
+                                        <span style="color:#f59e0b;font-size:15px;letter-spacing:1px"
+                                              th:text="${r.starsDisplay}">-</span>
+                                    </td>
+                                    <td style="max-width:280px">
+                                        <div style="overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:13px"
+                                             th:text="${r.comment}">-</div>
+                                    </td>
+                                    <td th:text="${#temporals.format(r.createdAt,'dd/MM/yyyy')}">-</td>
+                                    <td>
+                                        <button class="btn btn--danger btn--sm btn-delete-review"
+                                                th:data-id="${r.id}"
+                                                th:data-name="${r.userName}">
+                                            🗑 Xóa
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(reviews)}">
+                                    <td colspan="8" style="text-align:center;color:var(--color-text-muted);padding:32px">Chưa có đánh giá nào</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <script th:src="@{/assets/js/main.js}"></script>
+        <script th:src="@{/assets/js/admin.js}"></script>
+        <script>
+            // Delete review
+            document.querySelectorAll('.btn-delete-review').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const id = this.dataset.id;
+                    const name = this.dataset.name;
+                    if (!confirm('Xóa đánh giá của "' + name + '"? Hành động này không thể hoàn tác.')) return;
+                    fetch('/api/admin/reviews/' + id, { method: 'DELETE' })
+                        .then(r => r.json())
+                        .then(data => { alert(data.message); if (data.success) location.reload(); })
+                        .catch(() => alert('Lỗi kết nối server'));
+                });
+            });
+
+            // Filter tabs by rating
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.addEventListener('click', function () {
+                    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    const filter = this.dataset.filter;
+                    document.querySelectorAll('tbody tr[data-rating]').forEach(row => {
+                        row.style.display = (filter === 'all' || row.dataset.rating === filter) ? '' : 'none';
+                    });
+                });
+            });
+        </script>
+    </body>
+</html>
