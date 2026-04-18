@@ -132,11 +132,8 @@
                                     placeholder="Tìm theo tên phòng hoặc cơ sở..." />
                             </div>
                             <div class="table-toolbar__actions">
-                                <select class="form-control" id="admin-room-approval-filter" style="width: 180px">
-                                    <option value="all">Tất cả phê duyệt</option>
-                                    <option value="Chờ duyệt">Chờ duyệt</option>
-                                    <option value="Đã duyệt">Đã duyệt</option>
-                                    <option value="Từ chối">Từ chối</option>
+                                <select class="form-control" id="admin-room-approval-filter" style="width: 180px; display: none;">
+                                    <option value="Chờ duyệt" selected>Chờ duyệt</option>
                                 </select>
                                 <select class="form-control" id="admin-room-type-filter" style="width: 180px">
                                     <option value="all">Tất cả loại phòng</option>
@@ -208,6 +205,11 @@
                                         <input id="admin-room-property-input" type="text" class="form-control"
                                             placeholder="Nhập tên cơ sở" />
                                     </div>
+                                    <div class="form-group" style="grid-column: 1 / -1;">
+                                        <label class="form-label">Địa chỉ <span class="required">*</span></label>
+                                        <input id="admin-room-address-input" type="text" class="form-control"
+                                            placeholder="Ví dụ: 123 Đường Điện Biên Phủ, Cửa Nam, Hoàn Kiếm, Hà Nội" />
+                                    </div>
                                     <div class="form-group">
                                         <label class="form-label">Loại phòng <span class="required">*</span></label>
                                         <select id="admin-room-type" class="form-control">
@@ -248,6 +250,13 @@
                                         <label class="form-check"><input type="checkbox" value="Smart TV" /> <span class="form-check-label">Smart TV</span></label>
                                         <label class="form-check"><input type="checkbox" value="Tủ lạnh" /> <span class="form-check-label">Tủ lạnh</span></label>
                                         <label class="form-check"><input type="checkbox" value="Hồ bơi" /> <span class="form-check-label">Hồ bơi</span></label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 0">
+                                    <label class="form-label">Hình ảnh đính kèm (Do Partner tải lên)</label>
+                                    <div id="admin-room-images-preview" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                                        <div style="padding: 1rem; border: 1px dashed var(--color-border); text-align: center; color: var(--color-text-muted); grid-column: span 3; border-radius: var(--radius-md);">Chờ tải dữ liệu hình ảnh...</div>
                                     </div>
                                 </div>
 

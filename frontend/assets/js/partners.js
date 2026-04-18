@@ -160,6 +160,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('edit-room-id').value = room.id;
     document.getElementById('edit-roomName').value = room.roomName || '';
     document.getElementById('edit-propertyName').value = room.propertyName || '';
+    const addressInput = document.getElementById('edit-address');
+    if (addressInput) addressInput.value = room.address || '';
     document.getElementById('edit-roomType').value = room.roomType || 'Hotel';
     document.getElementById('edit-price').value = room.price || '';
     document.getElementById('edit-size').value = room.size || '';
@@ -248,11 +250,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return `
           <tr>
             <td>${index + 1}</td>
+            <td><strong>${escapeHtml(room.propertyName || '')}</strong></td>
             <td>
-              <strong>${escapeHtml(room.roomName)}</strong>
-              <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 4px;">
-                ${escapeHtml(room.propertyName)}
-              </div>
+              <strong>${escapeHtml(room.roomName || '')}</strong>
+            </td>
+            <td>
+                <div style="font-size: 13px; max-width: 200px; white-space: normal;">
+                    ${escapeHtml(room.address || 'Chưa cập nhật địa chỉ')}
+                </div>
             </td>
             <td><span class="badge ${roomTypeClass}">${escapeHtml(roomTypeLabel)}</span></td>
             <td>${escapeHtml(room.capacity)}</td>
@@ -315,6 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const payload = {
       ...room,
       roomTypeLabel,
+      address: room.address || 'Chưa cập nhật địa chỉ',
       priceLabel: roomStore.formatCurrency(room.price),
       adminNoteLabel: room.adminNote || 'Admin chưa để lại ghi chú.',
       noteLabel: room.note || 'Không có ghi chú từ đối tác.',
@@ -506,6 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const room = roomStore.addRoom({
         roomName: (formData.get('roomName') || 'Phòng mới').toString().trim(),
         propertyName: (formData.get('propertyName') || 'TravelMate Partner').toString().trim(),
+        address: (formData.get('address') || 'Chưa cập nhật địa chỉ').toString().trim(),
         roomType: (formData.get('roomType') || 'Hotel').toString().trim(),
         capacity: (formData.get('capacity') || '2 khách').toString().trim(),
         price: (formData.get('price') || '0').toString(),
@@ -537,6 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const roomName = (document.getElementById('edit-roomName')?.value || '').trim();
       const propertyName = (document.getElementById('edit-propertyName')?.value || '').trim();
+      const address = (document.getElementById('edit-address')?.value || '').trim();
       const roomType = document.getElementById('edit-roomType')?.value || '';
       const capacity = document.getElementById('edit-capacity')?.value || '2 khách';
       const size = (document.getElementById('edit-size')?.value || '').trim() || '--';
@@ -557,10 +565,11 @@ document.addEventListener('DOMContentLoaded', () => {
       roomStore.updateRoom(roomId, {
         roomName,
         propertyName,
+        address,
         roomType,
         capacity,
-        size,
         price,
+        size,
         note,
         amenities,
         approvalStatus: 'Chờ duyệt',

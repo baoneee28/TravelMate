@@ -15,7 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const reviewIdInput = document.getElementById('admin-room-id');
   const roomNameInput = document.getElementById('admin-room-name-input');
   const propertyNameInput = document.getElementById('admin-room-property-input');
-  const roomTypeInput = document.getElementById('admin-room-type');
+  const addressInput = document.getElementById('admin-room-address-input');
+  const typeSelect = document.getElementById('admin-room-type');
   const capacityInput = document.getElementById('admin-room-capacity-input');
   const sizeInput = document.getElementById('admin-room-size-input');
   const priceInput = document.getElementById('admin-room-price-input');
@@ -27,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const checked = document.querySelectorAll('#admin-room-amenities-checklist input[type="checkbox"]:checked');
     return Array.from(checked).map(cb => cb.value);
   }
+  const imagesPreview = document.getElementById('admin-room-images-preview');
   const partnerNoteInput = document.getElementById('admin-room-partner-note-input');
   const adminNoteInput = document.getElementById('admin-room-note');
   const rejectButton = document.getElementById('admin-room-reject-btn');
@@ -95,7 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const query = String(searchInput?.value || '')
       .trim()
       .toLowerCase();
-    const approvalValue = approvalFilter?.value || 'all';
     const typeValue = typeFilter?.value || 'all';
 
     return roomStore.getRooms().filter((room) => {
@@ -106,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
           .toLowerCase()
           .includes(query);
 
-      const matchesApproval = approvalValue === 'all' || room.approvalStatus === approvalValue;
+      const matchesApproval = room.approvalStatus === 'Chờ duyệt';
       const matchesType =
         typeValue === 'all' ||
         (typeValue === '__pending__' ? !room.roomType : room.roomType === typeValue);
@@ -193,12 +194,14 @@ document.addEventListener('DOMContentLoaded', () => {
       reviewIdInput.value = '';
       roomNameInput.value = '';
       propertyNameInput.value = '';
-      roomTypeInput.value = '';
+      if (addressInput) addressInput.value = '';
+      typeSelect.value = '';
       capacityInput.value = '';
       sizeInput.value = '';
       priceInput.value = '';
       saleStatusInput.value = 'Đang bán';
       if (amenitiesCheckboxes) amenitiesCheckboxes.forEach(cb => cb.checked = false);
+      if (imagesPreview) imagesPreview.innerHTML = '<div style="padding: 1rem; border: 1px dashed var(--color-border); text-align: center; color: var(--color-text-muted); grid-column: span 3; border-radius: var(--radius-md);">Chưa có bảng dữ liệu hồ sơ nào.</div>';
       partnerNoteInput.value = '';
       adminNoteInput.value = '';
 
@@ -218,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (rejectButton) rejectButton.disabled = true;
       if (roomNameInput) roomNameInput.disabled = true;
       if (propertyNameInput) propertyNameInput.disabled = true;
-      if (roomTypeInput) roomTypeInput.disabled = true;
+      if (typeSelect) typeSelect.disabled = true;
       if (capacityInput) capacityInput.disabled = true;
       if (sizeInput) sizeInput.disabled = true;
       if (priceInput) priceInput.disabled = true;
@@ -235,7 +238,8 @@ document.addEventListener('DOMContentLoaded', () => {
     reviewIdInput.value = room.id;
     roomNameInput.value = room.roomName || '';
     propertyNameInput.value = room.propertyName || '';
-    roomTypeInput.value = room.roomType || '';
+    if (addressInput) addressInput.value = room.address || '';
+    typeSelect.value = room.roomType || '';
     capacityInput.value = room.capacity || '';
     sizeInput.value = room.size || '';
     priceInput.value = room.price || '';
@@ -246,6 +250,21 @@ document.addEventListener('DOMContentLoaded', () => {
         cb.checked = room.amenities && Array.isArray(room.amenities) && room.amenities.some(a => a.trim().toLowerCase() === cb.value.trim().toLowerCase());
       });
     }
+    
+    if (imagesPreview) {
+      const seed = Array.from(String(room.roomName || 'A')).reduce((sum, c) => sum + c.charCodeAt(0), 0);
+      const img1 = `https://images.unsplash.com/photo-${1500000000000 + (seed * 1000)}?w=320&q=70`;
+      const img2 = `https://images.unsplash.com/photo-${1500000000000 + (seed * 1001)}?w=320&q=70`;
+      const img3 = `https://images.unsplash.com/photo-${1500000000000 + (seed * 1002)}?w=320&q=70`;
+      const imgStyle = "width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--color-border-light);";
+      
+      imagesPreview.innerHTML = `
+        <img src="${img1}" style="${imgStyle}" alt="Ảnh đại diện phòng" title="Ảnh đại diện" />
+        <img src="${img2}" style="${imgStyle}" alt="Ảnh chi tiết 1" title="Ảnh chi tiết 1" />
+        <img src="${img3}" style="${imgStyle}" alt="Ảnh chi tiết 2" title="Ảnh chi tiết 2" />
+      `;
+    }
+
     partnerNoteInput.value = room.note || '';
     adminNoteInput.value = room.adminNote || '';
 
@@ -265,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (rejectButton) rejectButton.disabled = false;
     if (roomNameInput) roomNameInput.disabled = false;
     if (propertyNameInput) propertyNameInput.disabled = false;
-    if (roomTypeInput) roomTypeInput.disabled = false;
+    if (typeSelect) typeSelect.disabled = false;
     if (capacityInput) capacityInput.disabled = false;
     if (sizeInput) sizeInput.disabled = false;
     if (priceInput) priceInput.disabled = false;
@@ -288,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const roomId = reviewIdInput.value;
     const roomNameValue = roomNameInput.value.trim();
     const propertyNameValue = propertyNameInput.value.trim();
-    const roomType = roomTypeInput.value;
+    const roomType = typeSelect.value;
     const capacityValue = capacityInput.value.trim();
     const sizeValue = sizeInput.value.trim();
     const priceValue = priceInput.value.trim();
@@ -326,9 +345,14 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    const existingRoom = roomStore.getRooms().find(r => r.id === roomId);
+    const roomCode = existingRoom?.roomCode || ('RM-' + Math.floor(1000 + Math.random() * 9000));
+
     const updatedRoom = roomStore.updateRoom(roomId, {
+      roomCode,
       roomName: roomNameValue,
       propertyName: propertyNameValue,
+      address: addressInput ? addressInput.value.trim() : '',
       roomType,
       capacity: capacityValue || '2 khách',
       size: sizeValue || '--',

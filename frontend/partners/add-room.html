@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="vi">
 
 <head>
@@ -106,6 +106,11 @@
                                             <input name="propertyName" type="text" class="form-control"
                                                 placeholder="Sunrise Sapa Lodge" required />
                                         </div>
+                                        <div class="form-group" style="grid-column: 1 / -1;">
+                                            <label class="form-label">Địa chỉ <span class="required">*</span></label>
+                                            <input name="address" type="text" class="form-control"
+                                                placeholder="Ví dụ: 123 Đường Điện Biên Phủ, Cửa Nam, Hoàn Kiếm, Hà Nội" required />
+                                        </div>
                                         <div class="form-group">
                                             <label class="form-label">Loại phòng</label>
                                             <select name="roomType" class="form-control">
@@ -179,6 +184,30 @@
                     <aside class="partner-shell">
                         <section class="partner-panel">
                             <div class="partner-panel__body">
+                                <div class="partner-form__heading" style="margin-bottom: var(--space-4)">
+                                    Ảnh đại diện phòng
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <input type="file" id="room-main-image-input" class="form-control" accept="image/*" />
+                                </div>
+                                <div id="room-main-image-preview" class="img-preview-col"></div>
+                            </div>
+                        </section>
+
+                        <section class="partner-panel">
+                            <div class="partner-panel__body">
+                                <div class="partner-form__heading" style="margin-bottom: var(--space-4)">
+                                    Ảnh chi tiết phòng
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <input type="file" id="room-detail-images-input" class="form-control" accept="image/*" multiple />
+                                </div>
+                                <div id="room-detail-images-preview" class="img-preview-col"></div>
+                            </div>
+                        </section>
+
+                        <section class="partner-panel">
+                            <div class="partner-panel__body">
                                 <div class="partner-note">
                                     <div class="partner-note__title">Quy trình duyệt phòng</div>
                                     <div class="partner-note__list">
@@ -190,23 +219,16 @@
                             </div>
                         </section>
 
-
-
                         <section class="partner-panel">
                             <div class="partner-panel__body">
                                 <div class="partner-form__heading" style="margin-bottom: var(--space-4)">
-                                    Ảnh phòng
+                                    Gợi ý nhanh
                                 </div>
-                                <div class="partner-form__section">
-                                    <label class="form-label">Ảnh đại diện phòng (1 ảnh)</label>
-                                    <input type="file" id="room-cover-input" class="form-control" accept="image/*" />
-                                    <div id="room-cover-preview" class="partner-image-preview"></div>
-                                </div>
-                                <div class="partner-form__section" style="margin-top: 16px;">
-                                    <label class="form-label">Ảnh chi tiết phòng (Nhiều ảnh)</label>
-                                    <input type="file" id="room-gallery-input" class="form-control" accept="image/*"
-                                        multiple />
-                                    <div id="room-gallery-preview" class="partner-image-preview"></div>
+                                <div class="partner-chip-list">
+                                    <span class="partner-chip">Ảnh thật từ phòng</span>
+                                    <span class="partner-chip">Giá đã bao gồm thuế</span>
+                                    <span class="partner-chip">Nội thất đồng bộ</span>
+                                    <span class="partner-chip">Mô tả dưới 300 ký tự</span>
                                 </div>
                             </div>
                         </section>
@@ -219,6 +241,42 @@
     <script src="../assets/js/admin.js"></script>
     <script src="../assets/js/room-store.js"></script>
     <script src="../assets/js/partners.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainInput = document.getElementById('room-main-image-input');
+            const mainPreview = document.getElementById('room-main-image-preview');
+            
+            if (mainInput) {
+                mainInput.addEventListener('change', function() {
+                    mainPreview.innerHTML = '';
+                    if (this.files && this.files[0]) {
+                        const img = document.createElement('img');
+                        img.onload = () => URL.revokeObjectURL(img.src);
+                        img.src = URL.createObjectURL(this.files[0]);
+                        mainPreview.appendChild(img);
+                    }
+                });
+            }
+
+            const detailInput = document.getElementById('room-detail-images-input');
+            const detailPreview = document.getElementById('room-detail-images-preview');
+            
+            if (detailInput) {
+                detailInput.addEventListener('change', function() {
+                    detailPreview.innerHTML = '';
+                    if (this.files) {
+                        Array.from(this.files).forEach(file => {
+                            const img = document.createElement('img');
+                            img.onload = () => URL.revokeObjectURL(img.src);
+                            img.src = URL.createObjectURL(file);
+                            detailPreview.appendChild(img);
+                        });
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>

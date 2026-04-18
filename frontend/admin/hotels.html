@@ -102,7 +102,11 @@
                 </div>
 
                 <div class="hotel-type-tabs" aria-label="Phân loại theo loại phòng">
-                    <button type="button" class="hotel-type-tab active" data-room-type="hotel">
+                    <button type="button" class="hotel-type-tab active" data-room-type="all">
+                        <span class="hotel-type-tab__icon">🏢</span>
+                        <span>Tất cả</span>
+                    </button>
+                    <button type="button" class="hotel-type-tab" data-room-type="hotel">
                         <span class="hotel-type-tab__icon">🏨</span>
                         <span>Hotel</span>
                     </button>
@@ -124,107 +128,17 @@
                     <table class="table data-table">
                         <thead>
                             <tr>
-                                <th>STT</th>
+                                <th>Mã phòng</th>
                                 <th>Hình ảnh</th>
-                                <th>Tên khách sạn</th>
-                                <th>Địa điểm</th>
-                                <th>Hạng sao</th>
-                                <th>Số phòng</th>
-                                <th>Trạng thái</th>
+                                <th>Tên Phòng</th>
+                                <th>Tên Cơ Sở</th>
+                                <th>Loại Phòng</th>
+                                <th>Trạng thái phòng</th>
+                                <th>Giá phòng</th>
                                 <th>Thao tác</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>
-                                    <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=160&q=60"
-                                        class="table-hotel-image" alt="" />
-                                </td>
-                                <td><strong>InterContinental Hanoi Westlake</strong></td>
-                                <td>Tây Hồ, Hà Nội</td>
-                                <td><span class="stars" style="font-size: 12px">★★★★★</span></td>
-                                <td>156</td>
-                                <td><span class="status-dot status-dot--active">Hoạt động</span></td>
-                                <td>
-                                    <div class="table__actions">
-                                        <button class="btn btn--outline btn--sm" data-modal="modal-add-hotel"
-                                            title="Sửa">
-                                            ✏
-                                        </button>
-                                        <button class="btn btn--danger btn--sm btn-delete" data-name="InterContinental"
-                                            title="Xóa">
-                                            🗑
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>
-                                    <img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=160&q=60"
-                                        class="table-hotel-image" alt="" />
-                                </td>
-                                <td><strong>Fusion Maia Resort Đà Nẵng</strong></td>
-                                <td>Non Nước, Đà Nẵng</td>
-                                <td><span class="stars" style="font-size: 12px">★★★★★</span></td>
-                                <td>87</td>
-                                <td><span class="status-dot status-dot--active">Hoạt động</span></td>
-                                <td>
-                                    <div class="table__actions">
-                                        <button class="btn btn--outline btn--sm" data-modal="modal-add-hotel">
-                                            ✏
-                                        </button>
-                                        <button class="btn btn--danger btn--sm btn-delete" data-name="Fusion Maia">
-                                            🗑
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>3</td>
-                                <td>
-                                    <img src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=160&q=60"
-                                        class="table-hotel-image" alt="" />
-                                </td>
-                                <td><strong>Park Hyatt Saigon</strong></td>
-                                <td>Quận 1, TP.HCM</td>
-                                <td><span class="stars" style="font-size: 12px">★★★★★</span></td>
-                                <td>245</td>
-                                <td><span class="status-dot status-dot--active">Hoạt động</span></td>
-                                <td>
-                                    <div class="table__actions">
-                                        <button class="btn btn--outline btn--sm" data-modal="modal-add-hotel">
-                                            ✏
-                                        </button>
-                                        <button class="btn btn--danger btn--sm btn-delete" data-name="Park Hyatt">
-                                            🗑
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>4</td>
-                                <td>
-                                    <img src="https://images.unsplash.com/photo-1582719508461-905c673771fd?w=160&q=60"
-                                        class="table-hotel-image" alt="" />
-                                </td>
-                                <td><strong>La Résidence Hội An</strong></td>
-                                <td>Cẩm Nam, Hội An</td>
-                                <td><span class="stars" style="font-size: 12px">★★★★</span></td>
-                                <td>32</td>
-                                <td><span class="status-dot status-dot--inactive">Tạm ngưng</span></td>
-                                <td>
-                                    <div class="table__actions">
-                                        <button class="btn btn--outline btn--sm" data-modal="modal-add-hotel">
-                                            ✏
-                                        </button>
-                                        <button class="btn btn--danger btn--sm btn-delete" data-name="La Résidence">
-                                            🗑
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+                        <tbody id="hotels-table-body">
                         </tbody>
                     </table>
                 </div>
@@ -302,6 +216,7 @@
     </div>
 
     <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/room-store.js"></script>
     <script src="../assets/js/admin.js"></script>
     <script src="../assets/js/admin-hotels.js"></script>
 </body>
