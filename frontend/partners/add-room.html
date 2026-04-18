@@ -50,6 +50,10 @@
                 <a href="add-voucher.html" class="admin-sidebar__link">
                     <span class="admin-sidebar__link-icon">🎟</span> Add voucher
                 </a>
+                <div class="admin-sidebar__section-title">Tài chính</div>
+                <a href="revenue.html" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">💰</span> Doanh thu
+                </a>
                 <div class="admin-sidebar__section-title">Hỗ trợ</div>
                 <a href="support.html" class="admin-sidebar__link">
                     <span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ
@@ -186,16 +190,23 @@
                             </div>
                         </section>
 
+
+
                         <section class="partner-panel">
                             <div class="partner-panel__body">
                                 <div class="partner-form__heading" style="margin-bottom: var(--space-4)">
-                                    Gợi ý nhanh
+                                    Ảnh phòng
                                 </div>
-                                <div class="partner-chip-list">
-                                    <span class="partner-chip">Ảnh thật từ phòng</span>
-                                    <span class="partner-chip">Giá đã bao gồm thuế</span>
-                                    <span class="partner-chip">Nội thất đồng bộ</span>
-                                    <span class="partner-chip">Mô tả dưới 300 ký tự</span>
+                                <div class="partner-form__section">
+                                    <label class="form-label">Ảnh đại diện phòng (1 ảnh)</label>
+                                    <input type="file" id="room-cover-input" class="form-control" accept="image/*" />
+                                    <div id="room-cover-preview" class="partner-image-preview"></div>
+                                </div>
+                                <div class="partner-form__section" style="margin-top: 16px;">
+                                    <label class="form-label">Ảnh chi tiết phòng (Nhiều ảnh)</label>
+                                    <input type="file" id="room-gallery-input" class="form-control" accept="image/*"
+                                        multiple />
+                                    <div id="room-gallery-preview" class="partner-image-preview"></div>
                                 </div>
                             </div>
                         </section>

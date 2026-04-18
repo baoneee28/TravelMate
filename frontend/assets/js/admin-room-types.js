@@ -21,7 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const priceInput = document.getElementById('admin-room-price-input');
   const saleStatusInput = document.getElementById('admin-room-sale-status-input');
   const roomStatusInput = document.getElementById('admin-room-status-input');
-  const amenitiesInput = document.getElementById('admin-room-amenities-input');
+  const amenitiesCheckboxes = document.querySelectorAll('#admin-room-amenities-checklist input[type="checkbox"]');
+  
+  function getCheckedAmenities() {
+    const checked = document.querySelectorAll('#admin-room-amenities-checklist input[type="checkbox"]:checked');
+    return Array.from(checked).map(cb => cb.value);
+  }
   const partnerNoteInput = document.getElementById('admin-room-partner-note-input');
   const adminNoteInput = document.getElementById('admin-room-note');
   const rejectButton = document.getElementById('admin-room-reject-btn');
@@ -193,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
       sizeInput.value = '';
       priceInput.value = '';
       saleStatusInput.value = 'Đang bán';
-      amenitiesInput.value = '';
+      if (amenitiesCheckboxes) amenitiesCheckboxes.forEach(cb => cb.checked = false);
       partnerNoteInput.value = '';
       adminNoteInput.value = '';
 
@@ -219,8 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (priceInput) priceInput.disabled = true;
       if (saleStatusInput) saleStatusInput.disabled = true;
       if (roomStatusInput) roomStatusInput.disabled = true;
-      if (amenitiesInput) amenitiesInput.disabled = true;
-      if (partnerNoteInput) partnerNoteInput.disabled = true;
+      if (amenitiesCheckboxes) amenitiesCheckboxes.forEach(cb => cb.disabled = true);
       if (adminNoteInput) adminNoteInput.disabled = true;
       return;
     }
@@ -237,7 +241,11 @@ document.addEventListener('DOMContentLoaded', () => {
     priceInput.value = room.price || '';
     saleStatusInput.value = room.status || 'Đang bán';
     if (roomStatusInput) roomStatusInput.value = room.roomStatus || 'Phòng trống';
-    amenitiesInput.value = room.amenities.join(', ');
+    if (amenitiesCheckboxes) {
+      amenitiesCheckboxes.forEach(cb => {
+        cb.checked = room.amenities && Array.isArray(room.amenities) && room.amenities.some(a => a.trim().toLowerCase() === cb.value.trim().toLowerCase());
+      });
+    }
     partnerNoteInput.value = room.note || '';
     adminNoteInput.value = room.adminNote || '';
 
@@ -263,8 +271,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (priceInput) priceInput.disabled = false;
     if (saleStatusInput) saleStatusInput.disabled = false;
     if (roomStatusInput) roomStatusInput.disabled = false;
-    if (amenitiesInput) amenitiesInput.disabled = false;
-    if (partnerNoteInput) partnerNoteInput.disabled = false;
     if (adminNoteInput) adminNoteInput.disabled = false;
   }
 
@@ -327,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
       capacity: capacityValue || '2 khách',
       size: sizeValue || '--',
       price: priceValue,
-      amenities: parseAmenities(amenitiesInput.value),
+      amenities: getCheckedAmenities(),
       note: partnerNoteInput.value.trim(),
       status: saleStatusInput.value || 'Đang bán',
       roomStatus: roomStatusInput ? roomStatusInput.value : 'Phòng trống',
@@ -355,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
       capacity: capacityInput.value.trim() || '2 khách',
       size: sizeInput.value.trim() || '--',
       price: priceInput.value.trim() || '0',
-      amenities: parseAmenities(amenitiesInput.value),
+      amenities: getCheckedAmenities(),
       note: partnerNoteInput.value.trim(),
       status: 'Tạm ẩn',
       roomStatus: 'Hủy đặt phòng',

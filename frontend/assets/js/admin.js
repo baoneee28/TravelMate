@@ -137,4 +137,55 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.row-actions-dropdown.open').forEach(d => d.classList.remove('open'));
   });
 
+  // ── Logout Button Inject ─────────────────────
+  const footer = document.querySelector('.admin-sidebar__footer');
+  if (footer && !footer.querySelector('.admin-logout-btn')) {
+    // Inject styles dynamically to avoid modifying multiple CSS files
+    if (!document.getElementById('admin-logout-style')) {
+      const style = document.createElement('style');
+      style.id = 'admin-logout-style';
+      style.textContent = `
+        .admin-sidebar__footer {
+          display: flex !important;
+          align-items: center;
+          justify-content: space-between;
+        }
+        .admin-logout-btn {
+          color: #e74c3c;
+          font-size: 11px;
+          font-weight: 500;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 3px;
+          text-decoration: none;
+          padding: 6px;
+          border-radius: 6px;
+          transition: all 0.2s;
+          flex-shrink: 0;
+          margin-left: 2px;
+        }
+        .admin-logout-btn i { font-size: 14px; }
+        .admin-logout-btn:hover { background: rgba(231, 76, 60, 0.1); }
+      `;
+      document.head.appendChild(style);
+    }
+
+    const logoutBtn = document.createElement('a');
+    // Using simple path to travelmate main login page
+    logoutBtn.href = '../user/login.html';
+    logoutBtn.className = 'admin-logout-btn';
+    logoutBtn.innerHTML = '<i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất';
+    logoutBtn.title = "Đăng xuất tài khoản";
+    logoutBtn.addEventListener('click', (e) => {
+      // Logic xóa mock session auth sau này sẽ đặt ở đây
+      if (window.localStorage) {
+        localStorage.removeItem('currentUser');
+      }
+    });
+
+    footer.appendChild(logoutBtn);
+  }
+
 });

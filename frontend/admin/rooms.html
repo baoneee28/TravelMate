@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="vi">
 
 <head>
@@ -184,41 +184,7 @@
                         </div>
 
                         <div class="review-panel__body">
-                            <div>
-                                <div class="review-panel__title" id="admin-room-selected-title">
-                                    Chọn một hồ sơ để duyệt
-                                </div>
-                                <div class="review-panel__subtitle" id="admin-room-selected-property">
-                                    Thông tin chi tiết sẽ hiển thị tại đây.
-                                </div>
-                            </div>
 
-                            <div class="review-meta-grid">
-                                <div class="review-meta-card">
-                                    <span>Gửi lúc</span>
-                                    <strong id="admin-room-submitted-at">--</strong>
-                                </div>
-                                <div class="review-meta-card">
-                                    <span>Duyệt lúc</span>
-                                    <strong id="admin-room-reviewed-at">--</strong>
-                                </div>
-                                <div class="review-meta-card">
-                                    <span>Sức chứa</span>
-                                    <strong id="admin-room-capacity">--</strong>
-                                </div>
-                                <div class="review-meta-card">
-                                    <span>Diện tích</span>
-                                    <strong id="admin-room-size">--</strong>
-                                </div>
-                                <div class="review-meta-card">
-                                    <span>Giá/đêm</span>
-                                    <strong id="admin-room-price">--</strong>
-                                </div>
-                                <div class="review-meta-card">
-                                    <span>Trạng thái phòng</span>
-                                    <strong id="admin-room-sale-status">--</strong>
-                                </div>
-                            </div>
 
                             <form id="admin-room-review-form" class="review-form">
                                 <input type="hidden" id="admin-room-id" />
@@ -273,14 +239,22 @@
 
                                 <div class="form-group" style="margin-bottom: 0">
                                     <label class="form-label">Tiện ích nổi bật</label>
-                                    <textarea id="admin-room-amenities-input" class="form-control" rows="3"
-                                        placeholder="Ví dụ: Ban công riêng, Bồn tắm, Wi-Fi tốc độ cao"></textarea>
-                                    <div class="review-helper">Nhập danh sách tiện ích, cách nhau bằng dấu phẩy.</div>
+                                    <div class="partner-checklist" id="admin-room-amenities-checklist" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; pointer-events: none; opacity: 0.8;">
+                                        <label class="form-check"><input type="checkbox" value="Ban công riêng" /> <span class="form-check-label">Ban công riêng</span></label>
+                                        <label class="form-check"><input type="checkbox" value="Bồn tắm" /> <span class="form-check-label">Bồn tắm</span></label>
+                                        <label class="form-check"><input type="checkbox" value="Máy lạnh" /> <span class="form-check-label">Máy lạnh</span></label>
+                                        <label class="form-check"><input type="checkbox" value="Bếp từ" /> <span class="form-check-label">Bếp từ</span></label>
+                                        <label class="form-check"><input type="checkbox" value="Wi-Fi tốc độ cao" /> <span class="form-check-label">Wi-Fi tốc độ cao</span></label>
+                                        <label class="form-check"><input type="checkbox" value="Smart TV" /> <span class="form-check-label">Smart TV</span></label>
+                                        <label class="form-check"><input type="checkbox" value="Tủ lạnh" /> <span class="form-check-label">Tủ lạnh</span></label>
+                                        <label class="form-check"><input type="checkbox" value="Hồ bơi" /> <span class="form-check-label">Hồ bơi</span></label>
+                                    </div>
                                 </div>
 
                                 <div class="form-group" style="margin-bottom: 0">
                                     <label class="form-label">Mô tả / ghi chú của partner</label>
-                                    <textarea id="admin-room-partner-note-input" class="form-control" rows="4"
+                                    <textarea id="admin-room-partner-note-input" class="form-control" rows="4" readonly
+                                        style="background-color: var(--color-bg); opacity: 0.8;"
                                         placeholder="Mô tả ngắn về phòng hoặc ghi chú cho hồ sơ."></textarea>
                                 </div>
 

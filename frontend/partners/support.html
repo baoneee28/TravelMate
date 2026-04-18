@@ -37,13 +37,13 @@
         .support-cat-card:hover {
             border-color: var(--color-primary);
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0,0,0,.08);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
         }
 
         .support-cat-card.selected {
             border-color: var(--color-primary);
             background: var(--color-primary-bg);
-            box-shadow: 0 0 0 4px rgba(2,132,199,.12);
+            box-shadow: 0 0 0 4px rgba(2, 132, 199, .12);
         }
 
         .support-cat-card__icon {
@@ -79,7 +79,11 @@
         }
 
         /* ── FAQ Accordion ─────────────────────────── */
-        .faq-list { display: flex; flex-direction: column; gap: var(--space-3); }
+        .faq-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
 
         .faq-item {
             background: var(--color-surface);
@@ -100,7 +104,9 @@
             transition: background .15s;
         }
 
-        .faq-item__header:hover { background: var(--color-bg); }
+        .faq-item__header:hover {
+            background: var(--color-bg);
+        }
 
         .faq-item__arrow {
             transition: transform .2s;
@@ -108,7 +114,9 @@
             flex-shrink: 0;
         }
 
-        .faq-item.open .faq-item__arrow { transform: rotate(180deg); }
+        .faq-item.open .faq-item__arrow {
+            transform: rotate(180deg);
+        }
 
         .faq-item__body {
             display: none;
@@ -118,7 +126,9 @@
             line-height: 1.7;
         }
 
-        .faq-item.open .faq-item__body { display: block; }
+        .faq-item.open .faq-item__body {
+            display: block;
+        }
 
         /* ── Ticket list ────────────────────────────── */
         .ticket-card {
@@ -133,7 +143,9 @@
             cursor: pointer;
         }
 
-        .ticket-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.07); }
+        .ticket-card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, .07);
+        }
 
         .ticket-cat-dot {
             width: 10px;
@@ -207,6 +219,10 @@
                 <a href="add-voucher.html" class="admin-sidebar__link">
                     <span class="admin-sidebar__link-icon">🎟</span> Add voucher
                 </a>
+                <div class="admin-sidebar__section-title">Tài chính</div>
+                <a href="revenue.html" class="admin-sidebar__link active">
+                    <span class="admin-sidebar__link-icon">💰</span> Doanh thu
+                </a>
                 <div class="admin-sidebar__section-title">Hỗ trợ</div>
                 <a href="support.html" class="admin-sidebar__link">
                     <span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ
@@ -237,7 +253,8 @@
                 <!-- ── TAB NAV ─────────────────────────────────────────── -->
                 <div style="display:flex;gap:var(--space-2);margin-bottom:var(--space-6);flex-wrap:wrap;">
                     <button class="filter-tab active" data-tab="new-ticket">✏️ Gửi yêu cầu mới</button>
-                    <button class="filter-tab" data-tab="my-tickets">📂 Yêu cầu của tôi <span id="badge-count" style="background:#ef4444;color:#fff;border-radius:999px;font-size:11px;padding:1px 7px;margin-left:4px;"></span></button>
+                    <button class="filter-tab" data-tab="my-tickets">📂 Yêu cầu của tôi <span id="badge-count"
+                            style="background:#ef4444;color:#fff;border-radius:999px;font-size:11px;padding:1px 7px;margin-left:4px;"></span></button>
                     <button class="filter-tab" data-tab="faq">❓ Câu hỏi thường gặp</button>
                 </div>
 
@@ -251,7 +268,8 @@
                                 <div class="page-header" style="margin-bottom:var(--space-5)">
                                     <div>
                                         <h2 class="page-header__title">Gửi yêu cầu hỗ trợ</h2>
-                                        <p class="page-header__subtitle">Chọn danh mục phù hợp và mô tả vấn đề. Chúng tôi sẽ phản hồi trong vòng 24h.</p>
+                                        <p class="page-header__subtitle">Chọn danh mục phù hợp và mô tả vấn đề. Chúng
+                                            tôi sẽ phản hồi trong vòng 24h.</p>
                                     </div>
                                 </div>
 
@@ -271,7 +289,8 @@
                                         <div class="partner-form__heading">2. Thông tin yêu cầu</div>
                                         <div class="partner-form__grid">
                                             <div class="form-group">
-                                                <label class="form-label">Tiêu đề <span class="required">*</span></label>
+                                                <label class="form-label">Tiêu đề <span
+                                                        class="required">*</span></label>
                                                 <input id="support-subject" type="text" class="form-control"
                                                     placeholder="Mô tả ngắn gọn vấn đề bạn gặp phải..." required />
                                             </div>
@@ -279,21 +298,24 @@
                                                 <label class="form-label">Mức độ ưu tiên</label>
                                                 <select id="support-priority" class="form-control">
                                                     <option value="Thấp">🟢 Thấp — Không gấp</option>
-                                                    <option value="Trung bình" selected>🟡 Trung bình — Cần giải quyết sớm</option>
+                                                    <option value="Trung bình" selected>🟡 Trung bình — Cần giải quyết
+                                                        sớm</option>
                                                     <option value="Cao">🟠 Cao — Ảnh hưởng vận hành</option>
                                                     <option value="Khẩn cấp">🔴 Khẩn cấp — Cần phản hồi ngay</option>
                                                 </select>
                                             </div>
                                         </div>
                                         <div class="form-group" style="margin-bottom:0">
-                                            <label class="form-label">Mô tả chi tiết <span class="required">*</span></label>
+                                            <label class="form-label">Mô tả chi tiết <span
+                                                    class="required">*</span></label>
                                             <textarea id="support-description" class="form-control" rows="6"
                                                 placeholder="Mô tả đầy đủ vấn đề: lỗi xảy ra khi nào, các bước tái hiện, kết quả mong đợi..."></textarea>
                                         </div>
                                     </div>
 
                                     <div class="partner-form__actions">
-                                        <button type="button" class="btn btn--ghost" onclick="resetSupportForm()">Nhập lại</button>
+                                        <button type="button" class="btn btn--ghost" onclick="resetSupportForm()">Nhập
+                                            lại</button>
                                         <button type="submit" class="btn btn--primary" id="support-submit-btn">
                                             📤 Gửi yêu cầu hỗ trợ
                                         </button>
@@ -367,7 +389,8 @@
                     <!-- 5 danh mục FAQ với accordion -->
                     <div style="margin-bottom:var(--space-6)">
                         <!-- Category tabs -->
-                        <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;margin-bottom:var(--space-5);" id="faq-cat-tabs">
+                        <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;margin-bottom:var(--space-5);"
+                            id="faq-cat-tabs">
                             <!-- Render bởi JS -->
                         </div>
                         <div id="faq-content" class="faq-list">
@@ -386,19 +409,26 @@
         position:fixed;inset:0;z-index:9999;
         align-items:center;justify-content:center;
         background:rgba(0,0,0,.45);padding:16px;">
-        <div style="background:#fff;border-radius:16px;width:min(640px,100%);max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25);">
+        <div
+            style="background:#fff;border-radius:16px;width:min(640px,100%);max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25);">
             <!-- Header -->
-            <div style="padding:20px 24px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:flex-start;flex-shrink:0;">
+            <div
+                style="padding:20px 24px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:flex-start;flex-shrink:0;">
                 <div>
-                    <div id="modal-ticket-id" style="font-family:monospace;font-size:12px;color:#6b7280;margin-bottom:4px;"></div>
+                    <div id="modal-ticket-id"
+                        style="font-family:monospace;font-size:12px;color:#6b7280;margin-bottom:4px;"></div>
                     <div id="modal-ticket-subject" style="font-size:17px;font-weight:700;"></div>
                 </div>
-                <button id="close-ticket-modal" style="background:none;border:none;font-size:22px;cursor:pointer;color:#6b7280;flex-shrink:0;">✕</button>
+                <button id="close-ticket-modal"
+                    style="background:none;border:none;font-size:22px;cursor:pointer;color:#6b7280;flex-shrink:0;">✕</button>
             </div>
             <!-- Meta -->
-            <div id="modal-ticket-meta" style="padding:12px 24px;background:#f9fafb;border-bottom:1px solid #e5e7eb;display:flex;gap:12px;flex-wrap:wrap;font-size:13px;flex-shrink:0;"></div>
+            <div id="modal-ticket-meta"
+                style="padding:12px 24px;background:#f9fafb;border-bottom:1px solid #e5e7eb;display:flex;gap:12px;flex-wrap:wrap;font-size:13px;flex-shrink:0;">
+            </div>
             <!-- Chat -->
-            <div id="modal-chat-area" style="flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;"></div>
+            <div id="modal-chat-area"
+                style="flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;"></div>
             <!-- Reply box -->
             <div id="modal-reply-box" style="padding:16px 24px;border-top:1px solid #e5e7eb;flex-shrink:0;">
                 <div style="display:flex;gap:10px;">
@@ -416,4 +446,5 @@
     <script src="../assets/js/support-store.js"></script>
     <script src="../assets/js/partner-support.js"></script>
 </body>
+
 </html>

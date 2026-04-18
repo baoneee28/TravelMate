@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doanh thu - Partner TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/base.css" />
+    <link rel="stylesheet" href="../assets/layout.css" />
+    <link rel="stylesheet" href="../assets/components.css" />
+    <link rel="stylesheet" href="../assets/pages/admin.css" />
+    <link rel="stylesheet" href="../assets/pages/partners.css" />
+    <link rel="stylesheet" href="../assets/responsive.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="../assets/pages/partner-revenue.css" />
+</head>
+
+<body>
+    <div class="admin-wrapper">
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar__header">
+                <a href="rooms.html" class="sidebar-logo">
+                    <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                    <div>
+                        <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                        <span class="admin-sidebar__badge">PARTNER CENTER</span>
+                    </div>
+                </a>
+            </div>
+            <nav class="admin-sidebar__nav">
+                <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
+                <a href="rooms.html" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🛏</span> Danh sách phòng
+                </a>
+                <a href="add-room.html" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">＋</span> Thêm phòng
+                </a>
+                <a href="pending-room.html" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">⏳</span> Chờ duyệt
+                </a>
+                <a href="bookings.html" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">📋</span> Lịch sử đặt phòng
+                </a>
+                <div class="admin-sidebar__section-title">Tiện ích</div>
+                <a href="add-furniture.html" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🪑</span> Thêm nội thất
+                </a>
+                <a href="add-voucher.html" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🎟</span> Add voucher
+                </a>
+                <div class="admin-sidebar__section-title">Tài chính</div>
+                <a href="revenue.html" class="admin-sidebar__link active">
+                    <span class="admin-sidebar__link-icon">💰</span> Doanh thu
+                </a>
+                <div class="admin-sidebar__section-title">Hỗ trợ</div>
+                <a href="support.html" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ
+                </a>
+            </nav>
+            <div class="admin-sidebar__footer">
+                <div class="admin-sidebar__user">
+                    <div class="admin-sidebar__user-avatar">PT</div>
+                    <div class="admin-sidebar__user-info">
+                        <div class="admin-sidebar__user-name">Sunrise Sapa Lodge</div>
+                        <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <div class="admin-sidebar-overlay"></div>
+
+        <div class="admin-main">
+            <header class="admin-topbar">
+                <div style="display: flex; align-items: center; gap: var(--space-4)">
+                    <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                    <h1 class="admin-topbar__title">Doanh Thu</h1>
+                </div>
+            </header>
+            <main class="admin-content">
+                <div class="partner-shell">
+                    <!-- ── Page Title ────────────────────────── -->
+                    <h2 class="rv-page-title">📊 Doanh Thu</h2>
+
+                    <!-- ── Week Selector ─────────────────────── -->
+                    <div class="rv-week-selector" id="rv-week-selector">
+                        <!-- JS will render week buttons -->
+                    </div>
+
+                    <!-- ── Revenue Card ──────────────────────── -->
+                    <div class="rv-card" id="rv-card">
+                        <!-- Summary View (default) -->
+                        <div id="rv-summary-view">
+                            <div class="rv-summary-header">
+                                <div>
+                                    <div class="rv-summary-label">Tổng thu nhập</div>
+                                </div>
+                                <div class="rv-summary-amount" id="rv-total-amount">0đ</div>
+                            </div>
+
+                            <div class="rv-stats-grid">
+                                <div class="rv-stat-item">
+                                    <div class="rv-stat-item__icon"><i class="fa-solid fa-door-open"></i></div>
+                                    <div class="rv-stat-item__label">Số phòng đã thuê</div>
+                                    <div class="rv-stat-item__value" id="rv-total-rooms">0</div>
+                                </div>
+                                <div class="rv-stat-item">
+                                    <div class="rv-stat-item__icon"><i class="fa-regular fa-clock"></i></div>
+                                    <div class="rv-stat-item__label">Tổng số giờ thuê</div>
+                                    <div class="rv-stat-item__value" id="rv-total-hours">0 giờ</div>
+                                </div>
+                            </div>
+
+                            <!-- Bar Chart -->
+                            <div class="rv-chart-wrap">
+                                <div class="rv-chart" id="rv-chart">
+                                    <!-- JS renders bars -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Day Detail Overlay (hidden by default) -->
+                        <div class="rv-day-detail" id="rv-day-detail">
+                            <div class="rv-day-detail__header">
+                                <div class="rv-day-detail__title" id="rv-day-title">Thứ Hai - 14/04/2026</div>
+                                <button class="rv-day-detail__close" id="rv-day-close">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+
+                            <div class="rv-summary-header">
+                                <div>
+                                    <div class="rv-summary-label">Tổng thu nhập ngày</div>
+                                </div>
+                                <div class="rv-summary-amount" id="rv-day-amount">0đ</div>
+                            </div>
+
+                            <div class="rv-stats-grid">
+                                <div class="rv-stat-item">
+                                    <div class="rv-stat-item__icon"><i class="fa-solid fa-door-open"></i></div>
+                                    <div class="rv-stat-item__label">Phòng đã thuê</div>
+                                    <div class="rv-stat-item__value" id="rv-day-rooms">0 phòng</div>
+                                </div>
+                                <div class="rv-stat-item">
+                                    <div class="rv-stat-item__icon"><i class="fa-regular fa-clock"></i></div>
+                                    <div class="rv-stat-item__label">Tổng giờ thuê</div>
+                                    <div class="rv-stat-item__value" id="rv-day-hours">0 giờ</div>
+                                </div>
+                            </div>
+
+                            <!-- Mini bar chart with highlighted day -->
+                            <div class="rv-mini-chart" id="rv-mini-chart">
+                                <!-- JS renders mini bars -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/admin.js"></script>
+    <script src="../assets/js/partner-revenue.js"></script>
+</body>
+
+</html>
