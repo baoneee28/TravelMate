@@ -1,0 +1,663 @@
+/* ═══════════════════════════════════════════════════════
+   admin-revenue.css  –  Admin Revenue Management Page
+   ═══════════════════════════════════════════════════════ */
+
+:root {
+    --adrev-primary:      #0284C7;
+    --adrev-primary-light:#38bdf8;
+    --adrev-primary-dark: #0369a1;
+    --adrev-primary-bg:   #e0f2fe;
+    --adrev-success:      #16a34a;
+    --adrev-success-bg:   #dcfce7;
+    --adrev-amber:        #d97706;
+    --adrev-amber-bg:     #fef3c7;
+    --adrev-rose:         #e11d48;
+    --adrev-rose-bg:      #ffe4e6;
+    --adrev-purple:       #7c3aed;
+    --adrev-purple-bg:    #ede9fe;
+    --adrev-surface:      #ffffff;
+    --adrev-bg:           #f8fafc;
+    --adrev-border:       #e2e8f0;
+    --adrev-text:         #1e293b;
+    --adrev-text-muted:   #64748b;
+    --adrev-text-light:   #94a3b8;
+    --adrev-radius:       16px;
+    --adrev-radius-sm:    10px;
+}
+
+/* ── Topbar extras ───────────────────────────────────── */
+.adrev-payout-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: var(--adrev-success-bg);
+    color: var(--adrev-success);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* ── Section Layout ──────────────────────────────────── */
+.adrev-section {
+    background: var(--adrev-surface);
+    border: 1px solid var(--adrev-border);
+    border-radius: var(--adrev-radius);
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.adrev-section__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.adrev-section__title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--adrev-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.adrev-section__title i {
+    color: var(--adrev-primary);
+}
+
+/* ── Policy Banner ───────────────────────────────────── */
+.adrev-policy-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+    border: 1px solid #bae6fd;
+    border-radius: var(--adrev-radius);
+    padding: 18px 20px;
+    margin-bottom: 24px;
+}
+
+.adrev-policy-banner__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--adrev-primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.adrev-policy-banner__text {
+    font-size: 13.5px;
+    color: var(--adrev-primary-dark);
+    line-height: 1.65;
+}
+
+/* ── Discount Cards ──────────────────────────────────── */
+.adrev-discount-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+@media (max-width: 1100px) { .adrev-discount-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px)  { .adrev-discount-grid { grid-template-columns: 1fr; } }
+
+.adrev-discount-card {
+    border-radius: var(--adrev-radius);
+    padding: 22px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    border: 1px solid transparent;
+}
+
+.adrev-discount-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+}
+
+.adrev-discount-card::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    opacity: 0.15;
+}
+
+.adrev-discount-card--hotel   { background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: #fff; }
+.adrev-discount-card--villa   { background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); color: #fff; }
+.adrev-discount-card--homestay{ background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; }
+.adrev-discount-card--resort  { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #fff; }
+
+.adrev-discount-card--hotel::before   { background: #fff; }
+.adrev-discount-card--villa::before   { background: #fff; }
+.adrev-discount-card--homestay::before{ background: #fff; }
+.adrev-discount-card--resort::before  { background: #fff; }
+
+.adrev-discount-card__icon {
+    font-size: 24px;
+    opacity: 0.95;
+}
+
+.adrev-discount-card__type {
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.adrev-discount-card__rate {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1;
+    font-family: 'Inter', sans-serif;
+}
+
+.adrev-discount-card__breakdown {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.adrev-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(255,255,255,0.25);
+    color: #fff;
+    backdrop-filter: blur(4px);
+}
+
+.adrev-tag--accent {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+.adrev-discount-card__note {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-top: 4px;
+}
+
+/* ── Week Selector ───────────────────────────────────── */
+.adrev-week-selector {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.adrev-week-selector::-webkit-scrollbar { display: none; }
+
+.adrev-week-btn {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1.5px solid var(--adrev-border);
+    background: #f8fafc;
+    color: var(--adrev-text-muted);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    font-family: 'Inter', sans-serif;
+}
+
+.adrev-week-btn:hover {
+    border-color: var(--adrev-primary);
+    color: var(--adrev-primary);
+    background: var(--adrev-primary-bg);
+}
+
+.adrev-week-btn.active {
+    background: var(--adrev-primary);
+    color: #fff;
+    border-color: var(--adrev-primary);
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+}
+
+/* ── KPI Cards ───────────────────────────────────────── */
+.adrev-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 1100px) { .adrev-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px)  { .adrev-kpi-grid { grid-template-columns: 1fr; } }
+
+.adrev-kpi-card {
+    border-radius: var(--adrev-radius);
+    padding: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    border: 1px solid var(--adrev-border);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.adrev-kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.09);
+}
+
+.adrev-kpi-card--total    { background: linear-gradient(135deg, var(--adrev-primary-bg) 0%, #dbeafe 100%); }
+.adrev-kpi-card--discount { background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); }
+.adrev-kpi-card--payout   { background: linear-gradient(135deg, var(--adrev-success-bg) 0%, #bbf7d0 100%); }
+.adrev-kpi-card--bookings { background: linear-gradient(135deg, var(--adrev-amber-bg) 0%, #fde68a 100%); }
+
+.adrev-kpi-card__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.adrev-kpi-card--total    .adrev-kpi-card__icon { background: var(--adrev-primary); color: #fff; }
+.adrev-kpi-card--discount .adrev-kpi-card__icon { background: var(--adrev-purple);  color: #fff; }
+.adrev-kpi-card--payout   .adrev-kpi-card__icon { background: var(--adrev-success); color: #fff; }
+.adrev-kpi-card--bookings .adrev-kpi-card__icon { background: var(--adrev-amber);   color: #fff; }
+
+.adrev-kpi-card__label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--adrev-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 4px;
+}
+
+.adrev-kpi-card__value {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--adrev-text);
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.5px;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.adrev-kpi-card__sub {
+    font-size: 11px;
+    color: var(--adrev-text-muted);
+}
+
+/* ── Chart ───────────────────────────────────────────── */
+.adrev-chart-card {
+    background: #f8fafc;
+    border: 1px solid var(--adrev-border);
+    border-radius: var(--adrev-radius-sm);
+    padding: 20px;
+}
+
+.adrev-chart-card__header {
+    margin-bottom: 16px;
+}
+
+.adrev-chart-legend {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--adrev-text-muted);
+    font-weight: 500;
+}
+
+.adrev-legend-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 4px;
+}
+
+.adrev-legend-dot--collected  { background: var(--adrev-primary); }
+.adrev-legend-dot--commission { background: var(--adrev-purple); }
+.adrev-legend-dot--payout     { background: var(--adrev-success); }
+
+.adrev-chart {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    height: 200px;
+    padding: 0 4px;
+}
+
+.adrev-bar-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: default;
+}
+
+.adrev-bar-cols {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    width: 100%;
+    justify-content: center;
+    height: 160px;
+}
+
+.adrev-bar-track {
+    width: 14px;
+    height: 160px;
+    background: rgba(0,0,0,0.04);
+    border-radius: 6px;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+    position: relative;
+}
+
+.adrev-bar-fill {
+    width: 100%;
+    border-radius: 6px;
+    transition: height 0.5s cubic-bezier(.4,0,.2,1);
+    min-height: 2px;
+}
+
+.adrev-bar-fill--collected  { background: linear-gradient(180deg, var(--adrev-primary-light) 0%, var(--adrev-primary) 100%); }
+.adrev-bar-fill--commission { background: linear-gradient(180deg, #a78bfa 0%, var(--adrev-purple) 100%); }
+.adrev-bar-fill--payout     { background: linear-gradient(180deg, #34d399 0%, var(--adrev-success) 100%); }
+
+.adrev-bar-group:hover .adrev-bar-fill { opacity: 0.8; }
+
+.adrev-bar-day {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--adrev-text-light);
+}
+
+.adrev-bar-amount {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--adrev-text-muted);
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* ── Filter Row ──────────────────────────────────────── */
+.adrev-filter-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.adrev-search {
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--adrev-border);
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    background: #f8fafc;
+    color: var(--adrev-text);
+    outline: none;
+    transition: border-color 0.2s;
+    min-width: 200px;
+}
+
+.adrev-search:focus { border-color: var(--adrev-primary); background: #fff; }
+
+.adrev-select {
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--adrev-border);
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    background: #f8fafc;
+    color: var(--adrev-text);
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.adrev-select:focus { border-color: var(--adrev-primary); }
+
+/* ── Partner Table ───────────────────────────────────── */
+.adrev-partner-table-wrap {
+    overflow-x: auto;
+    border-radius: var(--adrev-radius-sm);
+    border: 1px solid var(--adrev-border);
+    margin-bottom: 16px;
+}
+
+.adrev-partner-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.adrev-partner-table th {
+    background: #f1f5f9;
+    color: var(--adrev-text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 12px 14px;
+    text-align: left;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--adrev-border);
+}
+
+.adrev-partner-table td {
+    padding: 13px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    color: var(--adrev-text);
+    vertical-align: middle;
+}
+
+.adrev-partner-table tbody tr:last-child td { border-bottom: none; }
+
+.adrev-partner-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.adrev-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.adrev-type-badge--hotel    { background: #e0f2fe; color: #0284c7; }
+.adrev-type-badge--villa    { background: #ede9fe; color: #7c3aed; }
+.adrev-type-badge--homestay { background: #dcfce7; color: #16a34a; }
+.adrev-type-badge--resort   { background: #ffedd5; color: #ea580c; }
+
+.adrev-rate-pill {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    background: var(--adrev-primary-bg);
+    color: var(--adrev-primary);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.adrev-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.adrev-status-badge--pending {
+    background: var(--adrev-amber-bg);
+    color: var(--adrev-amber);
+}
+
+.adrev-status-badge--paid {
+    background: var(--adrev-success-bg);
+    color: var(--adrev-success);
+}
+
+.adrev-status-badge--processing {
+    background: var(--adrev-primary-bg);
+    color: var(--adrev-primary);
+}
+
+/* ── Totals Bar ──────────────────────────────────────── */
+.adrev-totals-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+@media (max-width: 900px)  { .adrev-totals-bar { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 500px)  { .adrev-totals-bar { grid-template-columns: 1fr; } }
+
+.adrev-totals-item {
+    background: #f8fafc;
+    border: 1px solid var(--adrev-border);
+    border-radius: var(--adrev-radius-sm);
+    padding: 14px 16px;
+}
+
+.adrev-totals-item--highlight {
+    background: var(--adrev-purple-bg);
+    border-color: #c4b5fd;
+}
+
+.adrev-totals-item--payout {
+    background: var(--adrev-success-bg);
+    border-color: #86efac;
+}
+
+.adrev-totals-item__label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--adrev-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.adrev-totals-item__value {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--adrev-text);
+    font-family: 'Inter', sans-serif;
+}
+
+.adrev-totals-item--highlight .adrev-totals-item__value { color: var(--adrev-purple); }
+.adrev-totals-item--payout    .adrev-totals-item__value { color: var(--adrev-success); }
+
+/* ── Payout List ─────────────────────────────────────── */
+.adrev-payout-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.adrev-payout-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 18px;
+    background: #f8fafc;
+    border: 1px solid var(--adrev-border);
+    border-radius: var(--adrev-radius-sm);
+    transition: transform 0.2s;
+}
+
+.adrev-payout-item:hover { transform: translateX(4px); }
+
+.adrev-payout-item__date-badge {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    background: var(--adrev-primary);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+.adrev-payout-item__date-badge--success { background: var(--adrev-success); }
+.adrev-payout-item__date-badge--amber   { background: var(--adrev-amber); }
+
+.adrev-payout-item__day   { font-size: 18px; font-weight: 800; line-height: 1; }
+.adrev-payout-item__month { font-size: 10px; font-weight: 600; opacity: 0.85; }
+
+.adrev-payout-item__info { flex: 1; }
+
+.adrev-payout-item__title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--adrev-text);
+    margin-bottom: 3px;
+}
+
+.adrev-payout-item__partners {
+    font-size: 12px;
+    color: var(--adrev-text-muted);
+}
+
+.adrev-payout-item__amount {
+    text-align: right;
+}
+
+.adrev-payout-item__amount-value {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--adrev-success);
+    font-family: 'Inter', sans-serif;
+}
+
+.adrev-payout-item__amount-label {
+    font-size: 11px;
+    color: var(--adrev-text-muted);
+}
+
+/* ── Empty state ─────────────────────────────────────── */
+.adrev-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--adrev-text-muted);
+    font-size: 14px;
+}
+
+.adrev-empty i { font-size: 36px; display: block; margin-bottom: 10px; opacity: 0.4; }

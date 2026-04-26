@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý Doanh Thu – Admin TravelMate</title>
+    <meta name="description" content="Trang quản lý doanh thu admin TravelMate – theo dõi chiết khấu từ partner, lịch hoàn tiền hàng tuần." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/base.css" />
+    <link rel="stylesheet" href="../assets/layout.css" />
+    <link rel="stylesheet" href="../assets/components.css" />
+    <link rel="stylesheet" href="../assets/pages/admin.css" />
+    <link rel="stylesheet" href="../assets/responsive.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="../assets/pages/admin-revenue.css" />
+</head>
+
+<body>
+    <div class="admin-wrapper">
+        <!-- ══ SIDEBAR ══ -->
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar__header">
+                <a href="dashboard.html" class="sidebar-logo">
+                    <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                    <div>
+                        <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                        <span class="admin-sidebar__badge">ADMIN PANEL</span>
+                    </div>
+                </a>
+            </div>
+
+            <nav class="admin-sidebar__nav">
+                <div class="admin-sidebar__section-title">Tổng quan</div>
+                <a href="dashboard.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
+                <div class="admin-sidebar__section-title">Quản lý</div>
+                <a href="hotels.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Danh sách khách sạn</a>
+                <a href="rooms.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
+                <a href="bookings.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt phòng</a>
+                <a href="users.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
+                <a href="places.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗺</span> Địa điểm</a>
+                <a href="vouchers.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
+                <div class="admin-sidebar__section-title">Tài chính</div>
+                <a href="revenue.html" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
+                <div class="admin-sidebar__section-title">Hỗ trợ</div>
+                <a href="support.html" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
+                <div class="admin-sidebar__section-title">Hệ thống</div>
+                <a href="../user/index.html" class="admin-sidebar__link" target="_blank"><span class="admin-sidebar__link-icon">🌐</span> Xem trang User</a>
+            </nav>
+
+            <div class="admin-sidebar__footer">
+                <div class="admin-sidebar__user">
+                    <div class="admin-sidebar__user-avatar">AD</div>
+                    <div class="admin-sidebar__user-info">
+                        <div class="admin-sidebar__user-name">Admin TravelMate</div>
+                        <div class="admin-sidebar__user-role">Quản trị viên</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Sidebar overlay (mobile) -->
+        <div class="admin-sidebar-overlay"></div>
+
+        <!-- ══ MAIN ══ -->
+        <div class="admin-main">
+            <!-- Topbar -->
+            <header class="admin-topbar">
+                <div style="display: flex; align-items: center; gap: var(--space-4)">
+                    <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                    <h1 class="admin-topbar__title">💰 Quản Lý Doanh Thu</h1>
+                </div>
+                <div class="admin-topbar__actions">
+                    <span class="text-sm text-muted" id="adrev-date">📅 --/--/----</span>
+                    <span class="adrev-payout-badge" id="adrev-payout-info">
+                        <i class="fa-solid fa-calendar-check"></i>
+                        Hoàn tiền tiếp theo: <strong id="adrev-next-payout">--</strong>
+                    </span>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <main class="admin-content">
+
+                <!-- ── Policy Info Banner ─────────────────────────────── -->
+                <div class="adrev-policy-banner">
+                    <div class="adrev-policy-banner__icon"><i class="fa-solid fa-circle-info"></i></div>
+                    <div class="adrev-policy-banner__text">
+                        <strong>Chính sách chiết khấu &amp; hoàn tiền:</strong>
+                        Admin giữ 100% thanh toán từ user. Chiết khấu được trừ trực tiếp. Số tiền còn lại
+                        sẽ hoàn trả về tài khoản partner vào <strong>Thứ Ba hàng tuần</strong>.
+                        Voucher do admin cấp → admin chịu chi phí. Voucher do partner tự thêm → partner chịu.
+                    </div>
+                </div>
+
+                <!-- ── Discount Rate Table ────────────────────────────── -->
+                <div class="adrev-section">
+                    <div class="adrev-section__header">
+                        <h2 class="adrev-section__title"><i class="fa-solid fa-percent"></i> Bảng Chiết Khấu Theo Loại Hình</h2>
+                    </div>
+                    <div class="adrev-discount-grid">
+                        <div class="adrev-discount-card adrev-discount-card--hotel">
+                            <div class="adrev-discount-card__icon"><i class="fa-solid fa-hotel"></i></div>
+                            <div class="adrev-discount-card__type">Hotel</div>
+                            <div class="adrev-discount-card__rate">15%</div>
+                            <div class="adrev-discount-card__breakdown">
+                                <span class="adrev-tag">Phí nền tảng 10%</span>
+                                <span class="adrev-tag adrev-tag--accent">Phí quảng bá +5%</span>
+                            </div>
+                            <div class="adrev-discount-card__note">Phổ biến, lượng đặt lớn</div>
+                        </div>
+                        <div class="adrev-discount-card adrev-discount-card--villa">
+                            <div class="adrev-discount-card__icon"><i class="fa-solid fa-house-chimney"></i></div>
+                            <div class="adrev-discount-card__type">Villa</div>
+                            <div class="adrev-discount-card__rate">12%</div>
+                            <div class="adrev-discount-card__breakdown">
+                                <span class="adrev-tag">Phí nền tảng 9%</span>
+                                <span class="adrev-tag adrev-tag--accent">Phí quảng bá +3%</span>
+                            </div>
+                            <div class="adrev-discount-card__note">Giá trị booking cao</div>
+                        </div>
+                        <div class="adrev-discount-card adrev-discount-card--homestay">
+                            <div class="adrev-discount-card__icon"><i class="fa-solid fa-house"></i></div>
+                            <div class="adrev-discount-card__type">Homestay</div>
+                            <div class="adrev-discount-card__rate">10%</div>
+                            <div class="adrev-discount-card__breakdown">
+                                <span class="adrev-tag">Phí nền tảng 8%</span>
+                                <span class="adrev-tag adrev-tag--accent">Phí quảng bá +2%</span>
+                            </div>
+                            <div class="adrev-discount-card__note">Quy mô nhỏ, cá nhân</div>
+                        </div>
+                        <div class="adrev-discount-card adrev-discount-card--resort">
+                            <div class="adrev-discount-card__icon"><i class="fa-solid fa-umbrella-beach"></i></div>
+                            <div class="adrev-discount-card__type">Resort</div>
+                            <div class="adrev-discount-card__rate">18%</div>
+                            <div class="adrev-discount-card__breakdown">
+                                <span class="adrev-tag">Phí nền tảng 12%</span>
+                                <span class="adrev-tag adrev-tag--accent">Phí quảng bá +6%</span>
+                            </div>
+                            <div class="adrev-discount-card__note">Dịch vụ cao cấp</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Week Selector ──────────────────────────────────── -->
+                <div class="adrev-section">
+                    <div class="adrev-section__header">
+                        <h2 class="adrev-section__title"><i class="fa-solid fa-chart-bar"></i> Doanh Thu Theo Tuần</h2>
+                        <div class="adrev-week-selector" id="adrev-week-selector">
+                            <!-- JS renders week buttons -->
+                        </div>
+                    </div>
+
+                    <!-- ── KPI Cards ──────────────────────────────────── -->
+                    <div class="adrev-kpi-grid">
+                        <div class="adrev-kpi-card adrev-kpi-card--total">
+                            <div class="adrev-kpi-card__icon"><i class="fa-solid fa-money-bill-wave"></i></div>
+                            <div class="adrev-kpi-card__body">
+                                <div class="adrev-kpi-card__label">Tổng thu từ User (tuần)</div>
+                                <div class="adrev-kpi-card__value" id="adrev-total-collected">0đ</div>
+                                <div class="adrev-kpi-card__sub">Admin giữ 100% từ thanh toán</div>
+                            </div>
+                        </div>
+                        <div class="adrev-kpi-card adrev-kpi-card--discount">
+                            <div class="adrev-kpi-card__icon"><i class="fa-solid fa-scissors"></i></div>
+                            <div class="adrev-kpi-card__body">
+                                <div class="adrev-kpi-card__label">Tổng chiết khấu thu được</div>
+                                <div class="adrev-kpi-card__value" id="adrev-total-commission">0đ</div>
+                                <div class="adrev-kpi-card__sub">Doanh thu thuần của Admin</div>
+                            </div>
+                        </div>
+                        <div class="adrev-kpi-card adrev-kpi-card--payout">
+                            <div class="adrev-kpi-card__icon"><i class="fa-solid fa-paper-plane"></i></div>
+                            <div class="adrev-kpi-card__body">
+                                <div class="adrev-kpi-card__label">Sẽ hoàn trả partner</div>
+                                <div class="adrev-kpi-card__value" id="adrev-total-payout">0đ</div>
+                                <div class="adrev-kpi-card__sub">Hoàn vào Thứ Ba tuần tới</div>
+                            </div>
+                        </div>
+                        <div class="adrev-kpi-card adrev-kpi-card--bookings">
+                            <div class="adrev-kpi-card__icon"><i class="fa-solid fa-calendar-check"></i></div>
+                            <div class="adrev-kpi-card__body">
+                                <div class="adrev-kpi-card__label">Tổng booking tuần</div>
+                                <div class="adrev-kpi-card__value" id="adrev-total-bookings">0</div>
+                                <div class="adrev-kpi-card__sub">Từ tất cả partner</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── Weekly Revenue Chart ────────────────────────── -->
+                    <div class="adrev-chart-card">
+                        <div class="adrev-chart-card__header">
+                            <div class="adrev-chart-legend">
+                                <span class="adrev-legend-dot adrev-legend-dot--collected"></span> Thu từ user
+                                <span class="adrev-legend-dot adrev-legend-dot--commission"></span> Chiết khấu
+                                <span class="adrev-legend-dot adrev-legend-dot--payout"></span> Hoàn partner
+                            </div>
+                        </div>
+                        <div class="adrev-chart" id="adrev-chart">
+                            <!-- JS renders bars -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Partner Commission Summary ─────────────────────── -->
+                <div class="adrev-section">
+                    <div class="adrev-section__header">
+                        <h2 class="adrev-section__title"><i class="fa-solid fa-users"></i> Thống Kê Chiết Khấu Đã Nộp – Tất Cả Partner</h2>
+                        <div class="adrev-filter-row">
+                            <input type="text" class="adrev-search" id="adrev-partner-search" placeholder="🔍 Tìm partner..." />
+                            <select class="adrev-select" id="adrev-type-filter">
+                                <option value="">Tất cả loại hình</option>
+                                <option value="hotel">Hotel</option>
+                                <option value="villa">Villa</option>
+                                <option value="homestay">Homestay</option>
+                                <option value="resort">Resort</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="adrev-partner-table-wrap">
+                        <table class="adrev-partner-table" id="adrev-partner-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Tên Partner</th>
+                                    <th>Loại hình</th>
+                                    <th>Tỷ lệ CK</th>
+                                    <th>DT gộp tuần</th>
+                                    <th>Chiết khấu</th>
+                                    <th>Giảm giá Partner</th>
+                                    <th>Sẽ hoàn trả</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adrev-partner-tbody">
+                                <!-- JS renders rows -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Totals row -->
+                    <div class="adrev-totals-bar">
+                        <div class="adrev-totals-item">
+                            <span class="adrev-totals-item__label">Tổng doanh thu gộp</span>
+                            <span class="adrev-totals-item__value" id="adrev-sum-gross">0đ</span>
+                        </div>
+                        <div class="adrev-totals-item adrev-totals-item--highlight">
+                            <span class="adrev-totals-item__label">Tổng chiết khấu</span>
+                            <span class="adrev-totals-item__value" id="adrev-sum-commission">0đ</span>
+                        </div>
+                        <div class="adrev-totals-item">
+                            <span class="adrev-totals-item__label">Tổng giảm giá partner</span>
+                            <span class="adrev-totals-item__value" id="adrev-sum-voucher">0đ</span>
+                        </div>
+                        <div class="adrev-totals-item adrev-totals-item--payout">
+                            <span class="adrev-totals-item__label">Tổng hoàn trả</span>
+                            <span class="adrev-totals-item__value" id="adrev-sum-payout">0đ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Payout Schedule ─────────────────────────────────── -->
+                <div class="adrev-section">
+                    <div class="adrev-section__header">
+                        <h2 class="adrev-section__title"><i class="fa-solid fa-clock-rotate-left"></i> Lịch Sử Hoàn Tiền</h2>
+                    </div>
+                    <div class="adrev-payout-list" id="adrev-payout-list">
+                        <!-- JS renders payout history -->
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/admin.js"></script>
+    <script src="../assets/js/admin-revenue.js"></script>
+</body>
+
+</html>
