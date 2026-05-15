@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lịch sử đặt phòng – Partner TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <link rel="stylesheet" href="/assets/css/booking.css" />
+    <link rel="stylesheet" href="/assets/css/partners.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+
+<body>
+    <div class="admin-wrapper">
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar__header">
+                <a href="/partner/dashboard" class="sidebar-logo">
+                    <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                    <div>
+                        <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                        <span class="admin-sidebar__badge">PARTNER CENTER</span>
+                    </div>
+                </a>
+            </div>
+            <nav class="admin-sidebar__nav">
+                <div class="admin-sidebar__section-title">Tổng quan</div>
+                <a href="/partner/dashboard" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">📊</span> Dashboard
+                </a>
+                <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
+                <a href="/partner/accommodations" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🏨</span> Nơi lưu trú của tôi
+                </a>
+                <a href="/partner/accommodations/new" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">＋</span> Đăng ký mới
+                </a>
+                <a href="/partner/amenities" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🏷</span> Tiện nghi phòng
+                </a>
+                <a href="/partner/bookings" class="admin-sidebar__link active">
+                    <span class="admin-sidebar__link-icon">📋</span> Đơn đặt phòng
+                </a>
+                <a href="/partner/room-status" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏠</span> Tình trạng phòng hôm nay</a>
+                <a href="/partner/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Kiểm tra lịch trống</a>
+                <a href="/partner/direct-booking" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">➕</span> Booking trực tiếp</a>
+                <a href="/partner/reviews" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">⭐</span> Đánh giá của khách
+                </a>
+                <div class="admin-sidebar__section-title">Tài chính</div>
+                <a href="/partner/revenue" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">💰</span> Doanh thu
+                </a>
+                <a href="/partner/settlements" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🏦</span> Quyết toán
+                </a>
+                <a href="/partner/vouchers" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🎟</span> Voucher của tôi
+                </a>
+                <div class="admin-sidebar__section-title">Hỗ trợ</div>
+                <a href="/partner/support" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ
+                </a>
+                <a href="/partner/profile" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">👤</span> Hồ sơ của tôi
+                </a>
+            </nav>
+            <div class="admin-sidebar__footer">
+                <div class="admin-sidebar__user">
+                    <div class="admin-sidebar__user-avatar">PT</div>
+                    <div class="admin-sidebar__user-info">
+                        <div class="admin-sidebar__user-name" th:text="${partnerName} ?: 'Partner'">Partner</div>
+                        <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <div class="admin-sidebar-overlay"></div>
+
+        <div class="admin-main">
+            <header class="admin-topbar">
+                <div style="display: flex; align-items: center; gap: var(--space-4)">
+                    <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                    <h1 class="admin-topbar__title">📋 Đơn đặt phòng</h1>
+                </div>
+                <div class="admin-topbar__actions">
+                    <form th:action="@{/auth/logout}" method="post" style="display:inline;">                        <button type="submit" class="btn btn--ghost btn--sm">🚪 Đăng xuất</button>
+                    </form>
+                </div>
+            </header>
+
+            <main class="admin-content">
+                <div class="page-header">
+                    <div>
+                        <h2 class="page-header__title">📋 Đơn đặt phòng của bạn</h2>
+                        <p class="page-header__subtitle">Bao gồm booking online, booking trực tiếp và lịch chặn phòng — thuộc cơ sở lưu trú của bạn.</p>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <a href="/partner/direct-booking" class="btn btn--primary btn--sm">
+                            <i class="fa-solid fa-plus" style="margin-right:4px;"></i> Booking trực tiếp
+                        </a>
+                        <a href="/partner/room-status" class="btn btn--outline btn--sm">
+                            🏠 Tình trạng phòng
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Flash messages -->
+                <div th:if="${successMessage}" style="margin-bottom: var(--space-4); padding: 12px 16px; background: #ecfdf5; border-radius: 8px; font-size: 13px; color: #065f46; border: 1px solid #a7f3d0;">
+                    <span th:text="${successMessage}"></span>
+                </div>
+                <div th:if="${errorMessage}" style="margin-bottom: var(--space-4); padding: 12px 16px; background: #fef2f2; border-radius: 8px; font-size: 13px; color: #991b1b; border: 1px solid #fecaca;">
+                    <span th:text="${errorMessage}"></span>
+                </div>
+
+                <!-- Stats row -->
+                <div class="stats-grid" style="margin-bottom: var(--space-5);">
+                    <div class="stats-card">
+                        <div class="stats-card__icon stats-card__icon--blue">📋</div>
+                        <div>
+                            <div class="stats-card__value" th:text="${totalCount}">0</div>
+                            <div class="stats-card__label">Tổng đơn</div>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-card__icon stats-card__icon--amber">⏳</div>
+                        <div>
+                            <div class="stats-card__value" th:text="${pendingPartnerCount}">0</div>
+                            <div class="stats-card__label">Chờ xác nhận giữ phòng</div>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-card__icon stats-card__icon--blue">🏨</div>
+                        <div>
+                            <div class="stats-card__value" th:text="${checkedInCount}">0</div>
+                            <div class="stats-card__label">Đang lưu trú</div>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-card__icon stats-card__icon--green">🏁</div>
+                        <div>
+                            <div class="stats-card__value" th:text="${completedCount}">0</div>
+                            <div class="stats-card__label">Hoàn thành</div>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-card__icon" style="background:#fef3c7;color:#d97706;">🏃</div>
+                        <div>
+                            <div class="stats-card__value" th:text="${directCount}">0</div>
+                            <div class="stats-card__label">Booking trực tiếp</div>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-card__icon" style="background:#fee2e2;color:#dc2626;">🔒</div>
+                        <div>
+                            <div class="stats-card__value" th:text="${blockCount}">0</div>
+                            <div class="stats-card__label">Chặn phòng</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter tabs -->
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:var(--space-4);" id="booking-tabs">
+                    <button class="tab-btn tab-btn--active" data-filter="all" onclick="filterBookings('all',this)">Tất cả <span class="badge badge--muted" th:text="${totalCount}">0</span></button>
+                    <button class="tab-btn" data-filter="CONFIRMED" onclick="filterByStatusAndSource('CONFIRMED','ONLINE',this)">🌐 Online · Đã xác nhận</button>
+                    <button class="tab-btn" data-filter="CHECKED_IN" onclick="filterBookings('CHECKED_IN',this)">🏨 Đang ở</button>
+                    <button class="tab-btn" data-filter="COMPLETED" onclick="filterBookings('COMPLETED',this)">🏁 Hoàn thành</button>
+                    <button class="tab-btn" data-filter="NO_SHOW" onclick="filterBookings('NO_SHOW',this)">⚠️ Không đến</button>
+                    <button class="tab-btn" data-filter="DIRECT" onclick="filterBySource('DIRECT',this)">🏃 Trực tiếp</button>
+                    <button class="tab-btn" data-filter="MANUAL_BLOCK" onclick="filterBySource('MANUAL_BLOCK',this)">🔒 Chặn phòng</button>
+                    <button class="tab-btn" data-filter="CANCELLED" onclick="filterBookings('CANCELLED',this)">❌ Hủy</button>
+                </div>
+                <style>
+                  .tab-btn{padding:6px 14px;border:1px solid #d1d5db;border-radius:20px;font-size:13px;background:#fff;cursor:pointer;transition:all .15s;}
+                  .tab-btn--active{background:var(--color-primary);color:#fff;border-color:var(--color-primary);}
+                </style>
+
+                <!-- Table -->
+                <style>
+                  .bk-table{width:100%;border-collapse:collapse;font-size:13px;}
+                  .bk-table thead tr{background:#f8fafc;border-bottom:2px solid #e2e8f0;}
+                  .bk-table th{padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
+                  .bk-table td{padding:12px 12px;vertical-align:top;border-bottom:1px solid #f1f5f9;}
+                  .bk-table tbody tr:hover{background:#fafbff;}
+                  .bk-table tbody tr.row-checkedin{background:#f0fdf4;}
+                  .bk-table tbody tr.row-completed{background:#f8fafc;}
+                  .bk-table tbody tr.row-noshow{background:#fef2f2;}
+                  .bk-table tbody tr.row-cancelled{background:#f9fafb;opacity:.75;}
+                  .bk-code{font-family:monospace;font-size:12px;font-weight:700;color:#2563eb;}
+                  .bk-time{font-size:11px;color:#94a3b8;margin-top:2px;}
+                  .bk-guestname{font-weight:600;font-size:13px;color:#0f172a;}
+                  .bk-sub{font-size:11px;color:#64748b;margin-top:1px;}
+                  .bk-propname{font-weight:600;font-size:13px;color:#0f172a;}
+                  .bk-roomname{font-size:12px;color:#475569;margin-top:2px;}
+                  .bk-guests{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#64748b;margin-top:4px;background:#f1f5f9;padding:2px 7px;border-radius:10px;}
+                  .bk-dates{font-size:13px;font-weight:600;color:#0f172a;line-height:1.6;}
+                  .bk-nights{display:inline-block;font-size:11px;color:#2563eb;background:#eff6ff;border-radius:8px;padding:1px 7px;margin-top:3px;font-weight:600;}
+                  .bk-amount{font-size:15px;font-weight:800;color:#0f172a;}
+                  .bk-payopt{font-size:11px;font-weight:600;margin-top:3px;}
+                  .bk-paid{font-size:11px;color:#059669;margin-top:2px;}
+                  .bk-remaining{font-size:11px;color:#dc2626;margin-top:1px;}
+                  .bk-status-wrap{display:flex;flex-direction:column;gap:5px;}
+                  .bk-note-text{font-size:11px;color:#64748b;background:#f8fafc;border-radius:6px;padding:5px 8px;margin-top:4px;max-width:220px;line-height:1.5;}
+                  .bk-action-wrap{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+                  .bk-btn{width:100%;border:none;border-radius:7px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:opacity .15s;}
+                  .bk-btn:hover{opacity:.88;}
+                  .bk-btn-confirm{background:#2563eb;color:#fff;}
+                  .bk-btn-checkin{background:#059669;color:#fff;}
+                  .bk-btn-checkout{background:#7c3aed;color:#fff;}
+                  .bk-btn-noshow{background:#fff;color:#dc2626;border:1.5px solid #fca5a5!important;}
+                  .bk-btn-reject{background:#fee2e2;color:#dc2626;border:1px solid #fca5a5!important;}
+                  .bk-noteinput{font-size:11px;padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;width:100%;box-sizing:border-box;}
+                  .bk-notebtn{background:#6366f1;color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;}
+                </style>
+                <div class="table-wrap" style="overflow-x:auto;">
+                    <table class="bk-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Mã đơn / Nguồn</th>
+                                <th>Khách hàng</th>
+                                <th>Cơ sở / Phòng</th>
+                                <th>Nhận → Trả phòng</th>
+                                <th>Tổng tiền / Thanh toán</th>
+                                <th>Trạng thái &amp; Ghi chú</th>
+                                <th>Thao tác vận hành</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Empty state -->
+                            <tr th:if="${#lists.isEmpty(bookings)}" class="booking-row">
+                                <td colspan="9" style="text-align:center;padding:40px;color:#94a3b8;">
+                                    <div style="font-size:36px;margin-bottom:10px;">📭</div>
+                                    <div style="font-weight:600;color:#475569;">Chưa có đơn đặt phòng nào</div>
+                                    <div style="font-size:12px;margin-top:4px;">Các đơn được admin duyệt sẽ hiển thị tại đây.</div>
+                                </td>
+                            </tr>
+
+                            <!-- ── Booking rows ── -->
+                            <tr th:each="b,iter : ${bookings}"
+                                class="booking-row"
+                                th:attr="data-status=${b.bookingStatus.name()},data-source=${b.bookingSource != null ? b.bookingSource.name() : 'ONLINE'}"
+                                th:classappend="${b.bookingStatus.name() == 'CHECKED_IN'  ? ' row-checkedin'  :
+                                                  b.bookingStatus.name() == 'COMPLETED'   ? ' row-completed'  :
+                                                  b.bookingStatus.name() == 'NO_SHOW'     ? ' row-noshow'     :
+                                                  b.bookingStatus.name() == 'CANCELLED'   ? ' row-cancelled'  : ''}">
+
+                                <!-- # -->
+                                <td style="color:#94a3b8;font-size:12px;font-weight:600;text-align:center;" th:text="${iter.index + 1}">1</td>
+
+                                <!-- Mã đơn + nguồn + thời gian -->
+                                <td>
+                                    <a class="bk-code" th:href="@{/partner/bookings/{id}(id=${b.id})}"
+                                       th:text="${b.bookingCode}" style="text-decoration:none;">BK-XXX</a>
+                                    <div style="margin-top:4px;">
+                                        <!-- Nguồn booking badge -->
+                                        <span th:if="${b.bookingSource == null or b.bookingSource.name() == 'ONLINE'}"
+                                              style="display:inline-flex;align-items:center;gap:3px;background:#eff6ff;color:#1d4ed8;border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700;">
+                                            🌐 TravelMate Online
+                                        </span>
+                                        <span th:if="${b.bookingSource != null and b.bookingSource.name() == 'DIRECT'}"
+                                              style="display:inline-flex;align-items:center;gap:3px;background:#fef3c7;color:#b45309;border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700;">
+                                            🏃 Trực tiếp tại cơ sở
+                                        </span>
+                                        <span th:if="${b.bookingSource != null and b.bookingSource.name() == 'MANUAL_BLOCK'}"
+                                              style="display:inline-flex;align-items:center;gap:3px;background:#fee2e2;color:#dc2626;border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700;">
+                                            🔒 Chặn phòng
+                                        </span>
+                                    </div>
+                                    <div class="bk-time">
+                                        <i class="fa-regular fa-clock" style="margin-right:3px;"></i>
+                                        <span th:text="${#temporals.format(b.createdAt, 'dd/MM/yyyy HH:mm')}">--</span>
+                                    </div>
+                                </td>
+
+                                <!-- Khách hàng -->
+                                <td>
+                                    <div class="bk-guestname" th:text="${b.customerName}">Tên khách</div>
+                                    <div class="bk-sub">
+                                        <i class="fa-solid fa-phone" style="font-size:10px;margin-right:3px;"></i>
+                                        <span th:text="${b.customerPhone}">SĐT</span>
+                                    </div>
+                                    <div class="bk-sub">
+                                        <i class="fa-regular fa-envelope" style="font-size:10px;margin-right:3px;"></i>
+                                        <span th:text="${b.customerEmail}">Email</span>
+                                    </div>
+                                </td>
+
+                                <!-- Cơ sở / Phòng / Khách -->
+                                <td>
+                                    <div class="bk-propname" th:text="${b.accommodation.name}">Cơ sở</div>
+                                    <div class="bk-roomname">
+                                        <i class="fa-solid fa-door-open" style="font-size:10px;color:#94a3b8;margin-right:3px;"></i>
+                                        <span th:text="${b.room.roomName}">Phòng</span>
+                                    </div>
+                                    <!-- Số phòng + số khách -->
+                                    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;">
+                                        <span class="bk-guests">
+                                            <i class="fa-solid fa-layer-group" style="font-size:9px;color:#64748b;"></i>
+                                            <span th:text="${b.roomQuantity} + ' phòng'">1 phòng</span>
+                                        </span>
+                                        <span class="bk-guests">
+                                            <i class="fa-solid fa-user-group" style="font-size:9px;color:#64748b;"></i>
+                                            <span th:text="${b.adults} + ' lớn'
+                                                           + (${b.children} > 0 ? ', ' + ${b.children} + ' trẻ em' : '')">2 lớn</span>
+                                        </span>
+                                    </div>
+                                </td>
+
+                                <!-- Ngày nhận → trả + số đêm -->
+                                <td>
+                                    <div class="bk-dates">
+                                        <span th:text="${#temporals.format(b.checkIn, 'dd/MM/yyyy')}">--</span>
+                                    </div>
+                                    <div style="color:#94a3b8;font-size:12px;margin:1px 0;">↓</div>
+                                    <div class="bk-dates">
+                                        <span th:text="${#temporals.format(b.checkOut, 'dd/MM/yyyy')}">--</span>
+                                    </div>
+                                    <div>
+                                        <span class="bk-nights"
+                                              th:text="${b.checkOut.toEpochDay() - b.checkIn.toEpochDay()} + ' đêm'">1 đêm</span>
+                                    </div>
+                                </td>
+
+                                <!-- Tổng tiền + Thanh toán -->
+                                <td>
+                                    <!-- Với MANUAL_BLOCK: không hiển thị tiền -->
+                                    <th:block th:if="${b.bookingSource != null and b.bookingSource.name() == 'MANUAL_BLOCK'}">
+                                        <div style="font-size:12px;color:#dc2626;font-weight:600;background:#fee2e2;padding:4px 8px;border-radius:6px;text-align:center;">
+                                            🔒 Chặn phòng<br/>
+                                            <span style="font-size:10px;font-weight:400;color:#ef4444;" th:text="${b.blockReason} ?: 'Không có lý do'">Lý do</span>
+                                        </div>
+                                    </th:block>
+
+                                    <!-- Với booking thường -->
+                                    <th:block th:if="${b.bookingSource == null or b.bookingSource.name() != 'MANUAL_BLOCK'}">
+                                        <div class="bk-amount"
+                                             th:text="${#numbers.formatDecimal(b.totalAmount, 0, 'POINT', 0, 'COMMA')} + '₫'">0₫</div>
+
+                                        <!-- ONLINE booking: hiển thị thanh toán qua TM -->
+                                        <th:block th:if="${b.bookingSource == null or b.bookingSource.name() == 'ONLINE'}">
+                                            <div>
+                                                <span th:if="${b.paymentOption.name() == 'FULL_PAYMENT'}"
+                                                      style="display:inline-flex;align-items:center;gap:5px;background:#f0fdf4;color:#166534;border-radius:8px;padding:2px 8px;font-size:10px;font-weight:700;margin-top:4px;">
+                                                    💳 Thanh toán 100% qua TM
+                                                </span>
+                                                <span th:if="${b.paymentOption.name() == 'DEPOSIT_30'}"
+                                                      style="display:inline-flex;align-items:center;gap:5px;background:#fffbeb;color:#92400e;border-radius:8px;padding:2px 8px;font-size:10px;font-weight:700;margin-top:4px;">
+                                                    💰 Cọc 30% qua TravelMate
+                                                </span>
+                                            </div>
+                                            <!-- Đã thanh toán qua TravelMate -->
+                                            <div class="bk-paid" style="margin-top:5px;">
+                                                <i class="fa-solid fa-circle-check" style="font-size:10px;margin-right:3px;"></i>
+                                                Qua TravelMate: <strong th:text="${#numbers.formatDecimal(b.paidAmount, 0, 'POINT', 0, 'COMMA')} + '₫'">0₫</strong>
+                                            </div>
+                                            <!-- Còn lại 70% tại cơ sở (chỉ cho DEPOSIT_30) -->
+                                            <div th:if="${b.remainingAmount != null and b.remainingAmount > 0 and b.paymentOption.name() == 'DEPOSIT_30'}"
+                                                 style="margin-top:4px;">
+                                                <div th:if="${b.remainingPaymentStatus == null or b.remainingPaymentStatus.name() == 'UNPAID'}"
+                                                     style="display:flex;align-items:center;gap:4px;background:#fef2f2;border-radius:6px;padding:3px 7px;font-size:10px;color:#dc2626;font-weight:700;">
+                                                    <i class="fa-regular fa-clock" style="font-size:10px;"></i>
+                                                    Còn thu tại cơ sở: <strong th:text="${#numbers.formatDecimal(b.remainingAmount, 0, 'POINT', 0, 'COMMA')} + '₫'">0₫</strong>
+                                                    — Chưa thu
+                                                </div>
+                                                <div th:if="${b.remainingPaymentStatus != null and b.remainingPaymentStatus.name() == 'PAID_AT_PROPERTY'}"
+                                                     style="display:flex;align-items:center;gap:4px;background:#f0fdf4;border-radius:6px;padding:3px 7px;font-size:10px;color:#16a34a;font-weight:700;">
+                                                    <i class="fa-solid fa-circle-check" style="font-size:10px;"></i>
+                                                    Còn lại: <strong th:text="${#numbers.formatDecimal(b.remainingAmount, 0, 'POINT', 0, 'COMMA')} + '₫'">0₫</strong>
+                                                    — Đã thu tại cơ sở ✓
+                                                </div>
+                                            </div>
+                                        </th:block>
+
+                                        <!-- DIRECT booking: thu trực tiếp, KHÔNG qua TravelMate -->
+                                        <th:block th:if="${b.bookingSource != null and b.bookingSource.name() == 'DIRECT'}">
+                                            <div style="display:inline-flex;align-items:center;gap:5px;background:#fef3c7;color:#b45309;border-radius:8px;padding:2px 8px;font-size:10px;font-weight:700;margin-top:4px;">
+                                                💵 Thu tại cơ sở
+                                            </div>
+                                            <div style="font-size:10px;color:#6b7280;margin-top:4px;background:#f9fafb;border-radius:6px;padding:3px 8px;">
+                                                <i class="fa-solid fa-info-circle" style="font-size:9px;margin-right:3px;"></i>
+                                                Không tính doanh thu TravelMate
+                                            </div>
+                                        </th:block>
+                                    </th:block>
+                                </td>
+
+                                <!-- Trạng thái + Partner status + Ghi chú -->
+                                <td>
+                                    <div class="bk-status-wrap">
+                                        <!-- Booking status badge -->
+                                        <span class="badge"
+                                              th:classappend="${b.bookingStatus.name() == 'CONFIRMED'   ? ' badge--primary' :
+                                                               b.bookingStatus.name() == 'CHECKED_IN'  ? ' badge--info'    :
+                                                               b.bookingStatus.name() == 'COMPLETED'   ? ' badge--success' :
+                                                               b.bookingStatus.name() == 'NO_SHOW'     ? ' badge--danger'  :
+                                                               b.bookingStatus.name() == 'CANCELLED'   ? ' badge--danger'  : ' badge--warning'}"
+                                              th:text="${b.bookingStatus.name() == 'PENDING_ADMIN_APPROVAL' ? '⏳ Chờ duyệt'   :
+                                                        b.bookingStatus.name() == 'CONFIRMED'              ? '✅ Đã xác nhận' :
+                                                        b.bookingStatus.name() == 'CHECKED_IN'             ? '🏨 Đang ở'       :
+                                                        b.bookingStatus.name() == 'COMPLETED'              ? '🏁 Hoàn thành'  :
+                                                        b.bookingStatus.name() == 'NO_SHOW'                ? '🚫 Không đến'   :
+                                                        b.bookingStatus.name() == 'CANCELLED'              ? '❌ Đã hủy'       : b.bookingStatus.name()}">
+                                            Trạng thái
+                                        </span>
+
+                                        <!-- Partner status badge -->
+                                        <span th:if="${b.partnerStatus != null}"
+                                              class="badge"
+                                              th:classappend="${b.partnerStatus.name() == 'PARTNER_CONFIRMED'  ? ' badge--success' :
+                                                               b.partnerStatus.name() == 'PARTNER_CANCELLED'  ? ' badge--danger'  : ' badge--warning'}"
+                                              th:text="${b.partnerStatus.name() == 'PENDING_PARTNER_CONFIRMATION' ? '⏳ Chờ xác nhận' :
+                                                        b.partnerStatus.name() == 'PARTNER_CONFIRMED'            ? '✅ Partner OK'   :
+                                                        b.partnerStatus.name() == 'PARTNER_CANCELLED'            ? '❌ Đã từ chối'   : b.partnerStatus.name()}">
+                                            Partner
+                                        </span>
+
+                                        <!-- Ghi chú timeline -->
+                                        <div th:if="${b.note != null and !#strings.isEmpty(b.note)}"
+                                             class="bk-note-text">
+                                            <i class="fa-solid fa-comment-dots" style="font-size:10px;color:#94a3b8;margin-right:4px;"></i>
+                                            <span th:text="${b.note}"></span>
+                                        </div>
+
+                                        <!-- Form thêm ghi chú — hiện cho CONFIRMED, CHECKED_IN -->
+                                        <form th:if="${b.bookingStatus.name() == 'CONFIRMED' or b.bookingStatus.name() == 'CHECKED_IN'}"
+                                              th:action="@{/partner/bookings/{id}/add-note(id=${b.id})}"
+                                              method="post" style="display:flex;gap:4px;margin-top:2px;">
+                                            <input type="text" name="note" placeholder="Thêm ghi chú..."
+                                                   required minlength="2" maxlength="200"
+                                                   class="bk-noteinput" />
+                                            <button type="submit" class="bk-notebtn">📝</button>
+                                        </form>
+                                    </div>
+                                </td>
+
+                                <!-- Thao tác vận hành -->
+                                <td>
+                                    <div class="bk-action-wrap">
+
+                                        <!-- Bước 1: Chờ xác nhận giữ phòng -->
+                                        <th:block th:if="${b.bookingStatus.name() == 'CONFIRMED' and (b.partnerStatus == null or b.partnerStatus.name() == 'PENDING_PARTNER_CONFIRMATION')}">
+                                            <div style="font-size:11px;color:#92400e;font-weight:600;background:#fffbeb;padding:4px 8px;border-radius:6px;text-align:center;">
+                                                ⏳ Chờ xác nhận giữ phòng
+                                            </div>
+                                            <form th:action="@{/partner/bookings/{id}/confirm-hold(id=${b.id})}" method="post">
+                                                <button type="submit" class="bk-btn bk-btn-confirm"
+                                                        onclick="return confirm('Xác nhận giữ phòng cho khách này?')">
+                                                    ✅ Xác nhận giữ phòng
+                                                </button>
+                                            </form>
+                                            <form th:action="@{/partner/bookings/{id}/cancel-hold(id=${b.id})}" method="post">
+                                                <button type="submit" class="bk-btn bk-btn-reject"
+                                                        onclick="return confirm('Từ chối giữ phòng? Admin sẽ được thông báo.')">
+                                                    ❌ Từ chối
+                                                </button>
+                                            </form>
+                                        </th:block>
+
+                                        <!-- Bước 2: Đã xác nhận → Check-in hoặc No-show -->
+                                        <th:block th:if="${b.bookingStatus.name() == 'CONFIRMED' and b.partnerStatus != null and b.partnerStatus.name() == 'PARTNER_CONFIRMED' and (b.bookingSource == null or b.bookingSource.name() == 'ONLINE')}">
+                                            <div style="font-size:11px;color:#166534;font-weight:600;background:#f0fdf4;padding:4px 8px;border-radius:6px;text-align:center;">
+                                                ✅ Đã xác nhận — chờ khách đến
+                                            </div>
+                                            <!-- Nếu DEPOSIT_30: check-in kèm confirm remaining -->
+                                            <th:block th:if="${b.paymentOption.name() == 'DEPOSIT_30'}">
+                                                <button type="button" class="bk-btn bk-btn-checkin"
+                                                        onclick="openCheckinModal(this)"
+                                                        th:attr="data-booking-id=${b.id},data-remaining=${#numbers.formatDecimal(b.remainingAmount, 0, 'POINT', 0, 'COMMA')} + '₫',data-guest=${b.customerName}">
+                                                    🏨 Check-in khách
+                                                </button>
+                                            </th:block>
+                                            <!-- FULL_PAYMENT: check-in thông thường -->
+                                            <th:block th:if="${b.paymentOption.name() == 'FULL_PAYMENT'}">
+                                                <form th:action="@{/partner/bookings/{id}/check-in(id=${b.id})}" method="post">
+                                                    <button type="submit" class="bk-btn bk-btn-checkin"
+                                                            onclick="return confirm('Xác nhận khách đã đến và thực hiện check-in?')">
+                                                        🏨 Check-in khách
+                                                    </button>
+                                                </form>
+                                            </th:block>
+                                            <form th:action="@{/partner/bookings/{id}/report-no-show(id=${b.id})}" method="post">
+                                                <button type="submit" class="bk-btn bk-btn-noshow"
+                                                        onclick="return confirm('Xác nhận khách không đến? Với cọc 30%, khách sẽ mất cọc.')">
+                                                    🚫 Báo No-show
+                                                </button>
+                                            </form>
+                                        </th:block>
+
+                                        <!-- Bước 3: Đang lưu trú → Check-out (+ confirm remaining nếu chưa thu) -->
+                                        <th:block th:if="${b.bookingStatus.name() == 'CHECKED_IN' and b.partnerStatus != null and b.partnerStatus.name() == 'PARTNER_CONFIRMED' and (b.bookingSource == null or b.bookingSource.name() == 'ONLINE')}">
+                                            <div style="font-size:11px;color:#1d4ed8;font-weight:600;background:#eff6ff;padding:4px 8px;border-radius:6px;text-align:center;">
+                                                🏨 Khách đang lưu trú
+                                            </div>
+                                            <!-- Confirm remaining nếu DEPOSIT_30 và chưa thu -->
+                                            <th:block th:if="${b.paymentOption.name() == 'DEPOSIT_30' and (b.remainingPaymentStatus == null or b.remainingPaymentStatus.name() == 'UNPAID')}">
+                                                <form th:action="@{/partner/bookings/{id}/confirm-remaining(id=${b.id})}" method="post">
+                                                    <input type="hidden" name="paymentNote" value="Khách thanh toán tại cơ sở" />
+                                                    <button type="submit" class="bk-btn"
+                                                            style="background:#f59e0b;color:#fff;"
+                                                            onclick="return confirm('Xác nhận đã thu đủ khoản còn lại tại cơ sở?')">
+                                                        💰 Xác nhận thu 70%
+                                                    </button>
+                                                </form>
+                                            </th:block>
+                                            <form th:action="@{/partner/bookings/{id}/check-out(id=${b.id})}" method="post">
+                                                <button type="submit" class="bk-btn bk-btn-checkout"
+                                                        onclick="return confirm('Xác nhận khách đã trả phòng và hoàn tất đơn?')">
+                                                    🏁 Check-out / Hoàn tất
+                                                </button>
+                                            </form>
+                                        </th:block>
+
+                                        <!-- Booking trực tiếp đang CONFIRMED: check-in và check-out -->
+                                        <th:block th:if="${b.bookingSource != null and b.bookingSource.name() == 'DIRECT' and b.bookingStatus.name() == 'CONFIRMED'}">
+                                            <div style="font-size:11px;color:#b45309;font-weight:600;background:#fef3c7;padding:4px 8px;border-radius:6px;text-align:center;">
+                                                🏃 Khách trực tiếp — chờ check-in
+                                            </div>
+                                            <form th:action="@{/partner/bookings/{id}/check-in(id=${b.id})}" method="post">
+                                                <button type="submit" class="bk-btn bk-btn-checkin"
+                                                        onclick="return confirm('Check-in khách trực tiếp?')">
+                                                    🏨 Check-in
+                                                </button>
+                                            </form>
+                                            <form th:action="@{/partner/bookings/{id}/cancel-direct(id=${b.id})}" method="post">
+                                                <button type="submit" class="bk-btn bk-btn-reject"
+                                                        onclick="return confirm('Hủy booking trực tiếp này? Phòng sẽ được mở lại.')">
+                                                    ❌ Hủy
+                                                </button>
+                                            </form>
+                                        </th:block>
+
+                                        <!-- Booking trực tiếp đang CHECKED_IN -->
+                                        <th:block th:if="${b.bookingSource != null and b.bookingSource.name() == 'DIRECT' and b.bookingStatus.name() == 'CHECKED_IN'}">
+                                            <div style="font-size:11px;color:#b45309;font-weight:600;background:#fef3c7;padding:4px 8px;border-radius:6px;text-align:center;">
+                                                🏃 Khách trực tiếp đang ở
+                                            </div>
+                                            <form th:action="@{/partner/bookings/{id}/check-out(id=${b.id})}" method="post">
+                                                <button type="submit" class="bk-btn bk-btn-checkout"
+                                                        onclick="return confirm('Check-out khách trực tiếp?')">
+                                                    🏁 Check-out
+                                                </button>
+                                            </form>
+                                        </th:block>
+
+                                        <!-- Chặn phòng đang active: có thể hủy -->
+                                        <th:block th:if="${b.bookingSource != null and b.bookingSource.name() == 'MANUAL_BLOCK' and b.bookingStatus.name() == 'CONFIRMED'}">
+                                            <div style="font-size:11px;color:#dc2626;font-weight:600;background:#fee2e2;padding:4px 8px;border-radius:6px;text-align:center;">
+                                                🔒 Phòng đang bị chặn
+                                                <div style="font-size:10px;font-weight:400;color:#ef4444;margin-top:2px;" th:text="${b.blockReason} ?: ''">Lý do</div>
+                                            </div>
+                                            <form th:action="@{/partner/bookings/{id}/cancel-block(id=${b.id})}" method="post">
+                                                <button type="submit" class="bk-btn"
+                                                        style="background:#fff;color:#dc2626;border:1.5px solid #fca5a5;"
+                                                        onclick="return confirm('Hủy chặn phòng này? Phòng sẽ được mở lại trên TravelMate.')">
+                                                    🔓 Hủy chặn phòng
+                                                </button>
+                                            </form>
+                                        </th:block>
+
+                                        <!-- Hoàn thành -->
+                                        <th:block th:if="${b.bookingStatus.name() == 'COMPLETED'}">
+                                            <div style="font-size:11px;color:#166534;font-weight:600;background:#f0fdf4;padding:6px 10px;border-radius:6px;text-align:center;">
+                                                🏁 Đã hoàn tất
+                                            </div>
+                                        </th:block>
+
+                                        <!-- No-show -->
+                                        <th:block th:if="${b.bookingStatus.name() == 'NO_SHOW'}">
+                                            <div style="font-size:11px;color:#b91c1c;font-weight:600;background:#fef2f2;padding:6px 10px;border-radius:6px;text-align:center;">
+                                                🚫 Khách không đến
+                                            </div>
+                                        </th:block>
+
+                                        <!-- Cancelled -->
+                                        <th:block th:if="${b.bookingStatus.name() == 'CANCELLED'}">
+                                            <div style="font-size:11px;color:#64748b;font-weight:600;background:#f1f5f9;padding:6px 10px;border-radius:6px;text-align:center;">
+                                                ❌ Đã hủy
+                                            </div>
+                                        </th:block>
+
+                                        <!-- Partner cancelled -->
+                                        <th:block th:if="${b.partnerStatus != null and b.partnerStatus.name() == 'PARTNER_CANCELLED' and b.bookingStatus.name() != 'CANCELLED'}">
+                                            <div style="font-size:11px;color:#b91c1c;font-weight:600;background:#fef2f2;padding:6px 10px;border-radius:6px;text-align:center;">
+                                                ❌ Đã từ chối giữ phòng
+                                            </div>
+                                        </th:block>
+
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/admin.js"></script>
+    <script>
+    function filterBookings(status, btn) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-btn--active'));
+        btn.classList.add('tab-btn--active');
+        document.querySelectorAll('.booking-row').forEach(row => {
+            if (status === 'all') {
+                row.style.display = '';
+            } else {
+                row.style.display = (row.dataset.status === status) ? '' : 'none';
+            }
+        });
+    }
+    function filterByStatusAndSource(status, source, btn) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-btn--active'));
+        btn.classList.add('tab-btn--active');
+        document.querySelectorAll('.booking-row').forEach(row => {
+            const matchStatus = row.dataset.status === status;
+            const matchSource = row.dataset.source === source;
+            row.style.display = (matchStatus && matchSource) ? '' : 'none';
+        });
+    }
+    function filterBySource(source, btn) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-btn--active'));
+        btn.classList.add('tab-btn--active');
+        document.querySelectorAll('.booking-row').forEach(row => {
+            row.style.display = (row.dataset.source === source) ? '' : 'none';
+        });
+    }
+
+    // Modal check-in với confirm remaining cho DEPOSIT_30
+    function openCheckinModal(btn) {
+        const bookingId = btn.dataset.bookingId;
+        const remaining = btn.dataset.remaining;
+        const guest = btn.dataset.guest;
+        document.getElementById('ci-booking-id').value = bookingId;
+        document.getElementById('ci-remaining-text').textContent = remaining;
+        document.getElementById('ci-guest-name').textContent = guest;
+        document.getElementById('checkin-modal').style.display = 'flex';
+    }
+    </script>
+
+    <!-- Modal check-in với confirm remaining -->
+    <div id="checkin-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;">
+        <div style="background:#fff;border-radius:16px;padding:28px;width:420px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.2);">
+            <h3 style="font-size:16px;font-weight:700;margin:0 0 6px;color:#0f172a;">🏨 Xác nhận Check-in</h3>
+            <p style="font-size:13px;color:#64748b;margin:0 0 16px;">
+                Khách: <strong id="ci-guest-name" style="color:#0f172a;"></strong>
+            </p>
+
+            <form id="checkin-form" action="#" method="post">
+                <input type="hidden" name="bookingId" id="ci-booking-id" />
+
+                <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px;margin-bottom:16px;">
+                    <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:8px;">
+                        💰 Đơn cọc 30% — Khách cần trả tại cơ sở:
+                    </div>
+                    <div style="font-size:20px;font-weight:900;color:#dc2626;" id="ci-remaining-text">0₫</div>
+                </div>
+
+                <div style="margin-bottom:16px;">
+                    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;font-weight:600;color:#0f172a;background:#f0fdf4;padding:12px 14px;border-radius:10px;border:2px solid #86efac;">
+                        <input type="checkbox" name="remainingConfirmed" value="true" style="width:18px;height:18px;accent-color:#16a34a;" />
+                        <span>Tôi xác nhận đã thu đủ khoản còn lại tại cơ sở</span>
+                    </label>
+                </div>
+
+                <div style="margin-bottom:16px;">
+                    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:5px;">Ghi chú (tuỳ chọn)</label>
+                    <input type="text" name="remainingNote" placeholder="VD: Tiền mặt, chuyển khoản..."
+                           style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;" />
+                </div>
+
+                <div style="display:flex;gap:8px;">
+                    <button type="button" onclick="document.getElementById('checkin-modal').style.display='none'"
+                            style="flex:1;padding:10px;border:1px solid #d1d5db;border-radius:8px;background:#fff;font-size:13px;font-weight:600;cursor:pointer;color:#374151;">
+                        Hủy
+                    </button>
+                    <button type="submit" id="ci-submit-btn"
+                            style="flex:2;padding:10px;background:#059669;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">
+                        🏨 Xác nhận Check-in
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    // Khi submit checkin form, update action URL với booking ID thực
+    document.getElementById('checkin-form').addEventListener('submit', function(e) {
+        const id = document.getElementById('ci-booking-id').value;
+        if (!id) { e.preventDefault(); alert('Lỗi: Không xác định được booking. Vui lòng thử lại.'); return; }
+        this.action = '/partner/bookings/' + id + '/check-in-with-confirm';
+    });
+    </script>
+</body>
+
+</html>

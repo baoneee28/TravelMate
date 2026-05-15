@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng Ký Nơi Lưu Trú Mới – Partner TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <link rel="stylesheet" href="/assets/css/partners.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+
+<body>
+    <div class="admin-wrapper">
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar__header">
+                <a href="/partner/dashboard" class="sidebar-logo">
+                    <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                    <div>
+                        <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                        <span class="admin-sidebar__badge">PARTNER CENTER</span>
+                    </div>
+                </a>
+            </div>
+            <nav class="admin-sidebar__nav">
+                <div class="admin-sidebar__section-title">Tổng quan</div>
+                <a href="/partner/dashboard" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">📊</span> Dashboard
+                </a>
+                <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
+                <a href="/partner/accommodations" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🏨</span> Nơi lưu trú của tôi
+                </a>
+                <a href="/partner/accommodations/new" class="admin-sidebar__link active">
+                    <span class="admin-sidebar__link-icon">＋</span> Đăng ký mới
+                </a>
+                <a href="/partner/amenities" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🏷</span> Tiện nghi phòng
+                </a>
+                <a href="/partner/bookings" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">📋</span> Đơn đặt phòng
+                </a>
+                <a href="/partner/room-status" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏠</span> Tình trạng phòng hôm nay</a>
+                <a href="/partner/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Kiểm tra lịch trống</a>
+                <a href="/partner/direct-booking" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">➕</span> Booking trực tiếp</a>
+                <a href="/partner/reviews" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">⭐</span> Đánh giá của khách
+                </a>
+                <div class="admin-sidebar__section-title">Tài chính</div>
+                <a href="/partner/revenue" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">💰</span> Doanh thu
+                </a>
+                <a href="/partner/settlements" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🏦</span> Quyết toán
+                </a>
+                <a href="/partner/vouchers" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🎟</span> Voucher của tôi
+                </a>
+                <div class="admin-sidebar__section-title">Hỗ trợ</div>
+                <a href="/partner/support" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ
+                </a>
+                <a href="/partner/profile" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">👤</span> Hồ sơ của tôi
+                </a>
+            </nav>
+            <div class="admin-sidebar__footer">
+                <div class="admin-sidebar__user">
+                    <div class="admin-sidebar__user-avatar">PT</div>
+                    <div class="admin-sidebar__user-info">
+                        <div class="admin-sidebar__user-name" th:text="${partnerName} ?: 'Partner'">Partner</div>
+                        <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <div class="admin-sidebar-overlay"></div>
+
+        <div class="admin-main">
+            <header class="admin-topbar">
+                <div style="display: flex; align-items: center; gap: var(--space-4)">
+                    <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                    <h1 class="admin-topbar__title">+ Đăng ký nơi lưu trú mới</h1>
+                </div>
+                <div class="admin-topbar__actions">
+                    <a href="/partner/accommodations" class="btn btn--ghost btn--sm">← Quay lại</a>
+                    <form th:action="@{/auth/logout}" method="post" style="display:inline;">                        <button type="submit" class="btn btn--ghost btn--sm">🚪 Đăng xuất</button>
+                    </form>
+                </div>
+            </header>
+
+            <main class="admin-content">
+                <div class="page-header">
+                    <div>
+                        <h2 class="page-header__title">🏨 Đăng ký nơi lưu trú mới</h2>
+                        <p class="page-header__subtitle">
+                            Sau khi gửi, listing sẽ ở trạng thái <strong>Chờ Admin duyệt</strong>.
+                            Khách hàng chỉ thấy sau khi Admin duyệt.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Flash messages -->
+                <div th:if="${errorMessage}" style="margin-bottom: var(--space-4); padding: 12px 16px; background: #fef2f2; border-radius: 8px; font-size: 13px; color: #991b1b; border: 1px solid #fecaca;">
+                    <span th:text="${errorMessage}"></span>
+                </div>
+
+                <!-- Info box -->
+                <div style="margin-bottom: var(--space-5); padding: 14px 16px; background: #eff6ff; border-radius: 8px; border: 1px solid #bfdbfe; font-size: 13px; color: #1d4ed8;">
+                    <strong>💡 Lưu ý:</strong>
+                    Tài khoản của bạn được đăng ký quản lý loại:
+                    <strong th:text="${partnerPropertyType != null ? partnerPropertyType.name() : 'Chưa đăng ký'}">HOTEL</strong>.
+                    Bạn chỉ được đăng ký nơi lưu trú cùng loại này.
+                </div>
+
+                <!-- Form -->
+                <div class="chart-card" style="max-width: 720px;">
+                    <div class="chart-card__header">
+                        <h3 class="chart-card__title">📝 Thông tin nơi lưu trú</h3>
+                    </div>
+                    <div class="review-panel__body" style="padding: var(--space-5);">
+                        <form th:action="@{/partner/accommodations/new}" method="post" enctype="multipart/form-data">
+                            <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);">
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label class="form-label">Tên nơi lưu trú <span style="color:#ef4444;">*</span></label>
+                                    <input type="text" name="name" class="form-control"
+                                           placeholder="VD: LATA Hotel & Apartments"
+                                           required maxlength="200" />
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Loại lưu trú <span style="color:#ef4444;">*</span></label>
+                                    <!-- Lock theo partnerPropertyType -->
+                                    <input type="hidden" name="propertyType"
+                                           th:value="${partnerPropertyType != null ? partnerPropertyType.name() : 'HOTEL'}" />
+                                    <input type="text" class="form-control"
+                                           th:value="${partnerPropertyType != null ? partnerPropertyType.name() : 'Chưa đăng ký'}"
+                                           readonly
+                                           style="background: var(--color-bg-secondary, #f9fafb); cursor: not-allowed; opacity: 0.7;" />
+                                    <small style="color:var(--color-text-muted);font-size:11px;">
+                                        Loại lưu trú cố định theo đăng ký. Liên hệ Admin để thay đổi.
+                                    </small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Số sao</label>
+                                    <select name="starRating" class="form-control">
+                                        <option value="">-- Chọn hạng sao --</option>
+                                        <option value="5">5 sao ⭐⭐⭐⭐⭐</option>
+                                        <option value="4">4 sao ⭐⭐⭐⭐</option>
+                                        <option value="3">3 sao ⭐⭐⭐</option>
+                                        <option value="2">2 sao ⭐⭐</option>
+                                        <option value="1">1 sao ⭐</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label class="form-label">Địa chỉ chi tiết</label>
+                                    <input type="text" name="address" class="form-control"
+                                           placeholder="VD: 15 Phan Bội Châu, Phường 1" maxlength="500" />
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Thành phố <span style="color:#ef4444;">*</span></label>
+                                    <input type="text" name="city" class="form-control"
+                                           placeholder="VD: Đà Lạt, Hà Nội, Đà Nẵng..."
+                                           required maxlength="100" />
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Ảnh đại diện (Thumbnail)</label>
+                                    <div style="display:flex;flex-direction:column;gap:8px;">
+                                        <label for="thumbnailFile"
+                                               style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:var(--color-bg-secondary,#f9fafb);border:1.5px dashed var(--color-border,#e5e7eb);border-radius:8px;cursor:pointer;font-size:13px;color:var(--color-text-muted);transition:border-color .2s;"
+                                               onmouseover="this.style.borderColor='var(--color-primary)'" onmouseout="this.style.borderColor='var(--color-border,#e5e7eb)'">
+                                            <span style="font-size:18px;">🖼️</span>
+                                            <span id="thumbnailFileName">Chọn ảnh từ máy tính...</span>
+                                        </label>
+                                        <input type="file" id="thumbnailFile" name="thumbnailFile"
+                                               accept="image/*"
+                                               style="display:none;"
+                                               onchange="previewThumbnail(this)" />
+                                        <!-- Preview ảnh -->
+                                        <div id="thumbnailPreviewWrap" style="display:none;margin-top:4px;">
+                                            <img id="thumbnailPreview" src="" alt="Preview"
+                                                 style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid var(--color-border-light,#f1f5f9);object-fit:cover;" />
+                                            <button type="button" onclick="clearThumbnail()"
+                                                    style="display:block;margin-top:6px;font-size:12px;color:#ef4444;background:none;border:none;cursor:pointer;padding:0;">✕ Xoá ảnh</button>
+                                        </div>
+                                    </div>
+                                    <small style="color:var(--color-text-muted);font-size:11px;">Định dạng: JPG, PNG, WEBP. Để trống nếu chưa có ảnh.</small>
+                                </div>
+
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label class="form-label">Mô tả nơi lưu trú</label>
+                                    <textarea name="description" class="form-control" rows="4"
+                                              placeholder="Mô tả ngắn về nơi lưu trú, tiện nghi nổi bật, vị trí..."></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div style="display:flex;gap:var(--space-3);margin-top:var(--space-4);">
+                                <button type="submit" class="btn btn--primary">
+                                    📤 Gửi đăng ký (Chờ Admin duyệt)
+                                </button>
+                                <a href="/partner/accommodations" class="btn btn--ghost">Hủy</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Quy trình -->
+                <div style="margin-top: var(--space-5); max-width: 720px;">
+                    <h3 style="font-size:14px;font-weight:600;margin-bottom:var(--space-3);">📋 Quy trình duyệt listing</h3>
+                    <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;">
+                        <div style="flex:1;min-width:150px;text-align:center;padding:16px;background:var(--color-bg-secondary,#f9fafb);border-radius:8px;border:1px solid var(--color-border,#e5e7eb);">
+                            <div style="font-size:24px;margin-bottom:8px;">1️⃣</div>
+                            <div style="font-weight:600;font-size:13px;">Partner đăng ký</div>
+                            <div style="font-size:12px;color:var(--color-text-muted);">Điền thông tin và gửi</div>
+                        </div>
+                        <div style="flex:1;min-width:150px;text-align:center;padding:16px;background:var(--color-bg-secondary,#f9fafb);border-radius:8px;border:1px solid var(--color-border,#e5e7eb);">
+                            <div style="font-size:24px;margin-bottom:8px;">2️⃣</div>
+                            <div style="font-weight:600;font-size:13px;">Admin xét duyệt</div>
+                            <div style="font-size:12px;color:var(--color-text-muted);">Kiểm tra và duyệt/từ chối</div>
+                        </div>
+                        <div style="flex:1;min-width:150px;text-align:center;padding:16px;background:var(--color-bg-secondary,#f9fafb);border-radius:8px;border:1px solid var(--color-border,#e5e7eb);">
+                            <div style="font-size:24px;margin-bottom:8px;">3️⃣</div>
+                            <div style="font-weight:600;font-size:13px;">Mở bán</div>
+                            <div style="font-size:12px;color:var(--color-text-muted);">Khách hàng đặt phòng được</div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/admin.js"></script>
+    <script>
+        function previewThumbnail(input) {
+            const file = input.files[0];
+            const nameEl = document.getElementById('thumbnailFileName');
+            const previewWrap = document.getElementById('thumbnailPreviewWrap');
+            const previewImg  = document.getElementById('thumbnailPreview');
+            if (file) {
+                nameEl.textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = e => {
+                    previewImg.src = e.target.result;
+                    previewWrap.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        function clearThumbnail() {
+            const input = document.getElementById('thumbnailFile');
+            const nameEl = document.getElementById('thumbnailFileName');
+            const previewWrap = document.getElementById('thumbnailPreviewWrap');
+            const previewImg  = document.getElementById('thumbnailPreview');
+            input.value = '';
+            nameEl.textContent = 'Chọn ảnh từ máy tính...';
+            previewImg.src = '';
+            previewWrap.style.display = 'none';
+        }
+    </script>
+</body>
+
+</html>
+

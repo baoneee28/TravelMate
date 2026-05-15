@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý Voucher – Admin TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        .vkpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:22px; }
+        .vkpi-card { background:var(--color-surface,#fff); border-radius:10px; padding:16px 18px; box-shadow:0 1px 3px rgba(0,0,0,.07); }
+        .vkpi-card__label { font-size:12px; color:#6b7280; margin-bottom:4px; }
+        .vkpi-card__value { font-size:22px; font-weight:700; }
+        .create-form { background:var(--color-surface,#fff); border-radius:12px; padding:22px 24px; box-shadow:0 1px 4px rgba(0,0,0,.08); margin-bottom:24px; }
+        .create-form__title { font-size:15px; font-weight:700; margin-bottom:16px; color:var(--color-text,#111); display:flex; align-items:center; gap:8px; }
+        .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; }
+        .form-group label { display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:13px; font-family:inherit; background:#fff;
+        }
+        .form-group input:focus, .form-group select:focus { outline:none; border-color:#3b82f6; }
+        .vtable-wrap { overflow-x:auto; }
+        .vtable { width:100%; border-collapse:collapse; font-size:13px; }
+        .vtable th { background:#f8fafc; font-weight:600; padding:10px 14px; border-bottom:1px solid #e2e8f0; white-space:nowrap; }
+        .vtable td { padding:10px 14px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+        .vtable tr:last-child td { border-bottom:none; }
+        .vtable tr:hover td { background:#f8fafc; }
+        .badge-active   { background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600; }
+        .badge-inactive { background:#f3f4f6; color:#6b7280; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600; }
+        .badge-admin    { background:#e0f2fe; color:#0284c7; padding:2px 8px; border-radius:20px; font-size:11px; }
+        .badge-partner  { background:#fef3c7; color:#b45309; padding:2px 8px; border-radius:20px; font-size:11px; }
+        .scope-tag { background:#ede9fe; color:#7c3aed; padding:2px 8px; border-radius:20px; font-size:11px; }
+        .empty-state { text-align:center; padding:40px; color:#6b7280; }
+        .section-title { font-size:15px; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+        .info-box { background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:12px 16px; margin-bottom:16px; font-size:13px; line-height:1.7; }
+        .filter-tab { display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:8px;font-size:13px;font-weight:600;color:#6b7280;background:#f3f4f6;border:none;cursor:pointer;transition:all .15s; }
+        .filter-tab:hover { background:#e5e7eb; }
+        .filter-tab.active { background:#2563eb;color:#fff; }
+    </style>
+</head>
+<body>
+<div class="admin-wrapper">
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar__header">
+            <a href="/admin/dashboard" class="sidebar-logo">
+                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                <div>
+                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                    <span class="admin-sidebar__badge">ADMIN PANEL</span>
+                </div>
+            </a>
+        </div>
+        <nav class="admin-sidebar__nav">
+            <div class="admin-sidebar__section-title">Tổng quan</div>
+            <a href="/admin/dashboard"   class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
+            <div class="admin-sidebar__section-title">Quản lý đặt phòng</div>
+            <a href="/admin/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt phòng</a>
+            <a href="/admin/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng</a>
+                <div class="admin-sidebar__section-title">Quản lý nội dung</div>
+            <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
+            <a href="/admin/rooms"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
+            <a href="/admin/reviews"        class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
+            <a href="/admin/users"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
+            <div class="admin-sidebar__section-title">Tài chính</div>
+            <a href="/admin/revenue"     class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
+            <a href="/admin/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
+            <a href="/admin/vouchers"    class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
+            <div class="admin-sidebar__section-title">Hỗ trợ</div>
+            <a href="/admin/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
+            <div class="admin-sidebar__section-title">Hệ thống</div>
+            <a href="/admin/audit-log" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📜</span> Nhật ký thao tác</a>
+            <a href="/" class="admin-sidebar__link" target="_blank"><span class="admin-sidebar__link-icon">🌐</span> Xem trang User</a>
+        </nav>
+        <div class="admin-sidebar__footer">
+            <div class="admin-sidebar__user">
+                <div class="admin-sidebar__user-avatar">AD</div>
+                <div class="admin-sidebar__user-info">
+                    <div class="admin-sidebar__user-name" sec:authentication="name">Admin</div>
+                    <div class="admin-sidebar__user-role">Quản trị viên</div>
+                </div>
+            </div>
+            <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
+                <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
+            </form>
+        </div>
+    </aside>
+    <div class="admin-sidebar-overlay"></div>
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div style="display:flex;align-items:center;gap:var(--space-4)">
+                <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                <h1 class="admin-topbar__title">🎟 Quản Lý Voucher</h1>
+                <span style="font-size:12px;color:#6b7280;background:#f3f4f6;padding:3px 10px;border-radius:20px;">📡 Dữ liệu thật từ MySQL</span>
+            </div>
+            <div class="admin-topbar__actions">
+                <a href="/" target="_blank" class="btn btn--ghost btn--sm">🌐 Xem trang user</a>
+            </div>
+        </header>
+
+        <main class="admin-content">
+
+            <!-- Flash -->
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}"   class="alert alert-error"   th:text="${errorMessage}"></div>
+
+            <!-- Info box -->
+            <div class="info-box">
+                💡 <strong>Voucher do Admin tạo</strong> ở đây có phạm vi <strong>USER_GLOBAL</strong> — người dùng có thể nhập khi đặt bất kỳ phòng nào.
+                Chi phí giảm giá do <strong>Admin chịu</strong> (không trừ settlement partner).<br/>
+                Partner có thể tạo voucher riêng tại trang <em>Quản lý Voucher</em> của mình.
+            </div>
+
+            <!-- KPI -->
+            <div class="vkpi-grid">
+                <div class="vkpi-card">
+                    <div class="vkpi-card__label">Tổng voucher</div>
+                    <div class="vkpi-card__value" th:text="${totalCount}">0</div>
+                </div>
+                <div class="vkpi-card">
+                    <div class="vkpi-card__label">Đang hoạt động</div>
+                    <div class="vkpi-card__value" style="color:#16a34a;" th:text="${activeCount}">0</div>
+                </div>
+                <div class="vkpi-card">
+                    <div class="vkpi-card__label">Đã tắt</div>
+                    <div class="vkpi-card__value" style="color:#6b7280;" th:text="${inactiveCount}">0</div>
+                </div>
+            </div>
+
+            <!-- Create Form -->
+            <div class="create-form">
+                <div class="create-form__title"><i class="fa-solid fa-plus-circle"></i> Tạo Voucher Mới (USER_GLOBAL)</div>
+                <form th:action="@{/admin/vouchers/create}" method="post" id="createVoucherForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="vCode">Mã voucher *</label>
+                            <input type="text" id="vCode" name="code" placeholder="VD: SUMMER10" required
+                                   pattern="[A-Za-z0-9]+" title="Chỉ chữ và số, không dấu cách" style="text-transform:uppercase;" />
+                        </div>
+                        <div class="form-group">
+                            <label for="vName">Tên chương trình</label>
+                            <input type="text" id="vName" name="name" placeholder="VD: Ưu đãi mùa hè" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="vDiscountType">Loại giảm giá *</label>
+                            <select id="vDiscountType" name="discountType" required onchange="toggleMaxDiscount(this)">
+                                <option value="PERCENT">Phần trăm (%)</option>
+                                <option value="FIXED_AMOUNT">Số tiền cố định (đ)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="vDiscountValue">Giá trị giảm *</label>
+                            <input type="number" id="vDiscountValue" name="discountValue" min="0" step="0.01" placeholder="VD: 10 hoặc 50000" required />
+                        </div>
+                        <div class="form-group" id="maxDiscountGroup">
+                            <label for="vMaxDiscount">Giảm tối đa (đ)</label>
+                            <input type="number" id="vMaxDiscount" name="maxDiscountAmount" min="0" placeholder="VD: 500000" />
+                        </div>
+                        <div class="form-group">
+                            <label for="vMinOrder">Đơn tối thiểu (đ)</label>
+                            <input type="number" id="vMinOrder" name="minOrderAmount" min="0" placeholder="VD: 500000" />
+                        </div>
+                        <div class="form-group">
+                            <label for="vStart">Ngày bắt đầu <span style="color:#ef4444;">*</span></label>
+                            <input type="date" id="vStart" name="startDate" required
+                                   title="Vui lòng chọn ngày bắt đầu hiệu lực voucher" />
+                        </div>
+                        <div class="form-group">
+                            <label for="vEnd">Ngày kết thúc <span style="color:#ef4444;">*</span></label>
+                            <input type="date" id="vEnd" name="endDate" required
+                                   title="Vui lòng chọn ngày kết thúc hiệu lực voucher" />
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top:12px;">
+                        <label for="vDesc">Mô tả</label>
+                        <input type="text" id="vDesc" name="description" placeholder="Mô tả ngắn về ưu đãi" style="width:100%;" />
+                    </div>
+                    <div style="margin-top:16px;display:flex;gap:10px;">
+                        <button type="submit" class="btn btn--primary" id="submitVoucher">
+                            <i class="fa-solid fa-plus"></i> Tạo Voucher
+                        </button>
+                        <button type="reset" class="btn btn--ghost">Làm mới</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Voucher List Table -->
+            <div class="admin-section">
+                <div class="section-title"><i class="fa-solid fa-list"></i> Danh Sách Tất Cả Voucher (Admin + Partner)</div>
+
+                <!-- Filter -->
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
+                    <button class="filter-tab active" data-v-filter="all">🎟 Tất cả</button>
+                    <button class="filter-tab" data-v-filter="ADMIN">🛡 Admin tạo</button>
+                    <button class="filter-tab" data-v-filter="PARTNER">🏨 Partner tạo</button>
+                    <button class="filter-tab" data-v-filter="active">✅ Đang chạy</button>
+                    <button class="filter-tab" data-v-filter="inactive">⏸ Đã tắt</button>
+                    <span style="margin-left:auto;font-size:13px;color:#6b7280;" id="voucher-count"></span>
+                </div>
+
+                <div th:if="${#lists.isEmpty(vouchers)}" class="empty-state">
+                    <i class="fa-solid fa-ticket" style="font-size:40px;opacity:.25;margin-bottom:10px;"></i>
+                    <p>Chưa có voucher nào. Hãy tạo voucher đầu tiên ở form phía trên!</p>
+                </div>
+
+                <div th:if="${!#lists.isEmpty(vouchers)}" class="vtable-wrap">
+                    <table class="vtable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Mã Code</th>
+                                <th>Tên</th>
+                                <th>Loại</th>
+                                <th>Giá trị</th>
+                                <th>Đơn tối thiểu</th>
+                                <th>Hạn dùng</th>
+                                <th>Phạm vi</th>
+                                <th>Chi phí</th>
+                                <th>Trạng thái</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="v, stat : ${vouchers}"
+                                th:attr="data-v-bearer=${v.costBearer.name()},data-v-active=${v.active}">
+                                <td th:text="${stat.index + 1}">1</td>
+                                <td><strong th:text="${v.code}">CODE</strong></td>
+                                <td th:text="${v.name != null ? v.name : '—'}">Tên</td>
+                                <td>
+                                    <span th:if="${v.discountType.name() == 'PERCENT'}">%</span>
+                                    <span th:if="${v.discountType.name() == 'FIXED_AMOUNT'}">Cố định</span>
+                                </td>
+                                <td>
+                                    <strong>
+                                        <span th:if="${v.discountType.name() == 'PERCENT'}"
+                                              th:text="${v.discountValue} + '%'">10%</span>
+                                        <span th:if="${v.discountType.name() == 'FIXED_AMOUNT'}"
+                                              th:text="${#numbers.formatDecimal(v.discountValue,0,'COMMA',0,'POINT')} + 'đ'">50,000đ</span>
+                                    </strong>
+                                    <div style="font-size:11px;color:#6b7280;"
+                                         th:if="${v.maxDiscountAmount != null}"
+                                         th:text="'Tối đa ' + ${#numbers.formatDecimal(v.maxDiscountAmount,0,'COMMA',0,'POINT')} + 'đ'"></div>
+                                </td>
+                                <td th:text="${v.minOrderAmount != null ? #numbers.formatDecimal(v.minOrderAmount,0,'COMMA',0,'POINT') + 'đ' : '0đ'}">0đ</td>
+                                <td style="font-size:12px;">
+                                    <span th:if="${v.endDate != null}"
+                                          th:text="${#temporals.format(v.endDate,'dd/MM/yyyy')}">—</span>
+                                    <span th:if="${v.endDate == null}" style="color:#d1d5db;">Không hết hạn</span>
+                                </td>
+                                <td>
+                                    <span class="scope-tag" th:text="${v.voucherScope.name()}">USER_GLOBAL</span>
+                                    <div style="font-size:11px;color:#6b7280;margin-top:2px;"
+                                         th:if="${v.owner != null}" th:text="${v.owner.name}">Partner</div>
+                                </td>
+                                <td>
+                                    <span class="badge-admin"   th:if="${v.costBearer.name() == 'ADMIN'}">🛡 Admin chịu</span>
+                                    <span class="badge-partner" th:if="${v.costBearer.name() == 'PARTNER'}">🏨 Partner chịu</span>
+                                </td>
+                                <td>
+                                    <span class="badge-active"   th:if="${v.active}">Đang chạy</span>
+                                    <span class="badge-inactive" th:unless="${v.active}">Đã tắt</span>
+                                </td>
+                                <td>
+                                    <form th:action="@{'/admin/vouchers/' + ${v.id} + '/toggle'}" method="post" style="display:inline;">
+                                        <button type="submit" class="btn btn--ghost btn--sm"
+                                                th:text="${v.active ? '⏸ Tắt' : '▶ Bật'}"
+                                                th:title="${v.active ? 'Tắt voucher này' : 'Bật lại voucher này'}" th:attr="data-active=${v.active}"
+                                                onclick="if(this.dataset.active==='true'){return confirm('Tắt voucher này? Người dùng sẽ không dùng được mã này nữa. Tiếp tục?');}return true;">Toggle</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <!-- Empty state khi filter không có kết quả -->
+                    <div id="voucher-empty-state" style="display:none;text-align:center;padding:40px;color:#94a3b8;">
+                        <div style="font-size:36px;margin-bottom:10px;">🔍</div>
+                        <div style="font-weight:600;font-size:14px;">Không có voucher nào khớp với bộ lọc.</div>
+                        <div style="font-size:12px;margin-top:4px;">Thử chọn tab "Tất cả" để xem toàn bộ danh sách.</div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/admin.js"></script>
+<!-- voucher-store.js đã được thay thế bằng form POST server-side -->
+<script>
+function toggleMaxDiscount(sel) {
+    var group = document.getElementById('maxDiscountGroup');
+    group.style.display = (sel.value === 'PERCENT') ? '' : 'none';
+}
+// init
+toggleMaxDiscount(document.getElementById('vDiscountType'));
+
+// Set min date for startDate = today
+(function() {
+    var today = new Date().toISOString().split('T')[0];
+    var startEl = document.getElementById('vStart');
+    if (startEl) startEl.min = today;
+})();
+
+// Validate endDate > startDate
+document.getElementById('vEnd').addEventListener('change', function() {
+    var start = document.getElementById('vStart').value;
+    if (start && this.value && this.value <= start) {
+        this.setCustomValidity('Ngày kết thúc phải sau ngày bắt đầu!');
+    } else {
+        this.setCustomValidity('');
+    }
+});
+document.getElementById('vStart').addEventListener('change', function() {
+    var endEl = document.getElementById('vEnd');
+    if (endEl.value && endEl.value <= this.value) {
+        endEl.setCustomValidity('Ngày kết thúc phải sau ngày bắt đầu!');
+    } else {
+        endEl.setCustomValidity('');
+    }
+});
+
+// Voucher filter
+var vFilter = 'all';
+function filterVouchers() {
+    var visible = 0;
+    document.querySelectorAll('tr[data-v-bearer]').forEach(function(row){
+        var bearer = row.dataset.vBearer;
+        var active = row.dataset.vActive;
+        var show = true;
+        if (vFilter === 'ADMIN')    show = bearer === 'ADMIN';
+        if (vFilter === 'PARTNER')  show = bearer === 'PARTNER';
+        if (vFilter === 'active')   show = active === 'true';
+        if (vFilter === 'inactive') show = active === 'false';
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+    var el = document.getElementById('voucher-count');
+    if (el) el.textContent = visible + ' voucher';
+    // Hien/an empty state
+    var emptyState = document.getElementById('voucher-empty-state');
+    if (emptyState) {
+        var totalRows = document.querySelectorAll('tr[data-v-bearer]').length;
+        emptyState.style.display = (visible === 0 && totalRows > 0) ? '' : 'none';
+    }
+}
+document.querySelectorAll('[data-v-filter]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+        document.querySelectorAll('[data-v-filter]').forEach(function(b){ b.classList.remove('active'); });
+        btn.classList.add('active');
+        vFilter = btn.dataset.vFilter;
+        filterVouchers();
+    });
+});
+document.addEventListener('DOMContentLoaded', function(){ filterVouchers(); });
+</script>
+</body>
+</html>

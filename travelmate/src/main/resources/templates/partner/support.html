@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hỗ trợ – Partner TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <link rel="stylesheet" href="/assets/css/partners.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        .support-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-6);
+        }
+        .support-cat-card {
+            background: var(--color-surface);
+            border: 2px solid var(--color-border-light);
+            border-radius: var(--radius-xl);
+            padding: var(--space-5);
+            cursor: pointer;
+            transition: all .2s ease;
+            text-align: center;
+            position: relative;
+        }
+        .support-cat-card:hover { border-color: var(--color-primary); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+        .support-cat-card.selected { border-color: var(--color-primary); background: var(--color-primary-bg); box-shadow: 0 0 0 4px rgba(2,132,199,.12); }
+        .support-cat-card__icon { font-size: 28px; margin-bottom: var(--space-2); display: block; }
+        .support-cat-card__label { font-size: 13px; font-weight: 600; color: var(--color-text); line-height: 1.4; }
+        .support-cat-card .check-mark { position:absolute;top:10px;right:10px;width:20px;height:20px;background:var(--color-primary);border-radius:50%;color:#fff;font-size:11px;display:none;align-items:center;justify-content:center; }
+        .support-cat-card.selected .check-mark { display: flex; }
+        .faq-list { display: flex; flex-direction: column; gap: var(--space-3); }
+        .faq-item { background: var(--color-surface); border: 1px solid var(--color-border-light); border-radius: var(--radius-lg); overflow: hidden; }
+        .faq-item__header { display:flex;justify-content:space-between;align-items:center;padding:var(--space-4) var(--space-5);cursor:pointer;font-weight:600;font-size:14px;color:var(--color-text);transition:background .15s; }
+        .faq-item__header:hover { background: var(--color-bg); }
+        .faq-item__arrow { transition: transform .2s; color: var(--color-text-muted); flex-shrink: 0; }
+        .faq-item.open .faq-item__arrow { transform: rotate(180deg); }
+        .faq-item__body { display:none;padding:0 var(--space-5) var(--space-4);font-size:14px;color:var(--color-text-muted);line-height:1.7; }
+        .faq-item.open .faq-item__body { display: block; }
+        .ticket-row { background: var(--color-surface); border: 1px solid var(--color-border-light); border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5); display:flex; align-items:flex-start; gap: var(--space-4); transition: box-shadow .15s; }
+        .ticket-row:hover { box-shadow: 0 4px 16px rgba(0,0,0,.07); }
+        .badge-open    { background:#fef3c7; color:#b45309; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:600; }
+        .badge-responded { background:#d1fae5; color:#065f46; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:600; }
+        .badge-closed  { background:#f3f4f6; color:#6b7280; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:600; }
+        .chat-bubble { max-width:80%; padding:var(--space-3) var(--space-4); border-radius:12px; font-size:14px; line-height:1.6; margin-bottom:var(--space-3); }
+        .chat-bubble--partner { background:var(--color-primary); color:#fff; margin-left:auto; border-bottom-right-radius:4px; }
+        .chat-bubble--admin { background:#f1f5f9; color:var(--color-text); border-bottom-left-radius:4px; }
+        .chat-meta { font-size:11px; color:var(--color-text-muted); margin-bottom:2px; }
+    </style>
+</head>
+
+<body>
+    <div class="admin-wrapper">
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar__header">
+                <a href="/partner/dashboard" class="sidebar-logo">
+                    <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                    <div>
+                        <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                        <span class="admin-sidebar__badge">PARTNER CENTER</span>
+                    </div>
+                </a>
+            </div>
+            <nav class="admin-sidebar__nav">
+                <div class="admin-sidebar__section-title">Tổng quan</div>
+                <a href="/partner/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
+                <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
+                <a href="/partner/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Nơi lưu trú của tôi</a>
+                <a href="/partner/accommodations/new" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">＋</span> Đăng ký mới</a>
+                <a href="/partner/amenities" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🏷</span> Tiện nghi phòng
+                </a>
+                <a href="/partner/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đơn đặt phòng</a>
+                <a href="/partner/room-status" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏠</span> Tình trạng phòng hôm nay</a>
+                <a href="/partner/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Kiểm tra lịch trống</a>
+                <a href="/partner/direct-booking" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">➕</span> Booking trực tiếp</a>
+                <a href="/partner/reviews" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá của khách</a>
+                <div class="admin-sidebar__section-title">Tài chính</div>
+                <a href="/partner/revenue" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
+                <a href="/partner/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
+                <a href="/partner/vouchers" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher của tôi</a>
+                <div class="admin-sidebar__section-title">Hỗ trợ</div>
+                <a href="/partner/support" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ</a>
+                <a href="/partner/profile" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👤</span> Hồ sơ của tôi</a>
+            </nav>
+            <div class="admin-sidebar__footer">
+                <div class="admin-sidebar__user">
+                    <div class="admin-sidebar__user-avatar">PT</div>
+                    <div class="admin-sidebar__user-info">
+                        <div class="admin-sidebar__user-name" th:text="${partnerName} ?: 'Partner'">Partner</div>
+                        <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <div class="admin-sidebar-overlay"></div>
+
+        <div class="admin-main">
+            <header class="admin-topbar">
+                <div style="display:flex;align-items:center;gap:var(--space-4)">
+                    <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                    <h1 class="admin-topbar__title">🆘 Trung tâm hỗ trợ</h1>
+                </div>
+                <div class="admin-topbar__actions">
+                    <form th:action="@{/auth/logout}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn--ghost btn--sm">🚪 Đăng xuất</button>
+                    </form>
+                </div>
+            </header>
+
+            <main class="admin-content">
+
+                <!-- Flash messages -->
+                <div th:if="${successMessage}" class="alert alert--success" style="margin-bottom:var(--space-4)">
+                    <span th:text="${successMessage}"></span>
+                </div>
+                <div th:if="${errorMessage}" class="alert alert--danger" style="margin-bottom:var(--space-4)">
+                    <span th:text="${errorMessage}"></span>
+                </div>
+
+                <!-- Stat cards -->
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4);margin-bottom:var(--space-6);">
+                    <div class="stat-card">
+                        <div class="stat-card__value" th:text="${openCount}">0</div>
+                        <div class="stat-card__label">Chờ xử lý</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card__value" th:text="${respondedCount}">0</div>
+                        <div class="stat-card__label">Đã phản hồi</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card__value" th:text="${closedCount}">0</div>
+                        <div class="stat-card__label">Đã đóng</div>
+                    </div>
+                </div>
+
+                <!-- TAB NAV -->
+                <div style="display:flex;gap:var(--space-2);margin-bottom:var(--space-6);flex-wrap:wrap;">
+                    <button class="filter-tab active" data-tab="new-ticket">✏️ Gửi yêu cầu mới</button>
+                    <button class="filter-tab" data-tab="my-tickets">📂 Yêu cầu của tôi
+                        <span th:if="${openCount > 0}" style="background:#ef4444;color:#fff;border-radius:999px;font-size:11px;padding:1px 7px;margin-left:4px;" th:text="${openCount}"></span>
+                    </button>
+                    <button class="filter-tab" data-tab="faq">❓ Câu hỏi thường gặp</button>
+                </div>
+
+                <!-- TAB 1: GỬI YÊU CẦU MỚI -->
+                <div id="tab-new-ticket">
+                    <div class="partner-grid">
+                        <section class="partner-panel">
+                            <div class="partner-panel__body">
+                                <div class="page-header" style="margin-bottom:var(--space-5)">
+                                    <div>
+                                        <h2 class="page-header__title">Gửi yêu cầu hỗ trợ</h2>
+                                        <p class="page-header__subtitle">Chọn danh mục phù hợp và mô tả vấn đề. Chúng tôi sẽ phản hồi trong vòng 24h.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Chọn danh mục -->
+                                <div style="margin-bottom:var(--space-5)">
+                                    <div class="form-label" style="margin-bottom:var(--space-3);font-weight:600;">
+                                        1. Chọn danh mục hỗ trợ <span class="required">*</span>
+                                    </div>
+                                    <div class="support-categories" id="category-picker">
+                                        <div class="support-cat-card" data-cat="Đặt phòng" onclick="selectCategory(this)">
+                                            <span class="support-cat-card__icon">📋</span>
+                                            <div class="support-cat-card__label">Đặt phòng</div>
+                                            <div class="check-mark">✓</div>
+                                        </div>
+                                        <div class="support-cat-card" data-cat="Thanh toán" onclick="selectCategory(this)">
+                                            <span class="support-cat-card__icon">💳</span>
+                                            <div class="support-cat-card__label">Thanh toán</div>
+                                            <div class="check-mark">✓</div>
+                                        </div>
+                                        <div class="support-cat-card" data-cat="Kỹ thuật" onclick="selectCategory(this)">
+                                            <span class="support-cat-card__icon">🔧</span>
+                                            <div class="support-cat-card__label">Kỹ thuật</div>
+                                            <div class="check-mark">✓</div>
+                                        </div>
+                                        <div class="support-cat-card" data-cat="Quyết toán" onclick="selectCategory(this)">
+                                            <span class="support-cat-card__icon">🏦</span>
+                                            <div class="support-cat-card__label">Quyết toán</div>
+                                            <div class="check-mark">✓</div>
+                                        </div>
+                                        <div class="support-cat-card" data-cat="Voucher" onclick="selectCategory(this)">
+                                            <span class="support-cat-card__icon">🎟</span>
+                                            <div class="support-cat-card__label">Voucher</div>
+                                            <div class="check-mark">✓</div>
+                                        </div>
+                                        <div class="support-cat-card" data-cat="Khác" onclick="selectCategory(this)">
+                                            <span class="support-cat-card__icon">💬</span>
+                                            <div class="support-cat-card__label">Khác</div>
+                                            <div class="check-mark">✓</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <form th:action="@{/partner/support/new}" method="post" id="support-form" class="partner-form" onsubmit="return validateSupportForm()">
+                                    <input type="hidden" id="category-input" name="category" />
+                                    <div class="partner-form__section">
+                                        <div class="partner-form__heading">2. Thông tin yêu cầu</div>
+                                        <div class="partner-form__grid">
+                                            <div class="form-group">
+                                                <label class="form-label">Tiêu đề <span class="required">*</span></label>
+                                                <input name="subject" type="text" class="form-control" placeholder="Mô tả ngắn gọn vấn đề bạn gặp phải..." required />
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Mức độ ưu tiên</label>
+                                                <select name="priority" class="form-control">
+                                                    <option value="Thấp">🟢 Thấp — Không gấp</option>
+                                                    <option value="Trung bình" selected>🟡 Trung bình — Cần giải quyết sớm</option>
+                                                    <option value="Cao">🟠 Cao — Ảnh hưởng vận hành</option>
+                                                    <option value="Khẩn cấp">🔴 Khẩn cấp — Cần phản hồi ngay</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group" style="margin-bottom:0">
+                                            <label class="form-label">Mô tả chi tiết <span class="required">*</span></label>
+                                            <textarea name="description" class="form-control" rows="6" placeholder="Mô tả đầy đủ vấn đề: lỗi xảy ra khi nào, các bước tái hiện, kết quả mong đợi..." required></textarea>
+                                        </div>
+                                    </div>
+                                    <div id="cat-error" style="color:#ef4444;font-size:13px;margin-top:8px;display:none;">Vui lòng chọn danh mục hỗ trợ!</div>
+                                    <div class="partner-form__actions">
+                                        <button type="reset" class="btn btn--ghost">Nhập lại</button>
+                                        <button type="submit" class="btn btn--primary">📤 Gửi yêu cầu hỗ trợ</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </section>
+
+                        <aside class="partner-shell">
+                            <section class="partner-panel">
+                                <div class="partner-panel__body">
+                                    <div class="partner-note">
+                                        <div class="partner-note__title">📞 Liên hệ hỗ trợ</div>
+                                        <div class="partner-note__list">
+                                            <div>✉️ <strong>partner@travelmate.vn</strong></div>
+                                            <div>📞 <strong>1800 599 928</strong> (Miễn phí)</div>
+                                            <div>🕐 Thứ 2 – Thứ 6: 8:00–18:00</div>
+                                            <div>🕐 Thứ 7: 8:00–12:00</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                            <section class="partner-panel">
+                                <div class="partner-panel__body">
+                                    <div class="partner-note">
+                                        <div class="partner-note__title">⏱ Thời gian phản hồi</div>
+                                        <div class="partner-note__list">
+                                            <div>🔴 <strong>Khẩn cấp:</strong> trong 2h</div>
+                                            <div>🟠 <strong>Cao:</strong> trong 8h</div>
+                                            <div>🟡 <strong>Trung bình:</strong> trong 24h</div>
+                                            <div>🟢 <strong>Thấp:</strong> trong 3 ngày</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        </aside>
+                    </div>
+                </div>
+
+                <!-- TAB 2: YÊU CẦU CỦA TÔI -->
+                <div id="tab-my-tickets" hidden>
+                    <div th:if="${tickets.empty}" style="text-align:center;padding:48px;color:var(--color-text-muted);">
+                        <div style="font-size:40px;margin-bottom:12px;">📭</div>
+                        <div>Bạn chưa có yêu cầu hỗ trợ nào.</div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:var(--space-3);" th:if="${!tickets.empty}">
+                        <div class="ticket-row" th:each="t : ${tickets}">
+                            <div style="flex:1;min-width:0;">
+                                <div style="display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;margin-bottom:6px;">
+                                    <span style="font-family:monospace;font-size:12px;color:var(--color-text-muted);" th:text="'#' + ${t.id}">#1</span>
+                                    <span th:classappend="${t.status == 'OPEN'} ? 'badge-open' : (${t.status == 'RESPONDED'} ? 'badge-responded' : 'badge-closed')"
+                                          th:text="${t.status == 'OPEN'} ? '⏳ Chờ xử lý' : (${t.status == 'RESPONDED'} ? '✅ Đã phản hồi' : '🔒 Đã đóng')">
+                                        Chờ xử lý
+                                    </span>
+                                    <span style="background:#e0f2fe;color:#0369a1;padding:2px 10px;border-radius:999px;font-size:12px;" th:text="${t.category}">Kỹ thuật</span>
+                                    <span style="font-size:12px;color:var(--color-text-muted);" th:text="${t.priority}">Trung bình</span>
+                                </div>
+                                <div style="font-weight:600;font-size:14px;margin-bottom:4px;" th:text="${t.subject}">Tiêu đề</div>
+                                <div style="font-size:13px;color:var(--color-text-muted);white-space:pre-line;" th:text="${t.description}"></div>
+                                <!-- Admin response -->
+                                <div th:if="${t.adminResponse != null}" style="margin-top:var(--space-3);padding:var(--space-3) var(--space-4);background:#f0fdf4;border-left:3px solid #22c55e;border-radius:var(--radius-md);">
+                                    <div style="font-size:12px;font-weight:600;color:#15803d;margin-bottom:4px;">💬 Phản hồi từ Admin</div>
+                                    <div style="font-size:13px;color:var(--color-text);white-space:pre-line;" th:text="${t.adminResponse}"></div>
+                                </div>
+                                <div style="font-size:12px;color:var(--color-text-muted);margin-top:var(--space-2);"
+                                     th:text="'Gửi lúc: ' + ${#temporals.format(t.createdAt, 'dd/MM/yyyy HH:mm')}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: FAQ -->
+                <div id="tab-faq" hidden>
+                    <div class="faq-list">
+                        <div class="faq-item">
+                            <div class="faq-item__header" onclick="toggleFaq(this)">
+                                Làm thế nào để thêm nơi lưu trú mới?
+                                <i class="fa-solid fa-chevron-down faq-item__arrow"></i>
+                            </div>
+                            <div class="faq-item__body">Vào menu <strong>Đăng ký mới</strong> trong sidebar, điền đầy đủ thông tin và gửi cho Admin duyệt. Sau khi được duyệt, khách hàng sẽ thấy listing của bạn.</div>
+                        </div>
+                        <div class="faq-item">
+                            <div class="faq-item__header" onclick="toggleFaq(this)">
+                                Khi nào tôi nhận được quyết toán?
+                                <i class="fa-solid fa-chevron-down faq-item__arrow"></i>
+                            </div>
+                            <div class="faq-item__body">Quyết toán được tính theo tuần (Thứ 2 – Chủ nhật). Admin sẽ tạo settlement và chuyển khoản vào tài khoản ngân hàng bạn đã đăng ký trong hồ sơ. Thời gian xử lý thường trong 2-3 ngày làm việc.</div>
+                        </div>
+                        <div class="faq-item">
+                            <div class="faq-item__header" onclick="toggleFaq(this)">
+                                Voucher PARTNER_ACCOMMODATION khác PARTNER_ROOM như thế nào?
+                                <i class="fa-solid fa-chevron-down faq-item__arrow"></i>
+                            </div>
+                            <div class="faq-item__body"><strong>PARTNER_ACCOMMODATION</strong>: Áp dụng cho toàn bộ phòng trong một nơi lưu trú. <strong>PARTNER_ROOM</strong>: Chỉ áp dụng cho một phòng cụ thể. Cả hai đều do partner chịu chi phí chiết khấu.</div>
+                        </div>
+                        <div class="faq-item">
+                            <div class="faq-item__header" onclick="toggleFaq(this)">
+                                Tại sao booking của tôi ở trạng thái PENDING lâu?
+                                <i class="fa-solid fa-chevron-down faq-item__arrow"></i>
+                            </div>
+                            <div class="faq-item__body">Booking PENDING_ADMIN_APPROVAL cần Admin duyệt trước khi xác nhận. Nếu quá 48h chưa được duyệt, hãy gửi ticket hỗ trợ với danh mục <strong>Đặt phòng</strong>.</div>
+                        </div>
+                        <div class="faq-item">
+                            <div class="faq-item__header" onclick="toggleFaq(this)">
+                                Làm sao cập nhật thông tin ngân hàng để nhận quyết toán?
+                                <i class="fa-solid fa-chevron-down faq-item__arrow"></i>
+                            </div>
+                            <div class="faq-item__body">Vào <strong>Hồ sơ của tôi</strong>, cuộn xuống phần <em>Thông tin ngân hàng</em>, cập nhật số tài khoản, tên ngân hàng, tên chủ tài khoản và chi nhánh, rồi bấm Lưu thay đổi.</div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/admin.js"></script>
+    <script>
+        // Tab switching
+        document.querySelectorAll('[data-tab]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('[data-tab]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                ['new-ticket','my-tickets','faq'].forEach(id => {
+                    const el = document.getElementById('tab-' + id);
+                    if (el) el.hidden = true;
+                });
+                const target = document.getElementById('tab-' + btn.dataset.tab);
+                if (target) target.hidden = false;
+            });
+        });
+
+        // Category picker
+        function selectCategory(card) {
+            document.querySelectorAll('.support-cat-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            document.getElementById('category-input').value = card.dataset.cat;
+        }
+
+        function validateSupportForm() {
+            const cat = document.getElementById('category-input').value;
+            if (!cat) {
+                document.getElementById('cat-error').style.display = 'block';
+                return false;
+            }
+            document.getElementById('cat-error').style.display = 'none';
+            return true;
+        }
+
+        // FAQ accordion
+        function toggleFaq(header) {
+            const item = header.closest('.faq-item');
+            item.classList.toggle('open');
+        }
+
+        // Auto-open my-tickets tab if there's a flash message
+        const hasFlash = document.querySelector('.alert--success, .alert--danger');
+        if (hasFlash) {
+            document.querySelectorAll('[data-tab]').forEach(b => b.classList.remove('active'));
+            const newBtn = document.querySelector('[data-tab="new-ticket"]');
+            if (newBtn) newBtn.classList.add('active');
+        }
+    </script>
+</body>
+
+</html>

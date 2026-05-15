@@ -1,0 +1,1460 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="'TravelMate – Tìm kiếm ' + (${currentType == 'VILLA'} ? 'Villa' : (${currentType == 'HOMESTAY'} ? 'Homestay' : (${currentType == 'RESORT'} ? 'Resort' : 'Khách sạn')))">TravelMate – Tìm kiếm khách sạn</title>
+
+    <!-- Font Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&subset=vietnamese&display=swap"
+        rel="stylesheet" />
+
+    <!-- Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <!-- Base styles từ trang chủ -->
+    <link rel="stylesheet" href="/assets/css/style.css" />
+
+    <style>
+        /* ===== SEARCH NAV BAR (sticky dưới header) ===== */
+        .search-nav {
+            background: #fff;
+            border-bottom: 1px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 0;
+        }
+
+        /* Category tabs trong search-nav */
+        .snav-tabs {
+            display: flex;
+            gap: 0;
+            padding: 0 0 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .snav-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 14px 20px;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #64748b;
+            border: none;
+            background: transparent;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            white-space: nowrap;
+        }
+
+        .snav-tab.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+        }
+
+        .snav-tab:hover {
+            color: #1e40af;
+        }
+
+        /* Mini search bar */
+        .mini-search-bar {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            padding: 10px 0;
+        }
+
+        .msb-field {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 18px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: border-color 0.18s;
+            min-width: 0;
+        }
+
+        .msb-field:hover {
+            border-color: #93c5fd;
+            background: #fff;
+        }
+
+        .msb-field:focus-within {
+            border-color: #2563eb;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .msb-field i {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+
+        .msb-field input {
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #1e293b;
+            width: 100%;
+        }
+
+        .msb-field input::placeholder {
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        .msb-divider {
+            width: 1px;
+            height: 32px;
+            background: #e2e8f0;
+            margin: 0 6px;
+            flex-shrink: 0;
+        }
+
+        .msb-submit {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 22px;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            transition:
+                background 0.18s,
+                transform 0.15s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .msb-submit:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .mini-search-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mini-search-container .msb-field {
+            flex: 1;
+        }
+
+        .mini-search-container .msb-field:first-child {
+            flex: 1.4;
+        }
+
+        /* ===== MAIN LAYOUT ===== */
+        .search-page {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 20px;
+            padding: 20px 0 40px;
+        }
+
+        /* ===== FILTER SIDEBAR ===== */
+        .filter-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .filter-card {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid #e9ecef;
+            padding: 18px;
+        }
+
+        .filter-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .filter-card-title {
+            font-size: 0.9375rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .filter-reset-link {
+            font-size: 0.8125rem;
+            color: #2563eb;
+            font-weight: 600;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        /* Recent filter chips */
+        .filter-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .filter-chip {
+            padding: 5px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 999px;
+            font-size: 0.8125rem;
+            color: #475569;
+            cursor: pointer;
+            background: #f8fafc;
+            transition: all 0.15s;
+        }
+
+        .filter-chip.active,
+        .filter-chip:hover {
+            border-color: #2563eb;
+            color: #1d4ed8;
+            background: rgba(37, 99, 235, 0.06);
+        }
+
+        /* Price range */
+        .price-range-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .price-sub {
+            font-size: 0.8125rem;
+            color: #94a3b8;
+            margin-bottom: 14px;
+        }
+
+        .range-slider-wrap {
+            position: relative;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            margin: 16px 0;
+        }
+
+        .range-track {
+            position: absolute;
+            height: 4px;
+            background: #2563eb;
+            border-radius: 2px;
+            left: 0;
+            right: 0;
+        }
+
+        .range-input {
+            position: absolute;
+            top: -8px;
+            width: 100%;
+            height: 20px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            pointer-events: none;
+        }
+
+        .range-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #fff;
+            border: 2.5px solid #2563eb;
+            border-radius: 50%;
+            cursor: pointer;
+            pointer-events: all;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .price-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .price-label-item {
+            font-size: 0.8rem;
+            color: #475569;
+            font-weight: 500;
+        }
+
+        .price-label-item span {
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        /* Filter checkboxes */
+        .filter-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .filter-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .filter-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            accent-color: #2563eb;
+            flex-shrink: 0;
+            margin-top: 2px;
+            cursor: pointer;
+        }
+
+        .filter-item label {
+            font-size: 0.875rem;
+            color: #374151;
+            line-height: 1.45;
+            cursor: pointer;
+        }
+
+        .filter-see-all {
+            display: inline-block;
+            margin-top: 8px;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: #2563eb;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        /* Star rating filter */
+        .star-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .star-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .star-item input[type="checkbox"] {
+            accent-color: #2563eb;
+            width: 16px;
+            height: 16px;
+        }
+
+        .stars-display {
+            display: flex;
+            gap: 2px;
+        }
+
+        .stars-display i {
+            color: #f59e0b;
+            font-size: 0.875rem;
+        }
+
+        /* ===== RESULTS AREA ===== */
+        .results-area {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .results-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .results-title span {
+            color: #64748b;
+            font-weight: 400;
+            font-size: 0.875rem;
+        }
+
+        .results-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ctrl-label {
+            font-size: 0.8125rem;
+            color: #64748b;
+        }
+
+        .ctrl-select {
+            padding: 7px 28px 7px 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #1e293b;
+            background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%2394a3b8' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 8px center;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .view-toggle {
+            display: flex;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .vtg-btn {
+            padding: 7px 10px;
+            border: none;
+            background: #fff;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .vtg-btn.active,
+        .vtg-btn:hover {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        /* ===== HOTEL CARD (LIST VIEW) ===== */
+        .hotel-card-list {
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid #e9ecef;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            min-height: 200px;
+            max-height: 260px;
+            transition:
+                box-shadow 0.2s,
+                transform 0.2s;
+        }
+
+        .hotel-card-list:hover {
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Image section */
+        .hcl-images {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 2px;
+            background: #e2e8f0;
+            height: 260px;
+            min-height: 260px;
+            max-height: 260px;
+            overflow: hidden;
+        }
+
+        .hcl-images .main-img {
+            grid-column: 1 / 2;
+            grid-row: 1 / 3;
+        }
+
+        .hcl-images img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .hcl-images .view-photos-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            padding: 5px 12px;
+            background: rgba(0, 0, 0, 0.55);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+        }
+
+        .hcl-deal-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 4px 10px;
+            background: #f97316;
+            color: #fff;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .hcl-wishlist {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            transition: all 0.15s;
+        }
+
+        .hcl-wishlist:hover {
+            color: #ef4444;
+        }
+
+        /* Content section */
+        .hcl-content {
+            padding: 18px 16px 16px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            grid-template-rows: auto 1fr auto;
+            gap: 0;
+        }
+
+        .hcl-info {
+            grid-column: 1;
+        }
+
+        .hcl-price-box {
+            grid-column: 2;
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: space-between;
+            padding-left: 16px;
+            min-width: 180px;
+        }
+
+        .hcl-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 5px;
+            line-height: 1.35;
+        }
+
+        .hcl-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .hcl-type {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+
+        .hcl-stars {
+            display: flex;
+            gap: 2px;
+        }
+
+        .hcl-stars i {
+            color: #f59e0b;
+            font-size: 0.72rem;
+        }
+
+        .hcl-location {
+            font-size: 0.8125rem;
+            color: #64748b;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .hcl-amenities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .hcl-amenity {
+            padding: 3px 8px;
+            background: #f0f9ff;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: #0369a1;
+        }
+
+        .hcl-perks {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .perk-xu {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #fef3c7;
+            color: #b45309;
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .perk-voucher {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #ecfdf5;
+            color: #059669;
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Price box */
+        .hcl-rating-box {
+            text-align: right;
+            margin-bottom: 10px;
+        }
+
+        .rating-score {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            background: #1d4ed8;
+            color: #fff;
+            border-radius: 8px 8px 0 8px;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .rating-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #1d4ed8;
+            margin-top: 3px;
+        }
+
+        .rating-count {
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+
+        .hcl-price-original {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-decoration: line-through;
+        }
+
+        .hcl-price-current {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #ef4444;
+            margin: 2px 0;
+        }
+
+        .hcl-price-note {
+            font-size: 0.72rem;
+            color: #94a3b8;
+            line-height: 1.4;
+            max-width: 160px;
+        }
+
+        .btn-choose {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 18px;
+            background: #f97316;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.18s;
+            margin-top: 10px;
+            white-space: nowrap;
+            min-width: 110px;
+        }
+
+        .btn-choose:hover {
+            background: #ea6c0a;
+        }
+
+        .tag-family {
+            display: inline-block;
+            padding: 3px 8px;
+            background: #eff6ff;
+            color: #3b82f6;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        /* Filter accordion */
+        .filter-accordion-btn {
+            width: 100%;
+            background: none;
+            border: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9375rem;
+            font-weight: 700;
+            color: #0f172a;
+            cursor: pointer;
+            padding: 0;
+            margin-bottom: 14px;
+        }
+
+        .filter-accordion-btn i {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .pg-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #fff;
+            color: #475569;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+
+        .pg-btn.active {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #fff;
+        }
+
+        .pg-btn:hover:not(.active) {
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+
+        /* Hide unwanted gallery dots / swiper pagination */
+        .swiper-pagination,
+        .swiper-pagination-bullet,
+        .gallery-dot,
+        .slick-dots {
+            display: none !important;
+        }
+
+        @media (max-width: 900px) {
+            .search-page {
+                grid-template-columns: 1fr;
+            }
+
+            .hotel-card-list {
+                grid-template-columns: 1fr;
+                max-height: none;
+            }
+
+            .hcl-images {
+                height: 200px;
+                min-height: 200px;
+                max-height: 200px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .search-nav-inner {
+                flex-direction: column;
+            }
+        }
+
+        /* Search nav wrapper */
+        .search-nav-inner {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/user.js"></script>
+    <!-- ===== HEADER (giống trang chủ) ===== -->
+    <header class="header header-static"
+        style="background: #fff; position: relative; padding: 15px 0; border-bottom: 1px solid #e2e8f0">
+        <div class="container navbar">
+            <a href="/" class="logo">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-building"></i>
+                </div>
+                <span class="logo-text">
+                    <span class="logo-blue">TRAVEL</span><span class="logo-yellow">MATE</span>
+                </span>
+            </a>
+
+            <nav class="menu">
+                <ul class="menu-list">
+                    <li><a href="/">TRANG CHỦ</a></li>
+                    <li><a href="/accommodations">GỢI Ý DU LỊCH</a></li>
+                    <li><a href="/news">TIN TỨC</a></li>
+                    <li><a href="/contact">LIÊN HỆ</a></li>
+                    <li>
+                        <a href="/my-bookings"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Chưa đăng nhập -->
+            <a href="/auth/login" class="login-btn" sec:authorize="isAnonymous()">ĐĂNG NHẬP</a>
+            <!-- Bell Notification (authenticated) -->
+            <div class="notif-wrap" id="notifWrap" sec:authorize="isAuthenticated()" style="position:relative;display:flex;align-items:center;margin-right:10px;">
+                <button class="notif-btn" id="notifBtn" type="button" aria-label="Thông báo"
+                        style="background:none;border:none;cursor:pointer;color:#0f172a;font-size:1.15rem;padding:8px 10px;border-radius:10px;position:relative;transition:background 0.15s,color 0.15s;">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="notif-badge" id="notifBadge" style="display:none;position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:0.6rem;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 4px;line-height:1;"></span>
+                </button>
+                <div class="notif-dropdown" id="notifDropdown" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:340px;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.18);z-index:9999;overflow:hidden;border:1px solid #e2e8f0;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid #f1f5f9;">
+                        <span style="font-weight:700;font-size:0.95rem;color:#0f172a;">Thông báo</span>
+                        <button type="button" id="notifReadAll" style="background:none;border:none;font-size:0.78rem;font-weight:600;color:#2563eb;cursor:pointer;font-family:inherit;padding:0;">Đọc hết</button>
+                    </div>
+                    <div style="max-height:340px;overflow-y:auto;" id="notifList">
+                        <p style="text-align:center;color:#94a3b8;font-size:0.85rem;padding:24px 16px;margin:0;">Không có thông báo</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Đã đăng nhập -->
+            <div class="header-user" id="headerUser" sec:authorize="isAuthenticated()">
+                <button class="header-user-btn" id="headerUserBtn" type="button">
+                    <div class="header-avatar"><i class="fa-solid fa-user"></i></div>
+                    <span class="header-user-name" sec:authentication="principal.fullName">User</span>
+                    <i class="fa-solid fa-chevron-down header-chevron"></i>
+                </button>
+                <div class="header-user-dropdown" id="headerUserDropdown">
+                    <a href="/my-bookings" class="dropdown-item"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a>
+                    <div class="dropdown-divider"></div>
+                    <form method="post" action="/auth/logout">
+                        <button type="submit" class="dropdown-item dropdown-logout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== SEARCH NAV BAR (sticky) ===== -->
+    <div class="search-nav">
+        <div class="container search-nav-inner">
+            <div class="mini-search-bar">
+                <div class="mini-search-container" style="flex: 1; display: flex; gap: 6px; align-items: center">
+                    <form id="searchForm" method="get" action="/accommodations" style="display:flex;gap:6px;align-items:center;flex:1">
+                    <!-- Hidden: giữ lại loại lưu trú khi search lại -->
+                    <input type="hidden" name="type" id="snavHiddenType" th:value="${currentType ?: 'HOTEL'}" />
+                    <div class="msb-field" style="flex: 1.4">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <input type="text" id="msb-dest" name="keyword" placeholder="Thành phố, điểm đến..." th:value="${keyword}" />
+                    </div>
+                    <div class="msb-divider"></div>
+                    <div class="msb-field" style="flex: 1.2">
+                        <i class="fa-regular fa-calendar-days"></i>
+                        <input type="text" id="msb-date" readonly
+                            placeholder="Nhận phòng → Trả phòng"
+                            th:value="${checkIn != null and !#strings.isEmpty(checkIn) ? (checkIn + ' → ' + checkOut) : ''}" />
+                        <input type="hidden" name="checkIn" th:value="${checkIn}" />
+                        <input type="hidden" name="checkOut" th:value="${checkOut}" />
+                    </div>
+                    <div class="msb-divider"></div>
+                    <div class="msb-field" style="flex: 1">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" id="msb-guest" readonly
+                            th:value="|${adults + children} khách, ${rooms} phòng|" />
+                        <input type="hidden" name="adults" th:value="${adults}" />
+                        <input type="hidden" name="children" th:value="${children}" />
+                        <input type="hidden" name="rooms" th:value="${rooms}" />
+                    </div>
+                    <button type="submit" class="msb-submit">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <span id="searchBtnText"
+                              th:text="${currentType == 'VILLA' ? 'Tìm Villa' : currentType == 'HOMESTAY' ? 'Tìm Homestay' : currentType == 'RESORT' ? 'Tìm Resort' : 'Tìm Hotel'}">Tìm Hotel</span>
+                    </button>
+                    </form>
+                </div>
+            </div>
+            <!-- Sub-nav tabs: loại hình lưu trú -->
+                <div class="snav-tabs">
+                    <button class="snav-tab" th:classappend="${currentType == 'HOTEL' || currentType == null} ? ' active' : ''" data-type="HOTEL" onclick="switchType('HOTEL')">
+                        <i class="fa-solid fa-hotel"></i> Hotel
+                    </button>
+                    <button class="snav-tab" th:classappend="${currentType == 'VILLA'} ? ' active' : ''" data-type="VILLA" onclick="switchType('VILLA')">
+                        <i class="fa-solid fa-mountain"></i> Villa
+                    </button>
+                    <button class="snav-tab" th:classappend="${currentType == 'HOMESTAY'} ? ' active' : ''" data-type="HOMESTAY" onclick="switchType('HOMESTAY')">
+                        <i class="fa-solid fa-house-chimney"></i> Homestay
+                    </button>
+                    <button class="snav-tab" th:classappend="${currentType == 'RESORT'} ? ' active' : ''" data-type="RESORT" onclick="switchType('RESORT')">
+                        <i class="fa-solid fa-umbrella-beach"></i> Resort
+                    </button>
+                    <a href="/travel" class="snav-tab" style="text-decoration:none">
+                        <i class="fa-solid fa-map-location-dot"></i> Địa điểm gần đây
+                    </a>
+                </div>
+        </div>
+    </div>
+
+    <!-- ===== MAIN ===== -->
+    <main>
+        <div class="container">
+            <div class="search-page">
+                <!-- ======= FILTER SIDEBAR ======= -->
+                <aside class="filter-sidebar">
+                    <!-- Lọc gần đây -->
+                    <div class="filter-card">
+                        <div class="filter-card-header">
+                            <span class="filter-card-title">Loại lưu trú</span>
+                        </div>
+                        <div class="filter-chips">
+                            <a th:href="@{/accommodations(type='HOTEL',keyword=${keyword},checkIn=${checkIn},checkOut=${checkOut},adults=${adults},children=${children},rooms=${rooms})}"
+                               class="filter-chip" th:classappend="${currentType == 'HOTEL' or currentType == null} ? ' active' : ''"
+                               style="text-decoration:none">Hotel</a>
+                            <a th:href="@{/accommodations(type='RESORT',keyword=${keyword},checkIn=${checkIn},checkOut=${checkOut},adults=${adults},children=${children},rooms=${rooms})}"
+                               class="filter-chip" th:classappend="${currentType == 'RESORT'} ? ' active' : ''"
+                               style="text-decoration:none">Resort</a>
+                            <a th:href="@{/accommodations(type='HOMESTAY',keyword=${keyword},checkIn=${checkIn},checkOut=${checkOut},adults=${adults},children=${children},rooms=${rooms})}"
+                               class="filter-chip" th:classappend="${currentType == 'HOMESTAY'} ? ' active' : ''"
+                               style="text-decoration:none">Homestay</a>
+                            <a th:href="@{/accommodations(type='VILLA',keyword=${keyword},checkIn=${checkIn},checkOut=${checkOut},adults=${adults},children=${children},rooms=${rooms})}"
+                               class="filter-chip" th:classappend="${currentType == 'VILLA'} ? ' active' : ''"
+                               style="text-decoration:none">Villa</a>
+                        </div>
+                    </div>
+
+                    <!-- Khoảng giá -->
+                    <div class="filter-card">
+                        <button class="filter-accordion-btn" onclick="toggleAccordion('price-body')">
+                            <span class="filter-card-title">Khoảng giá</span>
+                            <i class="fa-solid fa-chevron-up" id="price-icon"></i>
+                        </button>
+                        <div id="price-body">
+                            <div class="price-sub">1 phòng, 1 đêm</div>
+                            <div class="range-slider-wrap">
+                                <div class="range-track" id="range-track"></div>
+                                <input type="range" class="range-input" id="range-min" min="0" max="24000000" value="0"
+                                    step="100000" />
+                                <input type="range" class="range-input" id="range-max" min="0" max="24000000"
+                                    value="24000000" step="100000" />
+                            </div>
+                            <div class="price-labels">
+                                <div class="price-label-item"><span id="price-min-label">0</span> VND</div>
+                                <div class="price-label-item"><span id="price-max-label">24.000.000</span> VND</div>
+                            </div>
+                            <div style="display: flex; justify-content: flex-end; margin-top: 10px">
+                                <button class="filter-reset-link">Đặt lại</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lọc phổ biến -->
+                    <div class="filter-card">
+                        <button class="filter-accordion-btn" onclick="toggleAccordion('popular-body')">
+                            <span class="filter-card-title">Tiện nghi</span>
+                            <i class="fa-solid fa-chevron-up" id="popular-icon"></i>
+                        </button>
+                        <div id="popular-body">
+                            <div class="filter-list">
+                                <label class="filter-item"><input type="checkbox" class="amenity-cb" data-val="wifi" /> <label>WiFi miễn phí</label></label>
+                                <label class="filter-item"><input type="checkbox" class="amenity-cb" data-val="pool" /> <label>Hồ bơi</label></label>
+                                <label class="filter-item"><input type="checkbox" class="amenity-cb" data-val="breakfast" /> <label>Bữa sáng</label></label>
+                                <label class="filter-item"><input type="checkbox" class="amenity-cb" data-val="parking" /> <label>Bãi đỗ xe miễn phí</label></label>
+                                <label class="filter-item"><input type="checkbox" class="amenity-cb" data-val="spa" /> <label>Spa &amp; Massage</label></label>
+                                <label class="filter-item"><input type="checkbox" class="amenity-cb" data-val="gym" /> <label>Phòng tập gym</label></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Điểm đánh giá -->
+                    <div class="filter-card">
+                        <button class="filter-accordion-btn" onclick="toggleAccordion('promo-body')">
+                            <span class="filter-card-title">Điểm đánh giá</span>
+                            <i class="fa-solid fa-chevron-up" id="promo-icon"></i>
+                        </button>
+                        <div id="promo-body">
+                            <div class="filter-list">
+                                <label class="filter-item"><input type="radio" name="rating-filter" class="rating-rb" value="9" /> <label>Xuất sắc 9+</label></label>
+                                <label class="filter-item"><input type="radio" name="rating-filter" class="rating-rb" value="8" /> <label>Rất tốt 8+</label></label>
+                                <label class="filter-item"><input type="radio" name="rating-filter" class="rating-rb" value="7" /> <label>Tốt 7+</label></label>
+                                <label class="filter-item"><input type="radio" name="rating-filter" class="rating-rb" value="0" checked /> <label>Tất cả</label></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Đánh giá sao -->
+                    <div class="filter-card">
+                        <button class="filter-accordion-btn" onclick="toggleAccordion('star-body')">
+                            <span class="filter-card-title">Đánh giá sao</span>
+                            <i class="fa-solid fa-chevron-up" id="star-icon"></i>
+                        </button>
+                        <div id="star-body">
+                            <div class="star-list">
+                                <label class="star-item">
+                                    <input type="checkbox" class="star-cb" value="1" />
+                                    <div class="stars-display">
+                                        <i class="fa-solid fa-star"></i>
+                                    </div>
+                                </label>
+                                <label class="star-item">
+                                    <input type="checkbox" class="star-cb" value="2" />
+                                    <div class="stars-display">
+                                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                                    </div>
+                                </label>
+                                <label class="star-item">
+                                    <input type="checkbox" class="star-cb" value="3" />
+                                    <div class="stars-display">
+                                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                                    </div>
+                                </label>
+                                <label class="star-item">
+                                    <input type="checkbox" class="star-cb" value="4" />
+                                    <div class="stars-display">
+                                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                                    </div>
+                                </label>
+                                <label class="star-item">
+                                    <input type="checkbox" class="star-cb" value="5" />
+                                    <div class="stars-display">
+                                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- ======= RESULTS AREA ======= -->
+                <section class="results-area">
+                    <!-- Results header — hiển thị keyword + số kết quả từ Model -->
+                    <div class="results-header">
+                        <div>
+                            <div class="results-title">
+                                <span th:if="${keyword != null and !keyword.isEmpty()}" th:text="${keyword}">Đà Lạt</span>
+                                <span th:if="${keyword == null or keyword.isEmpty()}">Tất cả</span>
+                                <span th:text="'– ' + ${totalResults} + ' ' + (${currentType == 'VILLA'} ? 'villa' : (${currentType == 'HOMESTAY'} ? 'homestay' : (${currentType == 'RESORT'} ? 'resort' : 'khách sạn'))) + ' được tìm thấy'">– 0 nơi lưu trú</span>
+                            </div>
+                        </div>
+                        <div class="results-controls">
+                            <span class="ctrl-label">Xếp theo:</span>
+                            <select class="ctrl-select" id="sortSelect" onchange="sortCards(this.value)">
+                                <option value="default">Mặc định</option>
+                                <option value="price-asc">Giá thấp nhất</option>
+                                <option value="price-desc">Giá cao nhất</option>
+                                <option value="stars-desc">Sao cao nhất</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Empty state khi không có kết quả -->
+                    <div th:if="${#lists.isEmpty(hotels)}" style="text-align:center;padding:60px 20px;">
+                        <i th:class="'fa-solid fa-' + (${currentType == 'VILLA'} ? 'mountain' : (${currentType == 'HOMESTAY'} ? 'house-chimney' : (${currentType == 'RESORT'} ? 'umbrella-beach' : 'hotel')))"
+                           style="font-size:3rem;color:#cbd5e1;margin-bottom:16px;display:block"></i>
+                        <h3 style="color:#475569;margin-bottom:8px"
+                            th:text="'Không tìm thấy ' + (${currentType == 'VILLA'} ? 'villa' : (${currentType == 'HOMESTAY'} ? 'homestay' : (${currentType == 'RESORT'} ? 'resort' : 'khách sạn'))) + ' nào'">Không tìm thấy kết quả</h3>
+                        <p style="color:#94a3b8;font-size:0.9rem">Hãy thử tìm kiếm với từ khóa khác hoặc
+                            <a href="/accommodations" style="color:#2563eb">xem tất cả</a>
+                        </p>
+                    </div>
+
+                    <!-- ─── Hotel Cards — Dynamic loop từ DB ─── -->
+                    <div class="hotel-card-list" th:each="hotel : ${hotels}"
+                         th:with="accAvail=${accAvailMap != null ? accAvailMap[hotel.id] : null},
+                                  accStatus=${accAvail != null ? accAvail['status'] : 'UNKNOWN'},
+                                  isVilla=${hotel.propertyType?.name() == 'VILLA'}"
+                         th:attr="data-price=${hotel.minPrice != null ? hotel.minPrice : 0},data-stars=${hotel.starRating ?: 0},data-rating=${hotel.rating ?: 0},data-amenities=${hotel.propertyType?.name() == 'HOTEL' ? 'wifi pool breakfast' : hotel.propertyType?.name() == 'VILLA' ? 'pool wifi' : hotel.propertyType?.name() == 'RESORT' ? 'pool spa wifi breakfast' : 'wifi breakfast'}"
+                         th:style="${accStatus == 'FULL'} ? 'opacity:0.80;border-color:#fca5a5;' : ''">
+                        <div class="hcl-images">
+                            <a th:href="@{/accommodations/{id}(id=${hotel.id}, checkIn=${checkIn}, checkOut=${checkOut}, adults=${adults}, children=${children}, rooms=${rooms})}" class="main-img">
+                                <!-- onerror: nếu ảnh online không load được → dùng ảnh local mặc định -->
+                                <img th:src="${hotel.thumbnailUrl}" th:alt="${hotel.name}"
+                                     onerror="this.onerror=null; this.src='/assets/images/resort.jpg'" />
+                            </a>
+                            <!-- Ảnh phụ thay đổi theo loại hình lưu trú -->
+                            <th:block th:if="${hotel.propertyType.name() == 'HOTEL'}">
+                                <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=200&q=60" alt="Phòng ngủ"
+                                     onerror="this.onerror=null;this.src='/assets/images/resort.jpg'"
+                                    style="grid-column: 2; grid-row: 1" />
+                                <img src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=200&q=60" alt="Hồ bơi"
+                                     onerror="this.onerror=null;this.src='/assets/images/resort.jpg'"
+                                    style="grid-column: 2; grid-row: 2" />
+                            </th:block>
+                            <th:block th:if="${hotel.propertyType.name() == 'VILLA'}">
+                                <img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=200&q=60" alt="Hồ bơi riêng"
+                                     onerror="this.onerror=null;this.src='/assets/images/resort.jpg'"
+                                    style="grid-column: 2; grid-row: 1" />
+                                <img src="https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=200&q=60" alt="View villa"
+                                     onerror="this.onerror=null;this.src='/assets/images/resort.jpg'"
+                                    style="grid-column: 2; grid-row: 2" />
+                            </th:block>
+                            <th:block th:if="${hotel.propertyType.name() == 'HOMESTAY'}">
+                                <img src="https://images.unsplash.com/photo-1586375300773-8384e3e4916f?w=200&q=60" alt="Sân vườn"
+                                     onerror="this.onerror=null;this.src='/assets/images/homestay-o-da-lat.jpg'"
+                                    style="grid-column: 2; grid-row: 1" />
+                                <img src="https://images.unsplash.com/photo-1540518614846-7eded433c457?w=200&q=60" alt="Phòng"
+                                     onerror="this.onerror=null;this.src='/assets/images/homestay-o-da-lat.jpg'"
+                                    style="grid-column: 2; grid-row: 2" />
+                            </th:block>
+                            <th:block th:if="${hotel.propertyType.name() == 'RESORT'}">
+                                <img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=200&q=60" alt="Spa"
+                                     onerror="this.onerror=null;this.src='/assets/images/resort.jpg'"
+                                    style="grid-column: 2; grid-row: 1" />
+                                <img src="https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=200&q=60" alt="Bãi biển"
+                                     onerror="this.onerror=null;this.src='/assets/images/resort.jpg'"
+                                    style="grid-column: 2; grid-row: 2" />
+                            </th:block>
+                            <button class="hcl-wishlist"><i class="fa-regular fa-bookmark"></i></button>
+                        </div>
+                        <div class="hcl-content">
+                            <div class="hcl-info">
+                                <div class="hcl-name" th:text="${hotel.name}">Hotel Name</div>
+                                <div class="hcl-meta">
+                                    <span class="hcl-type">
+                                        <i th:class="${hotel.propertyType.name() == 'VILLA' ? 'fa-solid fa-mountain' :
+                                                       hotel.propertyType.name() == 'HOMESTAY' ? 'fa-solid fa-house-chimney' :
+                                                       hotel.propertyType.name() == 'RESORT' ? 'fa-solid fa-umbrella-beach' :
+                                                       'fa-solid fa-hotel'}"></i>
+                                        <span th:text="${hotel.propertyType.name() == 'VILLA' ? 'Villa' :
+                                                        hotel.propertyType.name() == 'HOMESTAY' ? 'Homestay' :
+                                                        hotel.propertyType.name() == 'RESORT' ? 'Resort' :
+                                                        'Hotel'}">Hotel</span>
+                                    </span>
+                                    <div class="hcl-stars">
+                                        <!-- Hiển thị sao theo starRating -->
+                                        <th:block th:each="i : ${#numbers.sequence(1, hotel.starRating != null ? hotel.starRating : 3)}">
+                                            <i class="fa-solid fa-star"></i>
+                                        </th:block>
+                                    </div>
+                                </div>
+                                <div class="hcl-location">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    <span th:text="${(hotel.address != null and !#strings.isEmpty(hotel.address) ? hotel.address + ', ' : '') + hotel.city}">Đà Lạt</span>
+                                </div>
+                                <div class="hcl-amenities">
+                                    <!-- Hotel -->
+                                    <th:block th:if="${hotel.propertyType.name() == 'HOTEL'}">
+                                        <span class="hcl-amenity"><i class="fa-solid fa-wifi" style="font-size:0.7rem;"></i> WiFi miễn phí</span>
+                                        <span class="hcl-amenity"><i class="fa-solid fa-bell-concierge" style="font-size:0.7rem;"></i> Lễ tân 24h</span>
+                                        <span class="hcl-amenity"><i class="fa-solid fa-swimming-pool" style="font-size:0.7rem;"></i> Hồ bơi</span>
+                                    </th:block>
+                                    <!-- Villa -->
+                                    <th:block th:if="${hotel.propertyType.name() == 'VILLA'}">
+                                        <span class="hcl-amenity"><i class="fa-solid fa-water-ladder" style="font-size:0.7rem;"></i> Hồ bơi riêng</span>
+                                        <span class="hcl-amenity"><i class="fa-solid fa-fire-burner" style="font-size:0.7rem;"></i> BBQ ngoài trời</span>
+                                        <span class="hcl-amenity"><i class="fa-solid fa-wifi" style="font-size:0.7rem;"></i> WiFi tốc độ cao</span>
+                                    </th:block>
+                                    <!-- Homestay -->
+                                    <th:block th:if="${hotel.propertyType.name() == 'HOMESTAY'}">
+                                        <span class="hcl-amenity"><i class="fa-solid fa-utensils" style="font-size:0.7rem;"></i> Bếp dùng chung</span>
+                                        <span class="hcl-amenity"><i class="fa-solid fa-bicycle" style="font-size:0.7rem;"></i> Xe đạp miễn phí</span>
+                                        <span class="hcl-amenity"><i class="fa-solid fa-mug-hot" style="font-size:0.7rem;"></i> Bữa sáng tại nhà</span>
+                                    </th:block>
+                                    <!-- Resort -->
+                                    <th:block th:if="${hotel.propertyType.name() == 'RESORT'}">
+                                        <span class="hcl-amenity"><i class="fa-solid fa-spa" style="font-size:0.7rem;"></i> Spa & Massage</span>
+                                        <span class="hcl-amenity"><i class="fa-solid fa-umbrella-beach" style="font-size:0.7rem;"></i> Bãi biển riêng</span>
+                                        <span class="hcl-amenity"><i class="fa-solid fa-plane-arrival" style="font-size:0.7rem;"></i> Đưa đón sân bay</span>
+                                    </th:block>
+                                </div>
+
+                                <!-- Badge tình trạng phòng theo ngày — chỉ hiện khi đã chọn ngày -->
+                                <div th:if="${datesSelectedListing and accAvail != null}"
+                                     style="margin-top:8px;">
+                                    <!-- FULL -->
+                                    <span th:if="${accStatus == 'FULL'}"
+                                          style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:#fee2e2;color:#b91c1c;border-radius:20px;font-size:0.78rem;font-weight:700;border:1px solid #fca5a5;"
+                                          th:text="${isVilla ? '🔴 Hết căn ngày này' : '🔴 Hết phòng ngày này'}">
+                                        🔴 Hết phòng ngày này
+                                    </span>
+                                    <!-- LIMITED -->
+                                    <span th:if="${accStatus == 'LIMITED'}"
+                                          style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:#fef3c7;color:#b45309;border-radius:20px;font-size:0.78rem;font-weight:700;border:1px solid #fde68a;">
+                                        🟡 Sắp hết — còn <strong th:text="${accAvail['availableRooms']}">1</strong>&nbsp;<th:block th:text="${isVilla ? 'căn' : 'phòng'}"></th:block>
+                                    </span>
+                                    <!-- AVAILABLE -->
+                                    <span th:if="${accStatus == 'AVAILABLE'}"
+                                          style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:#dcfce7;color:#15803d;border-radius:20px;font-size:0.78rem;font-weight:700;border:1px solid #86efac;">
+                                        🟢 Còn <strong th:text="${accAvail['availableRooms']}">5</strong>&nbsp;<th:block th:text="${isVilla ? 'căn' : 'phòng'}"></th:block> trong ngày đã chọn
+                                    </span>
+                                </div>
+                                <!-- Gợi ý khi chưa chọn ngày -->
+                                <div th:if="${!datesSelectedListing}"
+                                     style="margin-top:8px;font-size:0.78rem;color:#94a3b8;font-style:italic;"
+                                     th:text="${isVilla ? 'Chọn ngày để xem căn còn trống' : 'Chọn ngày để xem phòng còn trống'}">
+                                    Chọn ngày để xem phòng còn trống
+                                </div>
+                            </div>
+                            <div class="hcl-price-box">
+                                <div class="hcl-rating-box">
+                                    <div class="rating-score" th:text="${hotel.rating != null ? hotel.rating : '—'}">8.6</div>
+                                    <div class="rating-label"
+                                         th:text="${hotel.rating != null and hotel.rating >= 9.0 ? 'Xuất sắc' : (hotel.rating != null and hotel.rating >= 8.0 ? 'Rất tốt' : 'Tốt')}"
+                                         th:style="${hotel.rating != null and hotel.rating >= 9.0 ? 'color:#059669' : ''}">Rất tốt</div>
+                                    <div class="rating-count" th:text="${hotel.reviewCount != null ? hotel.reviewCount + ' đánh giá' : ''}">0 đánh giá</div>
+                                </div>
+                                <div>
+                                    <!-- Hiển thị giá phòng rẻ nhất từ minPrice field trên entity -->
+                                    <div class="hcl-price-current"
+                                         th:if="${hotel.minPrice != null and hotel.minPrice > 0}"
+                                         th:text="${#numbers.formatDecimal(hotel.minPrice, 0, 'POINT', 0, 'COMMA')} + ' VND'">650.000 VND</div>
+                                    <div class="hcl-price-current" style="color:#94a3b8;font-size:0.95rem"
+                                         th:if="${hotel.minPrice == null or hotel.minPrice <= 0}">Liên hệ giá</div>
+                                    <div class="hcl-price-note">/ đêm · Bao gồm thuế</div>
+                                    <!-- Nút FULL: vẫn hiện nhưng disable, gợi ý đổi ngày -->
+                                    <div th:if="${accStatus == 'FULL'}"
+                                         style="margin-top:10px;">
+                                        <div style="display:inline-flex;align-items:center;justify-content:center;padding:10px 18px;background:#e2e8f0;color:#94a3b8;border-radius:10px;font-size:0.8125rem;font-weight:700;cursor:not-allowed;">
+                                            <i class="fa-solid fa-ban" style="margin-right:6px;"></i><th:block th:text="${isVilla ? 'Hết căn' : 'Hết phòng'}"></th:block>
+                                        </div>
+                                        <div style="font-size:0.72rem;color:#94a3b8;margin-top:5px;text-align:center;">Hãy thử chọn ngày khác</div>
+                                    </div>
+                                    <!-- Nút bình thường (AVAILABLE hoặc LIMITED hoặc chưa chọn ngày) -->
+                                    <a th:if="${accStatus != 'FULL'}"
+                                       th:href="@{/accommodations/{id}(id=${hotel.id}, checkIn=${checkIn}, checkOut=${checkOut}, adults=${adults}, children=${children}, rooms=${rooms})}">
+                                        <button class="btn-choose"
+                                                th:style="${accStatus == 'LIMITED'} ? 'background:#f59e0b;' : ''">
+                                            <th:block th:if="${accStatus == 'LIMITED'}">
+                                                <i class="fa-solid fa-bolt"></i> Đặt ngay
+                                            </th:block>
+                                            <th:block th:unless="${accStatus == 'LIMITED'}" th:text="${isVilla ? 'Chọn căn' : 'Chọn phòng'}"></th:block>
+                                        </button>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        /* ── Price range slider ── */
+        const rangeMin = document.getElementById("range-min");
+        const rangeMax = document.getElementById("range-max");
+        const track = document.getElementById("range-track");
+        const labelMin = document.getElementById("price-min-label");
+        const labelMax = document.getElementById("price-max-label");
+        const MAX = 24000000;
+
+        function formatPrice(v) {
+            return parseInt(v).toLocaleString("vi-VN");
+        }
+
+        function applyFilters() {
+            const minPrice = parseInt(rangeMin.value);
+            const maxPrice = parseInt(rangeMax.value);
+
+            const checkedStars = [...document.querySelectorAll('.star-cb:checked')]
+                .map(cb => parseInt(cb.value));
+
+            const checkedAmenities = [...document.querySelectorAll('.amenity-cb:checked')]
+                .map(cb => cb.dataset.val);
+
+            const ratingRb = document.querySelector('.rating-rb:checked');
+            const minRating = ratingRb ? parseFloat(ratingRb.value) : 0;
+
+            let visibleCount = 0;
+            document.querySelectorAll('.hotel-card-list').forEach(card => {
+                const price   = parseFloat(card.dataset.price || 0);
+                const stars   = parseInt(card.dataset.stars  || 0);
+                const rating  = parseFloat(card.dataset.rating || 0);
+                const amenStr = (card.dataset.amenities || '').toLowerCase();
+
+                const priceOk    = price >= minPrice && price <= maxPrice;
+                const starsOk    = checkedStars.length === 0 || checkedStars.includes(stars);
+                const ratingOk   = rating >= minRating;
+                const amenityOk  = checkedAmenities.length === 0 ||
+                                   checkedAmenities.every(a => amenStr.includes(a));
+
+                const show = priceOk && starsOk && ratingOk && amenityOk;
+                card.style.display = show ? '' : 'none';
+                if (show) visibleCount++;
+            });
+
+            // Update result count
+            const countEl = document.querySelector('.results-title span:last-child');
+            if (countEl && countEl.textContent.includes('nơi lưu trú')) {
+                countEl.textContent = '– ' + visibleCount + ' nơi lưu trú được tìm thấy';
+            }
+        }
+
+        function updateSlider() {
+            let minVal = parseInt(rangeMin.value);
+            let maxVal = parseInt(rangeMax.value);
+            if (minVal > maxVal - 500000) {
+                minVal = maxVal - 500000;
+                if (minVal < 0) minVal = 0;
+                rangeMin.value = minVal;
+            }
+            const leftPct = (minVal / MAX) * 100;
+            const rightPct = 100 - (maxVal / MAX) * 100;
+            track.style.left = leftPct + "%";
+            track.style.right = rightPct + "%";
+            labelMin.textContent = formatPrice(minVal);
+            labelMax.textContent = formatPrice(maxVal);
+            applyFilters();
+        }
+
+        rangeMin.addEventListener("input", updateSlider);
+        rangeMax.addEventListener("input", updateSlider);
+        updateSlider();
+
+        /* ── Star filter ── */
+        document.querySelectorAll('.star-cb').forEach(cb => {
+            cb.addEventListener('change', applyFilters);
+        });
+
+        /* ── Amenity filter ── */
+        document.querySelectorAll('.amenity-cb').forEach(cb => {
+            cb.addEventListener('change', applyFilters);
+        });
+
+        /* ── Rating radio filter ── */
+        document.querySelectorAll('.rating-rb').forEach(rb => {
+            rb.addEventListener('change', applyFilters);
+        });
+
+        /* ── Reset price slider ── */
+        document.querySelectorAll('.filter-reset-link').forEach(btn => {
+            btn.addEventListener('click', function () {
+                if (this.closest('#price-body')) {
+                    rangeMin.value = 0;
+                    rangeMax.value = MAX;
+                    updateSlider();
+                }
+            });
+        });
+
+        /* ── Filter accordion ── */
+        function toggleAccordion(id) {
+            const body = document.getElementById(id);
+            const iconId = id.replace("-body", "-icon");
+            const icon = document.getElementById(iconId);
+            if (body.style.display === "none") {
+                body.style.display = "";
+                icon.className = "fa-solid fa-chevron-up";
+            } else {
+                body.style.display = "none";
+                icon.className = "fa-solid fa-chevron-down";
+            }
+        }
+
+        /* ── Sort cards ── */
+        function sortCards(mode) {
+            const container = document.querySelector('.results-area');
+            const cards = [...container.querySelectorAll('.hotel-card-list')];
+            cards.sort((a, b) => {
+                const pa = parseFloat(a.dataset.price || 0);
+                const pb = parseFloat(b.dataset.price || 0);
+                const sa = parseInt(a.dataset.stars || 0);
+                const sb = parseInt(b.dataset.stars || 0);
+                if (mode === 'price-asc')  return pa - pb;
+                if (mode === 'price-desc') return pb - pa;
+                if (mode === 'stars-desc') return sb - sa;
+                return 0;
+            });
+            cards.forEach(c => container.appendChild(c));
+        }
+
+        /* ── Switch type tab → cập nhật hidden input + submit lại form ── */
+        const typeLabels = { HOTEL: 'Tìm Hotel', VILLA: 'Tìm Villa', HOMESTAY: 'Tìm Homestay', RESORT: 'Tìm Resort' };
+
+        function switchType(type) {
+            document.getElementById('snavHiddenType').value = type;
+            const btnText = document.getElementById('searchBtnText');
+            if (btnText) btnText.textContent = typeLabels[type] || 'Tìm Hotel';
+            document.querySelectorAll('.snav-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.type === type);
+            });
+            document.getElementById('searchForm').submit();
+        }
+
+        /* ── Notification bell toggle ── */
+        document.addEventListener('DOMContentLoaded', function() {
+            const notifBtn  = document.getElementById('notifBtn');
+            const notifDrop = document.getElementById('notifDropdown');
+            if (notifBtn && notifDrop) {
+                notifBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    notifDrop.style.display = notifDrop.style.display === 'block' ? 'none' : 'block';
+                });
+                document.addEventListener('click', function() { notifDrop.style.display = 'none'; });
+                notifDrop.addEventListener('click', function(e) { e.stopPropagation(); });
+            }
+        });
+
+    </script>
+</body>
+
+</html>

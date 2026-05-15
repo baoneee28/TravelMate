@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard – Admin TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        /* ── Dashboard Overrides ── */
+        .dash-section-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: #94a3b8;
+            margin: 28px 0 12px;
+        }
+        .dash-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 14px;
+            margin-bottom: 0;
+        }
+        @media(max-width:1280px){ .dash-kpi-grid{ grid-template-columns: repeat(3,1fr); } }
+        @media(max-width:768px) { .dash-kpi-grid{ grid-template-columns: repeat(2,1fr); } }
+
+        .kpi-card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 18px 16px 16px;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 1px 4px rgba(0,0,0,.06);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            text-decoration: none;
+            color: inherit;
+            transition: transform .18s, box-shadow .18s;
+            position: relative;
+            overflow: hidden;
+        }
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            border-radius: 14px 14px 0 0;
+            background: var(--kpi-color, #2563eb);
+        }
+        .kpi-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,.1);
+        }
+        .kpi-icon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            background: var(--kpi-bg, #eff6ff);
+            color: var(--kpi-color, #2563eb);
+            flex-shrink: 0;
+        }
+        .kpi-value {
+            font-size: 26px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1;
+        }
+        .kpi-label {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+            line-height: 1.3;
+        }
+        .kpi-arrow {
+            position: absolute;
+            right: 14px; top: 50%;
+            transform: translateY(-50%);
+            color: #cbd5e1;
+            font-size: 16px;
+        }
+
+        /* Row-2 wide cards */
+        .dash-row2 {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 14px;
+            margin-bottom: 0;
+        }
+        @media(max-width:900px){ .dash-row2{ grid-template-columns: 1fr 1fr; } }
+
+        /* Row-3 */
+        .dash-row3 {
+            display: grid;
+            grid-template-columns: repeat(6,1fr);
+            gap: 14px;
+            margin-bottom: 0;
+        }
+        @media(max-width:1280px){ .dash-row3{ grid-template-columns: repeat(3,1fr); } }
+        @media(max-width:768px) { .dash-row3{ grid-template-columns: repeat(2,1fr); } }
+
+        /* Revenue card big */
+        .kpi-card--revenue {
+            flex-direction: row;
+            align-items: center;
+            gap: 16px;
+        }
+        .kpi-card--revenue .kpi-value { font-size: 20px; }
+
+        /* Quick actions */
+        .qa-grid {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 10px;
+        }
+        @media(max-width:640px){ .qa-grid{ grid-template-columns: repeat(2,1fr); } }
+
+        .qa-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid #f1f5f9;
+            text-decoration: none;
+            color: #1e293b;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all .15s;
+        }
+        .qa-item:hover {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+            color: #2563eb;
+        }
+        .qa-icon {
+            width: 36px; height: 36px;
+            border-radius: 9px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        /* System note */
+        .sys-note { font-size: 13px; color: #475569; line-height: 1.8; }
+        .sys-note p { margin: 0 0 6px; display: flex; align-items: center; gap: 8px; }
+        .sys-note p:last-child { margin-bottom: 0; }
+        .note-ok  { color: #16a34a; font-size: 13px; }
+        .note-warn{ color: #d97706; font-size: 13px; }
+
+        /* Bottom grid */
+        .dash-bottom {
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: 16px;
+            margin-top: 22px;
+        }
+        @media(max-width:900px){ .dash-bottom{ grid-template-columns: 1fr; } }
+
+        .dash-card {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 1px 4px rgba(0,0,0,.05);
+            overflow: hidden;
+        }
+        .dash-card__head {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .dash-card__title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .dash-card__body { padding: 18px 20px; }
+
+        /* Info banner */
+        .info-banner {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 16px;
+            background: linear-gradient(135deg,#eff6ff,#f0fdf4);
+            border-radius: 10px;
+            border: 1px solid #bfdbfe;
+            font-size: 12.5px;
+            color: #1d4ed8;
+            margin-bottom: 20px;
+        }
+        .info-banner span { opacity: .7; font-size: 12px; }
+    </style>
+</head>
+
+<body>
+<div class="admin-wrapper">
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar__header">
+            <a href="/admin/dashboard" class="sidebar-logo">
+                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                <div>
+                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                    <span class="admin-sidebar__badge">ADMIN PANEL</span>
+                </div>
+            </a>
+        </div>
+        <nav class="admin-sidebar__nav">
+            <div class="admin-sidebar__section-title">Tổng quan</div>
+            <a href="/admin/dashboard" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
+            <div class="admin-sidebar__section-title">Quản lý đặt phòng</div>
+            <a href="/admin/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt phòng</a>
+            <a href="/admin/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng</a>
+                <div class="admin-sidebar__section-title">Quản lý nội dung</div>
+            <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
+            <a href="/admin/rooms" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
+            <a href="/admin/reviews" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
+            <a href="/admin/users" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
+            <div class="admin-sidebar__section-title">Tài chính</div>
+            <a href="/admin/revenue" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
+            <a href="/admin/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
+            <a href="/admin/vouchers" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
+            <div class="admin-sidebar__section-title">Hỗ trợ</div>
+            <a href="/admin/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
+            <div class="admin-sidebar__section-title">Hệ thống</div>
+            <a href="/admin/audit-log" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📜</span> Nhật ký thao tác</a>
+            <a href="/" class="admin-sidebar__link" target="_blank"><span class="admin-sidebar__link-icon">🌐</span> Xem trang User</a>
+        </nav>
+        <div class="admin-sidebar__footer">
+            <div class="admin-sidebar__user">
+                <div class="admin-sidebar__user-avatar">AD</div>
+                <div class="admin-sidebar__user-info">
+                    <div class="admin-sidebar__user-name" sec:authentication="name">Admin</div>
+                    <div class="admin-sidebar__user-role">Quản trị viên</div>
+                </div>
+            </div>
+            <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
+                <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
+            </form>
+        </div>
+    </aside>
+    <div class="admin-sidebar-overlay"></div>
+
+    <!-- MAIN -->
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div style="display:flex;align-items:center;gap:var(--space-4)">
+                <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                <h1 class="admin-topbar__title">Dashboard</h1>
+            </div>
+            <div class="admin-topbar__actions">
+                <span class="text-sm text-muted" id="dash-date" style="font-size:13px;color:#64748b;"></span>
+                <a href="/" class="btn btn--outline btn--sm" target="_blank">🌐 Xem site</a>
+                <form th:action="@{/auth/logout}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn--ghost btn--sm">🚪 Đăng xuất</button>
+                </form>
+            </div>
+        </header>
+
+        <main class="admin-content">
+            <!-- Info banner -->
+            <div class="info-banner">
+                <span>📊 Số liệu thật từ MySQL — lấy từ booking/payment đã lưu trong database.</span>
+                <span>💡 Click vào thẻ để xem chi tiết</span>
+            </div>
+
+            <!-- Row 1: Booking status -->
+            <div class="dash-section-label">📋 Trạng thái đặt phòng</div>
+            <div class="dash-kpi-grid">
+                <a href="/admin/bookings" class="kpi-card" style="--kpi-color:#2563eb;--kpi-bg:#eff6ff;">
+                    <div class="kpi-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+                    <div>
+                        <div class="kpi-value" th:text="${totalBookings}">0</div>
+                        <div class="kpi-label">Tổng đặt phòng</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right kpi-arrow"></i>
+                </a>
+                <a href="/admin/bookings?status=PENDING_ADMIN_APPROVAL" class="kpi-card" style="--kpi-color:#d97706;--kpi-bg:#fffbeb;">
+                    <div class="kpi-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+                    <div>
+                        <div class="kpi-value" th:text="${pendingBookings}">0</div>
+                        <div class="kpi-label">Chờ duyệt</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right kpi-arrow"></i>
+                </a>
+                <a href="/admin/bookings?status=CONFIRMED" class="kpi-card" style="--kpi-color:#16a34a;--kpi-bg:#f0fdf4;">
+                    <div class="kpi-icon"><i class="fa-solid fa-circle-check"></i></div>
+                    <div>
+                        <div class="kpi-value" th:text="${confirmedBookings}">0</div>
+                        <div class="kpi-label">Đã xác nhận</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right kpi-arrow"></i>
+                </a>
+                <a href="/admin/bookings?status=CHECKED_IN" class="kpi-card" style="--kpi-color:#0891b2;--kpi-bg:#ecfeff;">
+                    <div class="kpi-icon"><i class="fa-solid fa-door-open"></i></div>
+                    <div>
+                        <div class="kpi-value" th:text="${checkedInBookings}">0</div>
+                        <div class="kpi-label">Đã check-in</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right kpi-arrow"></i>
+                </a>
+                <a href="/admin/bookings?status=NO_SHOW" class="kpi-card" style="--kpi-color:#dc2626;--kpi-bg:#fef2f2;">
+                    <div class="kpi-icon"><i class="fa-solid fa-ban"></i></div>
+                    <div>
+                        <div class="kpi-value" th:text="${noShowBookings}">0</div>
+                        <div class="kpi-label">No-show</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right kpi-arrow"></i>
+                </a>
+                <a href="/admin/bookings?status=COMPLETED" class="kpi-card" style="--kpi-color:#7c3aed;--kpi-bg:#f5f3ff;">
+                    <div class="kpi-icon"><i class="fa-solid fa-flag-checkered"></i></div>
+                    <div>
+                        <div class="kpi-value" th:text="${completedBookings}">0</div>
+                        <div class="kpi-label">Hoàn thành</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right kpi-arrow"></i>
+                </a>
+            </div>
+
+            <!-- Row 2: Hotel + Revenue -->
+            <div class="dash-section-label">🏨 Cơ sở & Doanh thu</div>
+            <div class="dash-row2">
+                <a href="/admin/accommodations?status=APPROVED" class="kpi-card" style="--kpi-color:#2563eb;--kpi-bg:#eff6ff;">
+                    <div class="kpi-icon"><i class="fa-solid fa-hotel"></i></div>
+                    <div>
+                        <div class="kpi-value" th:text="${totalApprovedHotels}">0</div>
+                        <div class="kpi-label">Nơi lưu trú đã duyệt</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right kpi-arrow"></i>
+                </a>
+                <a href="/admin/availability" class="kpi-card" style="--kpi-color:#16a34a;--kpi-bg:#f0fdf4;">
+                    <div class="kpi-icon"><i class="fa-solid fa-bed"></i></div>
+                    <div>
+                        <div class="kpi-value" th:text="${totalAvailableRooms}">0</div>
+                        <div class="kpi-label">Quota còn mở bán
+                            <span title="Tổng availableQuantity các phòng đã duyệt (không gắn với khoảng ngày). Kiểm tra phòng trống theo ngày tại Tình trạng phòng."
+                                  style="cursor:help;color:#94a3b8;font-size:10px;margin-left:3px;">ⓘ</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right kpi-arrow"></i>
+                </a>
+                <a href="/admin/revenue" class="kpi-card kpi-card--revenue" style="--kpi-color:#059669;--kpi-bg:#ecfdf5;">
+                    <div class="kpi-icon" style="width:48px;height:48px;font-size:22px;"><i class="fa-solid fa-dollar-sign"></i></div>
+                    <div>
+                        <div class="kpi-value"
+                             th:text="${#numbers.formatDecimal(approvedRevenue, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</div>
+                        <div class="kpi-label">Doanh thu online TravelMate
+                            <span title="Chỉ tính booking Online (ONLINE) đã được duyệt hoặc cọc bị giữ. Không tính DIRECT/MANUAL_BLOCK."
+                                  style="cursor:help;color:#94a3b8;font-size:10px;margin-left:3px;">ⓘ</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right kpi-arrow"></i>
+                </a>
+            </div>
+
+            <!-- Row 3: Users + Pending + Misc -->
+            <div class="dash-section-label">👥 Người dùng & Xử lý tồn đọng</div>
+            <div class="dash-row3">
+                <a href="/admin/users?role=USER" class="kpi-card" style="--kpi-color:#7c3aed;--kpi-bg:#f5f3ff;">
+                    <div class="kpi-icon"><i class="fa-solid fa-users"></i></div>
+                    <div>
+                        <div class="kpi-value" th:text="${totalUsers}">0</div>
+                        <div class="kpi-label">Người dùng (USER)</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right kpi-arrow"></i>
+                </a>
+                <a href="/admin/rooms?status=PENDING" class="kpi-card" style="--kpi-color:#d97706;--kpi-bg:#fffbeb;">
+                    <div class="kpi-icon"><i class="fa-solid fa-bed"></i></div>
+                    <div>
+                        <div class="kpi-value" th:text="${pendingRooms}">0</div>
+                        <div class="kpi-label">Phòng chờ duyệt</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right kpi-arrow"></i>
+                </a>
+                <a href="/admin/accommodations?status=PENDING" class="kpi-card" style="--kpi-color:#b45309;--kpi-bg:#fef3c7;">
+                    <div class="kpi-icon"><i class="fa-solid fa-hotel"></i></div>
+                    <div>
+                        <div class="kpi-value" th:text="${pendingAccommodations}">0</div>
+                        <div class="kpi-label">Lưu trú chờ duyệt</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right kpi-arrow"></i>
+                </a>
+                <a href="/admin/support?tab=open" class="kpi-card" style="--kpi-color:#be185d;--kpi-bg:#fdf2f8;">
+                    <div class="kpi-icon"><i class="fa-solid fa-headset"></i></div>
+                    <div>
+                        <div class="kpi-value" th:text="${openSupportTickets}">0</div>
+                        <div class="kpi-label">Ticket chờ xử lý</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right kpi-arrow"></i>
+                </a>
+                <a href="/admin/reviews" class="kpi-card" style="--kpi-color:#d97706;--kpi-bg:#fffbeb;">
+                    <div class="kpi-icon"><i class="fa-solid fa-star"></i></div>
+                    <div>
+                        <div class="kpi-value" th:text="${totalReviews}">0</div>
+                        <div class="kpi-label">Tổng đánh giá</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right kpi-arrow"></i>
+                </a>
+                <a href="/admin/users?role=PARTNER" class="kpi-card" style="--kpi-color:#a16207;--kpi-bg:#fefce8;">
+                    <div class="kpi-icon"><i class="fa-solid fa-handshake"></i></div>
+                    <div>
+                        <div class="kpi-value" th:text="${totalPartners}">0</div>
+                        <div class="kpi-label">Partner hoạt động</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right kpi-arrow"></i>
+                </a>
+            </div>
+
+            <!-- Bottom: Quick Actions + System Notes -->
+            <div class="dash-bottom">
+                <div class="dash-card">
+                    <div class="dash-card__head">
+                        <div class="dash-card__title"><i class="fa-solid fa-bolt" style="color:#f59e0b;"></i> Thao tác nhanh</div>
+                    </div>
+                    <div class="dash-card__body">
+                        <div class="qa-grid">
+                            <a href="/admin/bookings" class="qa-item">
+                                <div class="qa-icon">📋</div> Quản lý Booking
+                            </a>
+                            <a href="/admin/rooms" class="qa-item">
+                                <div class="qa-icon">🛏</div> Duyệt phòng
+                            </a>
+                            <a href="/admin/accommodations" class="qa-item">
+                                <div class="qa-icon">🏨</div> Cơ sở lưu trú
+                            </a>
+                            <a href="/admin/users" class="qa-item">
+                                <div class="qa-icon">👥</div> Người dùng
+                            </a>
+                            <a href="/admin/vouchers" class="qa-item">
+                                <div class="qa-icon">🎟</div> Voucher
+                            </a>
+                            <a href="/admin/support" class="qa-item">
+                                <div class="qa-icon">🆘</div> Hỗ trợ
+                            </a>
+                            <a href="/admin/revenue" class="qa-item">
+                                <div class="qa-icon">💰</div> Doanh thu
+                            </a>
+                            <a href="/admin/settlements" class="qa-item">
+                                <div class="qa-icon">🏦</div> Quyết toán
+                            </a>
+                            <a href="/admin/audit-log" class="qa-item">
+                                <div class="qa-icon">📜</div> Nhật ký
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dash-card">
+                    <div class="dash-card__head">
+                        <div class="dash-card__title"><i class="fa-solid fa-circle-info" style="color:#3b82f6;"></i> Ghi chú hệ thống</div>
+                    </div>
+                    <div class="dash-card__body">
+                        <div class="sys-note">
+                            <p><i class="fa-solid fa-check-circle note-ok"></i><span><strong>Booking</strong>: Dữ liệu thật từ MySQL</span></p>
+                            <p><i class="fa-solid fa-check-circle note-ok"></i><span><strong>Dashboard stats</strong>: Query trực tiếp từ database</span></p>
+                            <p><i class="fa-solid fa-check-circle note-ok"></i><span><strong>Doanh thu</strong>: Ghi nhận từ payment APPROVED trong MySQL</span></p>
+                            <p><i class="fa-solid fa-check-circle note-ok"></i><span><strong>Revenue/Settlement</strong>: Lấy từ booking/payment trong MySQL</span></p>
+                            <p><i class="fa-solid fa-triangle-exclamation note-warn"></i><span><strong>Thanh toán</strong>: Đang mô phỏng, chưa tích hợp cổng production</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/admin.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var dateEl = document.getElementById('dash-date');
+        if (dateEl) {
+            dateEl.textContent = '📅 ' + new Date().toLocaleDateString('vi-VN', {
+                weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+        }
+    });
+</script>
+</body>
+</html>

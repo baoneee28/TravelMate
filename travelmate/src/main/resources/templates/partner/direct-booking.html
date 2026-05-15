@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Booking trực tiếp – Partner TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <link rel="stylesheet" href="/assets/css/partners.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+<body>
+<div class="admin-wrapper">
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar__header">
+            <a href="/partner/dashboard" class="sidebar-logo">
+                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                <div>
+                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                    <span class="admin-sidebar__badge">PARTNER CENTER</span>
+                </div>
+            </a>
+        </div>
+        <nav class="admin-sidebar__nav">
+            <div class="admin-sidebar__section-title">Tổng quan</div>
+            <a href="/partner/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
+            <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
+            <a href="/partner/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Nơi lưu trú của tôi</a>
+            <a href="/partner/amenities" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏷</span> Tiện nghi phòng</a>
+            <a href="/partner/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đơn đặt phòng</a>
+            <a href="/partner/room-status" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏠</span> Tình trạng phòng</a>
+            <a href="/partner/direct-booking" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">➕</span> Booking trực tiếp</a>
+            <a href="/partner/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Kiểm tra lịch trống</a>
+            <a href="/partner/reviews" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá của khách</a>
+            <div class="admin-sidebar__section-title">Tài chính</div>
+            <a href="/partner/revenue" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
+            <a href="/partner/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
+            <a href="/partner/vouchers" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher của tôi</a>
+            <div class="admin-sidebar__section-title">Hỗ trợ</div>
+            <a href="/partner/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ</a>
+            <a href="/partner/profile" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👤</span> Hồ sơ của tôi</a>
+        </nav>
+        <div class="admin-sidebar__footer">
+            <div class="admin-sidebar__user">
+                <div class="admin-sidebar__user-avatar">PT</div>
+                <div class="admin-sidebar__user-info">
+                    <div class="admin-sidebar__user-name" th:text="${partnerName} ?: 'Partner'">Partner</div>
+                    <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+    <div class="admin-sidebar-overlay"></div>
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div style="display:flex;align-items:center;gap:var(--space-4)">
+                <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                <h1 class="admin-topbar__title">➕ Booking trực tiếp</h1>
+            </div>
+            <div class="admin-topbar__actions">
+                <form th:action="@{/auth/logout}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn--ghost btn--sm">🚪 Đăng xuất</button>
+                </form>
+            </div>
+        </header>
+
+        <main class="admin-content">
+            <div class="page-header">
+                <div>
+                    <h2 class="page-header__title">➕ Tạo Booking Trực Tiếp tại Cơ Sở</h2>
+                    <p class="page-header__subtitle">
+                        Dùng khi khách đến trực tiếp và thanh toán tại cơ sở (không qua TravelMate online).
+                        Hệ thống sẽ cập nhật số phòng còn trống để tránh overbooking.
+                    </p>
+                </div>
+                <a href="/partner/room-status" class="btn btn--outline btn--sm">
+                    <i class="fa-solid fa-arrow-left" style="margin-right:4px;"></i> Quay lại tình trạng phòng
+                </a>
+            </div>
+
+            <!-- Flash messages -->
+            <div th:if="${successMessage}" style="margin-bottom:var(--space-4);padding:14px 18px;background:#ecfdf5;border-radius:10px;font-size:13px;color:#065f46;border:1px solid #a7f3d0;">
+                <i class="fa-solid fa-circle-check" style="margin-right:6px;"></i>
+                <span th:text="${successMessage}"></span>
+            </div>
+            <div th:if="${errorMessage}" style="margin-bottom:var(--space-4);padding:14px 18px;background:#fef2f2;border-radius:10px;font-size:13px;color:#991b1b;border:1px solid #fecaca;">
+                <i class="fa-solid fa-circle-xmark" style="margin-right:6px;"></i>
+                <span th:text="${errorMessage}"></span>
+            </div>
+
+            <!-- Info banner -->
+            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px 18px;margin-bottom:var(--space-5);font-size:13px;color:#92400e;">
+                <div style="font-weight:700;margin-bottom:6px;">⚠️ Lưu ý về Booking trực tiếp</div>
+                <ul style="margin:0;padding-left:18px;line-height:1.8;">
+                    <li>Booking trực tiếp <strong>không qua thanh toán TravelMate</strong> — tiền thu tại cơ sở.</li>
+                    <li>Hệ thống sẽ <strong>trừ số phòng còn trống</strong> trên TravelMate để tránh overbooking.</li>
+                    <li>Booking trực tiếp <strong>không tính commission</strong> và không vào quyết toán.</li>
+                    <li>Admin có thể xem để kiểm soát tồn phòng toàn hệ thống.</li>
+                </ul>
+            </div>
+
+            <!-- Form -->
+            <div style="display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:start;">
+
+                <!-- Main form -->
+                <div style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:24px;">
+                    <form th:action="@{/partner/direct-booking}" method="post" id="direct-booking-form">
+
+                        <!-- Chọn cơ sở -->
+                        <div style="margin-bottom:18px;">
+                            <label style="font-size:13px;font-weight:700;color:#0f172a;display:block;margin-bottom:6px;">
+                                🏨 Cơ sở lưu trú *
+                            </label>
+                            <select name="accommodationId" id="accommodation-select" required onchange="filterRooms(this)"
+                                    style="width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:10px;font-size:13px;box-sizing:border-box;background:#fff;">
+                                <option value="">— Chọn cơ sở —</option>
+                                <option th:each="acc : ${myAccommodations}"
+                                        th:value="${acc.id}"
+                                        th:text="${acc.name} + ' (' + ${acc.city} + ')'"
+                                        th:attr="data-acc-id=${acc.id}"></option>
+                            </select>
+                        </div>
+
+                        <!-- Chọn phòng -->
+                        <div style="margin-bottom:18px;">
+                            <label style="font-size:13px;font-weight:700;color:#0f172a;display:block;margin-bottom:6px;">
+                                🛏️ Loại phòng/căn *
+                            </label>
+                            <select name="roomId" id="room-select" required
+                                    style="width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:10px;font-size:13px;box-sizing:border-box;background:#fff;">
+                                <option value="">— Chọn loại phòng/căn —</option>
+                                <option th:each="room : ${myRooms}"
+                                        th:value="${room.id}"
+                                        th:text="${room.roomName} + ' — ' + ${#numbers.formatDecimal(room.pricePerNight, 0, 'POINT', 0, 'COMMA')} + '₫/đêm'"
+                                        th:attr="data-acc-id=${room.accommodation.id},data-price=${room.pricePerNight}"
+                                        class="room-option"></option>
+                            </select>
+                        </div>
+
+                        <!-- Ngày -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
+                            <div>
+                                <label style="font-size:13px;font-weight:700;color:#0f172a;display:block;margin-bottom:6px;">
+                                    📅 Ngày nhận phòng *
+                                </label>
+                                <input type="date" name="checkIn" id="check-in" required
+                                       th:attr="min=${today}"
+                                       onchange="calcTotal()"
+                                       style="width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:10px;font-size:13px;box-sizing:border-box;" />
+                            </div>
+                            <div>
+                                <label style="font-size:13px;font-weight:700;color:#0f172a;display:block;margin-bottom:6px;">
+                                    📅 Ngày trả phòng *
+                                </label>
+                                <input type="date" name="checkOut" id="check-out" required
+                                       onchange="calcTotal()"
+                                       style="width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:10px;font-size:13px;box-sizing:border-box;" />
+                            </div>
+                        </div>
+
+                        <!-- Số phòng và khách -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px;">
+                            <div>
+                                <label style="font-size:13px;font-weight:700;color:#0f172a;display:block;margin-bottom:6px;">
+                                    🏠 Số phòng *
+                                </label>
+                                <input type="number" name="roomQuantity" value="1" min="1" max="50" required onchange="calcTotal()"
+                                       style="width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:10px;font-size:13px;box-sizing:border-box;" />
+                            </div>
+                            <div>
+                                <label style="font-size:13px;font-weight:700;color:#0f172a;display:block;margin-bottom:6px;">
+                                    👨 Người lớn
+                                </label>
+                                <input type="number" name="adults" value="1" min="0" max="50"
+                                       style="width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:10px;font-size:13px;box-sizing:border-box;" />
+                            </div>
+                            <div>
+                                <label style="font-size:13px;font-weight:700;color:#0f172a;display:block;margin-bottom:6px;">
+                                    👶 Trẻ em
+                                </label>
+                                <input type="number" name="children" value="0" min="0" max="20"
+                                       style="width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:10px;font-size:13px;box-sizing:border-box;" />
+                            </div>
+                        </div>
+
+                        <!-- Thông tin khách (tuỳ chọn) -->
+                        <div style="background:#f8fafc;border-radius:10px;padding:16px;margin-bottom:18px;">
+                            <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:12px;">
+                                👤 Thông tin khách (không bắt buộc)
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                                <div>
+                                    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Tên khách</label>
+                                    <input type="text" name="customerName" placeholder="Nguyễn Văn A"
+                                           style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;" />
+                                </div>
+                                <div>
+                                    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Số điện thoại</label>
+                                    <input type="text" name="customerPhone" placeholder="0901234567"
+                                           style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;" />
+                                </div>
+                            </div>
+                            <div>
+                                <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Email</label>
+                                <input type="email" name="customerEmail" placeholder="guest@email.com"
+                                       style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;" />
+                            </div>
+                        </div>
+
+                        <!-- Ghi chú -->
+                        <div style="margin-bottom:20px;">
+                            <label style="font-size:13px;font-weight:700;color:#0f172a;display:block;margin-bottom:6px;">
+                                📝 Ghi chú (không bắt buộc)
+                            </label>
+                            <textarea name="note" rows="3" placeholder="VD: Khách walk-in, thanh toán tiền mặt tại quầy..."
+                                      style="width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:10px;font-size:13px;box-sizing:border-box;resize:vertical;"></textarea>
+                        </div>
+
+                        <button type="submit" id="submit-btn"
+                                style="width:100%;padding:14px;background:#2563eb;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+                            <i class="fa-solid fa-plus"></i>
+                            Tạo Booking Trực Tiếp
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Summary panel -->
+                <div style="position:sticky;top:80px;">
+                    <div style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:20px;margin-bottom:16px;">
+                        <h3 style="font-size:14px;font-weight:700;color:#0f172a;margin:0 0 14px;">💰 Tóm tắt booking</h3>
+                        <div style="display:flex;flex-direction:column;gap:10px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+                                <span style="color:#64748b;">Số đêm</span>
+                                <span style="font-weight:700;color:#0f172a;" id="sum-nights">—</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+                                <span style="color:#64748b;">Số phòng</span>
+                                <span style="font-weight:700;color:#0f172a;" id="sum-qty">1</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+                                <span style="color:#64748b;">Giá/đêm</span>
+                                <span style="font-weight:700;color:#0f172a;" id="sum-price">—</span>
+                            </div>
+                            <div style="border-top:1px solid #f1f5f9;padding-top:10px;display:flex;justify-content:space-between;align-items:center;">
+                                <span style="font-size:14px;font-weight:700;color:#0f172a;">Tổng thu tại cơ sở</span>
+                                <span style="font-size:18px;font-weight:900;color:#2563eb;" id="sum-total">—</span>
+                            </div>
+                        </div>
+                        <div style="margin-top:12px;padding:10px;background:#f0fdf4;border-radius:8px;font-size:12px;color:#166534;">
+                            <i class="fa-solid fa-info-circle" style="margin-right:4px;"></i>
+                            Khách thanh toán trực tiếp tại cơ sở. Không qua TravelMate.
+                            Không tính commission.
+                        </div>
+                    </div>
+
+                    <!-- Chặn phòng link -->
+                    <div style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:16px;">
+                        <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:10px;">🔒 Chặn phòng/bảo trì</div>
+                        <p style="font-size:12px;color:#64748b;margin:0 0 12px;line-height:1.6;">
+                            Cần chặn phòng cho bảo trì, giữ nội bộ hoặc không muốn bán online trong khoảng thời gian nhất định?
+                        </p>
+                        <a href="/partner/room-status" class="btn btn--outline btn--sm" style="width:100%;justify-content:center;">
+                            <i class="fa-solid fa-ban" style="margin-right:4px;"></i> Đến trang chặn phòng
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/admin.js"></script>
+<script>
+// Map room price per night
+const roomPrices = {};
+document.querySelectorAll('.room-option').forEach(opt => {
+    roomPrices[opt.value] = parseFloat(opt.dataset.price || 0);
+});
+
+function filterRooms(accSelect) {
+    const accId = accSelect.value;
+    const roomSel = document.getElementById('room-select');
+    roomSel.innerHTML = '<option value="">— Chọn loại phòng/căn —</option>';
+    document.querySelectorAll('.room-option').forEach(opt => {
+        if (!accId || opt.dataset.accId === accId) {
+            roomSel.appendChild(opt.cloneNode(true));
+        }
+    });
+    calcTotal();
+}
+
+function calcTotal() {
+    const checkIn = document.getElementById('check-in').value;
+    const checkOut = document.getElementById('check-out').value;
+    const roomId = document.getElementById('room-select').value;
+    const qty = parseInt(document.querySelector('input[name=roomQuantity]').value) || 1;
+
+    document.getElementById('sum-qty').textContent = qty + ' phòng';
+
+    if (roomId && roomPrices[roomId]) {
+        const price = roomPrices[roomId];
+        document.getElementById('sum-price').textContent = price.toLocaleString('vi-VN') + '₫';
+    }
+
+    if (checkIn && checkOut && checkIn < checkOut) {
+        const ci = new Date(checkIn), co = new Date(checkOut);
+        const nights = Math.round((co - ci) / 86400000);
+        document.getElementById('sum-nights').textContent = nights + ' đêm';
+
+        if (roomId && roomPrices[roomId]) {
+            const total = roomPrices[roomId] * nights * qty;
+            document.getElementById('sum-total').textContent = total.toLocaleString('vi-VN') + '₫';
+        }
+    } else {
+        document.getElementById('sum-nights').textContent = '—';
+        document.getElementById('sum-total').textContent = '—';
+    }
+}
+
+// Pre-select if query params provided
+const urlParams = new URLSearchParams(window.location.search);
+const preAcc = urlParams.get('accommodationId');
+const preRoom = urlParams.get('roomId');
+if (preAcc) {
+    const accSel = document.getElementById('accommodation-select');
+    accSel.value = preAcc;
+    filterRooms(accSel);
+    if (preRoom) {
+        setTimeout(() => {
+            document.getElementById('room-select').value = preRoom;
+            calcTotal();
+        }, 100);
+    }
+}
+</script>
+</body>
+</html>

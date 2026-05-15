@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quyết Toán Partner – Admin TravelMate</title>
+    <meta name="description" content="Trang quyết toán hàng tuần cho partner – Admin TravelMate." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        .set-kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:24px; }
+        .set-kpi-card { background:var(--color-surface,#fff); border-radius:12px; padding:18px 20px; box-shadow:0 1px 4px rgba(0,0,0,.07); }
+        .set-kpi-card__label { font-size:12px; color:#6b7280; margin-bottom:4px; }
+        .set-kpi-card__value { font-size:22px; font-weight:700; }
+        .set-table-wrap { overflow-x:auto; }
+        .set-table { width:100%; border-collapse:collapse; font-size:13px; }
+        .set-table th { background:#f8fafc; font-weight:600; padding:10px 14px; border-bottom:1px solid #e2e8f0; white-space:nowrap; }
+        .set-table td { padding:10px 14px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+        .set-table tr:last-child td { border-bottom:none; }
+        .set-table tr:hover td { background:#f8fafc; }
+        .badge-pending { background:#fef9c3; color:#a16207; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+        .badge-paid    { background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+        .btn-mark-paid { background:#2563eb; color:#fff; border:none; border-radius:8px; padding:6px 14px; font-size:12px; cursor:pointer; font-weight:600; }
+        .btn-mark-paid:hover { background:#1d4ed8; }
+        .section-title { font-size:15px; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+        .empty-state { text-align:center; padding:40px 20px; color:#6b7280; }
+        .flow-info { background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:14px 18px; margin-bottom:20px; font-size:13px; line-height:1.7; }
+        .formula-box { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; font-family:monospace; font-size:13px; margin-top:8px; color:#374151; }
+    </style>
+</head>
+<body>
+<div class="admin-wrapper">
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar__header">
+            <a href="/admin/dashboard" class="sidebar-logo">
+                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                <div>
+                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                    <span class="admin-sidebar__badge">ADMIN PANEL</span>
+                </div>
+            </a>
+        </div>
+        <nav class="admin-sidebar__nav">
+            <div class="admin-sidebar__section-title">Tổng quan</div>
+            <a href="/admin/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
+            <div class="admin-sidebar__section-title">Quản lý đặt phòng</div>
+            <a href="/admin/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt phòng</a>
+            <a href="/admin/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng</a>
+                <div class="admin-sidebar__section-title">Quản lý nội dung</div>
+            <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
+            <a href="/admin/rooms"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
+            <a href="/admin/reviews"        class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
+            <a href="/admin/users"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
+            <div class="admin-sidebar__section-title">Tài chính</div>
+            <a href="/admin/revenue"     class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
+            <a href="/admin/settlements" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
+            <a href="/admin/vouchers"    class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
+            <div class="admin-sidebar__section-title">Hỗ trợ</div>
+            <a href="/admin/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
+            <div class="admin-sidebar__section-title">Hệ thống</div>
+            <a href="/admin/audit-log" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📜</span> Nhật ký thao tác</a>
+            <a href="/" class="admin-sidebar__link" target="_blank"><span class="admin-sidebar__link-icon">🌐</span> Xem trang User</a>
+        </nav>
+        <div class="admin-sidebar__footer">
+            <div class="admin-sidebar__user">
+                <div class="admin-sidebar__user-avatar">AD</div>
+                <div class="admin-sidebar__user-info">
+                    <div class="admin-sidebar__user-name" sec:authentication="name">Admin</div>
+                    <div class="admin-sidebar__user-role">Quản trị viên</div>
+                </div>
+            </div>
+            <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
+                <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
+            </form>
+        </div>
+    </aside>
+    <div class="admin-sidebar-overlay"></div>
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div style="display:flex;align-items:center;gap:var(--space-4)">
+                <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                <h1 class="admin-topbar__title">🏦 Quyết Toán Partner</h1>
+            </div>
+            <div class="admin-topbar__actions">
+                <form th:action="@{/admin/settlements/generate-weekly}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn--primary btn--sm"
+                            onclick="return confirm('Tạo quyết toán cho tuần trước (Thứ Hai → Chủ Nhật)? Partner đã có settlement trong kỳ sẽ bị bỏ qua.')">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Tạo quyết toán tuần trước
+                    </button>
+                </form>
+                <a href="/admin/revenue" class="btn btn--ghost btn--sm" style="margin-left:8px;">
+                    <i class="fa-solid fa-chart-line"></i> Xem Doanh Thu
+                </a>
+            </div>
+        </header>
+
+        <main class="admin-content">
+
+            <!-- Flash -->
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}"   class="alert alert-error"   th:text="${errorMessage}"></div>
+
+            <!-- Luồng quyết toán -->
+            <div class="flow-info">
+                <strong>📌 Quy trình quyết toán hàng tuần:</strong><br/>
+                1. Mỗi <strong>Thứ Hai hàng tuần</strong>, Admin bấm <strong>"Tạo quyết toán tuần trước"</strong>
+                   → Hệ thống gom toàn bộ doanh thu từ <strong>Thứ Hai đến Chủ Nhật tuần trước</strong> cho từng partner → Tạo bản ghi PENDING.<br/>
+                2. Admin kiểm tra số liệu → Bấm <strong>"Đánh dấu đã TT"</strong> để xác nhận đã chuyển khoản cho partner vào <strong>Thứ Ba tuần này</strong>.<br/>
+                &nbsp;&nbsp;<em style="font-size:12px;color:#6b7280;">⚠️ Mỗi partner + mỗi kỳ tuần = 1 settlement duy nhất. Bấm lại sẽ không tạo trùng.</em>
+                <div class="formula-box">
+                    <strong>Công thức quyết toán cho Partner (Kỳ Thứ Hai – Chủ Nhật tuần trước):</strong><br/>
+                    Payout = Tiền TravelMate thu online − Commission nền tảng − Voucher partner chịu<br/>
+                    <span style="font-size:12px;color:#374151;">
+                        &nbsp;&nbsp;▸ <strong>Tiền TravelMate thu online</strong>: Số tiền đã thu qua hệ thống (Đã duyệt hoặc Giữ cọ no-show).<br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;• FULL_PAYMENT: 100% tổng giá trị booking<br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;• DEPOSIT_30: chỉ 30% cọ online (70% khách trả tại cơ sở không tính vào đây)<br/>
+                        &nbsp;&nbsp;▸ <strong>Commission nền tảng</strong>: Tỷ lệ commission &times; Số tiền TravelMate thu online<br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Tỷ lệ mặc định: Khách sạn 15% · Biệt thự 12% · Homestay 10% · Resort 18%<br/>
+                        &nbsp;&nbsp;▸ <strong>Voucher partner chịu</strong>: Giảm giá từ voucher do partner tự tạo (trừ vào payout)<br/>
+                        &nbsp;&nbsp;▸ <strong>Voucher admin chịu</strong>: Giảm giá từ voucher admin tạo (KHÔNG trừ vào payout partner)<br/>
+                        &nbsp;&nbsp;▸ <strong>DIRECT / MANUAL_BLOCK</strong>: Không phát sinh payment online — không tính doanh thu &amp; không quyết toán<br/>
+                    </span>
+                </div>
+            </div>
+
+            <!-- KPI -->
+            <div class="set-kpi-grid">
+                <div class="set-kpi-card">
+                    <div class="set-kpi-card__label">Tổng Settlement</div>
+                    <div class="set-kpi-card__value" th:text="${#lists.size(settlements)}">0</div>
+                </div>
+                <div class="set-kpi-card">
+                    <div class="set-kpi-card__label">Chờ thanh toán</div>
+                    <div class="set-kpi-card__value" style="color:#ca8a04;" th:text="${pendingCount}">0</div>
+                </div>
+                <div class="set-kpi-card">
+                    <div class="set-kpi-card__label">Đã thanh toán</div>
+                    <div class="set-kpi-card__value" style="color:#16a34a;" th:text="${paidCount}">0</div>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="admin-section">
+                <div class="section-title"><i class="fa-solid fa-list-check"></i> Danh Sách Settlement</div>
+
+                <div th:if="${#lists.isEmpty(settlements)}" class="empty-state">
+                    <i class="fa-solid fa-inbox" style="font-size:40px;opacity:.25;margin-bottom:10px;"></i>
+                    <p>Chưa có settlement nào. Hãy bấm <strong>"Tạo quyết toán tuần trước"</strong> để tạo quyết toán cho kỳ Thứ Hai → Chủ Nhật tuần qua.</p>
+                </div>
+
+                <div th:if="${!#lists.isEmpty(settlements)}" class="set-table-wrap">
+                    <table class="set-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Partner</th>
+                                <th>Kỳ quyết toán</th>
+                                <th>Tiền TravelMate thu online (đ)</th>
+                                <th>Commission nền tảng (đ)</th>
+                                <th>Voucher partner chịu (đ)</th>
+                                <th>Thanh toán cho Partner (đ)</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày chuyển khoản</th>
+                                <th>Ghi chú</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="s, stat : ${settlements}">
+                                <td th:text="${stat.index + 1}">1</td>
+                                <td>
+                                    <strong th:text="${s.partner.name}">Partner</strong>
+                                    <div style="font-size:11px;color:#6b7280;"
+                                         th:text="${s.partner.partnerPropertyType != null ? s.partner.partnerPropertyType.name() : ''}">HOTEL</div>
+                                    <!-- Thông tin ngân hàng -->
+                                    <div th:if="${s.partner.bankName != null}" style="margin-top:4px;font-size:11px;color:#374151;background:#f0f9ff;border-radius:5px;padding:3px 7px;display:inline-block;">
+                                        🏦 <span th:text="${s.partner.bankName}">Bank</span>
+                                        <span th:if="${s.partner.bankAccountNumber != null}">
+                                            – <span th:text="${s.partner.bankAccountNumber}">0123</span>
+                                        </span>
+                                        <span th:if="${s.partner.bankAccountHolder != null}">
+                                            (<span th:text="${s.partner.bankAccountHolder}">Holder</span>)
+                                        </span>
+                                    </div>
+                                    <div th:if="${s.partner.bankName == null}" style="font-size:11px;color:#f59e0b;margin-top:3px;">⚠️ Chưa có TT ngân hàng</div>
+                                </td>
+                                <td style="white-space:nowrap;">
+                                    <span th:text="${#temporals.format(s.periodStart,'dd/MM/yyyy')}">01/01</span>
+                                    <span> – </span>
+                                    <span th:text="${#temporals.format(s.periodEnd,'dd/MM/yyyy')}">07/01</span>
+                                </td>
+                                <td th:text="${#numbers.formatDecimal(s.grossAmount,0,'COMMA',0,'POINT')}">0</td>
+                                <td th:text="${#numbers.formatDecimal(s.commissionAmount,0,'COMMA',0,'POINT')}">0</td>
+                                <td th:text="${#numbers.formatDecimal(s.voucherDeductionAmount,0,'COMMA',0,'POINT')}">0</td>
+                                <td style="font-weight:700;color:#1d4ed8;"
+                                    th:text="${#numbers.formatDecimal(s.payoutAmount,0,'COMMA',0,'POINT')}">0</td>
+                                <td>
+                                    <span class="badge-pending" th:if="${s.settlementStatus.name() == 'PENDING'}">⏳ Chờ TT</span>
+                                    <span class="badge-paid"    th:if="${s.settlementStatus.name() == 'PAID'}">✅ Đã TT</span>
+                                </td>
+                                <td style="font-size:12px;color:#6b7280;"
+                                    th:text="${s.settlementDate != null ? #temporals.format(s.settlementDate,'dd/MM/yyyy HH:mm') : '—'}">—</td>
+                                <td style="font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;"
+                                    th:text="${s.note != null ? s.note : '—'}">—</td>
+                                <td>
+                                    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                                        <a th:href="@{'/admin/settlements/' + ${s.id}}"
+                                           style="background:#6b7280;color:#fff;border-radius:7px;padding:5px 12px;font-size:12px;font-weight:600;text-decoration:none;">
+                                            🔍 Chi tiết
+                                        </a>
+                                        <button th:if="${s.settlementStatus.name() == 'PENDING'}"
+                                                class="btn-mark-paid"
+                                                th:onclick="'openPayModal(' + ${s.id} + ')'">
+                                            <i class="fa-solid fa-check"></i> Đánh dấu Đã TT
+                                        </button>
+                                        <span th:if="${s.settlementStatus.name() != 'PENDING'}"
+                                              style="color:#16a34a;font-size:12px;font-weight:600;">✅ Đã TT</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/admin.js"></script>
+
+<!-- ─── Modal: Đánh dấu đã chuyển khoản ─── -->
+<div id="modal-mark-paid" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center;padding:16px;">
+    <div style="background:#fff;border-radius:18px;width:min(480px,100%);box-shadow:0 24px 64px rgba(0,0,0,.22);overflow:hidden;">
+        <div style="padding:22px 28px 16px;border-bottom:1px solid #f1f5f9;background:linear-gradient(135deg,#f0fdf4,#ecfdf5);">
+            <h3 style="margin:0 0 4px;font-size:17px;font-weight:800;color:#0f172a;">✅ Xác nhận chuyển khoản cho Partner</h3>
+            <p style="margin:0;font-size:13px;color:#64748b;">Nhập thông tin giao dịch để hoàn tất quyết toán.</p>
+        </div>
+        <div style="padding:20px 28px 28px;">
+            <form id="form-mark-paid" method="post">
+                <div style="margin-bottom:14px;">
+                    <label style="display:block;font-size:12.5px;font-weight:700;color:#374151;margin-bottom:6px;">🔢 Mã giao dịch chuyển khoản <span style="color:#ef4444;">*</span></label>
+                    <input type="text" name="transactionCode" id="pay-txn-code"
+                           placeholder="VD: GD20260507001234"
+                           required
+                           style="width:100%;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;box-sizing:border-box;transition:border-color .15s;font-family:monospace;" />
+                </div>
+                <div style="margin-bottom:14px;">
+                    <label style="display:block;font-size:12.5px;font-weight:700;color:#374151;margin-bottom:6px;">📅 Ngày chuyển khoản</label>
+                    <input type="date" name="transferDate" id="pay-date"
+                           style="width:100%;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;box-sizing:border-box;" />
+                </div>
+                <div style="margin-bottom:20px;">
+                    <label style="display:block;font-size:12.5px;font-weight:700;color:#374151;margin-bottom:6px;">📝 Ghi chú thanh toán</label>
+                    <textarea name="note" id="pay-note" rows="3"
+                              placeholder="VD: Đã chuyển khoản qua Vietcombank, đủ số tiền quyết toán tuần..."
+                              style="width:100%;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;box-sizing:border-box;resize:none;font-family:inherit;"></textarea>
+                </div>
+                <div style="display:flex;gap:10px;justify-content:flex-end;">
+                    <button type="button" onclick="closePayModal()"
+                            style="padding:10px 20px;border-radius:10px;border:1.5px solid #e2e8f0;background:#f8fafc;color:#475569;font-size:13px;font-weight:700;cursor:pointer;">
+                        Hủy bỏ
+                    </button>
+                    <button type="submit"
+                            style="padding:10px 22px;border-radius:10px;border:none;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(22,163,74,.3);">
+                        ✅ Xác nhận đã chuyển khoản
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openPayModal(id) {
+        const modal = document.getElementById('modal-mark-paid');
+        const form  = document.getElementById('form-mark-paid');
+        form.action = '/admin/settlements/' + id + '/mark-paid';
+        // Set default date = today
+        const dateInput = document.getElementById('pay-date');
+        if (dateInput && !dateInput.value) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+        }
+        modal.style.display = 'flex';
+    }
+    function closePayModal() {
+        document.getElementById('modal-mark-paid').style.display = 'none';
+    }
+    document.getElementById('modal-mark-paid').addEventListener('click', function(e) {
+        if (e.target === this) closePayModal();
+    });
+</script>
+</body>
+</html>

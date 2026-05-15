@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý đánh giá – Admin TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        .review-stars { color: #f59e0b; font-size: 0.75rem; }
+        .review-comment { font-size: 13px; color: #334155; max-width: 350px; line-height: 1.5; }
+        .filter-tab { display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;font-size:13px;font-weight:600;color:#6b7280;background:#f3f4f6;border:none;cursor:pointer;transition:all .15s; }
+        .filter-tab:hover { background:#e5e7eb; }
+        .filter-tab.active { background:#f59e0b;color:#fff; }
+        .badge-hidden { display:inline-block;margin-top:3px;background:#fee2e2;color:#b91c1c;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px; }
+    </style>
+</head>
+
+<body>
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar__header">
+                <a href="/admin/dashboard" class="sidebar-logo">
+                    <div class="s-logo-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div>
+                        <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                        <span class="admin-sidebar__badge">ADMIN PANEL</span>
+                    </div>
+                </a>
+            </div>
+            <nav class="admin-sidebar__nav">
+                <div class="admin-sidebar__section-title">Tổng quan</div>
+                <a href="/admin/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
+                <div class="admin-sidebar__section-title">Quản lý đặt phòng</div>
+                <a href="/admin/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt phòng</a>
+                <a href="/admin/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng</a>
+                <div class="admin-sidebar__section-title">Quản lý nội dung</div>
+                <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
+                <a href="/admin/rooms" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
+                <a href="/admin/reviews" class="admin-sidebar__link active">
+                    <span class="admin-sidebar__link-icon">⭐</span> Đánh giá
+                    <span th:if="${totalCount > 0}" th:text="${totalCount}"
+                          style="margin-left:auto;background:#f59e0b;color:#fff;border-radius:10px;font-size:11px;padding:1px 7px;font-weight:700;"></span>
+                </a>
+                <a href="/admin/users" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
+                <div class="admin-sidebar__section-title">Tài chính</div>
+                <a href="/admin/revenue" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
+                <a href="/admin/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
+                <a href="/admin/vouchers" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
+                <div class="admin-sidebar__section-title">Hỗ trợ</div>
+                <a href="/admin/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
+                <div class="admin-sidebar__section-title">Hệ thống</div>
+                <a href="/admin/audit-log" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📜</span> Nhật ký thao tác</a>
+                <a href="/" class="admin-sidebar__link" target="_blank"><span class="admin-sidebar__link-icon">🌐</span> Xem trang User</a>
+            </nav>
+            <div class="admin-sidebar__footer">
+                <div class="admin-sidebar__user">
+                    <div class="admin-sidebar__user-avatar">AD</div>
+                    <div class="admin-sidebar__user-info">
+                        <div class="admin-sidebar__user-name" sec:authentication="name">Admin</div>
+                        <div class="admin-sidebar__user-role">Quản trị viên</div>
+                    </div>
+                </div>
+                <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
+                    <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
+                </form>
+            </div>
+        </aside>
+        <div class="admin-sidebar-overlay"></div>
+
+        <div class="admin-main">
+            <!-- Topbar -->
+            <header class="admin-topbar">
+                <div style="display: flex; align-items: center; gap: var(--space-4)">
+                    <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                    <h1 class="admin-topbar__title">⭐ Quản lý đánh giá</h1>
+                </div>
+                <div class="admin-topbar__actions">
+                    <a href="/" target="_blank" class="btn btn--ghost btn--sm">🌐 Xem trang user</a>
+                </div>
+            </header>
+
+            <main class="admin-content">
+                <!-- Flash messages -->
+                <div th:if="${successMessage}" style="margin-bottom:var(--space-4);padding:12px 16px;background:#ecfdf5;border-radius:8px;font-size:13px;color:#065f46;border:1px solid #a7f3d0;">
+                    <span th:text="${successMessage}"></span>
+                </div>
+                <div th:if="${errorMessage}" style="margin-bottom:var(--space-4);padding:12px 16px;background:#fef2f2;border-radius:8px;font-size:13px;color:#991b1b;border:1px solid #fecaca;">
+                    <span th:text="${errorMessage}"></span>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-grid" style="margin-bottom: var(--space-5);">
+                    <div class="stats-card">
+                        <div class="stats-card__icon" style="background:#fef3c7;color:#d97706;">⭐</div>
+                        <div>
+                            <div class="stats-card__value" th:text="${totalCount}">0</div>
+                            <div class="stats-card__label">Tổng đánh giá</div>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-card__icon" style="background:#dcfce7;color:#15803d;">👁</div>
+                        <div>
+                            <div class="stats-card__value" th:text="${visibleCount}">0</div>
+                            <div class="stats-card__label">Đang hiển thị</div>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-card__icon" style="background:#fce7f3;color:#9d174d;">🙈</div>
+                        <div>
+                            <div class="stats-card__value" th:text="${hiddenCount}">0</div>
+                            <div class="stats-card__label">Đã ẩn</div>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-card__icon" style="background:#dbeafe;color:#2563eb;">📊</div>
+                        <div>
+                            <div class="stats-card__value" th:text="${avgRating} + '/5'">0/5</div>
+                            <div class="stats-card__label">Điểm trung bình</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter bar -->
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
+                    <button class="filter-tab active" data-star-filter="all">⭐ Tất cả</button>
+                    <button class="filter-tab" data-star-filter="5">5⭐ 5 sao</button>
+                    <button class="filter-tab" data-star-filter="4">4⭐ 4 sao</button>
+                    <button class="filter-tab" data-star-filter="3">3⭐ 3 sao</button>
+                    <button class="filter-tab" data-star-filter="2">2⭐ 2 sao</button>
+                    <button class="filter-tab" data-star-filter="1">1⭐ 1 sao</button>
+                    <input type="text" id="review-search" class="form-control" placeholder="🔍 Tìm theo khách, cơ sở..." style="width:220px;" />
+                    <span style="margin-left:auto;font-size:13px;color:#6b7280;" id="review-count"></span>
+                </div>
+
+                <!-- Table -->
+                <div class="table-wrap">
+                    <table class="table data-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Khách hàng</th>
+                                <th>Cơ sở lưu trú</th>
+                                <th>Mã booking</th>
+                                <th>Đánh giá</th>
+                                <th>Nội dung</th>
+                                <th>Ngày</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${#lists.isEmpty(reviews)}">
+                                <td colspan="8" style="text-align:center;padding:32px;color:var(--color-text-muted);">
+                                    <div style="font-size:32px;margin-bottom:8px;">📭</div>
+                                    Chưa có đánh giá nào trong hệ thống.
+                                </td>
+                            </tr>
+                            <tr th:each="r, stat : ${reviews}"
+                                th:attr="data-star=${r.rating},data-review-search=${r.user.name + ' ' + r.accommodation.name}"
+                                th:style="${r.isHidden} ? 'opacity:0.55;background:#fafafa;' : ''">
+                                <td th:text="${stat.index + 1}" style="color:var(--color-text-muted);">1</td>
+                                <!-- Khách hàng -->
+                                <td>
+                                    <div style="font-weight:600;" th:text="${r.user.name}">User</div>
+                                    <div style="font-size:11px;color:var(--color-text-muted);" th:text="${r.user.email}">email</div>
+                                </td>
+                                <!-- Cơ sở lưu trú -->
+                                <td>
+                                    <div style="font-weight:500;" th:text="${r.accommodation.name}">Khách sạn</div>
+                                    <div style="font-size:12px;color:var(--color-text-muted);" th:text="${r.accommodation.city}">Thành phố</div>
+                                </td>
+                                <!-- Mã booking -->
+                                <td style="font-family:monospace;font-size:12px;color:var(--color-primary);font-weight:600;"
+                                    th:text="${r.booking.bookingCode}">BK-XXX</td>
+                                <!-- Rating -->
+                                <td>
+                                    <div class="review-stars">
+                                        <th:block th:each="i : ${#numbers.sequence(1, r.rating)}">
+                                            <i class="fa-solid fa-star"></i>
+                                        </th:block>
+                                        <th:block th:each="i : ${#numbers.sequence(1, 5 - r.rating)}" th:if="${r.rating < 5}">
+                                            <i class="fa-regular fa-star"></i>
+                                        </th:block>
+                                    </div>
+                                    <div style="font-size:11px;color:var(--color-text-muted);" th:text="${r.rating} + '/5 sao'">5/5 sao</div>
+                                    <span th:if="${r.isHidden}" class="badge-hidden">🙈 Đã ẩn</span>
+                                </td>
+                                <!-- Comment -->
+                                <td>
+                                    <div class="review-comment" th:text="${r.comment}">Nội dung</div>
+                                </td>
+                                <!-- Ngày -->
+                                <td style="font-size:12px;color:var(--color-text-muted);white-space:nowrap;"
+                                    th:text="${#temporals.format(r.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+                                <!-- Hành động -->
+                                <td>
+                                    <!-- Nếu chưa ẩn: nút Ẩn khỏi trang User -->
+                                    <form th:if="${!r.isHidden}"
+                                          th:action="@{/admin/reviews/{id}/delete(id=${r.id})}"
+                                          method="post" style="display:inline;">
+                                        <button type="submit"
+                                                style="background:#6b7280;color:#fff;border:none;border-radius:7px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;"
+                                                onclick="return confirm('Ẩn đánh giá này khỏi trang User? Rating cơ sở sẽ được tính lại. Admin có thể hiện lại bất kỳ lúc nào.')">
+                                            🙈 Ẩn khỏi User
+                                        </button>
+                                    </form>
+                                    <!-- Nếu đã ẩn: nút Hiện lại -->
+                                    <form th:if="${r.isHidden}"
+                                          th:action="@{/admin/reviews/{id}/unhide(id=${r.id})}"
+                                          method="post" style="display:inline;">
+                                        <button type="submit"
+                                                style="background:#059669;color:#fff;border:none;border-radius:7px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;"
+                                                onclick="return confirm('Hiện lại đánh giá này? Rating cơ sở lưu trú sẽ được cập nhật.')">
+                                            👁 Hiện lại
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Note -->
+                <div style="margin-top:var(--space-4);padding:12px 16px;background:#f0f9ff;border-radius:8px;font-size:12px;color:#0369a1;border:1px solid #bae6fd;">
+                    <strong>📌 Lưu ý:</strong>
+                    Ẩn đánh giá <strong>không xóa vật lý</strong> — admin có thể hiện lại bất kỳ lúc nào.
+                    Khi ẩn/hiện, hệ thống tự động <strong>tính lại rating</strong> cho cơ sở lưu trú.
+                    User chỉ có thể đánh giá booking đã <strong>COMPLETED</strong>, mỗi booking chỉ được đánh giá 1 lần.
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/admin.js"></script>
+    <script>
+        var starFilter = 'all';
+        function filterReviews() {
+            var q = (document.getElementById('review-search').value || '').toLowerCase();
+            var visible = 0;
+            document.querySelectorAll('tr[data-star]').forEach(function(row){
+                var star = row.dataset.star;
+                var search = (row.dataset.reviewSearch || '').toLowerCase();
+                var show = (starFilter==='all' || star===starFilter) && (!q || search.includes(q));
+                row.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+            var el = document.getElementById('review-count');
+            if (el) el.textContent = visible + ' đánh giá';
+        }
+        document.querySelectorAll('[data-star-filter]').forEach(function(btn){
+            btn.addEventListener('click', function(){
+                document.querySelectorAll('[data-star-filter]').forEach(function(b){ b.classList.remove('active'); });
+                btn.classList.add('active');
+                starFilter = btn.dataset.starFilter;
+                filterReviews();
+            });
+        });
+        document.addEventListener('DOMContentLoaded', function(){
+            filterReviews();
+            document.getElementById('review-search').addEventListener('input', filterReviews);
+        });
+    </script>
+</body>
+
+</html>

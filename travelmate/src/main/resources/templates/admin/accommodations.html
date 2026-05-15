@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Duyệt Nơi Lưu Trú – Admin TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <!-- Chống lại overflow:hidden từ modal trang trước -->
+    <style>body { overflow: auto !important; }</style>
+    <style>
+        /* ── Page Header Strip ── */
+        .acc-page-header {
+            background: linear-gradient(135deg,#1e40af 0%,#2563eb 50%,#0891b2 100%);
+            border-radius: 16px;
+            padding: 22px 28px;
+            color: #fff;
+            margin-bottom: 22px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .acc-page-header__icon {
+            width: 52px; height: 52px;
+            background: rgba(255,255,255,.15);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        .acc-page-header h2 { margin:0 0 4px;font-size:20px;font-weight:800; }
+        .acc-page-header p { margin:0;font-size:13px;opacity:.8; }
+
+        /* ── Stats ── */
+        .acc-stats { display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px;margin-bottom:20px; }
+        .acc-stat { background:#fff;border-radius:14px;padding:16px;border:1px solid #f1f5f9;box-shadow:0 1px 3px rgba(0,0,0,.04);display:flex;align-items:center;gap:14px;transition:all .18s;position:relative;overflow:hidden; }
+        .acc-stat::before { content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--st-c,#2563eb);border-radius:14px 0 0 14px; }
+        .acc-stat:hover { box-shadow:0 6px 20px rgba(0,0,0,.08);transform:translateY(-2px); }
+        .acc-stat__icon { width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:var(--st-bg,#eff6ff);color:var(--st-c,#2563eb); }
+        .acc-stat__val { font-size:22px;font-weight:800;color:#0f172a;line-height:1; }
+        .acc-stat__lbl { font-size:11.5px;color:#64748b;font-weight:500;margin-top:2px; }
+
+        /* ── Filter Bar ── */
+        .filter-bar { display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:12px 16px;background:#f8fafc;border-radius:12px;border:1px solid #f1f5f9;margin-bottom:16px; }
+        .filter-tab { display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;font-size:12.5px;font-weight:600;color:#64748b;background:#fff;border:1px solid #e2e8f0;cursor:pointer;transition:all .2s; }
+        .filter-tab:hover { background:#eff6ff;border-color:#bfdbfe;color:#2563eb; }
+        .filter-tab.active { background:#2563eb;color:#fff;border-color:#2563eb;box-shadow:0 2px 8px rgba(37,99,235,.25); }
+        .filter-sep { width:1px;height:24px;background:#e2e8f0;margin:0 4px; }
+
+        /* ── Table tweaks ── */
+        .acc-name { font-weight:700;color:#0f172a;font-size:13.5px; }
+        .acc-desc { font-size:11.5px;color:#94a3b8;margin-top:2px;line-height:1.4; }
+        .acc-partner-name { font-weight:600;font-size:13px;color:#1e293b; }
+        .acc-partner-email { font-size:11px;color:#94a3b8; }
+
+        /* ── Modal ── */
+        .modal-overlay { display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(15,23,42,.5);backdrop-filter:blur(4px);padding:16px; }
+        .modal-overlay.active { display:flex; }
+        .modal-box { background:#fff;border-radius:16px;width:min(500px,100%);box-shadow:0 25px 60px rgba(0,0,0,.25);overflow:hidden; }
+        .modal-header { padding:20px 24px 16px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center; }
+        .modal-header h4 { margin:0;font-size:16px;font-weight:700;color:#0f172a; }
+        .modal-close-btn { width:32px;height:32px;border-radius:8px;background:none;border:none;cursor:pointer;color:#94a3b8;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .15s; }
+        .modal-close-btn:hover { background:#f1f5f9;color:#475569; }
+        .modal-body { padding:20px 24px 24px; }
+        .modal-body textarea { width:100%;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;margin-top:8px;box-sizing:border-box;resize:vertical;font-family:inherit;transition:border-color .15s; }
+        .modal-body textarea:focus { border-color:#3b82f6;outline:none;box-shadow:0 0 0 3px rgba(59,130,246,.1); }
+        .modal-actions { display:flex;gap:10px;justify-content:flex-end;margin-top:16px; }
+        .modal-actions .btn-cancel-m { padding:9px 18px;border-radius:10px;border:none;background:#f1f5f9;color:#475569;font-weight:600;cursor:pointer;font-size:13px;transition:background .15s; }
+        .modal-actions .btn-cancel-m:hover { background:#e2e8f0; }
+        .modal-actions .btn-reject-m { padding:9px 18px;border-radius:10px;border:none;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-weight:700;cursor:pointer;font-size:13px;transition:all .15s; }
+        .modal-actions .btn-reject-m:hover { box-shadow:0 4px 12px rgba(239,68,68,.3); }
+    </style>
+</head>
+
+<body>
+    <div class="admin-wrapper">
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar__header">
+                <a href="/admin/dashboard" class="sidebar-logo">
+                    <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                    <div>
+                        <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                        <span class="admin-sidebar__badge">ADMIN PANEL</span>
+                    </div>
+                </a>
+            </div>
+            <nav class="admin-sidebar__nav">
+                <div class="admin-sidebar__section-title">Tổng quan</div>
+                <a href="/admin/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
+                <div class="admin-sidebar__section-title">Quản lý đặt phòng</div>
+                <a href="/admin/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt phòng</a>
+                <a href="/admin/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng</a>
+                <div class="admin-sidebar__section-title">Quản lý nội dung</div>
+                <a href="/admin/accommodations" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
+                <a href="/admin/rooms" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
+                <a href="/admin/reviews" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
+                <a href="/admin/users" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
+                <div class="admin-sidebar__section-title">Tài chính</div>
+                <a href="/admin/revenue"     class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
+                <a href="/admin/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
+                <a href="/admin/vouchers"    class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
+                <div class="admin-sidebar__section-title">Hỗ trợ</div>
+                <a href="/admin/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
+                <div class="admin-sidebar__section-title">Hệ thống</div>
+                <a href="/admin/audit-log" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📜</span> Nhật ký thao tác</a>
+                <a href="/" class="admin-sidebar__link" target="_blank"><span class="admin-sidebar__link-icon">🌐</span> Xem trang User</a>
+            </nav>
+            <div class="admin-sidebar__footer">
+                <div class="admin-sidebar__user">
+                    <div class="admin-sidebar__user-avatar">AD</div>
+                    <div class="admin-sidebar__user-info">
+                        <div class="admin-sidebar__user-name" sec:authentication="name">Admin</div>
+                        <div class="admin-sidebar__user-role">Quản trị viên</div>
+                    </div>
+                </div>
+                <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
+                    <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
+                </form>
+            </div>
+        </aside>
+        <div class="admin-sidebar-overlay"></div>
+
+        <div class="admin-main">
+            <header class="admin-topbar">
+                <div style="display: flex; align-items: center; gap: var(--space-4)">
+                    <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                    <h1 class="admin-topbar__title">🏨 Duyệt Nơi Lưu Trú</h1>
+                </div>
+                <div class="admin-topbar__actions">
+                    <a href="/accommodations" target="_blank" class="btn btn--ghost btn--sm">🌐 Xem trang user</a>
+                </div>
+            </header>
+
+            <main class="admin-content">
+                <div class="acc-page-header">
+                    <div class="acc-page-header__icon"><i class="fa-solid fa-hotel"></i></div>
+                    <div>
+                        <h2>Quản lý &amp; Duyệt Nơi Lưu Trú</h2>
+                        <p>Duyệt hoặc từ chối listing do Partner gửi lên. Chỉ listing <strong>APPROVED</strong> mới hiển thị cho khách hàng.</p>
+                    </div>
+                </div>
+
+                <!-- Flash messages -->
+                <div th:if="${successMessage}" style="margin-bottom: var(--space-4); padding: 12px 16px; background: #ecfdf5; border-radius: 8px; font-size: 13px; color: #065f46; border: 1px solid #a7f3d0;">
+                    <span th:text="${successMessage}"></span>
+                </div>
+                <div th:if="${errorMessage}" style="margin-bottom: var(--space-4); padding: 12px 16px; background: #fef2f2; border-radius: 8px; font-size: 13px; color: #991b1b; border: 1px solid #fecaca;">
+                    <span th:text="${errorMessage}"></span>
+                </div>
+
+                <!-- Stats row -->
+                <div class="acc-stats">
+                    <div class="acc-stat" style="--st-c:#2563eb;--st-bg:#eff6ff;">
+                        <div class="acc-stat__icon"><i class="fa-solid fa-hotel"></i></div>
+                        <div>
+                            <div class="acc-stat__val" th:text="${totalCount}">0</div>
+                            <div class="acc-stat__lbl">Tổng nơi lưu trú</div>
+                        </div>
+                    </div>
+                    <div class="acc-stat" style="--st-c:#d97706;--st-bg:#fffbeb;">
+                        <div class="acc-stat__icon"><i class="fa-solid fa-hourglass-half"></i></div>
+                        <div>
+                            <div class="acc-stat__val" th:text="${pendingCount}">0</div>
+                            <div class="acc-stat__lbl">Chờ duyệt</div>
+                        </div>
+                    </div>
+                    <div class="acc-stat" style="--st-c:#16a34a;--st-bg:#f0fdf4;">
+                        <div class="acc-stat__icon"><i class="fa-solid fa-circle-check"></i></div>
+                        <div>
+                            <div class="acc-stat__val" th:text="${approvedCount}">0</div>
+                            <div class="acc-stat__lbl">Đã duyệt</div>
+                        </div>
+                    </div>
+                    <div class="acc-stat" style="--st-c:#dc2626;--st-bg:#fef2f2;">
+                        <div class="acc-stat__icon"><i class="fa-solid fa-xmark"></i></div>
+                        <div>
+                            <div class="acc-stat__val" th:text="${rejectedCount}">0</div>
+                            <div class="acc-stat__lbl">Từ chối</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Tabs -->
+                <div class="filter-bar">
+                    <button class="filter-tab active" data-acc-filter="all" onclick="filterAcc()"><i class="fa-solid fa-list"></i> Tất cả</button>
+                    <button class="filter-tab" data-acc-filter="PENDING" onclick="filterAcc()"><i class="fa-solid fa-hourglass-half"></i> Chờ duyệt</button>
+                    <button class="filter-tab" data-acc-filter="APPROVED" onclick="filterAcc()"><i class="fa-solid fa-circle-check"></i> Đã duyệt</button>
+                    <button class="filter-tab" data-acc-filter="REJECTED" onclick="filterAcc()"><i class="fa-solid fa-xmark"></i> Từ chối</button>
+                    <div class="filter-sep"></div>
+                    <button class="filter-tab" data-acc-type="all" onclick="filterAcc()"><i class="fa-solid fa-building"></i> Tất cả loại</button>
+                    <button class="filter-tab" data-acc-type="HOTEL" onclick="filterAcc()"><i class="fa-solid fa-hotel"></i> Hotel</button>
+                    <button class="filter-tab" data-acc-type="VILLA" onclick="filterAcc()"><i class="fa-solid fa-tree"></i> Villa</button>
+                    <button class="filter-tab" data-acc-type="HOMESTAY" onclick="filterAcc()"><i class="fa-solid fa-house"></i> Homestay</button>
+                    <button class="filter-tab" data-acc-type="RESORT" onclick="filterAcc()"><i class="fa-solid fa-umbrella-beach"></i> Resort</button>
+                    <span style="margin-left:auto;font-size:12px;color:#94a3b8;" id="acc-count"></span>
+                </div>
+
+                <!-- Table -->
+                <div class="table-wrap">
+                    <table class="table data-table">
+                        <thead>
+                            <tr>
+                                <th>Tên nơi lưu trú</th>
+                                <th>Partner đăng</th>
+                                <th>Loại</th>
+                                <th>Địa chỉ / Thành phố</th>
+                                <th>Sao</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày tạo</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Không có data -->
+                            <tr th:if="${#lists.isEmpty(accommodations)}">
+                                <td colspan="8" style="text-align:center;padding:32px;color:var(--color-text-muted);">
+                                    <div style="font-size:32px;margin-bottom:8px;">📭</div>
+                                    Chưa có nơi lưu trú nào trong hệ thống.
+                                </td>
+                            </tr>
+                            <!-- Render từng row từ MySQL -->
+                            <tr th:each="acc : ${accommodations}"
+                                th:attr="data-acc-status=${acc.approvalStatus.name()},data-acc-type=${acc.propertyType.name()}">
+                                <td>
+                                    <div style="font-weight:600;" th:text="${acc.name}">Tên</div>
+                                    <div style="font-size:11px;color:var(--color-text-muted);"
+                                         th:text="${acc.description != null ? #strings.abbreviate(acc.description, 60) : '--'}">Mô tả</div>
+                                </td>
+                                <td>
+                                    <div th:if="${acc.owner != null}">
+                                        <div style="font-weight:500;" th:text="${acc.owner.name}">Partner</div>
+                                        <div style="font-size:11px;color:var(--color-text-muted);" th:text="${acc.owner.email}">email</div>
+                                    </div>
+                                    <span th:if="${acc.owner == null}" class="badge badge--warning">Chưa có owner</span>
+                                </td>
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="${acc.propertyType.name() == 'HOTEL' ? 'badge--blue' :
+                                                          acc.propertyType.name() == 'VILLA' ? 'badge--success' :
+                                                          acc.propertyType.name() == 'HOMESTAY' ? 'badge--warning' : 'badge--primary'}"
+                                          th:text="${acc.propertyType.name() == 'HOTEL' ? '🏨 Hotel' :
+                                                    acc.propertyType.name() == 'VILLA' ? '⛰ Villa' :
+                                                    acc.propertyType.name() == 'HOMESTAY' ? '🏠 Homestay' : '🌴 Resort'}">
+                                        Loại
+                                    </span>
+                                </td>
+                                <td>
+                                    <div th:text="${acc.address ?: '--'}">Địa chỉ</div>
+                                    <div style="font-size:12px;color:var(--color-text-muted);" th:text="${acc.city}">TP</div>
+                                </td>
+                                <td>
+                                    <span th:if="${acc.starRating != null}" th:text="${acc.starRating} + '⭐'">4⭐</span>
+                                    <span th:if="${acc.starRating == null}">--</span>
+                                </td>
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="${acc.approvalStatus.name() == 'PENDING' ? 'badge--warning' :
+                                                          acc.approvalStatus.name() == 'APPROVED' ? 'badge--success' : 'badge--danger'}"
+                                          th:text="${acc.approvalStatus.name() == 'PENDING' ? '⏳ Chờ duyệt' :
+                                                    acc.approvalStatus.name() == 'APPROVED' ? '✅ Đã duyệt' : '❌ Từ chối'}">
+                                        Trạng thái
+                                    </span>
+                                </td>
+                                <td style="font-size:12px;color:var(--color-text-muted);">
+                                    <span th:if="${acc.createdAt != null}" th:text="${#temporals.format(acc.createdAt, 'dd/MM/yyyy')}">--</span>
+                                    <span th:if="${acc.createdAt == null}">--</span>
+                                </td>
+                                <td>
+                                    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                        <!-- Nút Duyệt — chỉ hiện khi PENDING hoặc REJECTED -->
+                                        <form th:if="${acc.approvalStatus.name() != 'APPROVED'}"
+                                              th:action="@{/admin/accommodations/{id}/approve(id=${acc.id})}"
+                                              method="post" style="display:inline;">
+                                            <button type="submit" class="btn btn--sm"
+                                                    style="background:#16a34a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;">
+                                                ✅ Duyệt
+                                            </button>
+                                        </form>
+                                        <!-- Nút Từ chối — chỉ hiện khi PENDING, nhập lý do -->
+                                        <button th:if="${acc.approvalStatus.name() == 'PENDING'}"
+                                                type="button" class="btn btn--sm"
+                                                style="background:#dc2626;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;"
+                                                th:onclick="'openAccRejectModal(' + ${acc.id} + ')'">
+                                            ❌ Từ chối
+                                        </button>
+                                        <!-- APPROVED: chỉ hiện Xem + label trạng thái -->
+                                        <a th:if="${acc.approvalStatus.name() == 'APPROVED'}"
+                                           th:href="@{/accommodations/{id}(id=${acc.id})}"
+                                           target="_blank" class="btn btn--ghost btn--sm"
+                                           style="font-size:12px;padding:5px 10px;">
+                                            🔗 Xem
+                                        </a>
+                                        <span th:if="${acc.approvalStatus.name() == 'APPROVED'}"
+                                              style="font-size:11px;color:#059669;align-self:center;white-space:nowrap;">
+                                            Đang hiển thị
+                                        </span>
+                                        <!-- REJECTED: nút Duyệt lại đã có ở trên, không thêm Từ chối -->
+                                        <span th:if="${acc.approvalStatus.name() == 'REJECTED'}"
+                                              style="font-size:11px;color:#dc2626;align-self:center;white-space:nowrap;">
+                                            Đã từ chối
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal từ chối cơ sở lưu trú -->
+    <div id="acc-reject-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h4><i class="fa-solid fa-ban" style="color:#ef4444;margin-right:8px;"></i> Từ chối cơ sở lưu trú</h4>
+                <button onclick="closeAccRejectModal()" class="modal-close-btn">✕</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom:10px;font-size:13.5px;color:#374151;font-weight:500;">Nhập lý do từ chối để Partner biết cần chỉnh sửa gì:</div>
+                <form id="acc-reject-form" method="post" th:action="@{/admin/accommodations/0/reject}">
+                    <textarea name="rejectReason" rows="4"
+                              placeholder="VD: Hình ảnh chưa đủ, thiếu thông tin giấy phép kinh doanh..." required></textarea>
+                    <div class="modal-actions">
+                        <button type="button" onclick="closeAccRejectModal()" class="btn-cancel-m">Hủy bỏ</button>
+                        <button type="submit" class="btn-reject-m"><i class="fa-solid fa-ban"></i> Xác nhận từ chối</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/admin.js"></script>
+    <script>
+        var accStatusFilter = 'all', accTypeFilter = 'all';
+
+        function filterAcc() {
+            document.querySelectorAll('[data-acc-filter]').forEach(function(btn){
+                if (btn.classList.contains('active')) accStatusFilter = btn.dataset.accFilter;
+            });
+            document.querySelectorAll('[data-acc-type]').forEach(function(btn){
+                if (btn.classList.contains('active')) accTypeFilter = btn.dataset.accType;
+            });
+            var visible = 0;
+            document.querySelectorAll('tr[data-acc-status]').forEach(function(row){
+                var s = row.dataset.accStatus, t = row.dataset.accType;
+                var show = (accStatusFilter === 'all' || s === accStatusFilter) &&
+                           (accTypeFilter === 'all' || t === accTypeFilter);
+                row.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+            var countEl = document.getElementById('acc-count');
+            if (countEl) countEl.textContent = visible + ' kết quả';
+        }
+
+        function openAccRejectModal(id) {
+            var form = document.getElementById('acc-reject-form');
+            var modal = document.getElementById('acc-reject-modal');
+            if (form) form.action = '/admin/accommodations/' + id + '/reject';
+            if (modal) modal.classList.add('active');
+        }
+
+        function closeAccRejectModal() {
+            var modal = document.getElementById('acc-reject-modal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function initAccPage() {
+            // Reset overflow (có thể bị set bởi modal trước đó)
+            document.body.style.overflow = '';
+
+            // Filter tab listeners
+            document.querySelectorAll('[data-acc-filter]').forEach(function(btn){
+                btn.addEventListener('click', function(){
+                    document.querySelectorAll('[data-acc-filter]').forEach(function(b){ b.classList.remove('active'); });
+                    btn.classList.add('active');
+                    filterAcc();
+                });
+            });
+            document.querySelectorAll('[data-acc-type]').forEach(function(btn){
+                btn.addEventListener('click', function(){
+                    document.querySelectorAll('[data-acc-type]').forEach(function(b){ b.classList.remove('active'); });
+                    btn.classList.add('active');
+                    filterAcc();
+                });
+            });
+
+            // Modal backdrop close
+            var modal = document.getElementById('acc-reject-modal');
+            if (modal) {
+                modal.addEventListener('click', function(e){
+                    if (e.target === this) closeAccRejectModal();
+                });
+            }
+
+            // Auto-activate tab từ URL query param
+            var urlParams = new URLSearchParams(window.location.search);
+            var paramStatus = urlParams.get('status');
+            if (paramStatus) {
+                var matchBtn = document.querySelector('[data-acc-filter="' + paramStatus + '"]');
+                if (matchBtn) {
+                    document.querySelectorAll('[data-acc-filter]').forEach(function(b){ b.classList.remove('active'); });
+                    matchBtn.classList.add('active');
+                    accStatusFilter = paramStatus;
+                }
+            }
+            filterAcc();
+        }
+
+        // Chạy khi DOM sẵn sàng
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initAccPage);
+        } else {
+            initAccPage();
+        }
+
+        // Xử lý bfcache: force reload khi back/forward để tránh màn hình trắng
+        window.addEventListener('pageshow', function(e) {
+            if (e.persisted) {
+                document.body.style.overflow = '';
+                window.location.reload();
+            }
+        });
+    </script>
+</body>
+
+</html>

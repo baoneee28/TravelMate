@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý Doanh Thu – Admin TravelMate</title>
+    <meta name="description" content="Trang quản lý doanh thu admin TravelMate – chiết khấu partner, dữ liệu thật từ MySQL." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="/assets/css/admin-revenue.css" />
+    <style>
+        .rev-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .rev-kpi-card { background: var(--color-surface, #fff); border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.08); display: flex; gap: 14px; align-items: center; }
+        .rev-kpi-card__icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .rev-kpi-card--total .rev-kpi-card__icon { background: #e0f2fe; color: #0284c7; }
+        .rev-kpi-card--commission .rev-kpi-card__icon { background: #dcfce7; color: #16a34a; }
+        .rev-kpi-card--payout .rev-kpi-card__icon { background: #fef9c3; color: #ca8a04; }
+        .rev-kpi-card--bookings .rev-kpi-card__icon { background: #ede9fe; color: #7c3aed; }
+        .rev-kpi-card__label { font-size: 12px; color: var(--color-text-muted, #6b7280); margin-bottom: 4px; }
+        .rev-kpi-card__value { font-size: 20px; font-weight: 700; color: var(--color-text, #111827); }
+        .rev-kpi-card__sub { font-size: 11px; color: var(--color-text-muted, #6b7280); margin-top: 2px; }
+        .rev-table-wrap { overflow-x: auto; margin-top: 16px; }
+        .rev-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .rev-table th { background: #f8fafc; font-weight: 600; padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+        .rev-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        .rev-table tr:last-child td { border-bottom: none; }
+        .rev-table tr:hover td { background: #f8fafc; }
+        .badge-approved { background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .badge-forfeited { background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .badge-voucher { background: #e0e7ff; color: #4338ca; padding: 2px 6px; border-radius: 10px; font-size: 11px; }
+        .policy-banner { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: #fff; border-radius: 12px; padding: 16px 20px; display: flex; gap: 12px; align-items: flex-start; margin-bottom: 24px; }
+        .policy-banner__icon { font-size: 20px; margin-top: 2px; }
+        .policy-banner__text { font-size: 13.5px; line-height: 1.6; }
+        .discount-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
+        .discount-card { background: var(--color-surface, #fff); border-radius: 10px; padding: 16px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+        .discount-card__type { font-size: 13px; color: var(--color-text-muted, #6b7280); margin: 6px 0 2px; }
+        .discount-card__rate { font-size: 26px; font-weight: 800; }
+        .discount-card--hotel .discount-card__rate { color: #2563eb; }
+        .discount-card--villa .discount-card__rate { color: #7c3aed; }
+        .discount-card--homestay .discount-card__rate { color: #059669; }
+        .discount-card--resort .discount-card__rate { color: #ea580c; }
+        .section-title { font-size: 15px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--color-text-muted, #6b7280); }
+    </style>
+</head>
+<body>
+<div class="admin-wrapper">
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar__header">
+            <a href="/admin/dashboard" class="sidebar-logo">
+                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                <div>
+                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                    <span class="admin-sidebar__badge">ADMIN PANEL</span>
+                </div>
+            </a>
+        </div>
+        <nav class="admin-sidebar__nav">
+            <div class="admin-sidebar__section-title">Tổng quan</div>
+            <a href="/admin/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
+            <div class="admin-sidebar__section-title">Quản lý đặt phòng</div>
+            <a href="/admin/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt phòng</a>
+            <a href="/admin/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng</a>
+                <div class="admin-sidebar__section-title">Quản lý nội dung</div>
+            <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
+            <a href="/admin/rooms"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
+            <a href="/admin/reviews"        class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
+            <a href="/admin/users"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
+            <div class="admin-sidebar__section-title">Tài chính</div>
+            <a href="/admin/revenue"     class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
+            <a href="/admin/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
+            <a href="/admin/vouchers"    class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
+            <div class="admin-sidebar__section-title">Hỗ trợ</div>
+            <a href="/admin/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
+            <div class="admin-sidebar__section-title">Hệ thống</div>
+            <a href="/admin/audit-log" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📜</span> Nhật ký thao tác</a>
+            <a href="/" class="admin-sidebar__link" target="_blank"><span class="admin-sidebar__link-icon">🌐</span> Xem trang User</a>
+        </nav>
+        <div class="admin-sidebar__footer">
+            <div class="admin-sidebar__user">
+                <div class="admin-sidebar__user-avatar">AD</div>
+                <div class="admin-sidebar__user-info">
+                    <div class="admin-sidebar__user-name" sec:authentication="name">Admin</div>
+                    <div class="admin-sidebar__user-role">Quản trị viên</div>
+                </div>
+            </div>
+            <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
+                <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
+            </form>
+        </div>
+    </aside>
+    <div class="admin-sidebar-overlay"></div>
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div style="display: flex; align-items: center; gap: var(--space-4)">
+                <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                <h1 class="admin-topbar__title">💰 Quản Lý Doanh Thu</h1>
+                <span style="font-size:12px;color:#6b7280;background:#f3f4f6;padding:3px 10px;border-radius:20px;">📡 Dữ liệu thật từ MySQL</span>
+            </div>
+            <div class="admin-topbar__actions">
+                <a href="/" target="_blank" class="btn btn--ghost btn--sm">🌐 Xem trang user</a>
+            </div>
+        </header>
+
+        <main class="admin-content">
+
+            <!-- Flash messages -->
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}"   class="alert alert-error"   th:text="${errorMessage}"></div>
+
+            <!-- Policy Banner -->
+            <div class="policy-banner">
+                <div class="policy-banner__icon"><i class="fa-solid fa-circle-info"></i></div>
+                <div class="policy-banner__text">
+                    <strong>Quy tắc tài chính TravelMate — Commission chỉ tính trên thanh toán online:</strong>
+                    TravelMate thu tiền của khách qua cổng thanh toán online (VNPay Demo). Phần 70% còn lại (với cọc 30%) do khách trả trực tiếp tại cơ sở — <strong>không đi qua hệ thống, không tính commission</strong>.
+                    <br/>
+                    <strong>Cơ sở tính commission:</strong>
+                    <span style="background:rgba(255,255,255,.2);padding:1px 6px;border-radius:6px;">Thanh toán 100%</span> → Commission trên toàn bộ tiền thu online;
+                    <span style="background:rgba(255,255,255,.2);padding:1px 6px;border-radius:6px;">Cọc 30%</span> → Commission chỉ trên 30% cọc đã thu qua hệ thống;
+                    <span style="background:rgba(255,255,255,.2);padding:1px 6px;border-radius:6px;">No-show</span> → Commission trên 30% cọc bị giữ lại.
+                    <br/>
+                    <strong>Quyết toán Partner:</strong> Tiền chờ QT = Tiền thu online − Commission − Voucher partner chịu. Thanh toán vào <strong>Thứ Ba hàng tuần</strong>. Booking DIRECT/MANUAL_BLOCK không có commission vì không qua TravelMate.
+                </div>
+            </div>
+
+            <!-- Commission Table -->
+            <div class="admin-section" style="margin-bottom:24px;">
+                <div class="section-title"><i class="fa-solid fa-percent"></i> Bảng Chiết Khấu Theo Loại Hình</div>
+                <div class="discount-grid">
+                    <div class="discount-card discount-card--hotel">
+                        <div style="font-size:24px;">🏨</div>
+                        <div class="discount-card__type">Hotel</div>
+                        <div class="discount-card__rate">15%</div>
+                        <div style="font-size:11px;color:#6b7280;">Nền tảng 10% + Quảng bá 5%</div>
+                    </div>
+                    <div class="discount-card discount-card--villa">
+                        <div style="font-size:24px;">🏡</div>
+                        <div class="discount-card__type">Villa</div>
+                        <div class="discount-card__rate">12%</div>
+                        <div style="font-size:11px;color:#6b7280;">Nền tảng 9% + Quảng bá 3%</div>
+                    </div>
+                    <div class="discount-card discount-card--homestay">
+                        <div style="font-size:24px;">🏠</div>
+                        <div class="discount-card__type">Homestay</div>
+                        <div class="discount-card__rate">10%</div>
+                        <div style="font-size:11px;color:#6b7280;">Nền tảng 8% + Quảng bá 2%</div>
+                    </div>
+                    <div class="discount-card discount-card--resort">
+                        <div style="font-size:24px;">🏖</div>
+                        <div class="discount-card__type">Resort</div>
+                        <div class="discount-card__rate">18%</div>
+                        <div style="font-size:11px;color:#6b7280;">Nền tảng 12% + Quảng bá 6%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="rev-kpi-grid">
+                <div class="rev-kpi-card rev-kpi-card--total">
+                    <div class="rev-kpi-card__icon"><i class="fa-solid fa-money-bill-wave"></i></div>
+                    <div class="rev-kpi-card__body">
+                        <div class="rev-kpi-card__label">Tiền khách thanh toán qua TravelMate</div>
+                        <div class="rev-kpi-card__value"
+                             th:text="${#numbers.formatDecimal(summary.totalGross, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</div>
+                        <div class="rev-kpi-card__sub">Giao dịch APPROVED + cọc bị giữ (DEPOSIT_FORFEITED) — chỉ tính booking Online</div>
+                    </div>
+                </div>
+                <div class="rev-kpi-card rev-kpi-card--commission">
+                    <div class="rev-kpi-card__icon"><i class="fa-solid fa-percent"></i></div>
+                    <div class="rev-kpi-card__body">
+                        <div class="rev-kpi-card__label">Commission nền tảng TravelMate</div>
+                        <div class="rev-kpi-card__value"
+                             th:text="${#numbers.formatDecimal(summary.totalCommission, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</div>
+                        <div class="rev-kpi-card__sub"
+                             th:text="'Tỷ lệ bình quân: ' + ${summary.avgCommissionRate} + '% | Tính trên phần tiền qua hệ thống'">Tỷ lệ TB: 0%</div>
+                    </div>
+                </div>
+                <div class="rev-kpi-card rev-kpi-card--payout">
+                    <div class="rev-kpi-card__icon"><i class="fa-solid fa-building-columns"></i></div>
+                    <div class="rev-kpi-card__body">
+                        <div class="rev-kpi-card__label">Số tiền chờ quyết toán cho Partner</div>
+                        <div class="rev-kpi-card__value"
+                             th:text="${#numbers.formatDecimal(summary.totalPayout, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</div>
+                        <div class="rev-kpi-card__sub">= Tiền TM thu − Commission − Voucher partner chịu (Phần 70% offline không tính)</div>
+                    </div>
+                </div>
+                <div class="rev-kpi-card rev-kpi-card--bookings">
+                    <div class="rev-kpi-card__icon"><i class="fa-solid fa-calendar-check"></i></div>
+                    <div class="rev-kpi-card__body">
+                        <div class="rev-kpi-card__label">Booking Online có doanh thu</div>
+                        <div class="rev-kpi-card__value" th:text="${summary.totalBookings}">0</div>
+                        <div class="rev-kpi-card__sub"
+                             th:text="${summary.totalApproved} + ' booking TT đủ • ' + ${summary.totalForfeited} + ' no-show mất cọc'">0 booking</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action: Tạo Settlement -->
+            <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+                <form th:action="@{/admin/settlements/generate-weekly}" method="post">
+                    <button type="submit" class="btn btn--primary btn--sm"
+                            onclick="return confirm('Tạo settlement cho tuần trước? Những partner đã có settlement sẽ bị bỏ qua.')">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Weekly Settlement
+                    </button>
+                </form>
+                <a href="/admin/settlements" class="btn btn--ghost btn--sm" style="margin-left:8px;">
+                    <i class="fa-solid fa-list"></i> Xem Settlements
+                </a>
+            </div>
+
+            <!-- Revenue Detail Table -->
+            <div class="admin-section">
+                <div class="section-title"><i class="fa-solid fa-table"></i> Chi Tiết Doanh Thu — Tất Cả Booking</div>
+
+                <!-- Empty state -->
+                <div th:if="${#lists.isEmpty(revenueItems)}" class="empty-state">
+                    <i class="fa-solid fa-chart-line" style="font-size:40px;opacity:.25;margin-bottom:10px;"></i>
+                    <p>Chưa có doanh thu nào. Doanh thu được ghi nhận khi Admin duyệt thanh toán (APPROVED) hoặc xử lý no-show (DEPOSIT_FORFEITED).</p>
+                </div>
+
+                <div th:if="${!#lists.isEmpty(revenueItems)}" class="rev-table-wrap">
+                    <table class="rev-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Mã Booking</th>
+                                <th>Partner</th>
+                                <th>Cơ sở lưu trú</th>
+                                <th>Loại hình</th>
+                                <th>Hạng phòng</th>
+                                <th>Trạng thái TT</th>
+                                <th>Tiền khách TT qua TravelMate (đ)</th>
+                                <th>Cơ sở tính Commission (đ)</th>
+                                <th>Tỷ lệ Commission</th>
+                                <th>Rate áp dụng từ</th>
+                                <th>Commission TravelMate (đ)</th>
+                                <th>Tiền chờ QT cho Partner (đ)</th>
+                                <th>Voucher</th>
+                                <th>Thời gian giao dịch</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item, stat : ${revenueItems}">
+                                <td th:text="${stat.index + 1}">1</td>
+                                <td>
+                                    <strong th:text="${item.bookingCode}">BK-R101-0001</strong>
+                                    <div style="font-size:11px;color:#6b7280;" th:text="${item.roomName}">Phòng</div>
+                                </td>
+                                <td th:text="${item.partnerName}">Partner</td>
+                                <td th:text="${item.accommodationName}">LATA Hotel</td>
+                                <td>
+                                    <span th:text="${item.propertyTypeVN}">Hotel</span>
+                                </td>
+                                <!-- ★ Loại phòng -->
+                                <td>
+                                    <span th:text="${item.roomCategoryVN}"
+                                          style="font-size:12px;font-weight:600;">Tiêu chuẩn</span>
+                                </td>
+                                <td>
+                                    <span class="badge-approved" th:if="${item.paymentStatus == 'APPROVED'}"
+                                          th:text="${item.paymentStatusVN}">Đã TT</span>
+                                    <span class="badge-forfeited" th:if="${item.paymentStatus == 'DEPOSIT_FORFEITED'}"
+                                          th:text="${item.paymentStatusVN}">Giữ cọc</span>
+                                    <div style="font-size:10px;color:#6b7280;margin-top:2px;"
+                                         th:text="${item.paymentOptionVN}">100%</div>
+                                </td>
+                                <!-- Tiền thực thu online = payment.amount -->
+                                <td style="font-weight:600;"
+                                    th:text="${#numbers.formatDecimal(item.grossAmount, 0, 'COMMA', 0, 'POINT')}">0</td>
+                                <!-- ★ Cơ sở commission (commissionBase) -->
+                                <td>
+                                    <span th:if="${item.commissionBase != null}"
+                                          style="font-weight:600;color:#1d4ed8;"
+                                          th:text="${#numbers.formatDecimal(item.commissionBase, 0, 'COMMA', 0, 'POINT')}">0</span>
+                                    <div th:if="${item.commissionBaseLabel != null and !#strings.isEmpty(item.commissionBaseLabel)}"
+                                         style="font-size:10px;color:#7c3aed;margin-top:2px;"
+                                         th:text="${item.commissionBaseLabel}"></div>
+                                </td>
+                                <!-- ★ Tỷ lệ commission hiệu lực -->
+                                <td>
+                                    <span style="font-weight:700;"
+                                          th:text="${item.effectiveRateDisplay}">15%</span>
+                                </td>
+                                <!-- ★ Rate áp dụng từ (nguồn commission) -->
+                                <td>
+                                    <span th:if="${item.commissionSource == 'ROOM_OVERRIDE'}"
+                                          style="background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">
+                                        🔧 Theo loại phòng
+                                    </span>
+                                    <span th:if="${item.commissionSource != 'ROOM_OVERRIDE'}"
+                                          style="background:#f0f9ff;color:#0369a1;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">
+                                        🏨 Theo loại lưu trú
+                                    </span>
+                                </td>
+                                <!-- Commission amount -->
+                                <td>
+                                    <span th:text="${#numbers.formatDecimal(item.commissionAmount, 0, 'COMMA', 0, 'POINT')}">0</span>
+                                </td>
+                                <td style="color:#16a34a;font-weight:600;">
+                                    <span th:text="${#numbers.formatDecimal(item.partnerNetAmount, 0, 'COMMA', 0, 'POINT')}">0</span>
+                                    <div th:if="${item.paymentOption == 'DEPOSIT_30' and item.paymentStatus == 'APPROVED'}"
+                                         style="font-size:10px;color:#9ca3af;margin-top:1px;">+70% partner thu tại cơ sở (ngoài TM)</div>
+                                </td>
+                                <td>
+                                    <span th:if="${item.voucherCode != null}">
+                                        <span class="badge-voucher" th:text="${item.voucherCode}">CODE</span>
+                                        <span style="font-size:11px;" th:text="${item.voucherCostBearer == 'ADMIN' ? '(admin)' : '(partner)'}"></span>
+                                    </span>
+                                    <span th:if="${item.voucherCode == null}" style="color:#d1d5db;">—</span>
+                                </td>
+                                <td style="font-size:12px;color:#6b7280;"
+                                    th:text="${item.createdAt != null ? #temporals.format(item.createdAt, 'dd/MM/yyyy HH:mm') : '—'}">—</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/admin.js"></script>
+<!-- admin-revenue.js đã được thay thế bằng Thymeleaf server-side -->
+</body>
+</html>

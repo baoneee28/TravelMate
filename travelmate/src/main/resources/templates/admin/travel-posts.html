@@ -1,0 +1,625 @@
+﻿
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Quản lý bài viết du lịch – Admin TravelMate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/assets/css/base.css"/>
+<link rel="stylesheet" href="/assets/css/layout.css"/>
+<link rel="stylesheet" href="/assets/css/components.css"/>
+<link rel="stylesheet" href="/assets/css/admin.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+<style>
+:root{--guide:#3b82f6;--attr:#ec4899;--ess:#f59e0b}
+.tp-board{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start}
+.tp-col{background:#f8fafc;border-radius:16px;padding:16px;border:1px solid #e2e8f0}
+.tp-col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid currentColor}
+.tp-col-header.guide{color:var(--guide)}.tp-col-header.attr{color:var(--attr)}.tp-col-header.ess{color:var(--ess)}
+.tp-col-title{font-size:.9rem;font-weight:700;display:flex;align-items:center;gap:8px}
+.tp-col-count{background:currentColor;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px}
+.tp-card{background:#fff;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.08);margin-bottom:12px;overflow:hidden;transition:box-shadow .2s,transform .2s;position:relative}
+.tp-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.12);transform:translateY(-2px)}
+.tp-card-img{width:100%;height:120px;object-fit:cover}
+.tp-card-img-ph{width:100%;height:120px;display:flex;align-items:center;justify-content:center;font-size:2rem;background:linear-gradient(135deg,#e0e7ff,#f0f9ff)}
+.tp-card-body{padding:12px}
+.tp-card-title{font-size:.85rem;font-weight:700;color:#0f172a;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.35}
+.tp-card-summary{font-size:.76rem;color:#64748b;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4;margin-bottom:8px}
+.tp-card-footer{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.tp-badge-v{display:inline-flex;align-items:center;gap:3px;background:#dcfce7;color:#166534;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px}
+.tp-badge-h{display:inline-flex;align-items:center;gap:3px;background:#f3f4f6;color:#6b7280;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px}
+.tp-card-actions{display:flex;gap:4px}
+.tp-action-btn{background:none;border:1.5px solid #e2e8f0;border-radius:7px;padding:4px 8px;cursor:pointer;font-size:.75rem;color:#64748b;transition:.15s}
+.tp-action-btn:hover{background:#f1f5f9;border-color:#cbd5e1;color:#334155}
+.tp-action-btn.edit:hover{border-color:#3b82f6;color:#3b82f6}
+.tp-action-btn.del:hover{border-color:#ef4444;color:#ef4444;background:#fef2f2}
+.tp-hidden-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;border-radius:12px}
+.tp-hidden-label{background:#1e293b;color:#fff;padding:6px 14px;border-radius:20px;font-size:.78rem;font-weight:700}
+.tp-add-col-btn{width:100%;padding:10px;background:none;border:2px dashed #cbd5e1;border-radius:10px;color:#94a3b8;font-size:.82rem;cursor:pointer;transition:.15s;font-family:inherit;font-weight:600}
+.tp-add-col-btn:hover{border-color:#3b82f6;color:#3b82f6;background:#eff6ff}
+/* Modal */
+.tp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;display:none;align-items:center;justify-content:center}
+.tp-overlay.show{display:flex}
+.tp-modal{background:#fff;border-radius:20px;width:min(560px,95vw);max-height:92vh;overflow-y:auto;box-shadow:0 25px 60px rgba(0,0,0,.25)}
+.tp-modal-hdr{padding:20px 22px 16px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1}
+.tp-modal-hdr h3{font-size:1rem;font-weight:700;color:#0f172a;margin:0;display:flex;align-items:center;gap:8px}
+.tp-modal-x{background:none;border:none;cursor:pointer;color:#94a3b8;font-size:1.1rem;padding:6px;border-radius:8px}
+.tp-modal-x:hover{background:#f1f5f9;color:#334155}
+.tp-modal-body{padding:22px}
+.tp-fg{margin-bottom:15px}
+.tp-fg label{display:block;font-size:.78rem;font-weight:700;color:#374151;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.tp-fg input,.tp-fg select,.tp-fg textarea{width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:.875rem;font-family:inherit;color:#334155;outline:none;transition:.15s;box-sizing:border-box}
+.tp-fg input:focus,.tp-fg select:focus,.tp-fg textarea:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.tp-fg textarea{resize:vertical;min-height:90px}
+.tp-fg .tp-hint{font-size:.72rem;color:#94a3b8;margin-top:4px}
+.tp-thumb-preview{width:100%;height:100px;object-fit:cover;border-radius:8px;margin-top:8px;display:none}
+.tp-fg-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tp-modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid #f1f5f9;position:sticky;bottom:0;background:#fff}
+.tp-btn-cancel{background:none;border:1.5px solid #e2e8f0;color:#64748b;padding:9px 20px;border-radius:10px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit}
+.tp-btn-save{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;padding:9px 24px;border-radius:10px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px}
+.tp-btn-save:hover{background:linear-gradient(135deg,#1d4ed8,#1e40af)}
+.tp-btn-save:disabled{opacity:.6;cursor:not-allowed}
+.tp-err{font-size:.8rem;color:#ef4444;padding:8px 12px;background:#fef2f2;border-radius:8px;margin-bottom:12px;display:none}
+/* Stats bar */
+.tp-stats{display:flex;gap:14px;margin-bottom:22px;flex-wrap:wrap}
+.tp-stat{flex:1;min-width:130px;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px}
+.tp-stat-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.tp-stat-val{font-size:1.6rem;font-weight:800;line-height:1;color:#0f172a}
+.tp-stat-lbl{font-size:.75rem;color:#94a3b8;margin-top:2px;font-weight:500}
+.tp-cat-bar{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.tp-cat-btn{padding:7px 16px;border-radius:20px;font-size:.82rem;font-weight:700;cursor:pointer;border:2px solid transparent;font-family:inherit;transition:.15s}
+.tp-cat-btn.all{background:#1e293b;color:#fff;border-color:#1e293b}
+.tp-cat-btn.guide{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}
+.tp-cat-btn.guide.active,.tp-cat-btn.guide:hover{background:#2563eb;color:#fff;border-color:#2563eb}
+.tp-cat-btn.attr{background:#fdf2f8;color:#9d174d;border-color:#fbcfe8}
+.tp-cat-btn.attr.active,.tp-cat-btn.attr:hover{background:#ec4899;color:#fff;border-color:#ec4899}
+.tp-cat-btn.ess{background:#fffbeb;color:#92400e;border-color:#fde68a}
+.tp-cat-btn.ess.active,.tp-cat-btn.ess:hover{background:#f59e0b;color:#fff;border-color:#f59e0b}
+.tp-cat-btn.all:hover{background:#334155}
+@media(max-width:900px){.tp-board{grid-template-columns:1fr}}
+/* Detail view modal */
+.tp-detail-img{width:100%;height:220px;object-fit:cover;border-radius:12px;margin-bottom:16px}
+.tp-detail-content{font-size:.88rem;line-height:1.7;color:#374151;white-space:pre-wrap;max-height:300px;overflow-y:auto;padding:14px;background:#f8fafc;border-radius:10px;margin:12px 0}
+.tp-detail-meta{display:flex;align-items:center;gap:10px;font-size:.78rem;color:#94a3b8;margin-bottom:12px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="admin-wrapper">
+<aside class="admin-sidebar">
+<div class="admin-sidebar__header">
+<a href="/admin/dashboard" class="sidebar-logo">
+<div class="s-logo-icon"><i class="fa-solid fa-shield-halved"></i></div>
+<div><span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span><span class="admin-sidebar__badge">ADMIN PANEL</span></div>
+</a></div>
+<nav class="admin-sidebar__nav">
+<div class="admin-sidebar__section-title">Tổng quan</div>
+<a href="/admin/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span>Dashboard</a>
+<div class="admin-sidebar__section-title">Quản lý đặt phòng</div>
+<a href="/admin/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span>Đặt phòng</a>
+<a href="/admin/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span>Tình trạng phòng</a>
+<div class="admin-sidebar__section-title">Quản lý nội dung</div>
+<a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span>Cơ sở lưu trú</a>
+<a href="/admin/rooms" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span>Duyệt phòng</a>
+<a href="/admin/reviews" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span>Đánh giá</a>
+<a href="/admin/travel-posts" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">🗺️</span>Bài viết du lịch</a>
+<a href="/admin/users" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span>Người dùng</a>
+<div class="admin-sidebar__section-title">Tài chính</div>
+<a href="/admin/revenue" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span>Doanh thu</a>
+<a href="/admin/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span>Quyết toán</a>
+<a href="/admin/vouchers" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span>Voucher</a>
+<div class="admin-sidebar__section-title">Hỗ trợ</div>
+<a href="/admin/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span>Yêu cầu hỗ trợ</a>
+<div class="admin-sidebar__section-title">Hệ thống</div>
+<a href="/admin/audit-log" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📜</span>Nhật ký thao tác</a>
+<a href="/travel" class="admin-sidebar__link" target="_blank"><span class="admin-sidebar__link-icon">🌐</span>Xem trang Gợi ý DL</a>
+</nav>
+<div class="admin-sidebar__footer">
+<div class="admin-sidebar__user">
+<div class="admin-sidebar__user-avatar">AD</div>
+<div class="admin-sidebar__user-info">
+<div class="admin-sidebar__user-name" sec:authentication="name">Admin</div>
+<div class="admin-sidebar__user-role">Quản trị viên</div>
+</div></div>
+<form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
+<button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
+</form></div>
+</aside>
+<div class="admin-sidebar-overlay"></div>
+<div class="admin-main">
+<header class="admin-topbar">
+<div style="display:flex;align-items:center;gap:16px">
+<button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+<div>
+<h1 class="admin-topbar__title" style="margin:0">🗺️ Bài viết du lịch</h1>
+<p style="font-size:.78rem;color:#94a3b8;margin:2px 0 0">Quản lý nội dung 3 danh mục: Cẩm nang · Địa điểm · Cần thiết</p>
+</div></div>
+<div class="admin-topbar__actions">
+<button type="button" class="btn btn--primary btn--sm" id="tpAddBtn"><i class="fa-solid fa-plus"></i> Thêm bài viết</button>
+<a href="/travel" target="_blank" class="btn btn--ghost btn--sm">🌐 Xem trang người dùng</a>
+</div></header>
+<main class="admin-content">
+<div th:if="${successMessage}" style="margin-bottom:14px;padding:12px 16px;background:#ecfdf5;border-radius:10px;font-size:13px;color:#065f46;border:1px solid #a7f3d0;display:flex;align-items:center;gap:8px"><i class="fa-solid fa-circle-check"></i><span th:text="${successMessage}"></span></div>
+<div th:if="${errorMessage}" style="margin-bottom:14px;padding:12px 16px;background:#fef2f2;border-radius:10px;font-size:13px;color:#991b1b;border:1px solid #fecaca;display:flex;align-items:center;gap:8px"><i class="fa-solid fa-circle-exclamation"></i><span th:text="${errorMessage}"></span></div>
+<!-- Stats -->
+<div class="tp-stats">
+<div class="tp-stat"><div class="tp-stat-icon" style="background:#dbeafe;color:#1d4ed8">📝</div><div><div class="tp-stat-val" th:text="${totalCount}">0</div><div class="tp-stat-lbl">Tổng bài viết</div></div></div>
+<div class="tp-stat"><div class="tp-stat-icon" style="background:#dcfce7;color:#16a34a">👁</div><div><div class="tp-stat-val" th:text="${visibleCount}">0</div><div class="tp-stat-lbl">Đang hiển thị</div></div></div>
+<div class="tp-stat"><div class="tp-stat-icon" style="background:#f3f4f6;color:#6b7280">🙈</div><div><div class="tp-stat-val" th:text="${hiddenCount}">0</div><div class="tp-stat-lbl">Đã ẩn</div></div></div>
+<div class="tp-stat"><div class="tp-stat-icon" style="background:#eff6ff;color:#2563eb">📚</div><div><div class="tp-stat-val" id="guideCount">0</div><div class="tp-stat-lbl">Cẩm nang</div></div></div>
+<div class="tp-stat"><div class="tp-stat-icon" style="background:#fdf2f8;color:#9d174d">📍</div><div><div class="tp-stat-val" id="attrCount">0</div><div class="tp-stat-lbl">Địa điểm</div></div></div>
+<div class="tp-stat"><div class="tp-stat-icon" style="background:#fffbeb;color:#92400e">🧳</div><div><div class="tp-stat-val" id="essCount">0</div><div class="tp-stat-lbl">Cần thiết</div></div></div>
+</div>
+<!-- View toggle & filter -->
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+<div class="tp-cat-bar" style="margin:0">
+<button class="tp-cat-btn all" data-filter="all">📋 Tất cả</button>
+<button class="tp-cat-btn guide" data-filter="GUIDE">📚 Cẩm nang</button>
+<button class="tp-cat-btn attr" data-filter="ATTRACTION">📍 Địa điểm tham quan</button>
+<button class="tp-cat-btn ess" data-filter="ESSENTIAL">🧳 Cần thiết</button>
+</div>
+<div style="display:flex;gap:8px">
+<button id="viewBoard" class="btn btn--ghost btn--sm" title="Dạng kanban"><i class="fa-solid fa-table-columns"></i> Kanban</button>
+<button id="viewList" class="btn btn--ghost btn--sm" title="Dạng danh sách"><i class="fa-solid fa-list"></i> Danh sách</button>
+</div></div>
+<!-- KANBAN BOARD VIEW -->
+<div id="boardView" class="tp-board">
+  <!-- CẨM NANG column -->
+  <div class="tp-col" id="col-GUIDE">
+    <div class="tp-col-header guide">
+      <div class="tp-col-title"><i class="fa-solid fa-book-open"></i> Cẩm nang</div>
+      <span class="tp-col-count" id="badge-GUIDE">0</span>
+    </div>
+    <div id="cards-GUIDE">
+      <th:block th:each="p : ${posts}" th:if="${p.category.name() == 'GUIDE'}">
+        <div class="tp-card"
+             th:data-id="${p.id}" th:data-cat="${p.category.name()}" th:data-status="${p.status.name()}"
+             th:data-title="${p.title}" th:data-summary="${p.summary}"
+             th:data-content="${p.content}" th:data-thumb="${p.thumbnailUrl}"
+             th:data-src="${p.sourceUrl}">
+          <div th:if="${p.status.name() == 'HIDDEN'}" class="tp-hidden-overlay"><span class="tp-hidden-label"><i class="fa-solid fa-eye-slash"></i> Đã ẩn</span></div>
+          <img th:if="${p.thumbnailUrl != null and !#strings.isEmpty(p.thumbnailUrl)}" th:src="${p.thumbnailUrl}" alt="" class="tp-card-img"/>
+          <div th:unless="${p.thumbnailUrl != null and !#strings.isEmpty(p.thumbnailUrl)}" class="tp-card-img-ph" style="color:#3b82f6"><i class="fa-solid fa-book-open"></i></div>
+          <div class="tp-card-body">
+            <div class="tp-card-title" th:text="${p.title}">Tiêu đề</div>
+            <div class="tp-card-summary" th:text="${p.summary != null ? p.summary : 'Chưa có mô tả'}"></div>
+            <div class="tp-card-footer">
+              <span th:class="${p.status.name() == 'VISIBLE' ? 'tp-badge-v' : 'tp-badge-h'}">
+                <i th:class="${p.status.name() == 'VISIBLE' ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash'}"></i>
+                <span th:text="${p.status.name() == 'VISIBLE' ? 'Hiển thị' : 'Ẩn'}"></span>
+              </span>
+              <div class="tp-card-actions">
+                <button class="tp-action-btn view" th:data-id="${p.id}" title="Xem chi tiết"><i class="fa-solid fa-magnifying-glass"></i></button>
+                <button class="tp-action-btn edit" th:data-id="${p.id}" title="Chỉnh sửa"><i class="fa-solid fa-pen"></i></button>
+                <button class="tp-action-btn toggle" th:data-id="${p.id}" th:data-status="${p.status.name()}" th:title="${p.status.name() == 'VISIBLE' ? 'Ẩn' : 'Hiện'}">
+                  <i th:class="${p.status.name() == 'VISIBLE' ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'}"></i>
+                </button>
+                <button class="tp-action-btn del" th:data-id="${p.id}" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            </div>
+            <div style="font-size:.7rem;color:#cbd5e1;margin-top:6px">
+              <i class="fa-regular fa-clock"></i> <span th:text="${#temporals.format(p.createdAt,'dd/MM/yyyy')}"></span>
+              &nbsp;·&nbsp;<span th:text="${p.createdBy}"></span>
+            </div>
+          </div>
+        </div>
+      </th:block>
+    </div>
+    <button class="tp-add-col-btn" data-cat="GUIDE"><i class="fa-solid fa-plus"></i> Thêm Cẩm nang</button>
+  </div>
+  <!-- ĐỊA ĐIỂM column -->
+  <div class="tp-col" id="col-ATTRACTION">
+    <div class="tp-col-header attr">
+      <div class="tp-col-title"><i class="fa-solid fa-map-location-dot"></i> Địa điểm tham quan</div>
+      <span class="tp-col-count" id="badge-ATTRACTION">0</span>
+    </div>
+    <div id="cards-ATTRACTION">
+      <th:block th:each="p : ${posts}" th:if="${p.category.name() == 'ATTRACTION'}">
+        <div class="tp-card"
+             th:data-id="${p.id}" th:data-cat="${p.category.name()}" th:data-status="${p.status.name()}"
+             th:data-title="${p.title}" th:data-summary="${p.summary}"
+             th:data-content="${p.content}" th:data-thumb="${p.thumbnailUrl}"
+             th:data-src="${p.sourceUrl}">
+          <div th:if="${p.status.name() == 'HIDDEN'}" class="tp-hidden-overlay"><span class="tp-hidden-label"><i class="fa-solid fa-eye-slash"></i> Đã ẩn</span></div>
+          <img th:if="${p.thumbnailUrl != null and !#strings.isEmpty(p.thumbnailUrl)}" th:src="${p.thumbnailUrl}" alt="" class="tp-card-img"/>
+          <div th:unless="${p.thumbnailUrl != null and !#strings.isEmpty(p.thumbnailUrl)}" class="tp-card-img-ph" style="color:#ec4899"><i class="fa-solid fa-map-location-dot"></i></div>
+          <div class="tp-card-body">
+            <div class="tp-card-title" th:text="${p.title}">Tiêu đề</div>
+            <div class="tp-card-summary" th:text="${p.summary != null ? p.summary : 'Chưa có mô tả'}"></div>
+            <div class="tp-card-footer">
+              <span th:class="${p.status.name() == 'VISIBLE' ? 'tp-badge-v' : 'tp-badge-h'}">
+                <i th:class="${p.status.name() == 'VISIBLE' ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash'}"></i>
+                <span th:text="${p.status.name() == 'VISIBLE' ? 'Hiển thị' : 'Ẩn'}"></span>
+              </span>
+              <div class="tp-card-actions">
+                <button class="tp-action-btn view" th:data-id="${p.id}" title="Xem chi tiết"><i class="fa-solid fa-magnifying-glass"></i></button>
+                <button class="tp-action-btn edit" th:data-id="${p.id}" title="Chỉnh sửa"><i class="fa-solid fa-pen"></i></button>
+                <button class="tp-action-btn toggle" th:data-id="${p.id}" th:data-status="${p.status.name()}" th:title="${p.status.name() == 'VISIBLE' ? 'Ẩn' : 'Hiện'}">
+                  <i th:class="${p.status.name() == 'VISIBLE' ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'}"></i>
+                </button>
+                <button class="tp-action-btn del" th:data-id="${p.id}" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            </div>
+            <div style="font-size:.7rem;color:#cbd5e1;margin-top:6px">
+              <i class="fa-regular fa-clock"></i> <span th:text="${#temporals.format(p.createdAt,'dd/MM/yyyy')}"></span>
+              &nbsp;·&nbsp;<span th:text="${p.createdBy}"></span>
+            </div>
+          </div>
+        </div>
+      </th:block>
+    </div>
+    <button class="tp-add-col-btn" data-cat="ATTRACTION"><i class="fa-solid fa-plus"></i> Thêm Địa điểm</button>
+  </div>
+  <!-- CẦN THIẾT column -->
+  <div class="tp-col" id="col-ESSENTIAL">
+    <div class="tp-col-header ess">
+      <div class="tp-col-title"><i class="fa-solid fa-suitcase-rolling"></i> Cần thiết cho du lịch</div>
+      <span class="tp-col-count" id="badge-ESSENTIAL">0</span>
+    </div>
+    <div id="cards-ESSENTIAL">
+      <th:block th:each="p : ${posts}" th:if="${p.category.name() == 'ESSENTIAL'}">
+        <div class="tp-card"
+             th:data-id="${p.id}" th:data-cat="${p.category.name()}" th:data-status="${p.status.name()}"
+             th:data-title="${p.title}" th:data-summary="${p.summary}"
+             th:data-content="${p.content}" th:data-thumb="${p.thumbnailUrl}"
+             th:data-src="${p.sourceUrl}">
+          <div th:if="${p.status.name() == 'HIDDEN'}" class="tp-hidden-overlay"><span class="tp-hidden-label"><i class="fa-solid fa-eye-slash"></i> Đã ẩn</span></div>
+          <img th:if="${p.thumbnailUrl != null and !#strings.isEmpty(p.thumbnailUrl)}" th:src="${p.thumbnailUrl}" alt="" class="tp-card-img"/>
+          <div th:unless="${p.thumbnailUrl != null and !#strings.isEmpty(p.thumbnailUrl)}" class="tp-card-img-ph" style="color:#f59e0b"><i class="fa-solid fa-suitcase-rolling"></i></div>
+          <div class="tp-card-body">
+            <div class="tp-card-title" th:text="${p.title}">Tiêu đề</div>
+            <div class="tp-card-summary" th:text="${p.summary != null ? p.summary : 'Chưa có mô tả'}"></div>
+            <div class="tp-card-footer">
+              <span th:class="${p.status.name() == 'VISIBLE' ? 'tp-badge-v' : 'tp-badge-h'}">
+                <i th:class="${p.status.name() == 'VISIBLE' ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash'}"></i>
+                <span th:text="${p.status.name() == 'VISIBLE' ? 'Hiển thị' : 'Ẩn'}"></span>
+              </span>
+              <div class="tp-card-actions">
+                <button class="tp-action-btn view" th:data-id="${p.id}" title="Xem chi tiết"><i class="fa-solid fa-magnifying-glass"></i></button>
+                <button class="tp-action-btn edit" th:data-id="${p.id}" title="Chỉnh sửa"><i class="fa-solid fa-pen"></i></button>
+                <button class="tp-action-btn toggle" th:data-id="${p.id}" th:data-status="${p.status.name()}" th:title="${p.status.name() == 'VISIBLE' ? 'Ẩn' : 'Hiện'}">
+                  <i th:class="${p.status.name() == 'VISIBLE' ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'}"></i>
+                </button>
+                <button class="tp-action-btn del" th:data-id="${p.id}" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            </div>
+            <div style="font-size:.7rem;color:#cbd5e1;margin-top:6px">
+              <i class="fa-regular fa-clock"></i> <span th:text="${#temporals.format(p.createdAt,'dd/MM/yyyy')}"></span>
+              &nbsp;·&nbsp;<span th:text="${p.createdBy}"></span>
+            </div>
+          </div>
+        </div>
+      </th:block>
+    </div>
+    <button class="tp-add-col-btn" data-cat="ESSENTIAL"><i class="fa-solid fa-plus"></i> Thêm Cần thiết</button>
+  </div>
+</div>
+<!-- LIST VIEW (hidden by default) -->
+<div id="listView" style="display:none">
+  <div class="table-container">
+    <table class="data-table" id="tpTable">
+      <thead><tr>
+        <th style="width:60px">Ảnh</th><th>Tiêu đề</th><th style="width:130px">Danh mục</th>
+        <th style="width:100px">Trạng thái</th><th style="width:110px">Ngày tạo</th><th style="width:120px">Thao tác</th>
+      </tr></thead>
+      <tbody>
+        <tr th:if="${#lists.isEmpty(posts)}"><td colspan="6" style="text-align:center;color:#94a3b8;padding:32px">Chưa có bài viết nào.</td></tr>
+        <tr th:each="p : ${posts}" th:data-cat="${p.category.name()}"
+            th:data-id="${p.id}" th:data-title="${p.title}" th:data-summary="${p.summary}"
+            th:data-content="${p.content}" th:data-thumb="${p.thumbnailUrl}" th:data-src="${p.sourceUrl}">
+          <td>
+            <img th:if="${p.thumbnailUrl != null and !#strings.isEmpty(p.thumbnailUrl)}" th:src="${p.thumbnailUrl}" alt="" style="width:52px;height:38px;object-fit:cover;border-radius:6px;border:1px solid #e5e7eb"/>
+            <div th:unless="${p.thumbnailUrl != null and !#strings.isEmpty(p.thumbnailUrl)}" style="width:52px;height:38px;background:#f1f5f9;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#94a3b8"><i class="fa-solid fa-image"></i></div>
+          </td>
+          <td style="max-width:280px">
+            <div style="font-weight:600;font-size:13px;color:#0f172a;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden" th:text="${p.title}"></div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden" th:text="${p.summary}"></div>
+          </td>
+          <td><span th:class="${p.category.name() == 'GUIDE' ? 'badge-guide' : (p.category.name() == 'ATTRACTION' ? 'badge-attraction' : 'badge-essential')}" th:text="${p.category.displayName}"></span></td>
+          <td><span th:class="${p.status.name() == 'VISIBLE' ? 'tp-badge-v' : 'tp-badge-h'}"><i th:class="${p.status.name() == 'VISIBLE' ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash'}"></i><span th:text="${p.status.name() == 'VISIBLE' ? 'Hiển thị' : 'Đã ẩn'}"></span></span></td>
+          <td style="font-size:12px;color:#64748b" th:text="${#temporals.format(p.createdAt,'dd/MM/yyyy')}"></td>
+          <td>
+            <div style="display:flex;gap:4px">
+              <button class="tp-action-btn view" th:data-id="${p.id}" title="Xem"><i class="fa-solid fa-magnifying-glass"></i></button>
+              <button class="tp-action-btn edit" th:data-id="${p.id}" title="Sửa"><i class="fa-solid fa-pen"></i></button>
+              <button class="tp-action-btn toggle" th:data-id="${p.id}" th:data-status="${p.status.name()}"><i th:class="${p.status.name() == 'VISIBLE' ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'}"></i></button>
+              <button class="tp-action-btn del" th:data-id="${p.id}"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</main></div></div>
+<!-- ADD/EDIT MODAL -->
+<div class="tp-overlay" id="formOverlay">
+<div class="tp-modal" id="formModal">
+<div class="tp-modal-hdr">
+<h3 id="formModalTitle"><i class="fa-solid fa-plus" style="color:#2563eb"></i> Thêm bài viết</h3>
+<button class="tp-modal-x" id="formClose"><i class="fa-solid fa-xmark"></i></button>
+</div>
+<div class="tp-modal-body">
+<div class="tp-err" id="formErr"></div>
+<form id="tpForm" autocomplete="off">
+<input type="hidden" id="editId" value=""/>
+<div class="tp-fg">
+<label>Tiêu đề bài viết <span style="color:#ef4444">*</span></label>
+<input type="text" id="fTitle" placeholder="Nhập tiêu đề hấp dẫn..."/>
+</div>
+<div class="tp-fg-row">
+<div class="tp-fg">
+<label>Danh mục <span style="color:#ef4444">*</span></label>
+<select id="fCategory">
+<option value="GUIDE">📚 Cẩm nang du lịch</option>
+<option value="ATTRACTION">📍 Địa điểm tham quan</option>
+<option value="ESSENTIAL">🧳 Cần thiết cho du lịch</option>
+</select>
+</div>
+<div class="tp-fg">
+<label>Đường dẫn nguồn <span style="color:#ef4444">*</span></label>
+<input type="url" id="fSourceUrl" placeholder="https://..."/>
+</div>
+</div>
+<div class="tp-fg">
+<label>Mô tả ngắn</label>
+<textarea id="fSummary" placeholder="Tóm tắt nội dung bài viết (hiển thị trên thẻ bài viết)..."></textarea>
+</div>
+<div class="tp-fg">
+<label>Nội dung chi tiết</label>
+<textarea id="fContent" style="min-height:130px" placeholder="Nội dung đầy đủ của bài viết. Người dùng sẽ thấy khi click vào thẻ bài viết..."></textarea>
+<div class="tp-hint">💡 Nội dung này sẽ hiển thị trong popup khi người dùng click vào bài viết trên trang Gợi ý du lịch</div>
+</div>
+<div class="tp-fg">
+<label>URL ảnh thumbnail</label>
+<input type="url" id="fThumb" placeholder="https://images.unsplash.com/..." oninput="prevThumb(this.value)"/>
+<img id="thumbPreview" class="tp-thumb-preview" alt="Preview"/>
+<div class="tp-hint">Để trống nếu không có ảnh</div>
+</div>
+</form>
+</div>
+<div class="tp-modal-footer">
+<button class="tp-btn-cancel" id="formCancel">Hủy</button>
+<button class="tp-btn-save" id="formSave"><i class="fa-solid fa-floppy-disk"></i> <span id="saveLbl">Lưu bài viết</span></button>
+</div>
+</div>
+</div>
+<!-- DETAIL VIEW MODAL -->
+<div class="tp-overlay" id="viewOverlay">
+<div class="tp-modal" id="viewModal" style="width:min(700px,96vw)">
+<div class="tp-modal-hdr">
+<h3 id="viewTitle"><i class="fa-solid fa-eye" style="color:#2563eb"></i> Chi tiết bài viết</h3>
+<button class="tp-modal-x" id="viewClose"><i class="fa-solid fa-xmark"></i></button>
+</div>
+<div class="tp-modal-body">
+<img id="viewImg" class="tp-detail-img" src="" alt="" style="display:none"/>
+<div id="viewCatBadge" style="margin-bottom:10px"></div>
+<div class="tp-detail-meta" id="viewMeta"></div>
+<h2 id="viewTitleText" style="font-size:1.1rem;font-weight:800;color:#0f172a;margin:0 0 10px;line-height:1.4"></h2>
+<div class="tp-detail-content" id="viewContent"></div>
+<div style="margin-top:16px;display:flex;gap:10px">
+<a id="viewSrcLink" href="#" target="_blank" class="btn btn--primary btn--sm"><i class="fa-solid fa-external-link-alt"></i> Xem bài viết gốc</a>
+<button class="tp-btn-cancel" id="viewEditBtn"><i class="fa-solid fa-pen"></i> Chỉnh sửa</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+const POSTS = {};
+document.querySelectorAll('.tp-card[data-id], tr[data-id]').forEach(el => {
+  const id = el.dataset.id;
+  if (!POSTS[id]) POSTS[id] = {
+    id, title: el.dataset.title || '',
+    summary: el.dataset.summary || '',
+    content: el.dataset.content || '',
+    thumbnailUrl: el.dataset.thumb || '',
+    sourceUrl: el.dataset.src || '',
+    category: el.dataset.cat || 'GUIDE',
+    status: el.dataset.status || 'VISIBLE'
+  };
+});
+// Count badges
+['GUIDE','ATTRACTION','ESSENTIAL'].forEach(cat => {
+  const n = document.querySelectorAll(`.tp-card[data-cat="${cat}"]`).length;
+  const b = document.getElementById('badge-'+cat);
+  if (b) b.textContent = n;
+});
+const gc = document.querySelectorAll('.tp-card[data-cat="GUIDE"]').length;
+const ac = document.querySelectorAll('.tp-card[data-cat="ATTRACTION"]').length;
+const ec = document.querySelectorAll('.tp-card[data-cat="ESSENTIAL"]').length;
+if(document.getElementById('guideCount')) document.getElementById('guideCount').textContent = gc;
+if(document.getElementById('attrCount')) document.getElementById('attrCount').textContent = ac;
+if(document.getElementById('essCount')) document.getElementById('essCount').textContent = ec;
+// View toggle
+const boardView = document.getElementById('boardView');
+const listView = document.getElementById('listView');
+document.getElementById('viewBoard').addEventListener('click',() => { boardView.style.display='grid'; listView.style.display='none'; document.getElementById('viewBoard').classList.add('active'); document.getElementById('viewList').classList.remove('active'); });
+document.getElementById('viewList').addEventListener('click',() => { boardView.style.display='none'; listView.style.display='block'; document.getElementById('viewList').classList.add('active'); document.getElementById('viewBoard').classList.remove('active'); });
+// Filter tabs
+document.querySelectorAll('.tp-cat-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.tp-cat-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    const f = this.dataset.filter;
+    document.querySelectorAll('.tp-card[data-cat]').forEach(c => { c.style.display = (f==='all' || c.dataset.cat===f) ? '' : 'none'; });
+    document.querySelectorAll('#tpTable tr[data-cat]').forEach(r => { r.style.display = (f==='all' || r.dataset.cat===f) ? '' : 'none'; });
+  });
+});
+// Thumb preview
+function prevThumb(url) {
+  const img = document.getElementById('thumbPreview');
+  if (url && url.startsWith('http')) { img.src=url; img.style.display='block'; }
+  else img.style.display='none';
+}
+// FORM MODAL
+const formOverlay = document.getElementById('formOverlay');
+const formModal = document.getElementById('formModal');
+let editing = false;
+function openAdd(cat) {
+  editing = false;
+  document.getElementById('editId').value = '';
+  document.getElementById('tpForm').reset();
+  document.getElementById('thumbPreview').style.display='none';
+  document.getElementById('formModalTitle').innerHTML = '<i class="fa-solid fa-plus" style="color:#2563eb"></i> Thêm bài viết mới';
+  document.getElementById('saveLbl').textContent = 'Lưu bài viết';
+  document.getElementById('formErr').style.display='none';
+  if (cat) document.getElementById('fCategory').value = cat;
+  formOverlay.classList.add('show');
+}
+function openEdit(id) {
+  const p = POSTS[id]; if (!p) return;
+  editing = true;
+  document.getElementById('editId').value = id;
+  document.getElementById('fTitle').value = p.title;
+  document.getElementById('fSummary').value = p.summary;
+  document.getElementById('fContent').value = p.content;
+  document.getElementById('fThumb').value = p.thumbnailUrl;
+  document.getElementById('fSourceUrl').value = p.sourceUrl;
+  document.getElementById('fCategory').value = p.category;
+  prevThumb(p.thumbnailUrl);
+  document.getElementById('formModalTitle').innerHTML = '<i class="fa-solid fa-pen" style="color:#2563eb"></i> Chỉnh sửa bài viết';
+  document.getElementById('saveLbl').textContent = 'Cập nhật';
+  document.getElementById('formErr').style.display='none';
+  formOverlay.classList.add('show');
+}
+function closeForm() { formOverlay.classList.remove('show'); }
+document.getElementById('tpAddBtn').addEventListener('click', () => openAdd(null));
+document.getElementById('formClose').addEventListener('click', closeForm);
+document.getElementById('formCancel').addEventListener('click', closeForm);
+formOverlay.addEventListener('click', e => { if (e.target===formOverlay) closeForm(); });
+document.getElementById('formSave').addEventListener('click', () => {
+  const id = document.getElementById('editId').value;
+  const title = document.getElementById('fTitle').value.trim();
+  const sourceUrl = document.getElementById('fSourceUrl').value.trim();
+  const summary = document.getElementById('fSummary').value.trim();
+  const content = document.getElementById('fContent').value.trim();
+  const thumbnailUrl = document.getElementById('fThumb').value.trim();
+  const category = document.getElementById('fCategory').value;
+  const errEl = document.getElementById('formErr');
+  if (!title || !sourceUrl) { errEl.textContent='Vui lòng điền tiêu đề và URL nguồn.'; errEl.style.display='block'; return; }
+  errEl.style.display='none';
+  const saveBtn = document.getElementById('formSave');
+  saveBtn.disabled=true; document.getElementById('saveLbl').textContent='Đang lưu...';
+  const method = editing ? 'PUT' : 'POST';
+  const url = editing ? '/api/travel-posts/'+id : '/api/travel-posts';
+  fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify({title,sourceUrl,summary,content,thumbnailUrl,category}) })
+    .then(r=>r.json()).then(data => {
+      if (data.error) { errEl.textContent=data.error; errEl.style.display='block'; return; }
+      POSTS[data.id] = data;
+      if (editing) {
+        document.querySelectorAll(`[data-id="${data.id}"]`).forEach(el => {
+          el.dataset.title=data.title; el.dataset.summary=data.summary;
+          el.dataset.content=data.content; el.dataset.thumb=data.thumbnailUrl; el.dataset.src=data.sourceUrl;
+          const titleEl = el.querySelector('.tp-card-title');
+          const sumEl = el.querySelector('.tp-card-summary');
+          if (titleEl) titleEl.textContent=data.title;
+          if (sumEl) sumEl.textContent=data.summary||'Chưa có mô tả';
+        });
+      } else {
+        const catIcons = {GUIDE:'fa-book-open',ATTRACTION:'fa-map-location-dot',ESSENTIAL:'fa-suitcase-rolling'};
+        const catColors = {GUIDE:'#3b82f6',ATTRACTION:'#ec4899',ESSENTIAL:'#f59e0b'};
+        const container = document.getElementById('cards-'+data.category);
+        if (container) {
+          const card = document.createElement('div');
+          card.className='tp-card'; card.dataset.id=data.id; card.dataset.cat=data.category;
+          card.dataset.status='VISIBLE'; card.dataset.title=data.title;
+          card.dataset.summary=data.summary; card.dataset.content=data.content;
+          card.dataset.thumb=data.thumbnailUrl; card.dataset.src=data.sourceUrl;
+          card.style.animation='newsCardFadeIn 0.4s ease';
+          card.innerHTML = `${data.thumbnailUrl?`<img src="${data.thumbnailUrl}" alt="" class="tp-card-img"/>`:`<div class="tp-card-img-ph" style="color:${catColors[data.category]}"><i class="fa-solid ${catIcons[data.category]}"></i></div>`}
+          <div class="tp-card-body">
+            <div class="tp-card-title">${data.title}</div>
+            <div class="tp-card-summary">${data.summary||'Chưa có mô tả'}</div>
+            <div class="tp-card-footer">
+              <span class="tp-badge-v"><i class="fa-solid fa-eye"></i> Hiển thị</span>
+              <div class="tp-card-actions">
+                <button class="tp-action-btn view" data-id="${data.id}" title="Xem"><i class="fa-solid fa-magnifying-glass"></i></button>
+                <button class="tp-action-btn edit" data-id="${data.id}" title="Sửa"><i class="fa-solid fa-pen"></i></button>
+                <button class="tp-action-btn toggle" data-id="${data.id}" data-status="VISIBLE" title="Ẩn"><i class="fa-solid fa-eye-slash"></i></button>
+                <button class="tp-action-btn del" data-id="${data.id}" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            </div>
+            <div style="font-size:.7rem;color:#cbd5e1;margin-top:6px"><i class="fa-regular fa-clock"></i> Vừa thêm</div>
+          </div>`;
+          container.insertBefore(card, container.firstChild);
+          const badge = document.getElementById('badge-'+data.category);
+          if (badge) badge.textContent = parseInt(badge.textContent||0)+1;
+        }
+      }
+      closeForm();
+    })
+    .catch(() => { errEl.textContent='Có lỗi xảy ra. Vui lòng thử lại.'; errEl.style.display='block'; })
+    .finally(() => { saveBtn.disabled=false; document.getElementById('saveLbl').textContent = editing?'Cập nhật':'Lưu bài viết'; });
+});
+// Add from column buttons
+document.querySelectorAll('.tp-add-col-btn').forEach(btn => {
+  btn.addEventListener('click', () => openAdd(btn.dataset.cat));
+});
+// DETAIL VIEW MODAL
+const viewOverlay = document.getElementById('viewOverlay');
+const CAT_LABELS = {GUIDE:'📚 Cẩm nang',ATTRACTION:'📍 Địa điểm tham quan',ESSENTIAL:'🧳 Cần thiết cho du lịch'};
+const CAT_COLORS = {GUIDE:'#2563eb',ATTRACTION:'#ec4899',ESSENTIAL:'#f59e0b'};
+function openView(id) {
+  const p = POSTS[id]; if (!p) return;
+  document.getElementById('viewTitleText').textContent = p.title;
+  const imgEl = document.getElementById('viewImg');
+  if (p.thumbnailUrl) { imgEl.src=p.thumbnailUrl; imgEl.style.display='block'; } else imgEl.style.display='none';
+  document.getElementById('viewCatBadge').innerHTML = `<span style="background:${CAT_COLORS[p.category]};color:#fff;font-size:.78rem;font-weight:700;padding:4px 12px;border-radius:20px">${CAT_LABELS[p.category]||p.category}</span>`;
+  document.getElementById('viewContent').textContent = p.content || p.summary || 'Chưa có nội dung chi tiết.';
+  document.getElementById('viewSrcLink').href = p.sourceUrl;
+  document.getElementById('viewEditBtn').onclick = () => { closeView(); openEdit(id); };
+  viewOverlay.classList.add('show');
+}
+function closeView() { viewOverlay.classList.remove('show'); }
+document.getElementById('viewClose').addEventListener('click', closeView);
+viewOverlay.addEventListener('click', e => { if (e.target===viewOverlay) closeView(); });
+// Global event delegation
+document.addEventListener('click', function(e) {
+  const viewBtn = e.target.closest('.tp-action-btn.view');
+  const editBtn = e.target.closest('.tp-action-btn.edit');
+  const togBtn  = e.target.closest('.tp-action-btn.toggle');
+  const delBtn  = e.target.closest('.tp-action-btn.del');
+  if (viewBtn) { openView(viewBtn.dataset.id); return; }
+  if (editBtn) { openEdit(editBtn.dataset.id); return; }
+  if (togBtn) {
+    const id = togBtn.dataset.id;
+    fetch('/api/travel-posts/'+id+'/toggle',{method:'POST'}).then(r=>r.json()).then(data => {
+      const isV = data.status==='VISIBLE';
+      document.querySelectorAll(`[data-id="${id}"]`).forEach(el => {
+        el.dataset.status = data.status;
+        if (POSTS[id]) POSTS[id].status = data.status;
+        const badge = el.querySelector('.tp-badge-v, .tp-badge-h');
+        if (badge) { badge.className=isV?'tp-badge-v':'tp-badge-h'; badge.innerHTML=`<i class="fa-solid ${isV?'fa-eye':'fa-eye-slash'}"></i> ${isV?'Hiển thị':'Ẩn'}`; }
+        const togI = el.querySelector('.tp-action-btn.toggle i');
+        if (togI) { togI.className=`fa-solid ${isV?'fa-eye-slash':'fa-eye'}`; }
+        const ov = el.querySelector('.tp-hidden-overlay');
+        if (el.classList.contains('tp-card')) {
+          if (!isV && !ov) {
+            const d=document.createElement('div'); d.className='tp-hidden-overlay';
+            d.innerHTML='<span class="tp-hidden-label"><i class="fa-solid fa-eye-slash"></i> Đã ẩn</span>';
+            el.insertBefore(d,el.firstChild);
+          } else if (isV && ov) ov.remove();
+        }
+      });
+    }).catch(()=>{});
+    return;
+  }
+  if (delBtn) {
+    if (!confirm('Xóa bài viết này? Hành động không thể hoàn tác.')) return;
+    const id = delBtn.dataset.id;
+    fetch('/api/travel-posts/'+id,{method:'DELETE'}).then(r=>r.json()).then(() => {
+      const cat = POSTS[id]?.category;
+      document.querySelectorAll(`[data-id="${id}"]`).forEach(el => {
+        el.style.transition='opacity .3s,transform .3s'; el.style.opacity='0'; el.style.transform='scale(.95)';
+        setTimeout(()=>el.remove(),300);
+      });
+      if (cat) { const b=document.getElementById('badge-'+cat); if(b) b.textContent=Math.max(0,(parseInt(b.textContent)||1)-1); }
+      delete POSTS[id];
+    }).catch(()=>{});
+  }
+});
+// Admin JS
+document.querySelector('.admin-topbar__hamburger')?.addEventListener('click',()=>{document.querySelector('.admin-sidebar').classList.toggle('open');document.querySelector('.admin-sidebar-overlay').classList.toggle('open');});
+document.querySelector('.admin-sidebar-overlay')?.addEventListener('click',()=>{document.querySelector('.admin-sidebar').classList.remove('open');document.querySelector('.admin-sidebar-overlay').classList.remove('open');});
+</script>
+</body></html>

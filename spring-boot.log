@@ -1,0 +1,114 @@
+[INFO] Scanning for projects...
+Downloading from central: https://repo.maven.apache.org/maven2/org/cyclonedx/maven-metadata.xml
+Downloading from central: https://repo.maven.apache.org/maven2/org/springframework/boot/maven-metadata.xml
+Downloading from central: https://repo.maven.apache.org/maven2/io/github/git-commit-id/maven-metadata.xml
+Downloading from central: https://repo.maven.apache.org/maven2/org/flywaydb/maven-metadata.xml
+Progress (1): 243 BProgress (2): 243 B | 249 BProgress (3): 243 B | 249 B | 255 BProgress (4): 243 B | 249 B | 255 B | 234 B                                           Downloaded from central: https://repo.maven.apache.org/maven2/org/flywaydb/maven-metadata.xml (234 B at 419 B/s)
+Downloaded from central: https://repo.maven.apache.org/maven2/org/cyclonedx/maven-metadata.xml (243 B at 435 B/s)
+Downloaded from central: https://repo.maven.apache.org/maven2/org/springframework/boot/maven-metadata.xml (249 B at 445 B/s)
+Downloaded from central: https://repo.maven.apache.org/maven2/io/github/git-commit-id/maven-metadata.xml (255 B at 456 B/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/jooq/maven-metadata.xml
+Downloading from central: https://repo.maven.apache.org/maven2/org/liquibase/maven-metadata.xml
+Downloading from central: https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/maven-metadata.xml
+Downloading from central: https://repo.maven.apache.org/maven2/org/graalvm/buildtools/maven-metadata.xml
+Progress (1): 242 BProgress (2): 242 B | 375 BProgress (3): 242 B | 375 B | 398 B                                   Downloaded from central: https://repo.maven.apache.org/maven2/org/graalvm/buildtools/maven-metadata.xml (242 B at 4.3 kB/s)
+Downloaded from central: https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/maven-metadata.xml (375 B at 6.5 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-metadata.xml
+Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/maven-metadata.xml
+Progress (2): 398 B | 394 B                           Downloaded from central: https://repo.maven.apache.org/maven2/org/jooq/maven-metadata.xml (398 B at 6.7 kB/s)
+Downloaded from central: https://repo.maven.apache.org/maven2/org/liquibase/maven-metadata.xml (394 B at 6.4 kB/s)
+Progress (1): 3.1 kBProgress (2): 3.1 kB | 4.6 kBProgress (2): 7.7 kB | 4.6 kBProgress (2): 7.7 kB | 9.7 kBProgress (2): 12 kB | 9.7 kB Progress (2): 12 kB | 14 kB Progress (2): 17 kB | 14 kBProgress (2): 20 kB | 14 kBProgress (2): 21 kB | 14 kB                           Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-metadata.xml (14 kB at 234 kB/s)
+Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/maven-metadata.xml (21 kB at 165 kB/s)
+[INFO] 
+[INFO] ---------------------< com.travelmate:travelmate >----------------------
+[INFO] Building  0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.5.14:run (default-cli) > test-compile @ travelmate >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ travelmate ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 123 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ travelmate ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 71 source files with javac [debug parameters release 21] to target\classes
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by lombok.permit.Permit
+WARNING: Please consider reporting this to the maintainers of class lombok.permit.Permit
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ travelmate ---
+[INFO] skip non existing resourceDirectory C:\TravelMate\travelmate\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ travelmate ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 1 source file with javac [debug parameters release 21] to target\test-classes
+[INFO] 
+[INFO] <<< spring-boot:3.5.14:run (default-cli) < test-compile @ travelmate <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.5.14:run (default-cli) @ travelmate ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.14)
+
+2026-05-11T10:24:47.433+07:00  INFO 32524 --- [travelmate] [  restartedMain] com.travelmate.TravelmateApplication     : Starting TravelmateApplication using Java 26 with PID 32524 (C:\TravelMate\travelmate\target\classes started by ASUS in C:\TravelMate\travelmate)
+2026-05-11T10:24:47.440+07:00 DEBUG 32524 --- [travelmate] [  restartedMain] com.travelmate.TravelmateApplication     : Running with Spring Boot v3.5.14, Spring v6.2.18
+2026-05-11T10:24:47.440+07:00  INFO 32524 --- [travelmate] [  restartedMain] com.travelmate.TravelmateApplication     : No active profile set, falling back to 1 default profile: "default"
+2026-05-11T10:24:51.885+07:00  WARN 32524 --- [travelmate] [  restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
+2026-05-11T10:24:52.211+07:00  INFO 32524 --- [travelmate] [  restartedMain] com.travelmate.TravelmateApplication     : Started TravelmateApplication in 5.163 seconds (process running for 5.545)
+? [DataInitializer] Hoàn t?t seed data!
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.14)
+
+2026-05-11T10:31:39.849+07:00  INFO 32524 --- [travelmate] [  restartedMain] com.travelmate.TravelmateApplication     : Starting TravelmateApplication using Java 26 with PID 32524 (C:\TravelMate\travelmate\target\classes started by ASUS in C:\TravelMate\travelmate)
+2026-05-11T10:31:39.849+07:00 DEBUG 32524 --- [travelmate] [  restartedMain] com.travelmate.TravelmateApplication     : Running with Spring Boot v3.5.14, Spring v6.2.18
+2026-05-11T10:31:39.849+07:00  INFO 32524 --- [travelmate] [  restartedMain] com.travelmate.TravelmateApplication     : No active profile set, falling back to 1 default profile: "default"
+2026-05-11T10:31:42.292+07:00  WARN 32524 --- [travelmate] [  restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
+2026-05-11T10:31:42.370+07:00  INFO 32524 --- [travelmate] [  restartedMain] com.travelmate.TravelmateApplication     : Started TravelmateApplication in 2.544 seconds (process running for 415.703)
+? [DataInitializer] Hoàn t?t seed data!
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.14)
+
+2026-05-11T10:40:57.817+07:00  INFO 32524 --- [travelmate] [  restartedMain] com.travelmate.TravelmateApplication     : Starting TravelmateApplication using Java 26 with PID 32524 (C:\TravelMate\travelmate\target\classes started by ASUS in C:\TravelMate\travelmate)
+2026-05-11T10:40:57.817+07:00 DEBUG 32524 --- [travelmate] [  restartedMain] com.travelmate.TravelmateApplication     : Running with Spring Boot v3.5.14, Spring v6.2.18
+2026-05-11T10:40:57.817+07:00  INFO 32524 --- [travelmate] [  restartedMain] com.travelmate.TravelmateApplication     : No active profile set, falling back to 1 default profile: "default"
+2026-05-11T10:41:00.116+07:00  WARN 32524 --- [travelmate] [  restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
+2026-05-11T10:41:00.181+07:00  INFO 32524 --- [travelmate] [  restartedMain] com.travelmate.TravelmateApplication     : Started TravelmateApplication in 2.389 seconds (process running for 973.514)
+? [DataInitializer] Hoàn t?t seed data!
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  21:23 min
+[INFO] Finished at: 2026-05-11T10:45:59+07:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.5.14:run (default-cli) on project travelmate: Process terminated with exit code: 1 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

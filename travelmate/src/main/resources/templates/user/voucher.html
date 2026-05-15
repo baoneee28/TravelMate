@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TravelMate - Kho Voucher</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/travel.css" />
+    <link rel="stylesheet" href="/assets/css/voucher.css" />
+    <style>
+        .voucher-code-chip {
+            display: inline-block;
+            background: #f1f5f9;
+            border: 1.5px dashed #94a3b8;
+            border-radius: 6px;
+            padding: 4px 12px;
+            font-family: monospace;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: #1e40af;
+            cursor: pointer;
+            transition: background .15s;
+        }
+        .voucher-code-chip:hover { background: #dbeafe; }
+        .voucher-meta { font-size: 12px; color: #64748b; margin-top: 6px; }
+        .voucher-meta span { margin-right: 12px; }
+        .campaign-empty { text-align: center; padding: 60px 20px; color: #94a3b8; }
+        .campaign-empty i { font-size: 48px; margin-bottom: 12px; display: block; }
+    </style>
+</head>
+<body>
+    <!-- SIDEBAR -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar-menu" id="sidebarMenu">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                <span class="s-logo-text">TRAVEL<span>MATE</span></span>
+            </div>
+            <button class="sidebar-close-btn" id="sidebarCloseBtn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="sidebar-nav-label">Chức năng</div>
+            <a href="/accommodations"><span class="s-icon"><i class="fa-solid fa-bed"></i></span>Đặt phòng</a>
+            <a href="/travel"><span class="s-icon"><i class="fa-solid fa-map-location-dot"></i></span>Gợi ý du lịch</a>
+            <a href="/news"><span class="s-icon"><i class="fa-solid fa-newspaper"></i></span>Tin tức</a>
+            <a href="/contact"><span class="s-icon"><i class="fa-solid fa-headset"></i></span>Liên hệ</a>
+            <a href="/vouchers" class="active-sidebar"><span class="s-icon"><i class="fa-solid fa-ticket"></i></span>Kho voucher</a>
+        </nav>
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-auth" id="sidebarAuth"></div>
+    </aside>
+
+    <!-- HEADER -->
+    <header class="header travel-header header-static" id="header">
+        <div class="container navbar">
+            <div class="logo-wrapper">
+                <a href="/" class="logo">
+                    <div class="logo-icon"><i class="fa-solid fa-building"></i></div>
+                    <span class="logo-text"><span class="logo-blue">TRAVEL</span><span class="logo-yellow">MATE</span></span>
+                </a>
+                <button class="hamburger-btn" id="hamburgerBtn">
+                    <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+                </button>
+            </div>
+            <nav class="menu">
+                <ul class="menu-list">
+                    <li><a href="/">TRANG CHỦ</a></li>
+                    <li><a href="/travel">GỢI Ý DU LỊCH</a></li>
+                    <li><a href="/news">TIN TỨC</a></li>
+                    <li><a href="/contact">LIÊN HỆ</a></li>
+                    <li><a href="/my-bookings" class="my-booking"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a></li>
+                </ul>
+            </nav>
+            <a href="/auth/login" class="login-btn" sec:authorize="isAnonymous()">ĐĂNG NHẬP</a>
+            <div class="header-user" id="headerUser" sec:authorize="isAuthenticated()">
+                <button class="header-user-btn" id="headerUserBtn" type="button">
+                    <div class="header-avatar"><i class="fa-solid fa-user"></i></div>
+                    <span class="header-user-name" sec:authentication="principal.fullName">User</span>
+                    <i class="fa-solid fa-chevron-down header-chevron"></i>
+                </button>
+                <div class="header-user-dropdown" id="headerUserDropdown">
+                    <a href="/my-bookings" class="dropdown-item"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a>
+                    <div class="dropdown-divider"></div>
+                    <form method="post" action="/auth/logout">
+                        <button type="submit" class="dropdown-item dropdown-logout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="travel-hero">
+        <div class="travel-hero-bg" style="background-image: url('https://images.unsplash.com/photo-1571867424488-4565932edb41?q=80&w=1920');"></div>
+        <div class="travel-hero-overlay"></div>
+        <div class="container travel-hero-content">
+            <h1 class="travel-title-left">KHÁM PHÁ ƯU ĐÃI &amp;</h1>
+            <h1 class="travel-title-right"><span class="text-gradient">KHO VOUCHER</span></h1>
+            <p class="travel-hero-desc">Theo dõi các chương trình khuyến mãi hấp dẫn và lên kế hoạch tiết kiệm cho chuyến đi tiếp theo của bạn.</p>
+        </div>
+        <div class="travel-hero-bottom"></div>
+    </section>
+
+    <!-- MAIN CONTENT -->
+    <section class="campaign-section">
+        <div class="container">
+            <div class="campaign-header">
+                <h2><i class="fa-solid fa-bullhorn text-sky"></i> Chiến Dịch Ưu Đãi Đặc Biệt</h2>
+                <span style="font-size:13px;color:#64748b;" th:text="${#lists.size(publicVouchers)} + ' voucher đang hoạt động'">0 voucher</span>
+            </div>
+
+            <!-- Không có voucher -->
+            <div th:if="${#lists.isEmpty(publicVouchers)}" class="campaign-empty">
+                <i class="fa-solid fa-ticket-slash"></i>
+                <p>Hiện chưa có voucher nào dành cho bạn.<br>Hãy quay lại sau hoặc đặt phòng để nhận ưu đãi riêng!</p>
+            </div>
+
+            <!-- Danh sách voucher từ DB -->
+            <div th:if="${!#lists.isEmpty(publicVouchers)}" class="campaign-grid">
+                <div th:each="v, stat : ${publicVouchers}" class="campaign-card">
+                    <!-- Ảnh bìa + badge giảm giá -->
+                    <div class="campaign-card-img"
+                         th:style="'background-image: url(\'' + ${stat.index % 4 == 0 ? 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=600' : stat.index % 4 == 1 ? 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=600' : stat.index % 4 == 2 ? 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=600' : 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=600'} + '\')'">
+                        <span class="campaign-card-badge">
+                            Giảm
+                            <th:block th:if="${v.discountType.name() == 'PERCENT'}"
+                                      th:text="${v.discountValue} + '%'"></th:block>
+                            <th:block th:if="${v.discountType.name() == 'FIXED_AMOUNT'}"
+                                      th:text="${#numbers.formatDecimal(v.discountValue, 0, 'COMMA', 0, 'POINT')} + 'đ'"></th:block>
+                        </span>
+                    </div>
+
+                    <div class="campaign-card-body">
+                        <div class="campaign-card-title" th:text="${v.name != null ? v.name : 'Ưu Đãi TravelMate'}">Tên ưu đãi</div>
+
+                        <div class="campaign-card-details">
+                            <div class="campaign-card-details-col">
+                                Thời gian
+                                <strong>
+                                    <span th:if="${v.startDate != null}" th:text="${#temporals.format(v.startDate, 'dd/MM/yy')}">—</span>
+                                    <span th:if="${v.startDate == null}">Ngay hôm nay</span>
+                                    –
+                                    <span th:if="${v.endDate != null}" th:text="${#temporals.format(v.endDate, 'dd/MM/yy')}">—</span>
+                                    <span th:if="${v.endDate == null}">Không hết hạn</span>
+                                </strong>
+                            </div>
+                            <div class="campaign-card-details-col">
+                                Đơn tối thiểu
+                                <strong th:text="${v.minOrderAmount != null && v.minOrderAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0 ? #numbers.formatDecimal(v.minOrderAmount, 0, 'COMMA', 0, 'POINT') + 'đ' : 'Không giới hạn'}">—</strong>
+                            </div>
+                        </div>
+
+                        <!-- Mô tả nếu có -->
+                        <div th:if="${v.description != null && !v.description.isBlank()}"
+                             style="font-size:12px;color:#64748b;margin:8px 0;"
+                             th:text="${v.description}"></div>
+
+                        <!-- Giảm tối đa (nếu là PERCENT) -->
+                        <div class="voucher-meta" th:if="${v.discountType.name() == 'PERCENT' && v.maxDiscountAmount != null}">
+                            <span>Tối đa: <strong th:text="${#numbers.formatDecimal(v.maxDiscountAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'">—</strong></span>
+                        </div>
+
+                        <!-- Mã voucher — click để copy -->
+                        <div style="margin-top:12px;display:flex;align-items:center;gap:10px;">
+                            <span class="voucher-code-chip"
+                                  th:text="${v.code}"
+                                  th:attr="onclick='copyCode(this, \'' + ${v.code} + '\')'">CODE</span>
+                            <span style="font-size:12px;color:#94a3b8;">← Click để sao chép</span>
+                        </div>
+
+                        <a href="/accommodations" class="campaign-card-btn" style="margin-top:12px;display:block;text-align:center;text-decoration:none;">
+                            Đặt phòng ngay &rarr;
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hướng dẫn dùng mã -->
+            <div th:if="${!#lists.isEmpty(publicVouchers)}"
+                 style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-top:24px;font-size:13px;color:#166534;line-height:1.8;">
+                <strong><i class="fa-solid fa-circle-info"></i> Cách sử dụng voucher:</strong><br>
+                1. Chọn phòng &amp; điền thông tin đặt phòng tại <a href="/accommodations" style="color:#15803d;font-weight:600;">/accommodations</a><br>
+                2. Nhập mã voucher vào ô <em>"Mã giảm giá"</em> ở bước xác nhận đặt phòng<br>
+                3. Hệ thống tự động tính giảm giá khi bạn bấm đặt phòng
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container footer-content">
+            <div class="logo">
+                <div class="logo-icon bg-sky"><i class="fa-solid fa-building"></i></div>
+                <span class="logo-text text-white">TRAVEL<span class="logo-yellow">MATE</span></span>
+            </div>
+            <p>&copy; 2024 TravelMate. Đồ án Cơ sở lập trình Web.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Header scroll
+        window.addEventListener('scroll', () => {
+            const h = document.getElementById('header');
+            if (window.scrollY > 40) h.classList.add('scrolled'); else h.classList.remove('scrolled');
+        });
+
+        // Sidebar toggle
+        [document.getElementById('hamburgerBtn'), document.getElementById('sidebarCloseBtn'), document.getElementById('sidebarOverlay')]
+            .forEach(btn => btn && btn.addEventListener('click', () => {
+                document.getElementById('sidebarMenu').classList.toggle('active');
+                document.getElementById('sidebarOverlay').classList.toggle('active');
+            }));
+
+        // Header user dropdown
+        const headerUserBtn = document.getElementById('headerUserBtn');
+        if (headerUserBtn) {
+            headerUserBtn.addEventListener('click', () =>
+                document.getElementById('headerUserDropdown').classList.toggle('show'));
+        }
+
+        // Copy voucher code
+        function copyCode(el, code) {
+            navigator.clipboard.writeText(code).then(() => {
+                const orig = el.textContent;
+                el.textContent = '✅ Đã sao chép!';
+                setTimeout(() => el.textContent = orig, 1500);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doanh Thu Của Tôi – Partner TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <link rel="stylesheet" href="/assets/css/partners.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        .prev-kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:24px; }
+        .prev-kpi-card { background:var(--color-surface,#fff); border-radius:12px; padding:20px; box-shadow:0 1px 4px rgba(0,0,0,.08); }
+        .prev-kpi-card__label { font-size:12px; color:#6b7280; margin-bottom:4px; }
+        .prev-kpi-card__value { font-size:22px; font-weight:700; }
+        .prev-kpi-card__sub { font-size:11px; color:#9ca3af; margin-top:3px; }
+        .formula-box { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; font-family:monospace; font-size:13px; margin-top:8px; color:#374151; }
+        .info-box { background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:12px 16px; margin-bottom:20px; font-size:13px; line-height:1.7; }
+        .rev-table-wrap { overflow-x:auto; }
+        .rev-table { width:100%; border-collapse:collapse; font-size:13px; min-width:860px; }
+        .rev-table th { background:#f8fafc; font-weight:600; padding:10px 12px; border-bottom:1px solid #e2e8f0; white-space:nowrap; }
+        .rev-table td { padding:10px 12px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+        .rev-table tr:last-child td { border-bottom:none; }
+        .rev-table tr:hover td { background:#f8fafc; }
+        .badge-approved  { background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600; }
+        .badge-forfeited { background:#fee2e2; color:#dc2626; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600; }
+        .badge-voucher   { background:#e0e7ff; color:#4338ca; padding:2px 6px; border-radius:10px; font-size:11px; }
+        .section-title   { font-size:15px; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+        .empty-state     { text-align:center; padding:40px; color:#6b7280; }
+    </style>
+</head>
+<body>
+<div class="admin-wrapper">
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar__header">
+            <a href="/partner/dashboard" class="sidebar-logo">
+                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                <div>
+                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                    <span class="admin-sidebar__badge">PARTNER CENTER</span>
+                </div>
+            </a>
+        </div>
+        <nav class="admin-sidebar__nav">
+            <div class="admin-sidebar__section-title">Tổng quan</div>
+            <a href="/partner/dashboard" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">📊</span> Dashboard
+            </a>
+            <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
+            <a href="/partner/accommodations" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">🏨</span> Nơi lưu trú của tôi
+            </a>
+            <a href="/partner/accommodations/new" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">＋</span> Đăng ký mới
+            </a>
+            <a href="/partner/amenities" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🏷</span> Tiện nghi phòng
+                </a>
+            <a href="/partner/bookings" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">📋</span> Đơn đặt phòng
+            </a>
+            <a href="/partner/room-status" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏠</span> Tình trạng phòng hôm nay</a>
+            <a href="/partner/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Kiểm tra lịch trống</a>
+            <a href="/partner/direct-booking" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">➕</span> Booking trực tiếp</a>
+            <a href="/partner/reviews" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">⭐</span> Đánh giá của khách
+            </a>
+            <div class="admin-sidebar__section-title">Tài chính</div>
+            <a href="/partner/revenue" class="admin-sidebar__link active">
+                <span class="admin-sidebar__link-icon">💰</span> Doanh thu
+            </a>
+            <a href="/partner/settlements" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">🏦</span> Quyết toán
+            </a>
+            <a href="/partner/vouchers" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">🎟</span> Voucher của tôi
+            </a>
+            <div class="admin-sidebar__section-title">Hỗ trợ</div>
+            <a href="/partner/support" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ
+            </a>
+                <a href="/partner/profile" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">👤</span> Hồ sơ của tôi
+                </a>
+        </nav>
+        <div class="admin-sidebar__footer">
+            <div class="admin-sidebar__user">
+                <div class="admin-sidebar__user-avatar">PT</div>
+                <div class="admin-sidebar__user-info">
+                    <div class="admin-sidebar__user-name" th:text="${partnerName} ?: 'Partner'">Partner</div>
+                    <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+    <div class="admin-sidebar-overlay"></div>
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div style="display:flex;align-items:center;gap:var(--space-4)">
+                <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                <h1 class="admin-topbar__title">💰 Doanh Thu Của Tôi</h1>
+                <span style="font-size:12px;color:#6b7280;background:#f3f4f6;padding:3px 10px;border-radius:20px;">📡 Dữ liệu thật từ MySQL</span>
+            </div>
+            <div class="admin-topbar__actions">
+                <form th:action="@{/auth/logout}" method="post" style="display:inline;">                    <button type="submit" class="btn btn--ghost btn--sm">🚪 Đăng xuất</button>
+                </form>
+            </div>
+        </header>
+
+        <main class="admin-content">
+
+            <!-- Flash messages -->
+            <div th:if="${successMessage}" style="margin-bottom:16px;padding:12px 16px;background:#ecfdf5;border-radius:8px;font-size:13px;color:#065f46;border:1px solid #a7f3d0;">
+                <span th:text="${successMessage}"></span>
+            </div>
+            <div th:if="${errorMessage}" style="margin-bottom:16px;padding:12px 16px;background:#fef2f2;border-radius:8px;font-size:13px;color:#991b1b;border:1px solid #fecaca;">
+                <span th:text="${errorMessage}"></span>
+            </div>
+
+            <!-- Info box -->
+            <div class="info-box">
+                📌 Doanh thu chỉ được tính từ các booking <strong>ONLINE qua TravelMate</strong> có payment
+                <strong>APPROVED</strong> (thanh toán đủ) hoặc <strong>DEPOSIT_FORFEITED</strong> (giữ cọc do khách không đến).
+                Booking trực tiếp (DIRECT) và chặn phòng (MANUAL_BLOCK) không tính vào doanh thu TravelMate.
+                Chiết khấu được tính theo <strong>rate hiệu lực</strong>: ưu tiên rate riêng của từng phòng, nếu không có dùng rate mặc định theo loại lưu trú.
+                <div class="formula-box">
+                    Số tiền bạn nhận = Tiền TravelMate thu online − Commission nền tảng − Voucher partner chịu
+                </div>
+                <div style="font-size:12px;color:#1d4ed8;margin-top:8px;">
+                    ⚠️ Với đơn cọc 30%: quyết toán chỉ tính trên 30% đã thanh toán qua TravelMate. Phần 70% còn lại khách trả tại cơ sở không đi qua quyết toán.
+                </div>
+            </div>
+
+            <!-- KPI -->
+            <div class="prev-kpi-grid">
+                <div class="prev-kpi-card">
+                    <div class="prev-kpi-card__label">Tiền TravelMate thu online</div>
+                    <div class="prev-kpi-card__value"
+                         th:text="${#numbers.formatDecimal(summary.totalGross,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
+                    <div class="prev-kpi-card__sub">Từng tiền khách hàng đã thanh toán qua TravelMate</div>
+                </div>
+                <div class="prev-kpi-card">
+                    <div class="prev-kpi-card__label">Commission nền tảng</div>
+                    <div class="prev-kpi-card__value" style="color:#dc2626;"
+                         th:text="${#numbers.formatDecimal(summary.totalCommission,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
+                    <div class="prev-kpi-card__sub" th:text="'Tỷ lệ ' + ${summary.commissionRate} + '%'">"Tỷ lệ 15%"</div>
+                </div>
+                <div class="prev-kpi-card">
+                    <div class="prev-kpi-card__label">Voucher partner chịu</div>
+                    <div class="prev-kpi-card__value" style="color:#d97706;"
+                         th:text="${#numbers.formatDecimal(summary.totalVoucherDeduction,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
+                    <div class="prev-kpi-card__sub">Voucher bạn tự tạo — bạn chịu chi phí</div>
+                </div>
+                <div class="prev-kpi-card">
+                    <div class="prev-kpi-card__label">Dự kiến nhận từ TravelMate</div>
+                    <div class="prev-kpi-card__value" style="color:#16a34a;"
+                         th:text="${#numbers.formatDecimal(summary.totalPayout,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
+                    <div class="prev-kpi-card__sub" th:text="${summary.totalBookings} + ' booking online'">0 booking</div>
+                </div>
+            </div>
+
+            <!-- Quick links -->
+            <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+                <a href="/partner/settlements" class="btn btn--primary btn--sm">
+                    <i class="fa-solid fa-list-check"></i> Xem Quyết Toán
+                </a>
+                <a href="/partner/vouchers" class="btn btn--ghost btn--sm">
+                    <i class="fa-solid fa-ticket"></i> Quản lý Voucher
+                </a>
+            </div>
+
+            <!-- Revenue Detail Table -->
+            <div class="admin-section">
+                <div class="section-title"><i class="fa-solid fa-table"></i> Chi Tiết Doanh Thu — Booking Của Bạn</div>
+
+                <div th:if="${#lists.isEmpty(revenueItems)}" class="empty-state">
+                    <i class="fa-solid fa-chart-line" style="font-size:40px;opacity:.25;margin-bottom:10px;"></i>
+                    <p>Chưa có doanh thu. Doanh thu được ghi nhận khi Admin duyệt thanh toán.</p>
+                </div>
+
+                <div th:if="${!#lists.isEmpty(revenueItems)}" class="rev-table-wrap">
+                    <table class="rev-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Mã Booking</th>
+                                <th>Phòng</th>
+                                <th>Loại phòng</th>
+                                <th>TT Thanh toán</th>
+                                <th>Tiền TM thu online (đ)</th>
+                                <th>Rate CK</th>
+                                <th>Nguồn CK</th>
+                                <th>CK (đ)</th>
+                                <th>Voucher trừ</th>
+                                <th>Bạn nhận (đ)</th>
+                                <th>Thời gian</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item, stat : ${revenueItems}">
+                                <td th:text="${stat.index + 1}">1</td>
+                                <td>
+                                    <strong th:text="${item.bookingCode}">BK-R101-0001</strong>
+                                    <div style="font-size:11px;color:#6b7280;" th:text="${item.accommodationName}">LATA Hotel</div>
+                                </td>
+                                <td th:text="${item.roomName}">Phòng</td>
+                                <!-- Loại phòng -->
+                                <td>
+                                    <span th:text="${item.roomCategoryVN}"
+                                          style="font-size:12px;font-weight:600;">Tiêu chuẩn</span>
+                                </td>
+                                <td>
+                                    <span class="badge-approved"  th:if="${item.paymentStatus == 'APPROVED'}"  th:text="${item.paymentStatusVN}">Đã TT</span>
+                                    <span class="badge-forfeited" th:if="${item.paymentStatus == 'DEPOSIT_FORFEITED'}" th:text="${item.paymentStatusVN}">Giữ cọc</span>
+                                </td>
+                                <td th:text="${#numbers.formatDecimal(item.grossAmount,0,'COMMA',0,'POINT')}">0</td>
+                                <!-- Rate CK hiệu lực -->
+                                <td>
+                                    <strong th:text="${item.effectiveRateDisplay}">15%</strong>
+                                </td>
+                                <!-- Nguồn CK -->
+                                <td>
+                                    <span th:if="${item.commissionSource == 'ROOM_OVERRIDE'}"
+                                          style="background:#fef3c7;color:#b45309;padding:2px 6px;border-radius:8px;font-size:11px;font-weight:600;white-space:nowrap;">
+                                        🔧 Theo phòng
+                                    </span>
+                                    <span th:if="${item.commissionSource != 'ROOM_OVERRIDE'}"
+                                          style="background:#f0f9ff;color:#0369a1;padding:2px 6px;border-radius:8px;font-size:11px;font-weight:600;white-space:nowrap;">
+                                        🏨 Mặc định
+                                    </span>
+                                </td>
+                                <!-- CK amount -->
+                                <td>
+                                    <span th:text="${#numbers.formatDecimal(item.commissionAmount,0,'COMMA',0,'POINT')}">0</span>
+                                </td>
+                                <td>
+                                    <span th:if="${item.voucherDeductionAmount.compareTo(new java.math.BigDecimal(0)) > 0}"
+                                          style="color:#d97706;"
+                                          th:text="${#numbers.formatDecimal(item.voucherDeductionAmount,0,'COMMA',0,'POINT')}">0</span>
+                                    <span th:if="${item.voucherDeductionAmount.compareTo(new java.math.BigDecimal(0)) == 0}"
+                                          style="color:#d1d5db;">—</span>
+                                </td>
+                                <td style="color:#16a34a;font-weight:700;"
+                                    th:text="${#numbers.formatDecimal(item.partnerNetAmount,0,'COMMA',0,'POINT')}">0</td>
+                                <td style="font-size:12px;color:#6b7280;white-space:nowrap;"
+                                    th:text="${item.createdAt != null ? #temporals.format(item.createdAt,'dd/MM/yyyy HH:mm') : '—'}">—</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/admin.js"></script>
+<!-- partner-revenue.js đã được thay thế bằng Thymeleaf server-side — KHÔNG import -->
+</body>
+</html>

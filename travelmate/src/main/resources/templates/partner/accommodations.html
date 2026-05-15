@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nơi Lưu Trú Của Tôi – Partner TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <link rel="stylesheet" href="/assets/css/partners.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+
+<body>
+    <div class="admin-wrapper">
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar__header">
+                <a href="/partner/dashboard" class="sidebar-logo">
+                    <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                    <div>
+                        <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                        <span class="admin-sidebar__badge">PARTNER CENTER</span>
+                    </div>
+                </a>
+            </div>
+            <nav class="admin-sidebar__nav">
+                <div class="admin-sidebar__section-title">Tổng quan</div>
+                <a href="/partner/dashboard" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">📊</span> Dashboard
+                </a>
+                <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
+                <a href="/partner/accommodations" class="admin-sidebar__link active">
+                    <span class="admin-sidebar__link-icon">🏨</span> Nơi lưu trú của tôi
+                </a>
+                <a href="/partner/accommodations/new" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">＋</span> Đăng ký mới
+                </a>
+                <a href="/partner/amenities" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🏷</span> Tiện nghi phòng
+                </a>
+                <a href="/partner/bookings" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">📋</span> Đơn đặt phòng
+                </a>
+                <a href="/partner/room-status" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏠</span> Tình trạng phòng hôm nay</a>
+                <a href="/partner/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Kiểm tra lịch trống</a>
+                <a href="/partner/direct-booking" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">➕</span> Booking trực tiếp</a>
+                <a href="/partner/reviews" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">⭐</span> Đánh giá của khách
+                </a>
+                <div class="admin-sidebar__section-title">Tài chính</div>
+                <a href="/partner/revenue" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">💰</span> Doanh thu
+                </a>
+                <a href="/partner/settlements" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🏦</span> Quyết toán
+                </a>
+                <a href="/partner/vouchers" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🎟</span> Voucher của tôi
+                </a>
+                <div class="admin-sidebar__section-title">Hỗ trợ</div>
+                <a href="/partner/support" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ
+                </a>
+                <a href="/partner/profile" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">👤</span> Hồ sơ của tôi
+                </a>
+            </nav>
+            <div class="admin-sidebar__footer">
+                <div class="admin-sidebar__user">
+                    <div class="admin-sidebar__user-avatar">PT</div>
+                    <div class="admin-sidebar__user-info">
+                        <div class="admin-sidebar__user-name" th:text="${partnerName} ?: 'Partner'">Partner</div>
+                        <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <div class="admin-sidebar-overlay"></div>
+
+        <div class="admin-main">
+            <header class="admin-topbar">
+                <div style="display: flex; align-items: center; gap: var(--space-4)">
+                    <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                    <h1 class="admin-topbar__title">🏨 Nơi lưu trú của tôi</h1>
+                </div>
+                <div class="admin-topbar__actions">
+                    <a href="/partner/accommodations/new" class="btn btn--primary btn--sm">+ Đăng ký mới</a>
+                    <form th:action="@{/auth/logout}" method="post" style="display:inline;">                        <button type="submit" class="btn btn--ghost btn--sm">🚪 Đăng xuất</button>
+                    </form>
+                </div>
+            </header>
+
+            <main class="admin-content">
+                <div class="page-header">
+                    <div>
+                        <h2 class="page-header__title">🏨 Danh sách nơi lưu trú của bạn</h2>
+                        <p class="page-header__subtitle">
+                            Loại đăng ký: <strong th:text="${partnerPropertyType != null ? partnerPropertyType.name() : 'Chưa đăng ký'}">HOTEL</strong>
+                            · Chỉ listing APPROVED mới hiển thị cho khách hàng đặt phòng.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Flash messages -->
+                <div th:if="${successMessage}" style="margin-bottom: var(--space-4); padding: 12px 16px; background: #ecfdf5; border-radius: 8px; font-size: 13px; color: #065f46; border: 1px solid #a7f3d0;">
+                    <span th:text="${successMessage}"></span>
+                </div>
+                <div th:if="${errorMessage}" style="margin-bottom: var(--space-4); padding: 12px 16px; background: #fef2f2; border-radius: 8px; font-size: 13px; color: #991b1b; border: 1px solid #fecaca;">
+                    <span th:text="${errorMessage}"></span>
+                </div>
+
+                <!-- Stats row -->
+                <div class="stats-grid" style="margin-bottom: var(--space-5);">
+                    <div class="stats-card">
+                        <div class="stats-card__icon stats-card__icon--blue">🏨</div>
+                        <div>
+                            <div class="stats-card__value" th:text="${#lists.size(accommodations)}">0</div>
+                            <div class="stats-card__label">Tổng nơi lưu trú</div>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-card__icon stats-card__icon--green">✅</div>
+                        <div>
+                            <div class="stats-card__value" th:text="${approvedCount}">0</div>
+                            <div class="stats-card__label">Đã duyệt</div>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-card__icon stats-card__icon--amber">⏳</div>
+                        <div>
+                            <div class="stats-card__value" th:text="${pendingCount}">0</div>
+                            <div class="stats-card__label">Chờ admin duyệt</div>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-card__icon stats-card__icon--red">❌</div>
+                        <div>
+                            <div class="stats-card__value" th:text="${rejectedCount}">0</div>
+                            <div class="stats-card__label">Bị từ chối</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="table-wrap">
+                    <table class="table data-table">
+                        <thead>
+                            <tr>
+                                <th>Tên nơi lưu trú</th>
+                                <th>Loại</th>
+                                <th>Thành phố</th>
+                                <th>Sao</th>
+                                <th>Số phòng</th>
+                                <th>Trạng thái duyệt</th>
+                                <th>Ngày tạo</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Không có data -->
+                            <tr th:if="${#lists.isEmpty(accommodations)}">
+                                <td colspan="7" style="text-align:center;padding:40px;color:var(--color-text-muted);">
+                                    <div style="font-size:48px;margin-bottom:12px;">🏗</div>
+                                    <p style="font-weight:600;margin-bottom:8px;">Bạn chưa đăng ký nơi lưu trú nào</p>
+                                    <p style="font-size:13px;margin-bottom:16px;">Nhấn nút bên dưới để bắt đầu đăng ký và chờ Admin duyệt.</p>
+                                    <a href="/partner/accommodations/new" class="btn btn--primary">+ Đăng ký nơi lưu trú đầu tiên</a>
+                                </td>
+                            </tr>
+                            <!-- Render từng row từ MySQL -->
+                            <tr th:each="acc : ${accommodations}">
+                                <td>
+                                    <div style="font-weight:600;" th:text="${acc.name}">Tên</div>
+                                    <div style="font-size:11px;color:var(--color-text-muted);"
+                                         th:text="${acc.address ?: '--'}">Địa chỉ</div>
+                                </td>
+                                <td>
+                                    <span class="badge badge--primary"
+                                          th:text="${acc.propertyType.name() == 'HOTEL' ? '🏨 Hotel' :
+                                                    acc.propertyType.name() == 'VILLA' ? '⛰ Villa' :
+                                                    acc.propertyType.name() == 'HOMESTAY' ? '🏠 Homestay' : '🌴 Resort'}">
+                                        Loại
+                                    </span>
+                                </td>
+                                <td th:text="${acc.city ?: '--'}">TP</td>
+                                <td>
+                                    <span th:if="${acc.starRating != null}" th:text="${acc.starRating} + '⭐'">4⭐</span>
+                                    <span th:if="${acc.starRating == null}">--</span>
+                                </td>
+                                <td style="text-align:center;font-weight:600;color:var(--color-primary);">
+                                    <span th:text="${roomCountMap[acc.id] ?: 0}">0</span>
+                                    <span style="font-size:11px;font-weight:400;color:var(--color-text-muted);"> phòng</span>
+                                </td>
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="${acc.approvalStatus.name() == 'PENDING' ? 'badge--warning' :
+                                                          acc.approvalStatus.name() == 'APPROVED' ? 'badge--success' : 'badge--danger'}"
+                                          th:text="${acc.approvalStatus.name() == 'PENDING' ? '⏳ Chờ admin duyệt' :
+                                                    acc.approvalStatus.name() == 'APPROVED' ? '✅ Đã duyệt — Đang mở bán' : '❌ Bị từ chối'}">
+                                        Trạng thái
+                                    </span>
+                                    <!-- Giải thích khi bị từ chối -->
+                                    <div th:if="${acc.approvalStatus.name() == 'REJECTED'}"
+                                         style="font-size:11px;color:#dc2626;margin-top:4px;">
+                                        Liên hệ Admin để biết lý do.
+                                    </div>
+                                    <!-- Giải thích khi đang pending -->
+                                    <div th:if="${acc.approvalStatus.name() == 'PENDING'}"
+                                         style="font-size:11px;color:#d97706;margin-top:4px;">
+                                        Khách hàng chưa thấy listing này.
+                                    </div>
+                                </td>
+                                <td style="font-size:12px;color:var(--color-text-muted);">
+                                    <span th:if="${acc.createdAt != null}"
+                                          th:text="${#temporals.format(acc.createdAt, 'dd/MM/yyyy')}">--</span>
+                                    <span th:if="${acc.createdAt == null}">--</span>
+                                </td>
+                                <td>
+                                    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                        <!-- Xem trang public nếu APPROVED -->
+                                        <a th:if="${acc.approvalStatus.name() == 'APPROVED'}"
+                                           th:href="@{/accommodations/{id}(id=${acc.id})}"
+                                           target="_blank" class="btn btn--ghost btn--sm"
+                                           style="font-size:12px;padding:5px 10px;">
+                                            🔗 Xem
+                                        </a>
+                                        <!-- Thêm phòng CHỈ khi APPROVED -->
+                                        <a th:if="${acc.approvalStatus.name() == 'APPROVED'}"
+                                           th:href="@{/partner/accommodations/{id}/rooms/new(id=${acc.id})}"
+                                           class="btn btn--sm"
+                                           style="background:#2563eb;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;">
+                                            🛏 Thêm phòng
+                                        </a>
+                                        <!-- Nếu PENDING: hiển thị badge chờ -->
+                                        <span th:if="${acc.approvalStatus.name() == 'PENDING'}"
+                                              class="badge badge--warning" style="font-size:11px;">⏳ Chờ duyệt</span>
+                                        <!-- Nếu REJECTED: gợi ý liên hệ admin -->
+                                        <span th:if="${acc.approvalStatus.name() == 'REJECTED'}"
+                                              class="badge badge--danger" style="font-size:11px;">❌ Liên hệ Admin</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Info box -->
+                <div style="margin-top: var(--space-5); padding: 16px; background: #eff6ff; border-radius: 8px; border: 1px solid #bfdbfe; font-size: 13px; color: #1d4ed8;">
+                    <strong>💡 Lưu ý:</strong>
+                    <ul style="margin: 8px 0 0 16px; line-height: 1.6;">
+                        <li>Listing mới sẽ ở trạng thái <strong>Chờ admin duyệt</strong> sau khi bạn đăng ký.</li>
+                        <li>Sau khi Admin duyệt, khách hàng mới thấy và có thể đặt phòng.</li>
+                        <li>Bạn chỉ có thể thêm phòng cho listing đã được Admin duyệt.</li>
+                        <li>Loại lưu trú đăng ký: <strong th:text="${partnerPropertyType != null ? partnerPropertyType.name() : 'Chưa đăng ký'}">HOTEL</strong> (không thể thay đổi).</li>
+                    </ul>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/admin.js"></script>
+</body>
+
+</html>
+

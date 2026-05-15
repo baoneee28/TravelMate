@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voucher Của Tôi – Partner TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <link rel="stylesheet" href="/assets/css/partners.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        .create-form { background:var(--color-surface,#fff); border-radius:12px; padding:22px 24px; box-shadow:0 1px 4px rgba(0,0,0,.08); margin-bottom:24px; }
+        .create-form__title { font-size:15px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+        .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; }
+        .form-group label { display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:13px; font-family:inherit; background:#fff;
+            box-sizing:border-box;
+        }
+        .form-group input:focus, .form-group select:focus { outline:none; border-color:#3b82f6; box-shadow:0 0 0 2px rgba(59,130,246,.15); }
+        .vtable-wrap { overflow-x:auto; }
+        .vtable { width:100%; border-collapse:collapse; font-size:13px; min-width:700px; }
+        .vtable th { background:#f8fafc; font-weight:600; padding:10px 14px; border-bottom:1px solid #e2e8f0; white-space:nowrap; }
+        .vtable td { padding:10px 14px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+        .vtable tr:last-child td { border-bottom:none; }
+        .vtable tr:hover td { background:#f8fafc; }
+        .badge-active   { background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600; }
+        .badge-inactive { background:#f3f4f6; color:#6b7280; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600; }
+        .scope-tag      { background:#ede9fe; color:#7c3aed; padding:2px 8px; border-radius:20px; font-size:11px; }
+        .scope-tag-room { background:#fef3c7; color:#d97706; padding:2px 8px; border-radius:20px; font-size:11px; }
+        .section-title  { font-size:15px; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+        .empty-state    { text-align:center; padding:40px; color:#6b7280; }
+        .info-box       { background:#fef3c7; border:1px solid #fde68a; border-radius:10px; padding:12px 16px; margin-bottom:16px; font-size:13px; line-height:1.7; }
+
+        /* Tabs */
+        .tab-bar { display:flex; gap:0; border-bottom:2px solid #e2e8f0; margin-bottom:20px; }
+        .tab-btn { padding:10px 20px; font-size:13px; font-weight:600; background:none; border:none; cursor:pointer;
+                   color:#6b7280; border-bottom:2px solid transparent; margin-bottom:-2px; transition:color .15s; }
+        .tab-btn.active { color:#3b82f6; border-bottom-color:#3b82f6; }
+        .tab-panel { display:none; }
+        .tab-panel.active { display:block; }
+    </style>
+</head>
+<body>
+<div class="admin-wrapper">
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar__header">
+            <a href="/partner/dashboard" class="sidebar-logo">
+                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                <div>
+                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                    <span class="admin-sidebar__badge">PARTNER CENTER</span>
+                </div>
+            </a>
+        </div>
+        <nav class="admin-sidebar__nav">
+            <div class="admin-sidebar__section-title">Tổng quan</div>
+            <a href="/partner/dashboard" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">📊</span> Dashboard
+            </a>
+            <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
+            <a href="/partner/accommodations" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">🏨</span> Nơi lưu trú của tôi
+            </a>
+            <a href="/partner/accommodations/new" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">＋</span> Đăng ký mới
+            </a>
+            <a href="/partner/amenities" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🏷</span> Tiện nghi phòng
+                </a>
+            <a href="/partner/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đơn đặt phòng</a>
+            <a href="/partner/room-status" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏠</span> Tình trạng phòng hôm nay</a>
+            <a href="/partner/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Kiểm tra lịch trống</a>
+            <a href="/partner/direct-booking" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">➕</span> Booking trực tiếp</a>
+            <a href="/partner/reviews" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá của khách</a>
+            <div class="admin-sidebar__section-title">Tài chính</div>
+            <a href="/partner/revenue" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">💰</span> Doanh thu
+            </a>
+            <a href="/partner/settlements" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">🏦</span> Quyết toán
+            </a>
+            <a href="/partner/vouchers" class="admin-sidebar__link active">
+                <span class="admin-sidebar__link-icon">🎟</span> Voucher của tôi
+            </a>
+            <div class="admin-sidebar__section-title">Hỗ trợ</div>
+            <a href="/partner/support" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ
+            </a>
+                <a href="/partner/profile" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">👤</span> Hồ sơ của tôi
+                </a>
+        </nav>
+        <div class="admin-sidebar__footer">
+            <div class="admin-sidebar__user">
+                <div class="admin-sidebar__user-avatar">PT</div>
+                <div class="admin-sidebar__user-info">
+                    <div class="admin-sidebar__user-name" th:text="${partnerName} ?: 'Partner'">Partner</div>
+                    <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+    <div class="admin-sidebar-overlay"></div>
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div style="display:flex;align-items:center;gap:var(--space-4)">
+                <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                <h1 class="admin-topbar__title">🎟 Voucher Của Tôi</h1>
+            </div>
+            <div class="admin-topbar__actions">
+                <form th:action="@{/auth/logout}" method="post" style="display:inline;">                    <button type="submit" class="btn btn--ghost btn--sm">🚪 Đăng xuất</button>
+                </form>
+            </div>
+        </header>
+
+        <main class="admin-content">
+
+            <!-- Flash messages -->
+            <div th:if="${successMessage}" style="margin-bottom:16px;padding:12px 16px;background:#ecfdf5;border-radius:8px;font-size:13px;color:#065f46;border:1px solid #a7f3d0;">
+                <span th:text="${successMessage}"></span>
+            </div>
+            <div th:if="${errorMessage}" style="margin-bottom:16px;padding:12px 16px;background:#fef2f2;border-radius:8px;font-size:13px;color:#991b1b;border:1px solid #fecaca;">
+                <span th:text="${errorMessage}"></span>
+            </div>
+
+            <!-- Info box -->
+            <div class="info-box">
+                ⚠️ <strong>Lưu ý:</strong> Voucher bạn tạo sẽ gắn với <strong>cơ sở lưu trú / phòng của bạn</strong>.
+                Chi phí giảm giá do <strong>bạn chịu</strong> — bị <strong>trừ vào quyết toán</strong> của tuần đó.
+                Voucher do Admin cấp (USER_GLOBAL) thì Admin chịu, không ảnh hưởng số tiền bạn nhận.
+            </div>
+
+            <!-- === FORM TẠO VOUCHER (2 tabs) === -->
+            <div class="create-form">
+                <div class="create-form__title"><i class="fa-solid fa-plus-circle"></i> Tạo Voucher Mới</div>
+
+                <!-- Tab bar -->
+                <div class="tab-bar">
+                    <button class="tab-btn active" type="button" onclick="switchTab('acc', this)">
+                        🏨 Theo Cơ sở lưu trú
+                    </button>
+                    <button class="tab-btn" type="button" onclick="switchTab('room', this)">
+                        🛏 Theo Phòng cụ thể
+                    </button>
+                </div>
+
+                <!-- TAB 1: Voucher theo Accommodation -->
+                <div id="tab-acc" class="tab-panel active">
+                    <div th:if="${#lists.isEmpty(accommodations)}" style="color:#6b7280;font-size:13px;padding:16px;background:#f9fafb;border-radius:8px;border:1px dashed #d1d5db;">
+                        <strong>📭 Chưa có cơ sở lưu trú được duyệt.</strong><br/>
+                        Hãy thêm nơi lưu trú và chờ Admin duyệt trước khi tạo voucher.
+                        <div style="margin-top:8px;"><a href="/partner/accommodations/new" class="btn btn--primary btn--sm">+ Đăng ký nơi lưu trú</a></div>
+                    </div>
+                    <form th:unless="${#lists.isEmpty(accommodations)}"
+                          th:action="@{/partner/vouchers/create-for-accommodation}" method="post">                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Cơ sở lưu trú <span style="color:#ef4444;">*</span></label>
+                                <select name="accommodationId" required>
+                                    <option value="">-- Chọn cơ sở --</option>
+                                    <option th:each="acc : ${accommodations}"
+                                            th:value="${acc.id}"
+                                            th:text="${acc.name}">LATA Hotel</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Mã voucher <span style="color:#ef4444;">*</span></label>
+                                <input type="text" name="code" placeholder="VD: HOTEL20" required
+                                       pattern="[A-Za-z0-9]+" style="text-transform:uppercase;" maxlength="50" />
+                            </div>
+                            <div class="form-group">
+                                <label>Tên ưu đãi</label>
+                                <input type="text" name="name" placeholder="VD: Ưu đãi cuối tuần" maxlength="200" />
+                            </div>
+                            <div class="form-group">
+                                <label>Loại giảm giá <span style="color:#ef4444;">*</span></label>
+                                <select name="discountType" required onchange="toggleMax(this,'maxAcc')">
+                                    <option value="PERCENT">Phần trăm (%)</option>
+                                    <option value="FIXED_AMOUNT">Số tiền cố định (đ)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Giá trị giảm <span style="color:#ef4444;">*</span></label>
+                                <input type="number" name="discountValue" min="0" step="0.01" placeholder="VD: 20 (%) hoặc 100000 (đ)" required />
+                            </div>
+                            <div class="form-group" id="maxAcc">
+                                <label>Giảm tối đa (đ)</label>
+                                <input type="number" name="maxDiscountAmount" min="0" placeholder="VD: 800000" />
+                            </div>
+                            <div class="form-group">
+                                <label>Đơn tối thiểu (đ)</label>
+                                <input type="number" name="minOrderAmount" min="0" placeholder="VD: 650000" />
+                            </div>
+                            <div class="form-group">
+                                <label>Ngày bắt đầu</label>
+                                <input type="date" name="startDate" />
+                            </div>
+                            <div class="form-group">
+                                <label>Ngày kết thúc</label>
+                                <input type="date" name="endDate" />
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top:12px;">
+                            <label>Mô tả</label>
+                            <input type="text" name="description" placeholder="Mô tả ngắn về ưu đãi" />
+                        </div>
+                        <div style="margin-top:16px;display:flex;gap:10px;">
+                            <button type="submit" class="btn btn--primary"><i class="fa-solid fa-plus"></i> Tạo Voucher</button>
+                            <button type="reset"  class="btn btn--ghost">Làm mới</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- TAB 2: Voucher theo Room -->
+                <div id="tab-room" class="tab-panel">
+                    <div th:if="${#lists.isEmpty(rooms)}" style="color:#6b7280;font-size:13px;padding:16px;background:#f9fafb;border-radius:8px;border:1px dashed #d1d5db;">
+                        <strong>📭 Chưa có phòng nào được duyệt.</strong><br/>
+                        Hãy thêm phòng cho nơi lưu trú đã được duyệt và chờ Admin phê duyệt.
+                        <div style="margin-top:8px;"><a href="/partner/accommodations" class="btn btn--ghost btn--sm">→ Quản lý cơ sở lưu trú</a></div>
+                    </div>
+                    <form th:unless="${#lists.isEmpty(rooms)}"
+                          th:action="@{/partner/vouchers/create-for-room}" method="post">                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Phòng áp dụng <span style="color:#ef4444;">*</span></label>
+                                <select name="roomId" required>
+                                    <option value="">-- Chọn phòng --</option>
+                                    <option th:each="r : ${rooms}"
+                                            th:value="${r.id}"
+                                            th:text="${r.accommodation.name} + ' — ' + ${r.roomName}">Phòng</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Mã voucher <span style="color:#ef4444;">*</span></label>
+                                <input type="text" name="code" placeholder="VD: ROOM100K" required
+                                       pattern="[A-Za-z0-9]+" style="text-transform:uppercase;" maxlength="50" />
+                            </div>
+                            <div class="form-group">
+                                <label>Tên ưu đãi</label>
+                                <input type="text" name="name" placeholder="VD: Giảm 100K cho phòng Deluxe" maxlength="200" />
+                            </div>
+                            <div class="form-group">
+                                <label>Loại giảm giá <span style="color:#ef4444;">*</span></label>
+                                <select name="discountType" required onchange="toggleMax(this,'maxRoom')">
+                                    <option value="PERCENT">Phần trăm (%)</option>
+                                    <option value="FIXED_AMOUNT">Số tiền cố định (đ)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Giá trị giảm <span style="color:#ef4444;">*</span></label>
+                                <input type="number" name="discountValue" min="0" step="0.01" placeholder="VD: 15 (%) hoặc 100000 (đ)" required />
+                            </div>
+                            <div class="form-group" id="maxRoom">
+                                <label>Giảm tối đa (đ)</label>
+                                <input type="number" name="maxDiscountAmount" min="0" placeholder="VD: 500000" />
+                            </div>
+                            <div class="form-group">
+                                <label>Đơn tối thiểu (đ)</label>
+                                <input type="number" name="minOrderAmount" min="0" placeholder="VD: 1000000" />
+                            </div>
+                            <div class="form-group">
+                                <label>Ngày bắt đầu</label>
+                                <input type="date" name="startDate" />
+                            </div>
+                            <div class="form-group">
+                                <label>Ngày kết thúc</label>
+                                <input type="date" name="endDate" />
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top:12px;">
+                            <label>Mô tả</label>
+                            <input type="text" name="description" placeholder="Mô tả ngắn về ưu đãi" />
+                        </div>
+                        <div style="margin-top:16px;display:flex;gap:10px;">
+                            <button type="submit" class="btn btn--primary"><i class="fa-solid fa-plus"></i> Tạo Voucher Theo Phòng</button>
+                            <button type="reset"  class="btn btn--ghost">Làm mới</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- === DANH SÁCH VOUCHER ĐÃ TẠO === -->
+            <div class="admin-section">
+                <div class="section-title">
+                    <i class="fa-solid fa-list"></i> Voucher Bạn Đã Tạo
+                    <span style="font-size:12px;font-weight:400;color:#6b7280;" th:text="'(' + ${#lists.size(vouchers)} + ' voucher)'"></span>
+                </div>
+
+                <div th:if="${#lists.isEmpty(vouchers)}" class="empty-state">
+                    <i class="fa-solid fa-ticket" style="font-size:40px;opacity:.25;margin-bottom:10px;"></i>
+                    <p>Bạn chưa tạo voucher nào. Hãy tạo voucher đầu tiên!</p>
+                </div>
+
+                <div th:if="${!#lists.isEmpty(vouchers)}" class="vtable-wrap">
+                    <table class="vtable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Mã Code</th>
+                                <th>Tên</th>
+                                <th>Loại</th>
+                                <th>Giá trị</th>
+                                <th>Đơn tối thiểu</th>
+                                <th>Phạm vi</th>
+                                <th>Hạn dùng</th>
+                                <th>Trạng thái</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="v, stat : ${vouchers}">
+                                <td th:text="${stat.index + 1}">1</td>
+                                <td><strong th:text="${v.code}">CODE</strong></td>
+                                <td th:text="${v.name != null ? v.name : '—'}">Tên</td>
+                                <td>
+                                    <span th:if="${v.discountType.name() == 'PERCENT'}">%</span>
+                                    <span th:if="${v.discountType.name() == 'FIXED_AMOUNT'}">Cố định</span>
+                                </td>
+                                <td>
+                                    <strong>
+                                        <span th:if="${v.discountType.name() == 'PERCENT'}"
+                                              th:text="${v.discountValue} + '%'">20%</span>
+                                        <span th:if="${v.discountType.name() == 'FIXED_AMOUNT'}"
+                                              th:text="${#numbers.formatDecimal(v.discountValue,0,'COMMA',0,'POINT')} + 'đ'">100,000đ</span>
+                                    </strong>
+                                </td>
+                                <td th:text="${v.minOrderAmount != null ? #numbers.formatDecimal(v.minOrderAmount,0,'COMMA',0,'POINT') + 'đ' : '0đ'}">0đ</td>
+                                <td>
+                                    <span th:if="${v.voucherScope.name() == 'PARTNER_ACCOMMODATION'}"
+                                          class="scope-tag">Cơ sở</span>
+                                    <span th:if="${v.voucherScope.name() == 'PARTNER_ROOM'}"
+                                          class="scope-tag-room">Phòng</span>
+                                    <div style="font-size:11px;color:#6b7280;margin-top:2px;"
+                                         th:if="${v.accommodation != null}" th:text="${v.accommodation.name}">—</div>
+                                    <div style="font-size:11px;color:#6b7280;margin-top:2px;"
+                                         th:if="${v.room != null}" th:text="${v.room.roomName}">—</div>
+                                </td>
+                                <td style="font-size:12px;">
+                                    <span th:if="${v.endDate != null}" th:text="${#temporals.format(v.endDate,'dd/MM/yyyy')}">—</span>
+                                    <span th:if="${v.endDate == null}" style="color:#d1d5db;">Không hết hạn</span>
+                                </td>
+                                <td>
+                                    <span class="badge-active"   th:if="${v.active}">Đang chạy</span>
+                                    <span class="badge-inactive" th:unless="${v.active}">Đã tắt</span>
+                                </td>
+                                <td>
+                                    <form th:action="@{'/partner/vouchers/' + ${v.id} + '/toggle'}" method="post" style="display:inline;">                                        <button type="submit" class="btn btn--ghost btn--sm"
+                                                th:text="${v.active ? '⏸ Tắt' : '▶ Bật'}">Toggle</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/admin.js"></script>
+<script>
+    function toggleMax(sel, groupId) {
+        document.getElementById(groupId).style.display = sel.value === 'PERCENT' ? '' : 'none';
+    }
+    // Init cả 2 tab khi load
+    document.querySelectorAll('[onchange^="toggleMax"]').forEach(sel => {
+        const match = sel.getAttribute('onchange').match(/toggleMax\(this,'(.+?)'\)/);
+        if (match) toggleMax(sel, match[1]);
+    });
+
+    function switchTab(tabName, btn) {
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + tabName).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    // Validate form voucher trước khi submit
+    function validateVoucherForm(form) {
+        const typeEl    = form.querySelector('[name="discountType"]');
+        const valueEl   = form.querySelector('[name="discountValue"]');
+        const startEl   = form.querySelector('[name="startDate"]');
+        const endEl     = form.querySelector('[name="endDate"]');
+
+        const type  = typeEl ? typeEl.value : '';
+        const value = parseFloat(valueEl ? valueEl.value : 0);
+
+        if (type === 'PERCENT' && value > 100) {
+            alert('Phần trăm giảm giá không được vượt quá 100%!');
+            valueEl.focus();
+            return false;
+        }
+        if (type === 'PERCENT' && value <= 0) {
+            alert('Phần trăm giảm giá phải lớn hơn 0!');
+            valueEl.focus();
+            return false;
+        }
+
+        const start = startEl && startEl.value ? new Date(startEl.value) : null;
+        const end   = endEl   && endEl.value   ? new Date(endEl.value)   : null;
+        if (start && end && end < start) {
+            alert('Ngày kết thúc không được nhỏ hơn ngày bắt đầu!');
+            endEl.focus();
+            return false;
+        }
+
+        return true;
+    }
+
+    // Gắn validate vào cả 2 form
+    document.querySelectorAll('form[action*="vouchers/create"]').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            if (!validateVoucherForm(this)) e.preventDefault();
+        });
+    });
+</script>
+</body>
+</html>
+

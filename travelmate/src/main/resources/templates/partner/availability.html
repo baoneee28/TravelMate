@@ -1,0 +1,424 @@
+﻿<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tình trạng phòng – Partner TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <link rel="stylesheet" href="/assets/css/partners.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        /* ── Page header ── */
+        .avail-header { display:flex;align-items:center;gap:14px;margin-bottom:22px; }
+        .avail-header-icon { width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#059669,#047857);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;flex-shrink:0;box-shadow:0 4px 14px rgba(5,150,105,.35); }
+        .avail-header-text h1 { margin:0;font-size:22px;font-weight:800;color:#0f172a; }
+        .avail-header-text p  { margin:4px 0 0;font-size:13px;color:#64748b; }
+
+        /* ── Filter card ── */
+        .filter-card { background:#fff;border-radius:16px;padding:20px 24px;border:1px solid #f1f5f9;box-shadow:0 1px 4px rgba(0,0,0,.05);margin-bottom:22px; }
+        .filter-card h2 { margin:0 0 16px;font-size:14px;font-weight:700;color:#374151;display:flex;align-items:center;gap:8px; }
+        .filter-grid { display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end; }
+        @media(max-width:600px){ .filter-grid{ grid-template-columns:1fr; } }
+        .filter-group label { display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px; }
+        .filter-group input { width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;background:#fff;color:#1e293b;box-sizing:border-box;transition:border-color .15s;font-family:inherit; }
+        .filter-group input:focus { border-color:#059669;outline:none;box-shadow:0 0 0 3px rgba(5,150,105,.1); }
+        .btn-search { display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#059669,#047857);color:#fff;border:none;border-radius:10px;padding:10px 22px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .15s;height:40px; }
+        .btn-search:hover { transform:translateY(-1px);box-shadow:0 4px 14px rgba(5,150,105,.4); }
+        .btn-reset { display:inline-flex;align-items:center;gap:6px;background:#f8fafc;color:#475569;border:1.5px solid #e2e8f0;border-radius:10px;padding:9px 16px;font-size:12px;font-weight:600;cursor:pointer;text-decoration:none;transition:all .15s;height:40px; }
+        .btn-reset:hover { background:#f1f5f9; }
+
+        /* ── Summary Cards ── */
+        .summary-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px; }
+        @media(max-width:900px){ .summary-grid{ grid-template-columns:repeat(2,1fr); } }
+        .sum-card { background:#fff;border-radius:14px;padding:16px;border:1px solid #f1f5f9;box-shadow:0 1px 3px rgba(0,0,0,.04);position:relative;overflow:hidden; }
+        .sum-card::before { content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:14px 14px 0 0;background:var(--sc,#059669); }
+        .sum-card__lbl { font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px; }
+        .sum-card__val { font-size:28px;font-weight:800;color:#0f172a;line-height:1;margin-bottom:4px; }
+        .sum-card__sub { font-size:11px;color:#94a3b8; }
+        .sum-card__icon { position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:30px;opacity:.09; }
+
+        /* ── Status badges ── */
+        .badge-avail    { display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:11.5px;font-weight:700;white-space:nowrap; }
+        .badge-available{ background:#dcfce7;color:#15803d; }
+        .badge-limited  { background:#fef9c3;color:#92400e; }
+        .badge-full     { background:#fee2e2;color:#991b1b; }
+
+        /* ── Category badge ── */
+        .badge-cat { display:inline-block;padding:2px 9px;border-radius:6px;font-size:10.5px;font-weight:700;text-transform:uppercase; }
+        .badge-cat-std  { background:#f1f5f9;color:#475569; }
+        .badge-cat-dlx  { background:#dbeafe;color:#1e40af; }
+        .badge-cat-fam  { background:#dcfce7;color:#166534; }
+        .badge-cat-vip  { background:#fef3c7;color:#92400e; }
+        .badge-cat-sui  { background:#ede9fe;color:#5b21b6; }
+        .badge-cat-oth  { background:#f1f5f9;color:#64748b; }
+
+        /* ── Progress bar ── */
+        .prog-wrap { display:flex;align-items:center;gap:8px; }
+        .prog-bar  { flex:1;height:8px;border-radius:4px;background:#f1f5f9;overflow:hidden;min-width:70px; }
+        .prog-fill { height:100%;border-radius:4px;transition:width .3s; }
+        .prog-available { background:linear-gradient(90deg,#22c55e,#16a34a); }
+        .prog-limited   { background:linear-gradient(90deg,#f59e0b,#d97706); }
+        .prog-full      { background:linear-gradient(90deg,#ef4444,#dc2626); }
+        .prog-label { font-size:11.5px;font-weight:700;min-width:28px;text-align:right; }
+
+        /* ── Table ── */
+        .avail-table-wrap { background:#fff;border-radius:16px;border:1px solid #f1f5f9;box-shadow:0 1px 4px rgba(0,0,0,.05);overflow:hidden; }
+        .avail-table-head { display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #f8fafc; }
+        .avail-table-head h2 { margin:0;font-size:14px;font-weight:700;color:#0f172a; }
+        .table-count { font-size:12px;color:#64748b;background:#f8fafc;padding:3px 10px;border-radius:20px;font-weight:600; }
+        table.avail-tbl { width:100%;border-collapse:collapse; }
+        table.avail-tbl th { padding:10px 14px;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;background:#fafafa;text-align:left;border-bottom:1px solid #f1f5f9;white-space:nowrap; }
+        table.avail-tbl td { padding:12px 14px;font-size:13px;color:#374151;border-bottom:1px solid #fafafa;vertical-align:middle; }
+        table.avail-tbl tr:last-child td { border-bottom:none; }
+        table.avail-tbl tbody tr:hover td { background:#f0fdf4; }
+        .acc-name { font-weight:700;color:#0f172a;font-size:13px; }
+        .room-name { color:#374151;font-size:12.5px; }
+        .room-code { font-family:'JetBrains Mono',monospace;font-size:11px;color:#059669;background:#ecfdf5;padding:2px 6px;border-radius:4px;margin-left:4px; }
+        .city-text { font-size:12px;color:#64748b; }
+        .price-text { font-weight:600;color:#0f172a;font-size:12.5px;white-space:nowrap; }
+        .qty-num { font-size:14px;font-weight:700; }
+        .qty-total   { color:#64748b; }
+        .qty-occupied{ color:#f59e0b; }
+        .qty-avail   { color:#16a34a; }
+        .qty-zero    { color:#ef4444; }
+
+        tr.row-full td:first-child { border-left:3px solid #ef4444; }
+        tr.row-limited td:first-child { border-left:3px solid #f59e0b; }
+        tr.row-available td:first-child { border-left:3px solid #22c55e; }
+
+        /* ── Empty states ── */
+        .state-box { text-align:center;padding:60px 24px; }
+        .state-box .state-icon { font-size:52px;margin-bottom:16px;opacity:.4; }
+        .state-box h3 { margin:0 0 8px;font-size:17px;font-weight:700;color:#1e293b; }
+        .state-box p  { margin:0;font-size:13px;color:#94a3b8;max-width:340px;margin:0 auto; }
+
+        /* ── Legend ── */
+        .legend { display:flex;gap:16px;flex-wrap:wrap;align-items:center;padding:12px 20px;background:#fafafa;border-top:1px solid #f1f5f9;font-size:12px;color:#64748b; }
+        .legend-item { display:flex;align-items:center;gap:6px; }
+        .legend-dot { width:10px;height:10px;border-radius:50%; }
+
+        /* ── Info box ── */
+        .info-box { background:linear-gradient(135deg,#ecfdf5,#f0fdf4);border:1px solid #bbf7d0;border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:flex-start;gap:12px; }
+        .info-box i { color:#059669;font-size:16px;margin-top:1px; }
+        .info-box p { margin:0;font-size:12.5px;color:#065f46;line-height:1.6; }
+    </style>
+</head>
+
+<body>
+<div class="admin-wrapper">
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar__header">
+            <a href="/partner/dashboard" class="sidebar-logo">
+                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                <div>
+                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                    <span class="admin-sidebar__badge">PARTNER CENTER</span>
+                </div>
+            </a>
+        </div>
+        <nav class="admin-sidebar__nav">
+            <div class="admin-sidebar__section-title">Tổng quan</div>
+            <a href="/partner/dashboard" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">📊</span> Dashboard
+            </a>
+            <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
+            <a href="/partner/accommodations" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">🏨</span> Nơi lưu trú của tôi
+            </a>
+            <a href="/partner/accommodations/new" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">＋</span> Đăng ký mới
+            </a>
+            <a href="/partner/amenities" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🏷</span> Tiện nghi phòng
+                </a>
+                <a href="/partner/bookings" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">📋</span> Đơn đặt phòng
+            </a>
+            <a href="/partner/availability" class="admin-sidebar__link active">
+                <span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng
+            </a>
+            <a href="/partner/reviews" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">⭐</span> Đánh giá của khách
+            </a>
+            <div class="admin-sidebar__section-title">Tài chính</div>
+            <a href="/partner/revenue" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">💰</span> Doanh thu
+            </a>
+            <a href="/partner/settlements" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">🏦</span> Quyết toán
+            </a>
+            <a href="/partner/vouchers" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">🎟</span> Voucher của tôi
+            </a>
+            <div class="admin-sidebar__section-title">Hỗ trợ</div>
+            <a href="/partner/support" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ
+            </a>
+            <a href="/partner/profile" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">👤</span> Hồ sơ của tôi
+            </a>
+        </nav>
+        <div class="admin-sidebar__footer">
+            <div class="admin-sidebar__user">
+                <div class="admin-sidebar__user-avatar">PT</div>
+                <div class="admin-sidebar__user-info">
+                    <div class="admin-sidebar__user-name" th:text="${partnerName} ?: 'Partner'">Partner</div>
+                    <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
+                </div>
+            </div>
+            <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
+                <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
+            </form>
+        </div>
+    </aside>
+    <div class="admin-sidebar-overlay"></div>
+
+    <main class="admin-main">
+        <div class="admin-topbar">
+            <button class="admin-topbar__menu-btn" id="sidebarToggle"><i class="fa-solid fa-bars"></i></button>
+            <div class="admin-topbar__title">Tình trạng phòng</div>
+        </div>
+
+        <div class="admin-content">
+            <!-- Page Header -->
+            <div class="avail-header">
+                <div class="avail-header-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <div class="avail-header-text">
+                    <h1>Lịch tình trạng phòng</h1>
+                    <p>Xem phòng nào đang bị giữ, phòng nào còn trống theo khoảng ngày — chỉ hiện cơ sở của bạn</p>
+                </div>
+            </div>
+
+            <!-- Info box -->
+            <div class="info-box">
+                <i class="fa-solid fa-circle-info"></i>
+                <p>Trang này chỉ hiển thị phòng thuộc <strong>cơ sở lưu trú đã được Admin duyệt</strong> của bạn.
+                   Phòng bị tính "đang giữ" bao gồm các đơn: <strong>Chờ duyệt</strong>, <strong>Đã xác nhận</strong> và <strong>Đang check-in</strong>.</p>
+            </div>
+
+            <!-- Filter Card -->
+            <div class="filter-card">
+                <h2><i class="fa-solid fa-filter" style="color:#059669;"></i> Chọn khoảng ngày kiểm tra</h2>
+                <form method="get" action="/partner/availability">
+                    <div class="filter-grid">
+                        <div class="filter-group">
+                            <label>📅 Ngày nhận phòng</label>
+                            <input type="date" name="checkIn" th:value="${checkIn}" required />
+                        </div>
+                        <div class="filter-group">
+                            <label>📅 Ngày trả phòng</label>
+                            <input type="date" name="checkOut" th:value="${checkOut}" required />
+                        </div>
+                        <div class="filter-group" style="display:flex;gap:8px;">
+                            <button type="submit" class="btn-search">
+                                <i class="fa-solid fa-magnifying-glass"></i> Kiểm tra
+                            </button>
+                            <a href="/partner/availability" class="btn-reset">
+                                <i class="fa-solid fa-rotate-left"></i>
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Error message -->
+            <div th:if="${errorMsg}" style="background:#fee2e2;border:1px solid #fecaca;border-radius:12px;padding:14px 18px;color:#991b1b;font-size:13px;font-weight:600;margin-bottom:18px;display:flex;align-items:center;gap:8px;">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span th:text="${errorMsg}"></span>
+            </div>
+
+            <!-- Summary Cards -->
+            <div th:if="${summary != null}" class="summary-grid">
+                <div class="sum-card" style="--sc:#059669;">
+                    <div class="sum-card__lbl">Còn phòng</div>
+                    <div class="sum-card__val" th:text="${summary.availableTypes}">0</div>
+                    <div class="sum-card__sub">loại phòng</div>
+                    <span class="sum-card__icon">✅</span>
+                </div>
+                <div class="sum-card" style="--sc:#f59e0b;">
+                    <div class="sum-card__lbl">Sắp hết</div>
+                    <div class="sum-card__val" th:text="${summary.limitedTypes}">0</div>
+                    <div class="sum-card__sub">loại phòng</div>
+                    <span class="sum-card__icon">⚠️</span>
+                </div>
+                <div class="sum-card" style="--sc:#ef4444;">
+                    <div class="sum-card__lbl">Hết phòng</div>
+                    <div class="sum-card__val" th:text="${summary.fullTypes}">0</div>
+                    <div class="sum-card__sub">loại phòng</div>
+                    <span class="sum-card__icon">🚫</span>
+                </div>
+                <div class="sum-card" style="--sc:#0ea5e9;">
+                    <div class="sum-card__lbl">Phòng còn trống</div>
+                    <div class="sum-card__val" th:text="${summary.freeRooms}">0</div>
+                    <div class="sum-card__sub">trên tổng <span th:text="${summary.totalRooms}"></span></div>
+                    <span class="sum-card__icon">🛏</span>
+                </div>
+            </div>
+
+            <!-- Results Table -->
+            <div th:if="${results != null}">
+                <div th:if="${#lists.isEmpty(results)}" class="avail-table-wrap">
+                    <div class="state-box">
+                        <div class="state-icon">🔍</div>
+                        <h3>Chưa có phòng nào</h3>
+                        <p>Bạn chưa có cơ sở được duyệt hoặc không có phòng phù hợp. Đăng ký thêm cơ sở hoặc thêm phòng mới.</p>
+                    </div>
+                </div>
+
+                <div th:if="${not #lists.isEmpty(results)}" class="avail-table-wrap">
+                    <div class="avail-table-head">
+                        <h2>📋 Tình trạng phòng của bạn</h2>
+                        <span class="table-count" th:text="${#lists.size(results)} + ' loại phòng'"></span>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="avail-tbl">
+                            <thead>
+                                <tr>
+                                    <th>Cơ sở lưu trú</th>
+                                    <th>Loại phòng</th>
+                                    <th>Hạng</th>
+                                    <th>Giá/đêm</th>
+                                    <th style="text-align:center;">Tổng</th>
+                                    <th style="text-align:center;">Đang giữ</th>
+                                    <th style="text-align:center;">Còn trống</th>
+                                    <th>Tỷ lệ trống</th>
+                                    <th style="text-align:center;">Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="r : ${results}"
+                                    th:classappend="${r.status == 'FULL' ? 'row-full' : (r.status == 'LIMITED' ? 'row-limited' : 'row-available')}">
+                                    <td>
+                                        <div class="acc-name" th:text="${r.accommodationName}"></div>
+                                        <div class="city-text"><i class="fa-solid fa-location-dot" style="font-size:10px;"></i> <span th:text="${r.city}"></span></div>
+                                    </td>
+                                    <td>
+                                        <div class="room-name" th:text="${r.roomName}"></div>
+                                        <span class="room-code" th:text="${r.roomCode}"></span>
+                                    </td>
+                                    <td>
+                                        <span class="badge-cat"
+                                              th:classappend="${r.roomCategory == 'DELUXE' ? ' badge-cat-dlx' :
+                                                               (r.roomCategory == 'FAMILY' ? ' badge-cat-fam' :
+                                                               (r.roomCategory == 'VIP'    ? ' badge-cat-vip' :
+                                                               (r.roomCategory == 'SUITE'  ? ' badge-cat-sui' :
+                                                               (r.roomCategory == 'OTHER'  ? ' badge-cat-oth' : ' badge-cat-std'))))}"
+                                              th:text="${r.roomCategory}">
+                                        </span>
+                                    </td>
+                                    <td class="price-text"
+                                        th:text="${#numbers.formatDecimal(r.pricePerNight, 0, 'COMMA', 0, 'POINT') + ' ₫'}">
+                                    </td>
+                                    <td style="text-align:center;">
+                                        <span class="qty-num qty-total" th:text="${r.totalQuantity}"></span>
+                                    </td>
+                                    <td style="text-align:center;">
+                                        <span class="qty-num"
+                                              th:classappend="${r.occupiedQuantity > 0 ? ' qty-occupied' : ' qty-total'}"
+                                              th:text="${r.occupiedQuantity}">
+                                        </span>
+                                    </td>
+                                    <td style="text-align:center;">
+                                        <span class="qty-num"
+                                              th:classappend="${r.availableQuantity == 0 ? ' qty-zero' : ' qty-avail'}"
+                                              th:text="${r.availableQuantity}">
+                                        </span>
+                                    </td>
+                                    <td style="min-width:130px;">
+                                        <div class="prog-wrap">
+                                            <div class="prog-bar">
+                                                <div class="prog-fill"
+                                                     th:classappend="${r.status == 'FULL' ? ' prog-full' : (r.status == 'LIMITED' ? ' prog-limited' : ' prog-available')}"
+                                                     th:style="'width:' + ${r.availablePercent} + '%'">
+                                                </div>
+                                            </div>
+                                            <span class="prog-label"
+                                                  th:style="${r.availablePercent == 0 ? 'color:#ef4444;' : (r.availablePercent <= 30 ? 'color:#f59e0b;' : 'color:#22c55e;')}"
+                                                  th:text="${r.availablePercent} + '%'">
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td style="text-align:center;">
+                                        <span th:if="${r.status == 'AVAILABLE'}" class="badge-avail badge-available">
+                                            <i class="fa-solid fa-circle-check"></i> Còn phòng
+                                        </span>
+                                        <span th:if="${r.status == 'LIMITED'}" class="badge-avail badge-limited">
+                                            <i class="fa-solid fa-triangle-exclamation"></i> Sắp hết
+                                        </span>
+                                        <span th:if="${r.status == 'FULL'}" class="badge-avail badge-full">
+                                            <i class="fa-solid fa-ban"></i> Hết phòng
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="legend">
+                        <span style="font-weight:600;color:#374151;">Chú thích:</span>
+                        <span class="legend-item"><span class="legend-dot" style="background:#22c55e;"></span> Còn phòng (trống &gt; 30%)</span>
+                        <span class="legend-item"><span class="legend-dot" style="background:#f59e0b;"></span> Sắp hết (trống ≤ 30%)</span>
+                        <span class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span> Hết phòng</span>
+                        <span style="margin-left:auto;font-size:11px;color:#94a3b8;">
+                            Cập nhật theo thời gian thực từ hệ thống đặt phòng
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Initial state -->
+            <div th:if="${results == null && errorMsg == null}" class="avail-table-wrap">
+                <div class="state-box">
+                    <div class="state-icon">🗓️</div>
+                    <h3>Chọn ngày để xem tình trạng</h3>
+                    <p>Nhập khoảng ngày ở trên và bấm <strong>Kiểm tra</strong> để xem phòng nào đang bị giữ và phòng nào còn trống trong cơ sở của bạn.</p>
+                    <div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                        <a href="#" onclick="setQuickDate(0,1); return false;"
+                           style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#ecfdf5;color:#059669;border-radius:10px;font-size:12.5px;font-weight:600;text-decoration:none;border:1px solid #bbf7d0;">
+                            <i class="fa-solid fa-bolt"></i> Hôm nay → Ngày mai
+                        </a>
+                        <a href="#" onclick="setQuickDate(4,7); return false;"
+                           style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#ecfdf5;color:#059669;border-radius:10px;font-size:12.5px;font-weight:600;text-decoration:none;border:1px solid #bbf7d0;">
+                            <i class="fa-solid fa-calendar-week"></i> Cuối tuần (+4 → +7)
+                        </a>
+                        <a href="#" onclick="setQuickDate(10,14); return false;"
+                           style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#f0fdf4;color:#15803d;border-radius:10px;font-size:12.5px;font-weight:600;text-decoration:none;border:1px solid #bbf7d0;">
+                            <i class="fa-solid fa-calendar-plus"></i> Demo (+10 → +14 ngày)
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /admin-content -->
+    </main>
+</div>
+
+<script>
+function setQuickDate(daysIn, daysOut) {
+    const today = new Date();
+    const ci = new Date(today); ci.setDate(today.getDate() + daysIn);
+    const co = new Date(today); co.setDate(today.getDate() + daysOut);
+    const fmt = d => d.toISOString().split('T')[0];
+    const form = document.querySelector('form[action="/partner/availability"]');
+    form.querySelector('[name="checkIn"]').value  = fmt(ci);
+    form.querySelector('[name="checkOut"]').value = fmt(co);
+    form.submit();
+}
+
+const sidebarToggle = document.getElementById('sidebarToggle');
+const wrapper = document.querySelector('.admin-wrapper');
+if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', () => wrapper.classList.toggle('sidebar-open'));
+}
+document.querySelector('.admin-sidebar-overlay')?.addEventListener('click', () =>
+    wrapper.classList.remove('sidebar-open'));
+</script>
+</body>
+</html>

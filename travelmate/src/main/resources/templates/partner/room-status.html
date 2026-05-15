@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tình trạng phòng hôm nay – Partner TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <link rel="stylesheet" href="/assets/css/partners.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+<body>
+<div class="admin-wrapper">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar__header">
+            <a href="/partner/dashboard" class="sidebar-logo">
+                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                <div>
+                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                    <span class="admin-sidebar__badge">PARTNER CENTER</span>
+                </div>
+            </a>
+        </div>
+        <nav class="admin-sidebar__nav">
+            <div class="admin-sidebar__section-title">Tổng quan</div>
+            <a href="/partner/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
+            <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
+            <a href="/partner/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Nơi lưu trú của tôi</a>
+            <a href="/partner/accommodations/new" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">＋</span> Đăng ký mới</a>
+            <a href="/partner/amenities" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏷</span> Tiện nghi phòng</a>
+            <a href="/partner/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đơn đặt phòng</a>
+            <a href="/partner/room-status" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">🏠</span> Tình trạng phòng</a>
+            <a href="/partner/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Kiểm tra lịch trống</a>
+            <a href="/partner/direct-booking" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">➕</span> Booking trực tiếp</a>
+            <a href="/partner/reviews" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá của khách</a>
+            <div class="admin-sidebar__section-title">Tài chính</div>
+            <a href="/partner/revenue" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
+            <a href="/partner/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
+            <a href="/partner/vouchers" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher của tôi</a>
+            <div class="admin-sidebar__section-title">Hỗ trợ</div>
+            <a href="/partner/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ</a>
+            <a href="/partner/profile" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👤</span> Hồ sơ của tôi</a>
+        </nav>
+        <div class="admin-sidebar__footer">
+            <div class="admin-sidebar__user">
+                <div class="admin-sidebar__user-avatar">PT</div>
+                <div class="admin-sidebar__user-info">
+                    <div class="admin-sidebar__user-name" th:text="${partnerName} ?: 'Partner'">Partner</div>
+                    <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+    <div class="admin-sidebar-overlay"></div>
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div style="display:flex;align-items:center;gap:var(--space-4)">
+                <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                <h1 class="admin-topbar__title">🏠 Tình trạng phòng hôm nay</h1>
+            </div>
+            <div class="admin-topbar__actions">
+                <form th:action="@{/auth/logout}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn--ghost btn--sm">🚪 Đăng xuất</button>
+                </form>
+            </div>
+        </header>
+
+        <main class="admin-content">
+            <!-- Header -->
+            <div class="page-header">
+                <div>
+                    <h2 class="page-header__title">🏠 Tình trạng vận hành phòng/căn hôm nay</h2>
+                    <p class="page-header__subtitle">
+                        Ngày <strong th:text="${#temporals.format(today, 'dd/MM/yyyy')}">hôm nay</strong> —
+                        Số lượng mở bán trên TravelMate, khách đang ở, đặt chờ, chặn phòng và còn trống.
+                    </p>
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <a href="/partner/direct-booking" class="btn btn--primary btn--sm">
+                        <i class="fa-solid fa-plus" style="margin-right:4px;"></i> Booking trực tiếp
+                    </a>
+                    <button class="btn btn--outline btn--sm" onclick="document.getElementById('block-modal').style.display='flex'">
+                        <i class="fa-solid fa-ban" style="margin-right:4px;"></i> Chặn phòng
+                    </button>
+                </div>
+            </div>
+
+            <!-- Flash messages -->
+            <div th:if="${successMessage}" style="margin-bottom:var(--space-4);padding:12px 16px;background:#ecfdf5;border-radius:8px;font-size:13px;color:#065f46;border:1px solid #a7f3d0;">
+                <span th:text="${successMessage}"></span>
+            </div>
+            <div th:if="${errorMessage}" style="margin-bottom:var(--space-4);padding:12px 16px;background:#fef2f2;border-radius:8px;font-size:13px;color:#991b1b;border:1px solid #fecaca;">
+                <span th:text="${errorMessage}"></span>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="stats-grid" style="margin-bottom:var(--space-5);">
+                <div class="stats-card">
+                    <div class="stats-card__icon stats-card__icon--blue">🏨</div>
+                    <div>
+                        <div class="stats-card__value" th:text="${totalRooms}">0</div>
+                        <div class="stats-card__label">Tổng quota TravelMate</div>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-card__icon stats-card__icon--green">✅</div>
+                    <div>
+                        <div class="stats-card__value" th:text="${freeRooms}">0</div>
+                        <div class="stats-card__label">Còn trống hôm nay</div>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-card__icon stats-card__icon--amber">🏃</div>
+                    <div>
+                        <div class="stats-card__value" th:text="${checkedInNow}">0</div>
+                        <div class="stats-card__label">Đang có khách ở</div>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-card__icon stats-card__icon--blue">📋</div>
+                    <div>
+                        <div class="stats-card__value" th:text="${heldOnline}">0</div>
+                        <div class="stats-card__label">Đặt online / Chờ check-in</div>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-card__icon" style="background:#fef3c7;color:#d97706;">🔒</div>
+                    <div>
+                        <div class="stats-card__value" th:text="${blocked}">0</div>
+                        <div class="stats-card__label">Trực tiếp / Chặn phòng</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Room Status Table -->
+            <div style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;">
+                <div style="padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
+                    <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0;">
+                        📊 Bảng tình trạng phòng/căn
+                    </h3>
+                    <span style="font-size:12px;color:#64748b;">
+                        Cập nhật theo thời gian thực — mỗi lần tải trang
+                    </span>
+                </div>
+
+                <!-- Empty state -->
+                <div th:if="${#lists.isEmpty(roomStatuses)}" style="text-align:center;padding:60px;color:#94a3b8;">
+                    <div style="font-size:40px;margin-bottom:12px;">🏗️</div>
+                    <div style="font-size:15px;font-weight:600;color:#475569;">Chưa có phòng/căn nào được duyệt</div>
+                    <div style="font-size:13px;margin-top:4px;">Đăng ký cơ sở và phòng, chờ Admin duyệt để bắt đầu vận hành.</div>
+                    <a href="/partner/accommodations/new" class="btn btn--primary btn--sm" style="margin-top:16px;display:inline-flex;">
+                        + Đăng ký cơ sở mới
+                    </a>
+                </div>
+
+                <div th:if="${!#lists.isEmpty(roomStatuses)}" style="overflow-x:auto;">
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                        <thead>
+                            <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;">
+                                <th style="padding:11px 16px;text-align:left;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Cơ sở / Phòng/Căn</th>
+                                <th style="padding:11px 12px;text-align:center;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;">Quota TM</th>
+                                <th style="padding:11px 12px;text-align:center;font-size:11px;font-weight:700;color:#2563eb;text-transform:uppercase;">Đang ở</th>
+                                <th style="padding:11px 12px;text-align:center;font-size:11px;font-weight:700;color:#0891b2;text-transform:uppercase;">Đặt online</th>
+                                <th style="padding:11px 12px;text-align:center;font-size:11px;font-weight:700;color:#d97706;text-transform:uppercase;">Trực tiếp</th>
+                                <th style="padding:11px 12px;text-align:center;font-size:11px;font-weight:700;color:#dc2626;text-transform:uppercase;">Chặn phòng</th>
+                                <th style="padding:11px 12px;text-align:center;font-size:11px;font-weight:700;color:#16a34a;text-transform:uppercase;">Còn trống</th>
+                                <th style="padding:11px 12px;text-align:center;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;">Trạng thái</th>
+                                <th style="padding:11px 12px;text-align:center;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="rs : ${roomStatuses}"
+                                th:style="${rs.freeToday == 0 ? 'background:#fef2f2;' : (rs.freeToday <= rs.platformQuantity * 0.3 ? 'background:#fffbeb;' : '')}">
+
+                                <!-- Cơ sở / Phòng -->
+                                <td style="padding:14px 16px;">
+                                    <div style="font-weight:700;font-size:13px;color:#0f172a;" th:text="${rs.accommodationName}">Cơ sở</div>
+                                    <div style="font-size:12px;color:#64748b;margin-top:2px;">
+                                        <i class="fa-solid fa-door-open" style="font-size:10px;margin-right:3px;"></i>
+                                        <span th:text="${rs.roomName}">Phòng</span>
+                                        <span style="font-size:10px;color:#94a3b8;margin-left:6px;" th:text="'[' + ${rs.roomCode} + ']'">[R101]</span>
+                                    </div>
+                                    <div style="font-size:11px;color:#94a3b8;margin-top:2px;">
+                                        <span th:text="${#numbers.formatDecimal(rs.pricePerNight, 0, 'POINT', 0, 'COMMA')} + '₫/đêm'">0₫/đêm</span>
+                                    </div>
+                                </td>
+
+                                <!-- Quota TM -->
+                                <td style="padding:12px;text-align:center;">
+                                    <span style="font-size:18px;font-weight:800;color:#0f172a;" th:text="${rs.platformQuantity}">0</span>
+                                    <div style="font-size:10px;color:#94a3b8;margin-top:2px;">phòng</div>
+                                </td>
+
+                                <!-- Đang ở (CHECKED_IN) -->
+                                <td style="padding:12px;text-align:center;">
+                                    <span th:if="${rs.checkedIn > 0}"
+                                          style="display:inline-block;background:#dbeafe;color:#1d4ed8;font-size:16px;font-weight:800;padding:4px 14px;border-radius:8px;"
+                                          th:text="${rs.checkedIn}">0</span>
+                                    <span th:if="${rs.checkedIn == 0}" style="color:#cbd5e1;font-size:14px;">—</span>
+                                </td>
+
+                                <!-- Đặt online (CONFIRMED/PENDING) -->
+                                <td style="padding:12px;text-align:center;">
+                                    <span th:if="${rs.heldOnline > 0}"
+                                          style="display:inline-block;background:#cffafe;color:#0e7490;font-size:16px;font-weight:800;padding:4px 14px;border-radius:8px;"
+                                          th:text="${rs.heldOnline}">0</span>
+                                    <span th:if="${rs.heldOnline == 0}" style="color:#cbd5e1;font-size:14px;">—</span>
+                                </td>
+
+                                <!-- Trực tiếp -->
+                                <td style="padding:12px;text-align:center;">
+                                    <span th:if="${rs.directOccupied > 0}"
+                                          style="display:inline-block;background:#fef3c7;color:#b45309;font-size:16px;font-weight:800;padding:4px 14px;border-radius:8px;"
+                                          th:text="${rs.directOccupied}">0</span>
+                                    <span th:if="${rs.directOccupied == 0}" style="color:#cbd5e1;font-size:14px;">—</span>
+                                </td>
+
+                                <!-- Chặn phòng -->
+                                <td style="padding:12px;text-align:center;">
+                                    <span th:if="${rs.blocked > 0}"
+                                          style="display:inline-block;background:#fee2e2;color:#b91c1c;font-size:16px;font-weight:800;padding:4px 14px;border-radius:8px;"
+                                          th:text="${rs.blocked}">0</span>
+                                    <span th:if="${rs.blocked == 0}" style="color:#cbd5e1;font-size:14px;">—</span>
+                                </td>
+
+                                <!-- Còn trống -->
+                                <td style="padding:12px;text-align:center;">
+                                    <span style="font-size:20px;font-weight:900;"
+                                          th:style="${rs.freeToday == 0 ? 'color:#dc2626;' : (rs.freeToday <= rs.platformQuantity * 0.3 ? 'color:#d97706;' : 'color:#16a34a;')}"
+                                          th:text="${rs.freeToday}">0</span>
+                                </td>
+
+                                <!-- Trạng thái badge -->
+                                <td style="padding:12px;text-align:center;">
+                                    <span th:if="${rs.freeToday == 0}"
+                                          style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;">
+                                        🔴 Hết phòng
+                                    </span>
+                                    <span th:if="${rs.freeToday > 0 and rs.freeToday <= rs.platformQuantity * 0.3}"
+                                          style="background:#fffbeb;color:#d97706;border:1px solid #fde68a;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;">
+                                        🟡 Còn ít
+                                    </span>
+                                    <span th:if="${rs.freeToday > rs.platformQuantity * 0.3}"
+                                          style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;">
+                                        🟢 Còn nhiều
+                                    </span>
+                                </td>
+
+                                <!-- Thao tác -->
+                                <td style="padding:12px;text-align:center;">
+                                    <div style="display:flex;flex-direction:column;gap:5px;min-width:120px;">
+                                        <a th:href="@{/partner/direct-booking(accommodationId=${rs.accommodationId},roomId=${rs.roomId})}"
+                                           style="display:inline-flex;align-items:center;justify-content:center;gap:4px;background:#2563eb;color:#fff;border-radius:7px;padding:6px 10px;font-size:11px;font-weight:700;text-decoration:none;">
+                                            <i class="fa-solid fa-plus"></i> Booking trực tiếp
+                                        </a>
+                                        <button onclick="openBlockModal(this)"
+                                                th:attr="data-acc-id=${rs.accommodationId},data-room-id=${rs.roomId},data-room-name=${rs.roomName}"
+                                                style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:7px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;">
+                                            <i class="fa-solid fa-ban"></i> Chặn phòng
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div style="margin-top:16px;padding:12px 16px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
+                <div style="font-size:12px;color:#475569;font-weight:600;margin-bottom:8px;">Giải thích các cột:</div>
+                <div style="display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:#64748b;">
+                    <span><strong style="color:#0f172a;">Quota TM</strong> = Số phòng/căn partner mở bán trên TravelMate</span>
+                    <span><strong style="color:#1d4ed8;">Đang ở</strong> = Khách đã check-in, đang lưu trú</span>
+                    <span><strong style="color:#0e7490;">Đặt online</strong> = Booking TravelMate đang giữ chỗ (CONFIRMED, chờ check-in)</span>
+                    <span><strong style="color:#b45309;">Trực tiếp</strong> = Booking trực tiếp tại cơ sở (partner tạo)</span>
+                    <span><strong style="color:#b91c1c;">Chặn phòng</strong> = Phòng đang chặn/bảo trì</span>
+                    <span><strong style="color:#16a34a;">Còn trống</strong> = Quota TM - Đang ở - Đặt online - Trực tiếp - Chặn</span>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Modal: Chặn phòng -->
+<div id="block-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:16px;padding:28px;width:440px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.2);">
+        <h3 style="font-size:16px;font-weight:700;margin:0 0 16px;color:#0f172a;">
+            🔒 Chặn phòng/căn
+        </h3>
+        <form th:action="@{/partner/block-room}" method="post">
+            <input type="hidden" name="accommodationId" id="block-acc-id" />
+            <input type="hidden" name="roomId" id="block-room-id" />
+
+            <div id="block-room-info" style="font-size:13px;color:#475569;font-weight:600;margin-bottom:12px;background:#f8fafc;padding:8px 12px;border-radius:8px;"></div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                <div>
+                    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Từ ngày *</label>
+                    <input type="date" name="checkIn" required
+                           th:attr="min=${#temporals.format(today, 'yyyy-MM-dd')}"
+                           style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;" />
+                </div>
+                <div>
+                    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Đến ngày *</label>
+                    <input type="date" name="checkOut" required
+                           style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;" />
+                </div>
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Số phòng chặn *</label>
+                <input type="number" name="roomQuantity" value="1" min="1" max="50" required
+                       style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;" />
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Lý do chặn phòng</label>
+                <select name="blockReason" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;">
+                    <option value="Bảo trì phòng">🔧 Bảo trì phòng</option>
+                    <option value="Sửa chữa nội thất">🛠️ Sửa chữa nội thất</option>
+                    <option value="Vệ sinh tổng thể">🧹 Vệ sinh tổng thể</option>
+                    <option value="Giữ nội bộ">🏢 Giữ nội bộ</option>
+                    <option value="Không bán online">🚫 Không bán online</option>
+                    <option value="Lý do khác">📝 Lý do khác</option>
+                </select>
+            </div>
+
+            <div style="display:flex;gap:8px;justify-content:flex-end;">
+                <button type="button" onclick="document.getElementById('block-modal').style.display='none'"
+                        style="padding:9px 18px;border:1px solid #d1d5db;border-radius:8px;background:#fff;font-size:13px;font-weight:600;cursor:pointer;color:#374151;">
+                    Hủy
+                </button>
+                <button type="submit"
+                        style="padding:9px 18px;border:none;border-radius:8px;background:#dc2626;color:#fff;font-size:13px;font-weight:700;cursor:pointer;">
+                    🔒 Xác nhận chặn phòng
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/admin.js"></script>
+<script>
+function openBlockModal(btn) {
+    document.getElementById('block-acc-id').value = btn.dataset.accId;
+    document.getElementById('block-room-id').value = btn.dataset.roomId;
+    document.getElementById('block-room-info').textContent = '📌 Chặn phòng: ' + btn.dataset.roomName;
+    document.getElementById('block-modal').style.display = 'flex';
+}
+</script>
+</body>
+</html>

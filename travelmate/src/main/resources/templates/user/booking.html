@@ -1,0 +1,814 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TravelMate – Đặt phòng</title>
+
+    <!-- Font Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&subset=vietnamese&display=swap"
+        rel="stylesheet" />
+
+    <!-- Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <!-- Base styles -->
+    <link rel="stylesheet" href="/assets/css/style.css" />
+
+    <style>
+        body { background: #f8fafc; color: #334155; }
+        .bk-main { max-width: 1200px; margin: 40px auto; padding: 0 20px 100px; display: flex; align-items: flex-start; gap: 30px; }
+        .bk-left { flex: 7; display: flex; flex-direction: column; gap: 20px; }
+        .bk-right { flex: 3; position: sticky; top: 100px; }
+        .bk-card { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 24px; }
+        .bk-card-title { font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .bk-form-group { margin-bottom: 20px; }
+        .bk-label { display: block; font-size: 0.875rem; font-weight: 600; color: #334155; margin-bottom: 8px; }
+        .bk-label span { color: #ef4444; }
+        .bk-input { width: 100%; padding: 12px 16px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; font-family: "Montserrat", sans-serif; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
+        .bk-input:focus { border-color: #2563eb; }
+        .bk-input[readonly] { background: #f1f5f9; color: #64748b; cursor: not-allowed; }
+        .bk-row { display: flex; gap: 20px; }
+        .bk-col { flex: 1; }
+        .bk-note { font-size: 0.8125rem; color: #64748b; margin-top: 6px; }
+        .bk-summary-title { font-size: 1rem; font-weight: 700; color: #0f172a; padding-bottom: 16px; border-bottom: 1px solid #e2e8f0; margin-bottom: 16px; }
+        .bk-hotel-name { font-weight: 700; font-size: 1.05rem; color: #0f172a; margin-bottom: 6px; }
+        .bk-room-name { font-size: 0.875rem; color: #475569; font-weight: 600; margin-bottom: 16px; }
+        .bk-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; background: #f8fafc; padding: 12px; border-radius: 8px; }
+        .bk-info-lbl { font-size: 0.75rem; color: #64748b; margin-bottom: 4px; }
+        .bk-info-val { font-size: 0.875rem; font-weight: 600; color: #0f172a; }
+        .bk-price-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; font-size: 0.875rem; margin-bottom: 10px; color: #475569; }
+        .bk-price-row span:first-child { flex: 1; }
+        .bk-price-row span:last-child { min-width: 130px; text-align: right; white-space: nowrap; font-weight: 600; color: #0f172a; }
+        .bk-price-total { display: flex; justify-content: space-between; font-size: 1rem; font-weight: 800; color: #0f172a; padding-top: 16px; border-top: 1px solid #e2e8f0; margin-top: 10px; }
+        .bk-price-total span:last-child { color: #f97316; font-size: 1.25rem; }
+        .btn-submit { width: 100%; background: #3b82f6; color: #fff; border: none; padding: 14px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 24px; transition: background 0.2s; }
+        .btn-submit:hover { background: #2563eb; }
+
+        /* Payment option radio */
+        .payment-options { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+        .payment-opt { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+        .payment-opt:hover { border-color: #93c5fd; }
+        .payment-opt.selected { border-color: #2563eb; background: #eff6ff; }
+        .payment-opt input[type="radio"] { accent-color: #2563eb; width: 18px; height: 18px; }
+        .payment-opt-info { flex: 1; }
+        .payment-opt-title { font-weight: 700; font-size: 0.9rem; color: #0f172a; }
+        .payment-opt-desc { font-size: 0.8rem; color: #64748b; margin-top: 2px; }
+        .payment-opt-amount { font-weight: 800; font-size: 1.05rem; color: #2563eb; white-space: nowrap; }
+
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 9999; align-items: center; justify-content: center; }
+        .modal-overlay.open { display: flex; }
+        .modal-box { background: #fff; border-radius: 16px; padding: 30px 28px; max-width: 440px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.25); position: relative; text-align: center; }
+        .modal-box .modal-close { position: absolute; top: 14px; right: 14px; background: #334155; color: #fff; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; }
+        .modal-title { font-size: 0.9rem; font-weight: 800; color: #334155; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 18px; }
+        .modal-bank-info { background: #f8fafc; border-radius: 10px; padding: 16px; text-align: left; margin-bottom: 16px; }
+        .modal-bank-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e2e8f0; font-size: 0.875rem; }
+        .modal-bank-row:last-child { border-bottom: none; }
+        .modal-bank-row .lbl { color: #64748b; font-weight: 600; font-size: 0.8rem; }
+        .modal-bank-row .val { font-weight: 700; color: #0f172a; }
+        .modal-bank-row.highlight .val { color: #2563eb; font-size: 1.1rem; }
+        .modal-note { font-size: 0.78rem; color: #64748b; font-style: italic; margin-bottom: 20px; }
+        .modal-btns { display: flex; gap: 12px; }
+        .btn-cancel-modal { flex: 1; background: #64748b; color: #fff; border: none; padding: 14px; border-radius: 24px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-confirm-modal { flex: 1.4; background: #2563eb; color: #fff; border: none; padding: 14px; border-radius: 24px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+        /* Alert messages */
+        .bk-alert { padding: 14px 18px; border-radius: 10px; font-size: 0.9rem; font-weight: 600; margin-bottom: 16px; }
+        .bk-alert-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    </style>
+</head>
+
+<body>
+    <!-- ===== HEADER ===== -->
+    <header class="header header-static"
+        style="background: #fff; position: relative; padding: 15px 0; border-bottom: 1px solid #e2e8f0">
+        <div class="container navbar">
+            <div class="logo">
+                <div class="logo-icon bg-sky"><i class="fa-solid fa-building"></i></div>
+                <span class="logo-text text-white">TRAVEL<span class="logo-yellow">MATE</span></span>
+            </div>
+            <nav class="menu">
+                <ul class="menu-list">
+                    <li><a href="/">TRANG CHỦ</a></li>
+                    <li><a href="/accommodations">GỢI Ý DU LỊCH</a></li>
+                    <li><a href="/news">TIN TỨC</a></li>
+                    <li><a href="/contact">LIÊN HỆ</a></li>
+                    <li><a href="/my-bookings"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a></li>
+                </ul>
+            </nav>
+            <!-- Chưa đăng nhập -->
+            <a href="/auth/login" class="login-btn" sec:authorize="isAnonymous()">ĐĂNG NHẬP</a>
+            <!-- Bell Notification (authenticated) -->
+            <div class="notif-wrap" id="notifWrap" sec:authorize="isAuthenticated()" style="position:relative;display:flex;align-items:center;margin-right:10px;">
+                <button class="notif-btn" id="notifBtn" type="button" aria-label="Thông báo"
+                        style="background:none;border:none;cursor:pointer;color:#0f172a;font-size:1.15rem;padding:8px 10px;border-radius:10px;position:relative;transition:background 0.15s,color 0.15s;">
+                    <i class="fa-solid fa-bell"></i>
+                    <span id="notifBadge" style="display:none;position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:0.6rem;font-weight:700;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px;line-height:1;"></span>
+                </button>
+                <div id="notifDropdown" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:340px;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.18);z-index:9999;overflow:hidden;border:1px solid #e2e8f0;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid #f1f5f9;">
+                        <span style="font-weight:700;font-size:0.95rem;color:#0f172a;">Thông báo</span>
+                        <button type="button" style="background:none;border:none;font-size:0.78rem;font-weight:600;color:#2563eb;cursor:pointer;font-family:inherit;padding:0;">Đọc hết</button>
+                    </div>
+                    <div style="max-height:340px;overflow-y:auto;">
+                        <p style="text-align:center;color:#94a3b8;font-size:0.85rem;padding:24px 16px;margin:0;">Không có thông báo</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Đã đăng nhập -->
+            <div class="header-user" id="headerUser" sec:authorize="isAuthenticated()">
+                <button class="header-user-btn" id="headerUserBtn" type="button">
+                    <div class="header-avatar"><i class="fa-solid fa-user"></i></div>
+                    <span class="header-user-name" sec:authentication="principal.fullName">User</span>
+                    <i class="fa-solid fa-chevron-down header-chevron"></i>
+                </button>
+                <div class="header-user-dropdown" id="headerUserDropdown">
+                    <a href="/my-bookings" class="dropdown-item"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a>
+                    <div class="dropdown-divider"></div>
+                    <form method="post" action="/auth/logout">
+                        <button type="submit" class="dropdown-item dropdown-logout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="bk-main" th:with="isVilla=${hotel.propertyType?.name() == 'VILLA'}">
+        <!-- LEFT SIDE -->
+        <div class="bk-left">
+            <!-- Error message -->
+            <div class="bk-alert bk-alert-error" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+
+            <!-- ── Availability status banner ── -->
+            <!-- FULL: phòng đã hết chỗ cho ngày đã chọn -->
+            <div th:if="${roomAvailability != null and roomAvailability.status == 'FULL'}"
+                 style="background:#fef2f2;border:2px solid #fca5a5;border-radius:12px;padding:16px 20px;display:flex;align-items:flex-start;gap:14px;">
+                <i class="fa-solid fa-ban" style="font-size:1.5rem;color:#dc2626;flex-shrink:0;margin-top:2px;"></i>
+                <div>
+                    <div style="font-weight:800;font-size:1rem;color:#b91c1c;margin-bottom:4px;" th:text="${isVilla ? 'Căn đã hết chỗ cho ngày bạn chọn' : 'Phòng đã hết chỗ cho ngày bạn chọn'}">Phòng đã hết chỗ cho ngày bạn chọn</div>
+                    <div style="font-size:0.875rem;color:#7f1d1d;">
+                        <th:block th:text="${isVilla ? 'Căn' : 'Phòng'}"></th:block> <strong th:text="${room.roomName}"></strong> không còn chỗ trống trong khoảng
+                        <strong th:text="${checkInFormatted}"></strong> → <strong th:text="${checkOutFormatted}"></strong>.
+                        Vui lòng quay lại và chọn ngày khác hoặc phòng khác.
+                    </div>
+                    <a th:href="@{/accommodations/{id}(id=${hotel.id})}"
+                       style="display:inline-block;margin-top:10px;padding:8px 18px;background:#dc2626;color:#fff;border-radius:8px;font-weight:700;font-size:0.875rem;text-decoration:none;">
+                        <i class="fa-solid fa-arrow-left"></i> Chọn phòng khác
+                    </a>
+                </div>
+            </div>
+
+            <!-- LIMITED: sắp hết phòng -->
+            <div th:if="${roomAvailability != null and roomAvailability.status == 'LIMITED'}"
+                 style="background:#fffbeb;border:2px solid #fcd34d;border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;">
+                <i class="fa-solid fa-fire-flame-curved" style="font-size:1.3rem;color:#d97706;flex-shrink:0;"></i>
+                <div>
+                    <div style="font-weight:700;font-size:0.9375rem;color:#92400e;">
+                        <th:block th:text="${isVilla ? 'Sắp hết căn! Chỉ còn' : 'Sắp hết phòng! Chỉ còn'}"></th:block>
+                        <strong th:text="${roomAvailability.availableQuantity}"></strong>
+                        <th:block th:text="${isVilla ? 'căn trống cho ngày này' : 'phòng trống cho ngày này'}"></th:block>
+                    </div>
+                    <div style="font-size:0.8125rem;color:#78350f;margin-top:2px;">Đặt ngay để không bỏ lỡ!</div>
+                </div>
+            </div>
+
+            <!-- AVAILABLE: phòng còn nhiều -->
+            <div th:if="${roomAvailability != null and roomAvailability.status == 'AVAILABLE'}"
+                 style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:12px 18px;display:flex;align-items:center;gap:10px;">
+                <i class="fa-solid fa-circle-check" style="font-size:1.2rem;color:#16a34a;flex-shrink:0;"></i>
+                <div style="font-size:0.875rem;font-weight:600;color:#166534;">
+                    Còn <strong th:text="${roomAvailability.availableQuantity}"></strong> <th:block th:text="${isVilla ? 'căn trống cho khoảng ngày bạn chọn' : 'phòng trống cho khoảng ngày bạn chọn'}"></th:block>
+                </div>
+            </div>
+
+            <!-- Thông tin liên hệ -->
+            <div class="bk-card">
+                <h2 class="bk-card-title"><i class="fa-regular fa-envelope"></i> Liên hệ đặt chỗ</h2>
+                <div class="bk-form-group">
+                    <label class="bk-label">Họ tên <span>*</span></label>
+                    <input type="text" class="bk-input" id="customerName" th:value="${userName}" readonly />
+                    <div class="bk-note">Tên lấy từ tài khoản đăng nhập</div>
+                </div>
+                <div class="bk-row">
+                    <div class="bk-col bk-form-group">
+                        <label class="bk-label">Điện thoại di động <span>*</span></label>
+                        <input type="text" class="bk-input" id="customerPhone"
+                               th:value="${userPhone}"
+                               placeholder="VD: 0901234567"
+                               maxlength="15"
+                               style="border-color:#cbd5e1;"
+                               oninput="this.style.borderColor='#2563eb'; clearBkError('bk-phone-error');" />
+                        <div class="bk-note"><i class="fa-solid fa-pen-to-square" style="color:#2563eb;"></i> Có thể chỉnh sửa nếu số điện thoại chưa đúng</div>
+                    </div>
+                    <div class="bk-col bk-form-group">
+                        <label class="bk-label">Email <span>*</span></label>
+                        <input type="email" class="bk-input" id="customerEmail" th:value="${userEmail}" readonly />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chọn hình thức thanh toán -->
+            <div class="bk-card">
+                <h2 class="bk-card-title"><i class="fa-solid fa-credit-card"></i> Hình thức thanh toán</h2>
+                <div class="payment-options">
+                    <label class="payment-opt selected" id="opt-full" onclick="selectPayment('FULL_PAYMENT')">
+                        <input type="radio" name="paymentOptionUI" value="FULL_PAYMENT" checked />
+                        <div class="payment-opt-info">
+                            <div class="payment-opt-title">Thanh toán 100%</div>
+                            <div class="payment-opt-desc">Thanh toán toàn bộ, không cần trả thêm</div>
+                        </div>
+                        <div class="payment-opt-amount" id="amount-full" th:text="${#numbers.formatDecimal(paidFull, 0, 'POINT', 0, 'COMMA')} + '₫'">0₫</div>
+                    </label>
+                    <label class="payment-opt" id="opt-deposit" onclick="selectPayment('DEPOSIT_30')">
+                        <input type="radio" name="paymentOptionUI" value="DEPOSIT_30" />
+                        <div class="payment-opt-info">
+                            <div class="payment-opt-title">Cọc trước 30%</div>
+                            <div class="payment-opt-desc">Chỉ trả 30% bây giờ, còn lại thanh toán sau</div>
+                        </div>
+                        <div class="payment-opt-amount" id="amount-deposit" th:text="${#numbers.formatDecimal(paidDeposit, 0, 'POINT', 0, 'COMMA')} + '₫'">0₫</div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Nhập Voucher -->
+            <div class="bk-card">
+                <h2 class="bk-card-title"><i class="fa-solid fa-ticket"></i> Mã Giảm Giá (Tuỳ chọn)</h2>
+                <div class="bk-form-group" style="margin-bottom:0;">
+                    <label class="bk-label">Nhập mã voucher nếu bạn có</label>
+                    <div style="display:flex;gap:10px;">
+                        <input type="text" class="bk-input" id="voucherCodeInput"
+                               placeholder="VD: SUMMER10, WELCOME50..."
+                               style="text-transform:uppercase;letter-spacing:1px;"
+                               oninput="this.value=this.value.toUpperCase(); resetVoucherOnInput();"
+                               maxlength="50" />
+                        <button type="button" onclick="applyVoucher()"
+                                style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:0 16px;font-weight:700;cursor:pointer;white-space:nowrap;">
+                            Áp dụng
+                        </button>
+                    </div>
+                    <div id="voucherMsg" style="font-size:13px;margin-top:8px;min-height:20px;"></div>
+                </div>
+            </div>
+
+            <!-- Chính sách & Hủy phòng -->
+            <div class="bk-card">
+                <h2 class="bk-card-title"><i class="fa-solid fa-shield-halved"></i> Chính sách Chỗ ở & Hủy phòng</h2>
+
+                <!-- Nhận/trả phòng -->
+                <div style="background:#f8fafc;border-radius:10px;padding:14px 18px;margin-bottom:14px;border:1px solid #e2e8f0;">
+                    <div style="font-weight:700;font-size:0.875rem;color:#0f172a;margin-bottom:8px;">
+                        <i class="fa-regular fa-clock" style="color:#2563eb;margin-right:6px;"></i> Thời gian nhận/trả phòng
+                    </div>
+                    <div style="display:flex;gap:30px;font-size:0.8125rem;color:#475569;">
+                        <span><i class="fa-solid fa-arrow-right-to-bracket" style="color:#16a34a;margin-right:4px;"></i> Nhận phòng: <strong>từ 14:00</strong></span>
+                        <span><i class="fa-solid fa-arrow-right-from-bracket" style="color:#dc2626;margin-right:4px;"></i> Trả phòng: <strong>trước 12:00</strong></span>
+                    </div>
+                    <div style="margin-top:8px;font-size:0.8rem;color:#64748b;">
+                        <i class="fa-solid fa-child-reaching" style="margin-right:4px;"></i>
+                        Trẻ từ 0–5 tuổi miễn phí khi dùng giường có sẵn.
+                    </div>
+                </div>
+
+                <!-- Chính sách hủy: Thanh toán 100% -->
+                <div id="cancel-policy-full"
+                     style="border-radius:12px;border:2px solid #bfdbfe;overflow:hidden;margin-bottom:12px;">
+                    <div style="background:#2563eb;padding:10px 16px;display:flex;align-items:center;gap:8px;">
+                        <i class="fa-solid fa-circle-dollar-to-slot" style="color:#fff;font-size:1rem;"></i>
+                        <span style="font-weight:800;font-size:0.875rem;color:#fff;">Chính sách hủy — Thanh toán 100%</span>
+                    </div>
+                    <div style="background:#eff6ff;padding:14px 16px;">
+                        <div style="display:flex;gap:10px;margin-bottom:10px;padding:10px 14px;background:#dcfce7;border-radius:8px;border:1px solid #86efac;">
+                            <i class="fa-solid fa-circle-check" style="color:#16a34a;margin-top:2px;flex-shrink:0;"></i>
+                            <div style="font-size:0.8125rem;color:#14532d;">
+                                <strong>Trường hợp 1: Admin chưa duyệt (Chờ xét duyệt)</strong><br/>
+                                Bạn có thể <strong>hủy ngay</strong> và hệ thống sẽ <strong>hoàn tiền demo</strong> toàn bộ 100% vào tài khoản trong vòng 1–3 ngày làm việc.
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:10px;padding:10px 14px;background:#fef9c3;border-radius:8px;border:1px solid #fde047;">
+                            <i class="fa-solid fa-headset" style="color:#b45309;margin-top:2px;flex-shrink:0;"></i>
+                            <div style="font-size:0.8125rem;color:#713f12;">
+                                <strong>Trường hợp 2: Admin đã duyệt (Đã xác nhận)</strong><br/>
+                                Sau khi admin duyệt, bạn <strong>không thể tự hủy</strong>. Vui lòng <a href="/contact" style="color:#b45309;font-weight:700;">liên hệ hỗ trợ</a> để được xử lý theo từng trường hợp cụ thể.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chính sách hủy: Cọc 30% -->
+                <div id="cancel-policy-deposit"
+                     style="border-radius:12px;border:2px solid #fcd34d;overflow:hidden;margin-bottom:12px;display:none;">
+                    <div style="background:#d97706;padding:10px 16px;display:flex;align-items:center;gap:8px;">
+                        <i class="fa-solid fa-hand-holding-dollar" style="color:#fff;font-size:1rem;"></i>
+                        <span style="font-weight:800;font-size:0.875rem;color:#fff;">Chính sách hủy — Cọc trước 30%</span>
+                    </div>
+                    <div style="background:#fffbeb;padding:14px 16px;">
+                        <div style="display:flex;gap:10px;margin-bottom:10px;padding:10px 14px;background:#dcfce7;border-radius:8px;border:1px solid #86efac;">
+                            <i class="fa-solid fa-circle-check" style="color:#16a34a;margin-top:2px;flex-shrink:0;"></i>
+                            <div style="font-size:0.8125rem;color:#14532d;">
+                                <strong>Khi hủy trước khi admin duyệt:</strong><br/>
+                                Hoàn lại toàn bộ tiền cọc 30% (demo) — không mất phí.
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:10px;margin-bottom:10px;padding:10px 14px;background:#fef2f2;border-radius:8px;border:1px solid #fca5a5;">
+                            <i class="fa-solid fa-triangle-exclamation" style="color:#dc2626;margin-top:2px;flex-shrink:0;"></i>
+                            <div style="font-size:0.8125rem;color:#7f1d1d;">
+                                <strong>Nếu không đến check-in (No-show):</strong><br/>
+                                Khoản cọc 30% sẽ <strong>bị giữ lại</strong> theo chính sách. Hệ thống sẽ ghi nhận trạng thái <em>Mất cọc / No-show</em>.
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:10px;padding:10px 14px;background:#f0fdf4;border-radius:8px;border:1px solid #86efac;">
+                            <i class="fa-solid fa-wallet" style="color:#16a34a;margin-top:2px;flex-shrink:0;"></i>
+                            <div style="font-size:0.8125rem;color:#14532d;">
+                                <strong>Số tiền còn lại (70%):</strong><br/>
+                                Thanh toán trực tiếp tại lễ tân khi nhận phòng. Vui lòng chuẩn bị sẵn tiền mặt hoặc thẻ.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE -->
+        <div class="bk-right">
+            <div class="bk-card">
+                <h2 class="bk-summary-title">
+                    <i class="fa-solid fa-tag" style="margin-right: 8px"></i> Chi tiết giá
+                </h2>
+
+                <div class="bk-hotel-name" th:text="${hotel.name}">Khách sạn</div>
+                <div class="bk-room-name" th:text="'(' + ${rooms} + 'x) ' + ${room.roomName}">Phòng</div>
+
+                <div class="bk-info-grid">
+                    <div>
+                        <div class="bk-info-lbl">Nhận phòng</div>
+                        <div class="bk-info-val" th:text="${checkInFormatted}">--/--</div>
+                        <div class="bk-info-lbl" style="margin-top: 4px">Từ 14:00</div>
+                    </div>
+                    <div>
+                        <div class="bk-info-lbl">Trả phòng</div>
+                        <div class="bk-info-val" th:text="${checkOutFormatted}">--/--</div>
+                        <div class="bk-info-lbl" style="margin-top: 4px">Trước 12:00</div>
+                    </div>
+                </div>
+
+                <div class="bk-info-grid" style="grid-template-columns: 1fr">
+                    <div>
+                        <div class="bk-info-lbl">Số lượng</div>
+                        <div class="bk-info-val" th:text="${adults + children} + ' Khách, ' + ${rooms} + (${isVilla} ? ' Căn, ' : ' Phòng, ') + ${numberOfNights} + ' Đêm'">0 Khách</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 24px"></div>
+
+                <div class="bk-price-row">
+                    <span th:text="(${isVilla} ? 'Giá căn' : 'Giá phòng') + ' (' + ${rooms} + (${isVilla} ? ' căn × ' : ' phòng × ') + ${numberOfNights} + ' đêm)'">Giá phòng</span>
+                    <span id="base-price-display" th:text="${#numbers.formatDecimal(totalAmount, 0, 'POINT', 0, 'COMMA')} + ' VND'">0 VND</span>
+                </div>
+
+                <!-- Discount row — hidden until voucher applied -->
+                <div class="bk-price-row" id="discount-row"
+                     style="display:none;color:#16a34a;font-weight:700;background:#f0fdf4;padding:8px 10px;border-radius:8px;margin-top:-4px;">
+                    <span style="display:flex;align-items:center;gap:6px;">
+                        <i class="fa-solid fa-tag" style="font-size:0.75rem;"></i>
+                        Giảm giá (<span id="discount-code" style="font-weight:800;letter-spacing:0.5px;"></span>)
+                        <button type="button" onclick="removeVoucher()"
+                                title="Bỏ voucher"
+                                style="background:#fee2e2;border:none;color:#dc2626;cursor:pointer;font-size:0.7rem;border-radius:4px;padding:1px 6px;font-weight:700;font-family:inherit;">✕ Bỏ</button>
+                    </span>
+                    <span id="discount-amount" style="color:#16a34a;white-space:nowrap;">-0 VND</span>
+                </div>
+
+                <div class="bk-price-total"
+                     id="right-panel-total-wrap"
+                     th:attr="data-full=${#numbers.formatDecimal(paidFull, 0, 'POINT', 0, 'COMMA')} + ' VND',data-deposit=${#numbers.formatDecimal(paidDeposit, 0, 'POINT', 0, 'COMMA')} + ' VND',data-remaining-deposit=${#numbers.formatDecimal(totalAmount - paidDeposit, 0, 'POINT', 0, 'COMMA')} + ' VND'">
+                    <span id="right-panel-label">Tổng thanh toán</span>
+                    <span id="right-panel-total"
+                          th:text="${#numbers.formatDecimal(paidFull, 0, 'POINT', 0, 'COMMA')} + ' VND'">0 VND</span>
+                </div>
+                <!-- Còn lại khi check-in (chỉ hiện khi chọn Cọc 30%) -->
+                <div id="remaining-deposit-row" style="display:none;justify-content:space-between;font-size:0.8rem;color:#dc2626;font-weight:700;padding:6px 0;border-top:1px dashed #fca5a5;margin-top:4px;">
+                    <span><i class="fa-solid fa-clock" style="margin-right:4px;"></i>Còn lại tại lễ tân</span>
+                    <span id="remaining-deposit-amount"
+                          th:text="${#numbers.formatDecimal(totalAmount - paidDeposit, 0, 'POINT', 0, 'COMMA')} + ' VND'">0 VND</span>
+                </div>
+
+                <!-- Checkbox đồng ý điều khoản -->
+                <div th:if="${roomAvailability == null or roomAvailability.status != 'FULL'}"
+                     style="margin-top:20px;padding:12px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;">
+                    <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
+                        <input type="checkbox" id="termsCheckbox" onchange="updateSubmitBtn()"
+                               style="margin-top:3px;accent-color:#2563eb;width:16px;height:16px;flex-shrink:0;" />
+                        <span style="font-size:0.8rem;color:#475569;line-height:1.55;">
+                            Tôi đã đọc và đồng ý với
+                            <a href="#policies" style="color:#2563eb;font-weight:700;text-decoration:underline;">Điều khoản dịch vụ</a>
+                            và
+                            <a href="#cancel-policy-full" id="terms-cancel-link" style="color:#2563eb;font-weight:700;text-decoration:underline;" onclick="scrollToCancelPolicy(event)">Chính sách hủy phòng</a>
+                            của TravelMate.
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Nút mở modal thanh toán — disabled nếu phòng FULL hoặc chưa tick terms -->
+                <button class="btn-submit" id="submitBtn"
+                        th:if="${roomAvailability == null or roomAvailability.status != 'FULL'}"
+                        onclick="openPaymentModal()"
+                        disabled
+                        style="opacity:0.5;cursor:not-allowed;"
+                        th:style="${roomAvailability != null and roomAvailability.status == 'LIMITED'} ? 'background:#f59e0b;opacity:0.5;cursor:not-allowed;' : 'opacity:0.5;cursor:not-allowed;'">
+                    <th:block th:if="${roomAvailability != null and roomAvailability.status == 'LIMITED'}">
+                        <i class="fa-solid fa-bolt"></i> Đặt ngay (sắp hết)
+                    </th:block>
+                    <th:block th:unless="${roomAvailability != null and roomAvailability.status == 'LIMITED'}">
+                        <i class="fa-solid fa-lock"></i> Xác nhận & Thanh toán
+                    </th:block>
+                </button>
+                <div th:if="${roomAvailability != null and roomAvailability.status == 'FULL'}"
+                     style="width:100%;background:#fee2e2;color:#b91c1c;border:none;padding:14px;border-radius:8px;font-weight:700;font-size:1rem;margin-top:24px;text-align:center;">
+                    <i class="fa-solid fa-ban"></i> <th:block th:text="${isVilla ? 'Hết căn — không thể đặt' : 'Hết phòng — không thể đặt'}"></th:block>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ===== QR PAYMENT MODAL (Demo VNPay) ===== -->
+    <div class="modal-overlay" id="qrModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="document.getElementById('qrModal').classList.remove('open')">✕</button>
+
+            <p class="modal-title" th:text="${isVilla ? 'Xác nhận thanh toán đặt căn' : 'Xác nhận thanh toán đặt phòng'}">Xác nhận thanh toán đặt phòng</p>
+
+            <div style="margin-bottom: 20px">
+                <i class="fa-solid fa-circle-check" style="font-size: 3rem; color: #22c55e;"></i>
+                <p style="margin-top: 12px; font-size: 0.9rem; color: #334155; font-weight: 600;">Thanh toán demo VNPay</p>
+                <p style="font-size: 0.8rem; color: #64748b;">Đây là hệ thống demo — không cần chuyển tiền thật</p>
+            </div>
+
+            <div class="modal-bank-info">
+                <div class="modal-bank-row">
+                    <span class="lbl">PHƯƠNG THỨC:</span>
+                    <span class="val">VNPay Demo</span>
+                </div>
+                <div class="modal-bank-row">
+                    <span class="lbl" th:text="${hotel.propertyType?.name() == 'VILLA' ? 'VILLA:' : hotel.propertyType?.name() == 'HOMESTAY' ? 'HOMESTAY:' : hotel.propertyType?.name() == 'RESORT' ? 'RESORT:' : 'KHÁCH SẠN:'}">KHÁCH SẠN:</span>
+                    <span class="val" th:text="${hotel.name}">Khách sạn</span>
+                </div>
+                <div class="modal-bank-row">
+                    <span class="lbl" th:text="${isVilla ? 'CĂN:' : 'PHÒNG:'}">PHÒNG:</span>
+                    <span class="val" th:text="${room.roomName}">Phòng</span>
+                </div>
+                <div class="modal-bank-row">
+                    <span class="lbl" th:text="${isVilla ? 'SỐ CĂN / SỐ ĐÊM:' : 'SỐ PHÒNG / SỐ ĐÊM:'}">SỐ PHÒNG / SỐ ĐÊM:</span>
+                    <span class="val" th:text="${rooms} + (${isVilla} ? ' căn × ' : ' phòng × ') + ${numberOfNights} + ' đêm'">1 phòng × 1 đêm</span>
+                </div>
+                <div class="modal-bank-row">
+                    <span class="lbl">NGÀY NHẬN / TRẢ:</span>
+                    <span class="val" th:text="${checkInFormatted} + ' → ' + ${checkOutFormatted}">--</span>
+                </div>
+                <div class="modal-bank-row highlight">
+                    <span class="lbl" style="color: #2563eb">SỐ TIỀN CẦN TRẢ:</span>
+                    <span class="val" style="color: #2563eb; font-size: 1.2rem" id="modal-amount"
+                          th:text="${#numbers.formatDecimal(paidFull, 0, 'POINT', 0, 'COMMA')} + '₫'">0₫</span>
+                </div>
+                <div class="modal-bank-row">
+                    <span class="lbl">HÌNH THỨC:</span>
+                    <span class="val" id="modal-option-label">Thanh toán 100%</span>
+                </div>
+                <div class="modal-bank-row" id="modal-remaining-row" style="display:none;">
+                    <span class="lbl" style="color:#dc2626;">CÒN LẠI TẠI LỄ TÂN:</span>
+                    <span class="val" style="color:#dc2626;" id="modal-remaining-amount">0₫</span>
+                </div>
+            </div>
+
+            <div class="modal-note">
+                Nhấn "Xác nhận thanh toán" để hoàn tất đặt phòng. Đơn sẽ chờ Admin duyệt.
+            </div>
+
+            <div class="modal-btns">
+                <button class="btn-cancel-modal" onclick="document.getElementById('qrModal').classList.remove('open')">
+                    ✕ HỦY BỎ
+                </button>
+                <button class="btn-confirm-modal" id="btnConfirmModal" onclick="submitBooking()">✔ XÁC NHẬN THANH TOÁN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden form — submit thật khi user xác nhận -->
+    <form id="bookingForm" method="post" action="/booking/confirm" style="display:none">
+        <input type="hidden" name="roomId" th:value="${room.id}" />
+        <input type="hidden" name="checkIn" th:value="${checkIn}" />
+        <input type="hidden" name="checkOut" th:value="${checkOut}" />
+        <input type="hidden" name="adults" th:value="${adults}" />
+        <input type="hidden" name="children" th:value="${children}" />
+        <input type="hidden" name="rooms" th:value="${rooms}" />
+        <input type="hidden" name="customerName" id="formCustomerName" th:value="${userName}" />
+        <input type="hidden" name="customerPhone" id="formCustomerPhone" th:value="${userPhone}" />
+        <input type="hidden" name="customerEmail" id="formCustomerEmail" th:value="${userEmail}" />
+        <input type="hidden" name="paymentOption" id="formPaymentOption" value="FULL_PAYMENT" />
+        <input type="hidden" name="voucherCode" id="formVoucherCode" value="" />
+    </form>
+
+    <!-- Inject server values for JS -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var ROOM_ID         = /*[[${room.id}]]*/ 0;
+        var BASE_TOTAL_RAW  = /*[[${totalAmount}]]*/ 0;
+        var BASE_FULL_RAW   = /*[[${paidFull}]]*/ 0;
+        var BASE_DEPOSIT_RAW = /*[[${paidDeposit}]]*/ 0;
+        /*]]>*/
+    </script>
+
+    <script>
+        // Format number with dots as thousands separator (Vietnamese style)
+        function formatVnd(n) {
+            return Math.round(Number(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        // === Chọn hình thức thanh toán ===
+        function selectPayment(option) {
+            document.querySelectorAll('.payment-opt').forEach(el => el.classList.remove('selected'));
+            const wrap = document.getElementById('right-panel-total-wrap');
+            const remainingRow   = document.getElementById('remaining-deposit-row');
+            const modalRemRow    = document.getElementById('modal-remaining-row');
+            if (option === 'FULL_PAYMENT') {
+                document.getElementById('opt-full').classList.add('selected');
+                document.getElementById('modal-amount').textContent = document.getElementById('amount-full').textContent;
+                document.getElementById('modal-option-label').textContent = 'Thanh toán 100%';
+                document.getElementById('right-panel-total').textContent = wrap.dataset.full;
+                document.getElementById('right-panel-label').textContent = 'Tổng thanh toán';
+                if (remainingRow) remainingRow.style.display = 'none';
+                if (modalRemRow)  modalRemRow.style.display  = 'none';
+            } else {
+                document.getElementById('opt-deposit').classList.add('selected');
+                document.getElementById('modal-amount').textContent = document.getElementById('amount-deposit').textContent;
+                document.getElementById('modal-option-label').textContent = 'Cọc trước 30%';
+                document.getElementById('right-panel-total').textContent = wrap.dataset.deposit;
+                document.getElementById('right-panel-label').textContent = 'Cọc thanh toán (30%)';
+                // Show remaining row
+                if (remainingRow) remainingRow.style.display = 'flex';
+                if (modalRemRow) {
+                    modalRemRow.style.display = '';
+                    document.getElementById('modal-remaining-amount').textContent = wrap.dataset.remainingDeposit.replace(' VND', '₫');
+                }
+            }
+            document.getElementById('formPaymentOption').value = option;
+            // Toggle cancellation policy section
+            const policyFull    = document.getElementById('cancel-policy-full');
+            const policyDeposit = document.getElementById('cancel-policy-deposit');
+            if (policyFull)    policyFull.style.display    = (option === 'FULL_PAYMENT') ? '' : 'none';
+            if (policyDeposit) policyDeposit.style.display = (option === 'DEPOSIT_30')   ? '' : 'none';
+        }
+
+        // === Checkbox đồng ý điều khoản ===
+        function updateSubmitBtn() {
+            const cb  = document.getElementById('termsCheckbox');
+            const btn = document.getElementById('submitBtn');
+            if (!btn) return;
+            const checked = cb && cb.checked;
+            btn.disabled = !checked;
+            btn.style.opacity = checked ? '1' : '0.5';
+            btn.style.cursor  = checked ? 'pointer' : 'not-allowed';
+        }
+
+        // === Mở modal thanh toán — validate trước khi mở ===
+        function openPaymentModal() {
+            const cb = document.getElementById('termsCheckbox');
+            const termsWrap = cb ? cb.closest('div') : null;
+
+            // Reset lỗi cũ
+            clearBkError('bk-phone-error');
+            clearBkError('bk-name-error');
+            if (termsWrap) termsWrap.style.border = '';
+
+            let hasError = false;
+
+            // Kiểm tra họ tên không rỗng
+            const nameVal = (document.getElementById('customerName')?.value || '').trim();
+            if (!nameVal) {
+                showBkFieldError('customerName', 'bk-name-error', '⚠ Họ tên không được để trống. Vui lòng cập nhật hồ sơ.');
+                hasError = true;
+            }
+
+            // Kiểm tra số điện thoại hợp lệ — chuẩn hóa trước (bỏ khoảng trắng, dấu gạch)
+            const phoneRaw = (document.getElementById('customerPhone')?.value || '');
+            const phoneVal = phoneRaw.replace(/[\s\-\.]/g, ''); // strip spaces, dashes, dots
+            if (!phoneVal) {
+                showBkFieldError('customerPhone', 'bk-phone-error', '⚠ Vui lòng nhập số điện thoại trước khi thanh toán.');
+                hasError = true;
+            } else if (!/^(0|\+84)[0-9]{8,10}$/.test(phoneVal)) {
+                showBkFieldError('customerPhone', 'bk-phone-error', '⚠ Số điện thoại không đúng định dạng. VD: 0901234567 hoặc +84901234567');
+                hasError = true;
+            } else {
+                // Ghi lại giá trị đã chuẩn hóa vào field để form submit đúng
+                document.getElementById('customerPhone').value = phoneVal;
+            }
+
+            // Kiểm tra checkbox điều khoản
+            if (!cb || !cb.checked) {
+                if (termsWrap) {
+                    termsWrap.style.border = '2px solid #ef4444';
+                    termsWrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                hasError = true;
+            }
+
+            if (hasError) return;
+            document.getElementById('qrModal').classList.add('open');
+        }
+
+        function showBkFieldError(inputId, errorId, msg) {
+            const input = document.getElementById(inputId);
+            if (input) {
+                input.style.borderColor = '#ef4444';
+                let errEl = document.getElementById(errorId);
+                if (!errEl) {
+                    errEl = document.createElement('div');
+                    errEl.id = errorId;
+                    errEl.style.cssText = 'color:#dc2626;font-size:0.78rem;margin-top:4px;font-weight:600;';
+                    input.parentNode.insertBefore(errEl, input.nextSibling);
+                }
+                errEl.textContent = msg;
+                input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function clearBkError(errorId) {
+            const el = document.getElementById(errorId);
+            if (el) el.remove();
+        }
+
+        // === Submit booking form — chống double-click ===
+        let _submitLock = false;
+        function submitBooking() {
+            if (_submitLock) return;
+            _submitLock = true;
+
+            const btn = document.getElementById('btnConfirmModal');
+            if (btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.7';
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+            }
+
+            document.getElementById('formCustomerName').value  = document.getElementById('customerName').value;
+            document.getElementById('formCustomerPhone').value = document.getElementById('customerPhone').value;
+            document.getElementById('formCustomerEmail').value = document.getElementById('customerEmail').value;
+            // formVoucherCode is already set by applyVoucher() — only use validated code
+            // Do NOT override with raw input value to prevent bypassing validation
+            document.getElementById('bookingForm').submit();
+        }
+
+        // === Apply voucher — real-time API check ===
+        async function applyVoucher() {
+            const code    = document.getElementById('voucherCodeInput').value.trim().toUpperCase();
+            const msg     = document.getElementById('voucherMsg');
+            const applyBtn = document.querySelector('[onclick="applyVoucher()"]');
+
+            if (!code) {
+                msg.innerHTML = '<span style="color:#dc2626;">⚠ Vui lòng nhập mã voucher.</span>';
+                return;
+            }
+
+            // Show loading state
+            applyBtn.disabled    = true;
+            applyBtn.textContent = '...';
+            msg.innerHTML = '<span style="color:#2563eb;">⏳ Đang kiểm tra mã <strong>' + code + '</strong>...</span>';
+
+            try {
+                const url = '/api/voucher/check?code=' + encodeURIComponent(code)
+                          + '&roomId=' + ROOM_ID
+                          + '&totalAmount=' + BASE_TOTAL_RAW;
+                const res  = await fetch(url);
+                const data = await res.json();
+
+                if (data.valid) {
+                    // ── Success ──
+                    msg.innerHTML =
+                        '<span style="color:#16a34a;font-weight:700;">✅ Voucher hợp lệ! ' + data.discountDesc + '</span>';
+
+                    // Show discount row in summary
+                    document.getElementById('discount-row').style.display = 'flex';
+                    document.getElementById('discount-code').textContent   = code;
+                    document.getElementById('discount-amount').textContent = '-' + formatVnd(data.discountAmount) + ' VND';
+
+                    // Update payment option amounts
+                    document.getElementById('amount-full').textContent    = formatVnd(data.newFull)    + '₫';
+                    document.getElementById('amount-deposit').textContent = formatVnd(data.newDeposit) + '₫';
+
+                    // Update right-panel data-* for selectPayment()
+                    const wrap = document.getElementById('right-panel-total-wrap');
+                    wrap.dataset.full    = formatVnd(data.newFull)    + ' VND';
+                    wrap.dataset.deposit = formatVnd(data.newDeposit) + ' VND';
+                    // newRemaining = newTotal - newDeposit (remaining after 30% cọc)
+                    const newRemaining = data.newTotal - data.newDeposit;
+                    wrap.dataset.remainingDeposit = formatVnd(newRemaining) + ' VND';
+
+                    // Refresh displayed total based on current selection
+                    const curOpt = document.getElementById('formPaymentOption').value;
+                    if (curOpt === 'FULL_PAYMENT') {
+                        document.getElementById('right-panel-total').textContent = formatVnd(data.newFull)    + ' VND';
+                        document.getElementById('modal-amount').textContent      = formatVnd(data.newFull)    + '₫';
+                        document.getElementById('right-panel-label').textContent = 'Tổng thanh toán';
+                    } else {
+                        document.getElementById('right-panel-total').textContent = formatVnd(data.newDeposit) + ' VND';
+                        document.getElementById('modal-amount').textContent      = formatVnd(data.newDeposit) + '₫';
+                        document.getElementById('right-panel-label').textContent = 'Cọc thanh toán (30%)';
+                        // Update remaining row
+                        const remEl = document.getElementById('remaining-deposit-amount');
+                        if (remEl) remEl.textContent = formatVnd(newRemaining) + ' VND';
+                        const modalRemAmt = document.getElementById('modal-remaining-amount');
+                        if (modalRemAmt) modalRemAmt.textContent = formatVnd(newRemaining) + '₫';
+                    }
+
+                    // Store valid code for form submission
+                    document.getElementById('formVoucherCode').value = code;
+
+                } else {
+                    // ── Error ──
+                    msg.innerHTML = '<span style="color:#dc2626;">❌ ' + (data.errorMsg || 'Mã voucher không hợp lệ.') + '</span>';
+                    resetPrices();
+                }
+
+            } catch (err) {
+                msg.innerHTML = '<span style="color:#dc2626;">❌ Lỗi kết nối. Vui lòng thử lại.</span>';
+            } finally {
+                applyBtn.disabled    = false;
+                applyBtn.textContent = 'Áp dụng';
+            }
+        }
+
+        // === Remove voucher ===
+        function removeVoucher() {
+            document.getElementById('voucherCodeInput').value    = '';
+            document.getElementById('voucherMsg').textContent    = '';
+            document.getElementById('formVoucherCode').value     = '';
+            document.getElementById('discount-row').style.display = 'none';
+            resetPrices();
+        }
+
+        // === Reset voucher state when user modifies input ===
+        function resetVoucherOnInput() {
+            // If a voucher was previously validated, clear it when user changes input
+            const formCode = document.getElementById('formVoucherCode').value;
+            if (formCode) {
+                document.getElementById('formVoucherCode').value = '';
+                document.getElementById('voucherMsg').textContent = '';
+                document.getElementById('discount-row').style.display = 'none';
+                resetPrices();
+            }
+        }
+
+        // === Reset prices back to base (no voucher) ===
+        function resetPrices() {
+            document.getElementById('amount-full').textContent    = formatVnd(BASE_FULL_RAW)    + '₫';
+            document.getElementById('amount-deposit').textContent = formatVnd(BASE_DEPOSIT_RAW) + '₫';
+
+            const wrap = document.getElementById('right-panel-total-wrap');
+            wrap.dataset.full    = formatVnd(BASE_FULL_RAW)    + ' VND';
+            wrap.dataset.deposit = formatVnd(BASE_DEPOSIT_RAW) + ' VND';
+
+            const curOpt = document.getElementById('formPaymentOption').value;
+            if (curOpt === 'FULL_PAYMENT') {
+                document.getElementById('right-panel-total').textContent = formatVnd(BASE_FULL_RAW)    + ' VND';
+                document.getElementById('modal-amount').textContent      = formatVnd(BASE_FULL_RAW)    + '₫';
+                document.getElementById('right-panel-label').textContent = 'Tổng thanh toán';
+            } else {
+                document.getElementById('right-panel-total').textContent = formatVnd(BASE_DEPOSIT_RAW) + ' VND';
+                document.getElementById('modal-amount').textContent      = formatVnd(BASE_DEPOSIT_RAW) + '₫';
+                document.getElementById('right-panel-label').textContent = 'Cọc thanh toán (30%)';
+            }
+        }
+
+        // === Scroll to cancel policy (link từ terms checkbox) ===
+        function scrollToCancelPolicy(e) {
+            e.preventDefault();
+            const curOpt = document.getElementById('formPaymentOption').value;
+            const target = document.getElementById(curOpt === 'DEPOSIT_30' ? 'cancel-policy-deposit' : 'cancel-policy-full');
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Allow pressing Enter in voucher input to trigger Apply
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('voucherCodeInput').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') { e.preventDefault(); applyVoucher(); }
+            });
+
+            // Notification bell toggle
+            const notifBtn = document.getElementById('notifBtn');
+            const notifDrop = document.getElementById('notifDropdown');
+            if (notifBtn && notifDrop) {
+                notifBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    notifDrop.style.display = notifDrop.style.display === 'block' ? 'none' : 'block';
+                });
+                document.addEventListener('click', function() { notifDrop.style.display = 'none'; });
+                notifDrop.addEventListener('click', function(e) { e.stopPropagation(); });
+            }
+        });
+    </script>
+</body>
+
+</html>

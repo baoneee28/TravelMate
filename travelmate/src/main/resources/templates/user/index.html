@@ -1,0 +1,1355 @@
+﻿<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TravelMate - Khởi đầu mọi hành trình</title>
+
+    <!-- Font Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&subset=vietnamese&display=swap"
+        rel="stylesheet" />
+
+    <!-- Icon FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <style>
+        /* ===== NOTIFICATION BELL ===== */
+        .notif-wrap{position:relative;display:flex;align-items:center;margin-right:10px}
+        .notif-btn{background:none;border:none;cursor:pointer;color:#fff;font-size:1.2rem;padding:6px 8px;border-radius:8px;position:relative;transition:background 0.15s}
+        .notif-btn:hover{background:rgba(255,255,255,0.15)}
+        .notif-badge{position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:0.6rem;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px;line-height:1;pointer-events:none}
+        .notif-dropdown{position:absolute;top:calc(100% + 8px);right:0;width:340px;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.18);z-index:9999;overflow:hidden;border:1px solid #e2e8f0}
+        .notif-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid #f1f5f9}
+        .notif-head-title{font-weight:700;font-size:0.95rem;color:#0f172a}
+        .notif-read-all{background:none;border:none;font-size:0.78rem;font-weight:600;color:#2563eb;cursor:pointer;font-family:inherit;padding:0}
+        .notif-read-all:hover{text-decoration:underline}
+        .notif-list{max-height:340px;overflow-y:auto}
+        .notif-empty{text-align:center;color:#94a3b8;font-size:0.85rem;padding:24px 16px;margin:0}
+        .notif-item{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid #f8fafc;cursor:pointer;transition:background 0.12s;text-decoration:none;color:inherit}
+        .notif-item:hover{background:#f8fafc}
+        .notif-item.unread{background:#eff6ff}
+        .notif-item.unread:hover{background:#dbeafe}
+        .notif-item-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;margin-top:2px}
+        .notif-icon-review{background:#fef9c3;color:#d97706}
+        .notif-icon-confirm{background:#dcfce7;color:#16a34a}
+        .notif-icon-checkin{background:#dbeafe;color:#2563eb}
+        .notif-icon-system{background:#f1f5f9;color:#64748b}
+        .notif-item-body{flex:1;min-width:0}
+        .notif-item-title{font-weight:700;font-size:0.82rem;color:#0f172a;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .notif-item.unread .notif-item-title{color:#1d4ed8}
+        .notif-item-msg{font-size:0.77rem;color:#64748b;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+        .notif-item-time{font-size:0.7rem;color:#94a3b8;margin-top:4px}
+    </style>
+</head>
+
+<body>
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/user.js"></script>
+    <!-- ===== HEADER ===== -->
+    <!-- ===== SIDEBAR OVERLAY ===== -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ===== SIDEBAR MENU ===== -->
+    <aside class="sidebar-menu" id="sidebarMenu" role="dialog" aria-label="Menu điều hướng">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                <span class="s-logo-text">TRAVEL<span>MATE</span></span>
+            </div>
+            <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Đóng menu">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="sidebar-nav-label">Chức năng</div>
+
+            <a href="/accommodations" id="sb-hotels">
+                <span class="s-icon"><i class="fa-solid fa-bed"></i></span>
+                Đặt phòng
+            </a>
+
+            <a href="/travel" id="sb-travel">
+                <span class="s-icon"><i class="fa-solid fa-map-location-dot"></i></span>
+                Gợi ý du lịch
+            </a>
+
+            <a href="/news" id="sb-news">
+                <span class="s-icon"><i class="fa-solid fa-newspaper"></i></span>
+                Tin tức
+            </a>
+
+            <a href="/contact" id="sb-contact">
+                <span class="s-icon"><i class="fa-solid fa-headset"></i></span>
+                Liên hệ
+            </a>
+
+            <a href="/vouchers" id="sb-voucher">
+                <span class="s-icon"><i class="fa-solid fa-ticket"></i></span>
+                Kho voucher
+            </a>
+        </nav>
+
+        <div class="sidebar-divider"></div>
+
+        <!-- Auth section: render bởi Thymeleaf/Spring Security -->
+        <div class="sidebar-auth" id="sidebarAuth">
+            <a href="/auth/login" class="btn-login-side" sec:authorize="isAnonymous()">
+                <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
+            </a>
+            <a href="/auth/register" class="btn-register-side" sec:authorize="isAnonymous()">
+                <i class="fa-solid fa-user-plus"></i> Đăng ký
+            </a>
+            <form method="post" action="/auth/logout" sec:authorize="isAuthenticated()" style="width:100%">
+                <button type="submit" class="btn-logout-side" style="width:100%;text-align:left;">
+                    <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <header class="header" id="header">
+        <div class="container navbar">
+            <!-- Logo + hamburger button xếp dọc -->
+            <div class="logo-wrapper">
+                <a href="/" class="logo">
+                    <div class="logo-icon"><i class="fa-solid fa-building"></i></div>
+                    <span class="logo-text"><span class="logo-blue">TRAVEL</span><span
+                            class="logo-yellow">MATE</span></span>
+                </a>
+                <button class="hamburger-btn" id="hamburgerBtn" aria-label="Mở menu" aria-expanded="false">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
+            </div>
+
+            <nav class="menu">
+                <ul class="menu-list">
+                    <li><a href="/">TRANG CHỦ</a></li>
+                    <li><a href="/travel">GỢI Ý DU LỊCH</a></li>
+                    <li><a href="/news">TIN TỨC</a></li>
+                    <li><a href="/contact">LIÊN HỆ</a></li>
+                    <li><a href="/my-bookings" class="my-booking"><i class="fa-solid fa-bed"></i> Đặt phòng của
+                            tôi</a></li>
+                </ul>
+            </nav>
+
+            <!-- Chưa đăng nhập -->
+            <a href="/auth/login" class="login-btn" sec:authorize="isAnonymous()">ĐĂNG NHẬP</a>
+
+            <!-- Đã đăng nhập: avatar + tên + dropdown -->
+            <!-- Bell Notification -->
+            <div class="notif-wrap" id="notifWrap" sec:authorize="isAuthenticated()">
+                <button class="notif-btn" id="notifBtn" type="button" aria-label="Thông báo">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="notif-badge" id="notifBadge" style="display:none;"></span>
+                </button>
+                <div class="notif-dropdown" id="notifDropdown" style="display:none;">
+                    <div class="notif-head">
+                        <span class="notif-head-title">Thông báo</span>
+                        <button type="button" class="notif-read-all" id="notifReadAll">Đọc hết</button>
+                    </div>
+                    <div class="notif-list" id="notifList">
+                        <p class="notif-empty">Không có thông báo</p>
+                    </div>
+                </div>
+            </div>
+            <div class="header-user" id="headerUser" sec:authorize="isAuthenticated()">
+                <button class="header-user-btn" id="headerUserBtn" type="button">
+                    <div class="header-avatar"><i class="fa-solid fa-user"></i></div>
+                    <span class="header-user-name" sec:authentication="principal.fullName">User</span>
+                    <i class="fa-solid fa-chevron-down header-chevron"></i>
+                </button>
+                <div class="header-user-dropdown" id="headerUserDropdown">
+                    <a href="/my-bookings" class="dropdown-item">
+                        <i class="fa-solid fa-bed"></i> Đặt phòng của tôi
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <form method="post" action="/auth/logout">
+                        <button type="submit" class="dropdown-item dropdown-logout">
+                            <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== HERO / BANNER ===== -->
+    <section class="hero-section">
+        <div class="hero-slider">
+            <div class="slide-track">
+                <!-- Slides sử dụng ảnh thực tế -->
+                <div class="slide" style="background-image: url('/assets/images/MienBac/NB.jpg');"></div>
+                <div class="slide"
+                    style="background-image: url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=600');">
+                </div>
+                <div class="slide" style="background-image: url('/assets/images/MienBac/CBang.jpg');"></div>
+                <div class="slide" style="background-image: url('/assets/images/resort.jpg');"></div>
+                <div class="slide" style="background-image: url('/assets/images/homestay-o-da-lat.jpg');">
+                </div>
+                <div class="slide" style="background-image: url('/assets/images/homestay-sapa.jpg');"></div>
+
+
+                <!-- Lặp lại để chạy mượt -->
+                <div class="slide" style="background-image: url('/assets/images/MienBac/NB.jpg');"></div>
+                <div class="slide"
+                    style="background-image: url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=600');">
+                </div>
+                <div class="slide" style="background-image: url('/assets/images/MienBac/CBang.jpg');"></div>
+                <div class="slide" style="background-image: url('/assets/images/resort.jpg');"></div>
+                <div class="slide" style="background-image: url('/assets/images/homestay-o-da-lat.jpg');">
+                </div>
+                <div class="slide" style="background-image: url('/assets/images/homestay-sapa.jpg');"></div>
+
+
+            </div>
+        </div>
+
+        <div class="hero-overlay"></div>
+
+        <div class="container relative-z">
+            <div class="hero-content">
+                <h1>KHỞI ĐẦU MỌI HÀNH TRÌNH <br><span class="text-gradient">KHÁM PHÁ VÀ TẬN HƯỞNG KỲ NGHỈ TRỌN
+                        VẸN</span></h1>
+            </div>
+        </div>
+
+        <!-- Hiệu ứng gradient mờ xuống section dưới -->
+        <div class="hero-bottom-fade"></div>
+    </section>
+
+    <!-- ===== SEARCH PANEL ===== -->
+    <section class="search-section">
+        <div class="container">
+            <div class="search-card">
+                <div class="search-tabs">
+                    <button type="button" class="tab active" data-type="hotel"><i class="fa-solid fa-hotel"></i>
+                        Hotel</button>
+                    <button type="button" class="tab" data-type="villa"><i class="fa-solid fa-mountain"></i>
+                        Villa</button>
+                    <button type="button" class="tab" data-type="homestay"><i class="fa-solid fa-house-chimney"></i>
+                        Homestay</button>
+                    <button type="button" class="tab" data-type="apartment"><i class="fa-solid fa-building"></i>
+                        Resort</button>
+                    <button type="button" class="tab" data-type="travel"><i class="fa-solid fa-map-location-dot"></i>
+                        Địa điểm gần đây</button>
+                </div>
+                <form class="search-form" id="mainSearchForm" action="/accommodations" method="get">
+                    <!-- Hidden inputs — JS sẽ gán giá trị trước khi submit -->
+                    <!-- type: loại lưu trú (HOTEL/VILLA/HOMESTAY/RESORT) theo tab đang active -->
+                    <input type="hidden" name="type" id="hiddenType" value="HOTEL" />
+                    <!-- checkIn / checkOut theo lịch đã chọn (format: yyyy-MM-dd) -->
+                    <input type="hidden" name="checkIn" id="hiddenCheckIn" />
+                    <input type="hidden" name="checkOut" id="hiddenCheckOut" />
+                    <!-- adults / children / rooms theo bộ đếm khách -->
+                    <input type="hidden" name="adults" id="hiddenAdults" value="2" />
+                    <input type="hidden" name="children" id="hiddenChildren" value="0" />
+                    <input type="hidden" name="rooms" id="hiddenRooms" value="1" />
+
+                    <div class="field">
+                        <label>Thành phố, điểm đến</label>
+                        <div class="input-wrap">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <input type="text" id="destInput" name="keyword" placeholder="VD: Đà Lạt, Nha Trang, Hội An, Phú Quốc..." />
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Ngày nhận - Trả phòng</label>
+                        <div class="input-wrap date-range" tabindex="0">
+                            <i class="fa-regular fa-calendar-days"></i>
+                            <input type="text" readonly placeholder="Hôm nay - Ngày mai" />
+
+                            <div class="popup-box date-popup">
+                                <div class="date-tabs">
+                                    <button type="button" class="date-tab active" data-part="start">Nhận phòng</button>
+                                    <button type="button" class="date-tab" data-part="end">Trả phòng</button>
+                                </div>
+                                <p id="datePickerHint" style="font-size:0.8rem;color:#64748b;margin:-10px 0 12px;text-align:center">
+                                    Chọn ngày nhận phòng
+                                </p>
+
+                                <div class="calendar"></div>
+
+                                <div class="date-popup-actions">
+                                    <button type="button" class="btn-apply date-apply">Áp dụng</button>
+                                    <button type="button" class="date-popup-close">Đóng</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Khách & Phòng</label>
+                        <div class="input-wrap guest-input" tabindex="0">
+                            <i class="fa-solid fa-user"></i>
+                            <div class="fake-input" id="guestDisplay">2 Khách, 1 Phòng</div>
+
+                            <!-- Popup Khách -->
+                            <div class="popup-box guest-popup">
+                                <div class="guest-row">
+                                    <div class="guest-info">
+                                        <p class="g-title">Người lớn</p>
+                                        <p class="g-desc">Từ 18 tuổi</p>
+                                    </div>
+                                    <div class="guest-controls">
+                                        <button type="button" class="guest-btn decrement"
+                                            data-target="adults">-</button>
+                                        <span class="guest-count" id="count-adults">2</span>
+                                        <button type="button" class="guest-btn increment"
+                                            data-target="adults">+</button>
+                                    </div>
+                                </div>
+
+                                <div class="guest-row">
+                                    <div class="guest-info">
+                                        <p class="g-title">Trẻ em</p>
+                                        <p class="g-desc">Từ 0-17 tuổi</p>
+                                    </div>
+                                    <div class="guest-controls">
+                                        <button type="button" class="guest-btn decrement"
+                                            data-target="children">-</button>
+                                        <span class="guest-count" id="count-children">0</span>
+                                        <button type="button" class="guest-btn increment"
+                                            data-target="children">+</button>
+                                    </div>
+                                </div>
+
+                                <div class="guest-row border-top">
+                                    <div class="guest-info">
+                                        <p class="g-title">Số phòng</p>
+                                    </div>
+                                    <div class="guest-controls">
+                                        <button type="button" class="guest-btn decrement" data-target="rooms">-</button>
+                                        <span class="guest-count" id="count-rooms">1</span>
+                                        <button type="button" class="guest-btn increment" data-target="rooms">+</button>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-apply close-popup">Xong</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="search-btn">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <span class="btn-text">TÌM KIẾM</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== PROMO BANNER ===== -->
+    <section class="promo-section">
+        <div class="container">
+            <div class="promo-card">
+                <div class="promo-left">
+                    <img src="https://images.unsplash.com/photo-1699451505639-55fb416908c8?q=80&w=800" alt="Đà Nẵng"
+                        class="promo-img" />
+                    <div class="promo-img-overlay"></div>
+                    <div class="promo-badge"><i class="fa-solid fa-tag"></i> Deal tốt giá hời đặt phòng ngay</div>
+                    <div class="promo-title">
+                        <p>Khám phá vùng đất mới</p>
+                        <h2>Du lịch ngay<span> Phòng liền tay</span></h2>
+                    </div>
+                </div>
+
+                <div class="promo-right">
+                    <div class="promo-ticket">
+                        <div class="ticket-label">DEAL CÓ HẠN</div>
+                        <div class="ticket-value">
+                            <span class="ticket-percent">50%</span>
+                            <span class="ticket-text">GIẢM ĐẾN</span>
+                        </div>
+                        <div class="ticket-note">Điều kiện áp dụng</div>
+                    </div>
+                    <button class="promo-btn">Nhận deal ngay</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== VOUCHER LIST ===== -->
+    <section class="voucher-section">
+        <div class="container">
+            <div class="section-header voucher-header">
+                <div class="header-icon bg-amber-light text-amber"><i class="fa-solid fa-gift"></i></div>
+                <div>
+                    <h2>Phiếu giảm giá cho người dùng mới</h2>
+                    <p>Áp dụng cho lần đặt đầu tiên trên ứng dụng TravelMate.</p>
+                </div>
+            </div>
+
+            <div class="voucher-grid">
+                <!-- Voucher 1 -->
+                <div class="voucher-card">
+                    <div class="v-circle bg-sky opacity-10"></div>
+                    <div class="v-meta">
+                        <div class="v-icon bg-sky"><i class="fa-solid fa-plane"></i></div>
+                        <div class="v-info">
+                            <h3>Giảm đến 100,000đ</h3>
+                            <p>cho phòng từ 4 người trở lên</p>
+                        </div>
+                    </div>
+                    <div class="v-note">Áp dụng cho lần đặt đầu tiên trên TravelMate.</div>
+                    <div class="v-divider"></div>
+                    <div class="v-action">
+                        <span class="v-code">DATPHONGNHANDEAL</span>
+                        <button type="button" class="copy-btn">Copy</button>
+                    </div>
+                </div>
+
+                <!-- Voucher 2 -->
+                <div class="voucher-card">
+                    <div class="v-circle bg-amber opacity-10"></div>
+                    <div class="v-meta">
+                        <div class="v-icon bg-amber"><i class="fa-solid fa-bed"></i></div>
+                        <div class="v-info">
+                            <h3>Giảm đến 200,000đ</h3>
+                            <p>cho lần đặt phòng đầu tiên</p>
+                        </div>
+                    </div>
+                    <div class="v-note">Áp dụng cho lần đặt đầu tiên trên TravelMate.</div>
+                    <div class="v-divider"></div>
+                    <div class="v-action">
+                        <span class="v-code">DATPHONGMOI</span>
+                        <button type="button" class="copy-btn">Copy</button>
+                    </div>
+                </div>
+
+                <!-- Voucher 3 -->
+                <div class="voucher-card">
+                    <div class="v-circle bg-emerald opacity-10"></div>
+                    <div class="v-meta">
+                        <div class="v-icon bg-emerald"><i class="fa-solid fa-ticket"></i></div>
+                        <div class="v-info">
+                            <h3>Giảm đến 10%</h3>
+                            <p>cho khách hàng từng sử dụng dịch vụ</p>
+                        </div>
+                    </div>
+                    <div class="v-note">Áp dụng cho khách hàng thân thiết trên TravelMate.</div>
+                    <div class="v-divider"></div>
+                    <div class="v-action">
+                        <span class="v-code">KHACHHANGTHANTHIET</span>
+                        <button type="button" class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== DESTINATIONS GRID ===== -->
+    <section class="destinations-section">
+        <div class="container">
+            <div class="section-header dest-header center">
+                <div class="header-icon bg-sky-light text-sky mx-auto mb-4"><i class="fa-solid fa-map"></i></div>
+                <h2>ĐIỂM ĐẾN YÊU THÍCH</h2>
+                <p>Hãy chọn một điểm đến du lịch nổi tiếng dưới đây để khám phá các chuyến đi độc quyền của chúng tôi
+                    với mức giá vô cùng hợp lý.</p>
+            </div>
+
+            <div class="destinations-tabs">
+                <button type="button" class="dest-tab active" data-region="north">Miền Bắc</button>
+                <button type="button" class="dest-tab" data-region="central">Miền Trung</button>
+                <button type="button" class="dest-tab" data-region="south">Miền Nam</button>
+            </div>
+
+            <!-- ===== MIỀN BẮC ===== -->
+            <div class="dest-panel active" id="panel-north">
+                <!-- Layout: 4 cột, ô đầu chiếm 2 cột 2 hàng (hero trái), còn lại 2 cột phải -->
+                <div class="dest-grid dest-grid-north">
+                    <a href="#" class="dest-item span-2 row-2 di-animate">
+                        <img src="https://images.unsplash.com/photo-1694142941971-4d15ff0c2ab3?q=80&w=800"
+                            alt="Quảng Ninh" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>QUẢNG NINH</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/assets/images/MienBac/MB_HG.jpg" alt="Hà Giang" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>HÀ GIANG</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="https://images.unsplash.com/photo-1665905905591-fb66b0496481?q=80&w=600"
+                            alt="Lào Cai" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>LÀO CAI</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/assets/images/MienBac/NB.jpg" alt="Ninh Bình" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>NINH BÌNH</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/assets/images/MienBac/MB_HN.jpg" alt="Hà Nội" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>HÀ NỘI</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/assets/images/MienBac/YB.jpg" alt="Yên Bái" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>YÊN BÁI</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item span-2 di-animate">
+                        <img src="/assets/images/MienBac/Sapa.jpg" alt="Sapa" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>SAPA</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/assets/images/MienBac/SL.jpg" alt="Sơn La" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>SƠN LA</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- ===== MIỀN TRUNG ===== -->
+            <div class="dest-panel" id="panel-central">
+                <!-- Layout: 3 cột đều, hàng đầu ô giữa chiếm 2 hàng (hero giữa) -->
+                <div class="dest-grid dest-grid-central">
+                    <a href="#" class="dest-item di-animate">
+                        <img src="https://images.unsplash.com/photo-1699451505639-55fb416908c8?q=80&w=800"
+                            alt="Đà Nẵng" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>ĐÀ NẴNG</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item row-2 di-animate">
+                        <img src="/assets/images/MienTrung/PY.jpg" alt="Phú Yên" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>PHÚ YÊN</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/assets/images/MienTrung/DakLak.jpg" alt="Đăk Lăk" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>ĐĂK LĂK</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/assets/images/MienTrung/Hue.jpg" alt="Huế" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>HUẾ</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/assets/images/MienTrung/QuangBinh.jpg" alt="Quảng Bình" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>QUẢNG BÌNH</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item span-2 di-animate">
+                        <img src="/assets/images/MienTrung/NhaTrang.jpg" alt="Nha Trang" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>NHA TRANG</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/assets/images/MienTrung/NinhThuan.jpg" alt="Ninh Thuận" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>NINH THUẬN</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- ===== MIỀN NAM ===== -->
+            <div class="dest-panel" id="panel-south">
+                <!-- Layout: mosaic 4 cột bất đối xứng, hero ở phải chiếm 2 cột 2 hàng -->
+                <div class="dest-grid dest-grid-south">
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/assets/images/MienNam/HCM.jpg" alt="TP. Hồ Chí Minh" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>HỒ CHÍ MINH</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/assets/images/MienNam/BT.jpg" alt="Bến Tre" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>Bến Tre</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item span-2 row-2 di-animate">
+                        <img src="/assets/images/MienNam/AG.jpg" alt="An Giang" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>AN GIANG</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/assets/images/MienNam/ST.jpg" alt="Sóc Trăng" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>SÓC TRĂNG</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item di-animate">
+                        <img src="/assets/images/MienNam/VT.jpg" alt="Bà Rịa - Vũng Tàu" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>BÀ RỊA - VŨNG TÀU</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item span-2 di-animate">
+                        <img src="/assets/images/MienNam/CTho.jpg" alt="Cần Thơ" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>CẦN THƠ</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                    <a href="#" class="dest-item span-2 di-animate">
+                        <img src="/assets/images/MienNam/TienGiang.jpg" alt="Tiền Giang" />
+                        <div class="dest-overlay"></div>
+                        <div class="dest-content">
+                            <h3>TIỀN GIANG</h3>
+                            <div class="dest-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container footer-grid">
+            <div class="footer-brand">
+                <div class="logo">
+                    <div class="logo-icon bg-sky"><i class="fa-solid fa-building"></i></div>
+                    <span class="logo-text text-white">TRAVEL<span class="logo-yellow">MATE</span></span>
+                </div>
+                <p class="footer-desc">TravelMate giúp bạn tìm được nơi nghỉ dưỡng hoàn hảo với giá tốt nhất và trải
+                    nghiệm tối ưu. Khởi hành dễ dàng, an tâm tận hưởng.</p>
+            </div>
+
+            <div class="footer-links">
+                <h4>Khám phá</h4>
+                <ul>
+                    <li><a href="#">Khách sạn</a></li>
+                    <li><a href="#">Villa & Resort</a></li>
+                    <li><a href="#">Cẩm nang du lịch</a></li>
+                    <li><a href="#">Ưu đãi đặc biệt</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-links">
+                <h4>Hỗ trợ</h4>
+                <ul>
+                    <li><a href="#">Câu hỏi thường gặp</a></li>
+                    <li><a href="#">Chính sách hoàn tiền</a></li>
+                    <li><a href="#">Hướng dẫn đặt phòng</a></li>
+                    <li><a href="#">Liên hệ</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-contact">
+                <h4>Liên hệ</h4>
+                <p><i class="fa-solid fa-phone"></i> +84 123 456 789</p>
+                <p><i class="fa-solid fa-envelope"></i> support@travelmate.vn</p>
+                <div class="social-links">
+                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2024 TravelMate. Đồ án Cơ sở lập trình Web.</p>
+            <p>Thiết kế đẹp, trải nghiệm nhanh.</p>
+        </div>
+    </footer>
+
+    <!-- ===== JAVASCRIPT ===== -->
+    <script>
+        // 1. Header scroll effect
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // 2. Search Tabs — đổi placeholder + ghi nhận loại lưu trú vào hidden input
+        const searchTabs = document.querySelectorAll('.search-tabs .tab');
+        const destInput = document.getElementById('destInput');
+        const hiddenType = document.getElementById('hiddenType');
+
+        const placeholders = {
+            hotel:     'Ví dụ: Khách sạn Mường Thanh',
+            villa:     'Ví dụ: Villa ven biển Nha Trang',
+            homestay:  'Ví dụ: Homestay cổ Hội An',
+            apartment: 'Ví dụ: Resort cao cấp Phú Quốc',
+            travel:    'Ví dụ: Đà Lạt, Nha Trang, Hội An...'
+        };
+
+        const typeMap = {
+            hotel:     'HOTEL',
+            villa:     'VILLA',
+            homestay:  'HOMESTAY',
+            apartment: 'RESORT',
+            travel:    'HOTEL'
+        };
+
+        const searchBtnLabels = {
+            hotel:     'TÌM KHÁCH SẠN',
+            villa:     'TÌM VILLA',
+            homestay:  'TÌM HOMESTAY',
+            apartment: 'TÌM RESORT',
+            travel:    'TÌM KIẾM'
+        };
+
+        searchTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                if (tab.dataset.type === 'travel') {
+                    window.location.href = '/travel';
+                    return;
+                }
+                searchTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                destInput.placeholder = placeholders[tab.dataset.type] || 'Nhập điểm đến...';
+                hiddenType.value = typeMap[tab.dataset.type] || 'HOTEL';
+                // Cập nhật nhãn nút tìm kiếm theo loại lưu trú đang chọn
+                const btnText = document.querySelector('.search-btn .btn-text');
+                if (btnText) btnText.textContent = searchBtnLabels[tab.dataset.type] || 'TÌM KIẾM';
+            });
+        });
+
+        // 3. Date Range Picker (Check-in / Check-out)
+        const dateRange = document.querySelector('.date-range');
+        const dateRangeInput = dateRange.querySelector('input');
+        const datePopup = dateRange.querySelector('.date-popup');
+        const calendars = datePopup.querySelectorAll('.calendar');
+        const applyBtn = datePopup.querySelector('.date-apply');
+        const closeBtn = datePopup.querySelector('.date-popup-close');
+
+        const today = new Date();
+        const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const endDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000);
+        let range = { start: startDate, end: endDate };
+
+        // Lưu trạng thái tháng đang hiển thị
+        let calendarStart = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+
+        const weekdayNames = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+        const monthNames = ['tháng 1', 'tháng 2', 'tháng 3', 'tháng 4', 'tháng 5', 'tháng 6', 'tháng 7', 'tháng 8', 'tháng 9', 'tháng 10', 'tháng 11', 'tháng 12'];
+
+        function formatDateVN(d) {
+            const day = d.getDate();
+            const month = d.getMonth() + 1;
+            const year = d.getFullYear();
+            return `${day} thg ${month} ${year}`;
+        }
+
+        // Format ngày sang chuẩn ISO yyyy-MM-dd để truyền lên server
+        function formatDateISO(d) {
+            const year  = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day   = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function updateRangeDisplay() {
+            dateRangeInput.value = `${formatDateVN(range.start)} - ${formatDateVN(range.end)}`;
+
+            const startLabel = datePopup.querySelector('.date-tab[data-part="start"]');
+            const endLabel = datePopup.querySelector('.date-tab[data-part="end"]');
+            if (startLabel) startLabel.textContent = formatDateVN(range.start);
+            if (endLabel) endLabel.textContent = formatDateVN(range.end);
+
+            // Gán giá trị vào hidden inputs để form submit truyền lên /accommodations
+            document.getElementById('hiddenCheckIn').value  = formatDateISO(range.start);
+            document.getElementById('hiddenCheckOut').value = formatDateISO(range.end);
+        }
+
+        function isSameDate(a, b) {
+            return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+        }
+
+        function addDays(date, days) {
+            const copy = new Date(date.getTime());
+            copy.setDate(copy.getDate() + days);
+            return copy;
+        }
+
+        function clampMax(value, max) {
+            return value > max ? max : value;
+        }
+
+        function renderCalendars() {
+            calendars.forEach((calendar, offset) => {
+                const monthDate = new Date(calendarStart.getFullYear(), calendarStart.getMonth() + offset, 1);
+                const monthKey = monthDate.getMonth();
+                const yearKey = monthDate.getFullYear();
+
+                const monthName = `${monthNames[monthKey]} ${yearKey}`;
+                const firstDayOfWeek = (new Date(yearKey, monthKey, 1).getDay() + 6) % 7; // Monday=0
+                const daysInMonth = new Date(yearKey, monthKey + 1, 0).getDate();
+
+                const grid = [];
+                for (let i = 0; i < firstDayOfWeek; i++) {
+                    grid.push(null);
+                }
+                for (let d = 1; d <= daysInMonth; d++) {
+                    grid.push(new Date(yearKey, monthKey, d));
+                }
+
+                calendar.innerHTML = `
+                    <div class="month-header">
+                        <button type="button" class="month-nav month-prev" aria-label="Tháng trước">‹</button>
+                        <div class="month-name">${monthName}</div>
+                        <button type="button" class="month-nav month-next" aria-label="Tháng sau">›</button>
+                    </div>
+                    <div class="weekdays">${weekdayNames.map((w) => `<div>${w}</div>`).join('')}</div>
+                    <div class="days">${grid
+                        .map((date) => {
+                            if (!date) return '<div></div>';
+                            const isBeforeToday = date < startDate;
+                            const isSelected = isSameDate(date, range.start) || isSameDate(date, range.end);
+                            const inRange = date > range.start && date < range.end;
+                            const classNames = ['day'];
+                            if (isBeforeToday) classNames.push('disabled');
+                            if (isSelected) classNames.push('selected');
+                            if (inRange) classNames.push('in-range');
+                            return `<button type="button" class="${classNames.join(' ')}" data-date="${date.toISOString()}">${date.getDate()}</button>`;
+                        })
+                        .join('')}</div>
+                `;
+
+                const prevBtn = calendar.querySelector('.month-prev');
+                const nextBtn = calendar.querySelector('.month-next');
+
+                prevBtn.addEventListener('click', () => {
+                    calendarStart = new Date(calendarStart.getFullYear(), calendarStart.getMonth() - 1, 1);
+                    renderCalendars();
+                });
+
+                nextBtn.addEventListener('click', () => {
+                    calendarStart = new Date(calendarStart.getFullYear(), calendarStart.getMonth() + 1, 1);
+                    renderCalendars();
+                });
+            });
+        }
+
+        let activeRangePart = 'start';
+
+        const tabButtons = datePopup.querySelectorAll('.date-tab');
+        tabButtons.forEach((tab) => {
+            tab.addEventListener('click', () => {
+                activeRangePart = tab.dataset.part;
+                tabButtons.forEach((t) => t.classList.toggle('active', t === tab));
+                setHint(activeRangePart);
+            });
+        });
+
+        function normalizeDate(d) {
+            return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        }
+
+        const hintEl = document.getElementById('datePickerHint');
+
+        function setHint(mode) {
+            if (!hintEl) return;
+            hintEl.textContent = mode === 'start' ? 'Chọn ngày nhận phòng' : 'Chọn ngày trả phòng';
+            hintEl.style.color = mode === 'end' ? '#2563eb' : '#64748b';
+        }
+
+        function switchToEndMode() {
+            activeRangePart = 'end';
+            tabButtons.forEach(t => t.classList.toggle('active', t.dataset.part === 'end'));
+            setHint('end');
+            // Tự động chuyển lịch sang tháng tiếp theo nếu check-in là ngày cuối tháng
+            const nextDay = addDays(range.start, 1);
+            if (nextDay.getMonth() !== range.start.getMonth()) {
+                calendarStart = new Date(nextDay.getFullYear(), nextDay.getMonth(), 1);
+            }
+        }
+
+        function handleDateClick(e) {
+            const btn = e.target.closest('.day');
+            if (!btn || btn.classList.contains('disabled')) return;
+
+            const date = normalizeDate(new Date(btn.dataset.date));
+
+            if (activeRangePart === 'start') {
+                range.start = date;
+                if (range.end <= range.start) {
+                    range.end = addDays(range.start, 1);
+                }
+                switchToEndMode();
+                updateRangeDisplay();
+                renderCalendars();
+            } else {
+                if (isSameDate(date, range.start)) {
+                    // Click đúng ngày check-in → bỏ qua (cần ít nhất 1 đêm)
+                    return;
+                } else if (date < range.start) {
+                    // Click ngày trước check-in → coi như chọn lại check-in mới
+                    range.start = date;
+                    range.end = addDays(date, 1);
+                    switchToEndMode();
+                } else {
+                    // Chọn xong ngày trả phòng → đóng popup
+                    range.end = date;
+                    updateRangeDisplay();
+                    renderCalendars();
+                    setTimeout(() => closeDatePopup(), 250);
+                    return;
+                }
+                updateRangeDisplay();
+                renderCalendars();
+            }
+        }
+
+        function openDatePopup() {
+            if (dateRange.classList.contains('open')) return;
+            dateRange.classList.add('open');
+            activeRangePart = 'start';
+            tabButtons.forEach((t) => t.classList.toggle('active', t.dataset.part === 'start'));
+            setHint('start');
+            // Cuộn trang để popup hiển thị đầy đủ trong viewport
+            setTimeout(() => {
+                const rect = datePopup.getBoundingClientRect();
+                if (rect.bottom > window.innerHeight - 20) {
+                    const scrollY = window.scrollY + rect.bottom - window.innerHeight + 30;
+                    window.scrollTo({ top: scrollY, behavior: 'smooth' });
+                }
+            }, 40);
+        }
+
+        function closeDatePopup() {
+            dateRange.classList.remove('open');
+        }
+
+        // Chỉ mở popup khi click vào phần bên ngoài popup (input / icon)
+        dateRange.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (e.target.closest('.date-popup')) return;
+            openDatePopup();
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!dateRange.contains(e.target)) {
+                closeDatePopup();
+            }
+        });
+
+        closeBtn.addEventListener('click', (e) => { e.stopPropagation(); closeDatePopup(); });
+        applyBtn.addEventListener('click', (e) => { e.stopPropagation(); closeDatePopup(); });
+
+        datePopup.addEventListener('click', handleDateClick);
+
+        updateRangeDisplay();
+        renderCalendars();
+
+        // Safety net: ngay trước khi form submit, đảm bảo tất cả hidden inputs đã được gán
+        // Tránh trường hợp user không tương tác với picker mà bấm submit thẳng
+        document.getElementById('mainSearchForm').addEventListener('submit', function (e) {
+            // Loại lưu trú: lấy từ tab đang active
+            const activeTab = document.querySelector('.search-tabs .tab.active');
+            if (activeTab) {
+                hiddenType.value = typeMap[activeTab.dataset.type] || 'HOTEL';
+            }
+            // Ngày: lấy từ range hiện tại
+            document.getElementById('hiddenCheckIn').value  = formatDateISO(range.start);
+            document.getElementById('hiddenCheckOut').value = formatDateISO(range.end);
+            // Khách/phòng: lấy từ state hiện tại
+            document.getElementById('hiddenAdults').value   = state.adults;
+            document.getElementById('hiddenChildren').value = state.children;
+            document.getElementById('hiddenRooms').value    = state.rooms;
+
+            // Kiểm tra ngày hợp lệ trước khi submit
+            const todayNorm = new Date();
+            todayNorm.setHours(0,0,0,0);
+            if (range.start < todayNorm) {
+                e.preventDefault();
+                showSearchError('⚠️ Ngày nhận phòng không được là ngày trong quá khứ. Vui lòng chọn lại.');
+                return;
+            }
+            if (range.end <= range.start) {
+                e.preventDefault();
+                showSearchError('⚠️ Ngày trả phòng phải sau ngày nhận phòng. Vui lòng chọn lại.');
+                return;
+            }
+        });
+
+        function showSearchError(msg) {
+            let errEl = document.getElementById('search-date-error');
+            if (!errEl) {
+                errEl = document.createElement('div');
+                errEl.id = 'search-date-error';
+                errEl.style.cssText = 'background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;padding:10px 16px;font-size:0.85rem;font-weight:600;margin-top:10px;text-align:center;';
+                document.querySelector('.search-card').appendChild(errEl);
+            }
+            errEl.textContent = msg;
+            errEl.style.display = 'block';
+            setTimeout(() => { errEl.style.display = 'none'; }, 5000);
+        }
+
+        // 4. Guest Popup
+        const guestWrap = document.querySelector('.guest-input');
+
+        function closeGuestPopup() {
+            guestWrap.classList.remove('active');
+        }
+
+        guestWrap.addEventListener('click', (e) => {
+            if (e.target.closest('.popup-box')) return;
+            const isActive = guestWrap.classList.contains('active');
+            closeGuestPopup();
+            if (!isActive) guestWrap.classList.add('active');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.guest-input')) {
+                closeGuestPopup();
+            }
+        });
+
+        document.querySelectorAll('.close-popup').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeGuestPopup();
+            });
+        });
+
+        // 5. Guest Counter
+        const state = { adults: 2, children: 0, rooms: 1 };
+        const guestDisplay = document.getElementById('guestDisplay');
+
+        function updateGuestDisplay() {
+            guestDisplay.textContent = `${state.adults + state.children} Khách, ${state.rooms} Phòng`;
+            document.getElementById('count-adults').textContent   = state.adults;
+            document.getElementById('count-children').textContent = state.children;
+            document.getElementById('count-rooms').textContent    = state.rooms;
+
+            // Đồng bộ vào hidden inputs để form submit truyền đúng số khách/phòng
+            document.getElementById('hiddenAdults').value   = state.adults;
+            document.getElementById('hiddenChildren').value = state.children;
+            document.getElementById('hiddenRooms').value    = state.rooms;
+        }
+
+        document.querySelectorAll('.guest-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const target = btn.dataset.target;
+                const isIncrement = btn.classList.contains('increment');
+
+                if (isIncrement) {
+                    if (target === 'adults' && state.adults < 20) state.adults++;
+                    if (target === 'children' && state.children < 10) state.children++;
+                    if (target === 'rooms' && state.rooms < 10) state.rooms++;
+                } else {
+                    if (target === 'adults' && state.adults > 1) state.adults--;
+                    if (target === 'children' && state.children > 0) state.children--;
+                    if (target === 'rooms' && state.rooms > 1) state.rooms--;
+                }
+                updateGuestDisplay();
+            });
+        });
+
+        // 5. Copy Voucher
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const code = this.previousElementSibling.textContent;
+                navigator.clipboard.writeText(code);
+
+                const originalText = this.textContent;
+                this.textContent = 'Đã copy!';
+                this.style.backgroundColor = '#d1fae5';
+                this.style.color = '#059669';
+
+                setTimeout(() => {
+                    this.textContent = originalText;
+                    this.style.backgroundColor = '';
+                    this.style.color = '';
+                }, 2000);
+            });
+        });
+
+        // 6. Destination Panels – animated region switcher
+        (function () {
+            const destTabs = document.querySelectorAll('.dest-tab');
+            const panels = document.querySelectorAll('.dest-panel');
+            const STAGGER = 55; // ms giữa mỗi ô
+
+            // Trigger animate-in cho các ô trong panel vừa hiện
+            function animateIn(panel) {
+                const items = panel.querySelectorAll('.di-animate');
+                items.forEach((item, i) => {
+                    item.style.transition = 'none';
+                    item.style.transform = 'scale(0.75)';
+                    item.style.opacity = '0';
+                    // Force reflow
+                    void item.offsetWidth;
+                    setTimeout(() => {
+                        item.style.transition = `transform 0.42s cubic-bezier(0.34,1.56,0.64,1) ${i * STAGGER}ms,
+                                                  opacity   0.35s ease ${i * STAGGER}ms`;
+                        item.style.transform = 'scale(1)';
+                        item.style.opacity = '1';
+                    }, 10);
+                });
+            }
+
+            // Animate-out ô của panel hiện tại rồi gọi callback
+            function animateOut(panel, callback) {
+                const items = panel.querySelectorAll('.di-animate');
+                const total = items.length;
+                if (total === 0) { callback(); return; }
+                let done = 0;
+                items.forEach((item, i) => {
+                    const delay = (total - 1 - i) * (STAGGER * 0.5);
+                    item.style.transition = `transform 0.28s ease ${delay}ms,
+                                              opacity   0.25s ease ${delay}ms`;
+                    item.style.transform = 'scale(0.75)';
+                    item.style.opacity = '0';
+                    setTimeout(() => {
+                        done++;
+                        if (done === total) callback();
+                    }, 280 + delay + 10);
+                });
+            }
+
+            let switching = false;
+
+            destTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    if (switching) return;
+                    const targetRegion = tab.dataset.region;
+                    const activeTab = document.querySelector('.dest-tab.active');
+                    const activePanel = document.querySelector('.dest-panel.active');
+                    const targetPanel = document.getElementById('panel-' + targetRegion);
+
+                    if (!targetPanel || activePanel === targetPanel) return;
+
+                    switching = true;
+
+                    // Update tab active
+                    destTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    // Animate old panel out -> show new panel -> animate new panel in
+                    animateOut(activePanel, () => {
+                        activePanel.classList.remove('active');
+                        targetPanel.classList.add('active');
+                        animateIn(targetPanel);
+                        switching = false;
+                    });
+                });
+            });
+
+            // Animate-in trang đầu
+            const firstPanel = document.querySelector('.dest-panel.active');
+            if (firstPanel) animateIn(firstPanel);
+        })();
+    </script>
+
+    <!-- ===== HAMBURGER SIDEBAR SCRIPT ===== -->
+    <script>
+        (function () {
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const sidebarMenu = document.getElementById('sidebarMenu');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+
+            function openSidebar() {
+                sidebarMenu.classList.add('active');
+                sidebarOverlay.classList.add('active');
+                hamburgerBtn.setAttribute('aria-expanded', 'true');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                sidebarMenu.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+                hamburgerBtn.setAttribute('aria-expanded', 'false');
+                document.body.style.overflow = '';
+            }
+
+            hamburgerBtn.addEventListener('click', openSidebar);
+            sidebarCloseBtn.addEventListener('click', closeSidebar);
+            sidebarOverlay.addEventListener('click', closeSidebar);
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeSidebar();
+            });
+        })();
+
+        // ===== AI CHAT BUTTON =====
+        document.getElementById('aiChatBtn').addEventListener('click', function () {
+            const toast = document.getElementById('aiChatToast');
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateY(0)';
+            clearTimeout(toast._hideTimer);
+            toast._hideTimer = setTimeout(function () {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(12px)';
+            }, 2800);
+        });
+
+        // ===== SCROLL TO TOP =====
+        const scrollTopBtn = document.getElementById('scrollTopBtn');
+        window.addEventListener('scroll', function () {
+            scrollTopBtn.style.display = window.scrollY > 400 ? 'flex' : 'none';
+        });
+        scrollTopBtn.addEventListener('click', function () {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+    <!-- CHAT AI FLOATING BUTTON -->
+    <div class="ai-chat-widget">
+        <button class="ai-chat-btn" id="aiChatBtn" aria-label="Mở trợ lý AI">
+            <span class="ai-ring ring-1"></span>
+            <span class="ai-ring ring-2"></span>
+            <span class="ai-ring ring-3"></span>
+
+            <span class="ai-chat-core">
+                <img src="/assets/images/iconChatB.png" alt="AI Chat" class="ai-chat-image" />
+            </span>
+        </button>
+    </div>
+    <!-- AI CHAT TOAST -->
+    <div id="aiChatToast" style="position:fixed;bottom:90px;right:24px;background:#1e293b;color:#fff;padding:12px 18px;border-radius:12px;font-size:0.875rem;font-weight:600;z-index:9999;opacity:0;transform:translateY(12px);transition:opacity 0.25s,transform 0.25s;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,0.25);">
+        🚧 Trợ lý AI đang phát triển
+    </div>
+
+    <!-- ===== NOTIFICATION BELL SCRIPT ===== -->
+    <script>
+        (function () {
+            const btn = document.getElementById('notifBtn');
+            const wrap = document.getElementById('notifWrap');
+            const dropdown = document.getElementById('notifDropdown');
+            const badge = document.getElementById('notifBadge');
+            const list = document.getElementById('notifList');
+            const readAll = document.getElementById('notifReadAll');
+            if (!btn) return;
+
+            let open = false, loaded = false;
+            const ICONS = {
+                REVIEW_REMINDER:       { cls: 'notif-icon-review',  icon: 'fa-star' },
+                BOOKING_CONFIRMED:     { cls: 'notif-icon-confirm', icon: 'fa-circle-check' },
+                BOOKING_CHECKIN_READY: { cls: 'notif-icon-checkin', icon: 'fa-bed' },
+                SYSTEM:                { cls: 'notif-icon-system',  icon: 'fa-bell' }
+            };
+
+            function updateBadge() {
+                fetch('/api/notifications/count').then(r => r.json()).then(d => {
+                    const c = d.count || 0;
+                    if (c > 0) { badge.textContent = c > 99 ? '99+' : c; badge.style.display = 'flex'; }
+                    else { badge.style.display = 'none'; }
+                }).catch(() => {});
+            }
+
+            function renderList(items) {
+                if (!items || items.length === 0) { list.innerHTML = '<p class="notif-empty">Không có thông báo</p>'; return; }
+                list.innerHTML = items.map(n => {
+                    const ic = ICONS[n.type] || ICONS.SYSTEM;
+                    return `<a class="notif-item ${n.isRead ? '' : 'unread'}" href="${n.targetUrl}"
+                               data-id="${n.id}" data-read="${n.isRead}">
+                        <div class="notif-item-icon ${ic.cls}"><i class="fa-solid ${ic.icon}"></i></div>
+                        <div class="notif-item-body">
+                            <div class="notif-item-title">${n.title}</div>
+                            <div class="notif-item-msg">${n.message}</div>
+                            <div class="notif-item-time">${n.createdAt}</div>
+                        </div></a>`;
+                }).join('');
+                list.querySelectorAll('.notif-item').forEach(el => {
+                    el.addEventListener('click', function () {
+                        if (this.dataset.read === 'false') {
+                            fetch('/api/notifications/' + this.dataset.id + '/read', { method: 'POST' })
+                                .then(() => { this.classList.remove('unread'); this.dataset.read = 'true'; updateBadge(); }).catch(() => {});
+                        }
+                    });
+                });
+            }
+
+            function loadNotifications() {
+                list.innerHTML = '<p class="notif-empty">Đang tải...</p>';
+                fetch('/api/notifications').then(r => r.json()).then(renderList)
+                    .catch(() => { list.innerHTML = '<p class="notif-empty">Không thể tải thông báo</p>'; });
+            }
+
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                open = !open;
+                dropdown.style.display = open ? 'block' : 'none';
+                if (open && !loaded) { loadNotifications(); loaded = true; }
+            });
+
+            readAll.addEventListener('click', function (e) {
+                e.stopPropagation();
+                fetch('/api/notifications/read-all', { method: 'POST' }).then(() => {
+                    badge.style.display = 'none'; loaded = false; loadNotifications();
+                }).catch(() => {});
+            });
+
+            document.addEventListener('click', function (e) {
+                if (open && !wrap.contains(e.target)) { open = false; dropdown.style.display = 'none'; }
+            });
+
+            updateBadge();
+        })();
+    </script>
+
+    <!-- SCROLL TO TOP BUTTON -->
+    <button id="scrollTopBtn" class="scroll-top-btn" aria-label="Lên đầu trang" style="display:none;">
+        <span class="double-arrow-up">
+            <span class="chevron chevron-1"></span>
+            <span class="chevron chevron-2"></span>
+        </span>
+    </button>
+</body>
+
+</html>

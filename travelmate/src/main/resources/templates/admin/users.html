@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý Người Dùng – Admin TravelMate</title>
+    <meta name="description" content="Trang quản lý tài khoản người dùng – Admin TravelMate. Dữ liệu thật từ MySQL." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        .user-kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:22px; }
+        .user-kpi-card { background:var(--color-surface,#fff); border-radius:10px; padding:16px 18px; box-shadow:0 1px 3px rgba(0,0,0,.07); }
+        .user-kpi-card__label { font-size:12px; color:#6b7280; margin-bottom:4px; }
+        .user-kpi-card__value { font-size:22px; font-weight:700; }
+        .user-table-wrap { overflow-x:auto; }
+        .user-table { width:100%; border-collapse:collapse; font-size:13px; }
+        .user-table th { background:#f8fafc; font-weight:600; padding:10px 14px; border-bottom:1px solid #e2e8f0; white-space:nowrap; }
+        .user-table td { padding:10px 14px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+        .user-table tr:last-child td { border-bottom:none; }
+        .user-table tr:hover td { background:#f8fafc; }
+        .user-avatar { width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;color:#fff; }
+        .badge-role-user    { background:#e0f2fe;color:#0284c7;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600; }
+        .badge-role-partner { background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600; }
+        .badge-role-admin   { background:#f3e8ff;color:#7c3aed;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600; }
+        .badge-status-active  { background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600; }
+        .badge-status-locked  { background:#fee2e2;color:#b91c1c;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600; }
+        .badge-status-other   { background:#f3f4f6;color:#6b7280;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600; }
+        .btn-lock   { background:#dc2626;color:#fff;border:none;border-radius:6px;padding:4px 11px;font-size:11px;cursor:pointer;white-space:nowrap; }
+        .btn-unlock { background:#16a34a;color:#fff;border:none;border-radius:6px;padding:4px 11px;font-size:11px;cursor:pointer;white-space:nowrap; }
+        .table-search { display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center; }
+        .table-search input { padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;flex:1;min-width:200px; }
+        .table-search select { padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff; }
+        .section-title { font-size:15px; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+        .empty-state { text-align:center;padding:40px 20px;color:#6b7280; }
+        .info-banner { background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:13px;color:#0369a1; }
+    </style>
+</head>
+<body>
+<div class="admin-wrapper">
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar__header">
+            <a href="/admin/dashboard" class="sidebar-logo">
+                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                <div>
+                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                    <span class="admin-sidebar__badge">ADMIN PANEL</span>
+                </div>
+            </a>
+        </div>
+        <nav class="admin-sidebar__nav">
+            <div class="admin-sidebar__section-title">Tổng quan</div>
+            <a href="/admin/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
+            <div class="admin-sidebar__section-title">Quản lý đặt phòng</div>
+            <a href="/admin/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt phòng</a>
+            <a href="/admin/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng</a>
+                <div class="admin-sidebar__section-title">Quản lý nội dung</div>
+            <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
+            <a href="/admin/rooms"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
+            <a href="/admin/reviews"        class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
+            <a href="/admin/users"          class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
+            <div class="admin-sidebar__section-title">Tài chính</div>
+            <a href="/admin/revenue"     class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
+            <a href="/admin/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
+            <a href="/admin/vouchers"    class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
+            <div class="admin-sidebar__section-title">Hỗ trợ</div>
+            <a href="/admin/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
+            <div class="admin-sidebar__section-title">Hệ thống</div>
+            <a href="/admin/audit-log" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📜</span> Nhật ký thao tác</a>
+            <a href="/" class="admin-sidebar__link" target="_blank"><span class="admin-sidebar__link-icon">🌐</span> Xem trang User</a>
+        </nav>
+        <div class="admin-sidebar__footer">
+            <div class="admin-sidebar__user">
+                <div class="admin-sidebar__user-avatar">AD</div>
+                <div class="admin-sidebar__user-info">
+                    <div class="admin-sidebar__user-name" sec:authentication="name">Admin</div>
+                    <div class="admin-sidebar__user-role">Quản trị viên</div>
+                </div>
+            </div>
+            <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
+                <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
+            </form>
+        </div>
+    </aside>
+    <div class="admin-sidebar-overlay"></div>
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div style="display:flex;align-items:center;gap:var(--space-4)">
+                <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                <h1 class="admin-topbar__title">👥 Quản Lý Người Dùng</h1>
+                <span style="font-size:12px;color:#6b7280;background:#f3f4f6;padding:3px 10px;border-radius:20px;">📡 Dữ liệu thật từ MySQL</span>
+            </div>
+            <div class="admin-topbar__actions">
+                <a href="/" target="_blank" class="btn btn--ghost btn--sm">🌐 Xem trang user</a>
+            </div>
+        </header>
+
+        <main class="admin-content">
+
+            <!-- Flash messages -->
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}"   class="alert alert-error"   th:text="${errorMessage}"></div>
+
+            <!-- Info banner -->
+            <div class="info-banner">
+                <i class="fa-solid fa-circle-info"></i>
+                <strong> Quản lý tài khoản:</strong> Dữ liệu thật từ bảng <code>users</code> trong MySQL.
+                Admin có thể khóa/mở khóa tài khoản USER và PARTNER. Tài khoản bị khóa sẽ không thể đăng nhập.
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="user-kpi-grid">
+                <div class="user-kpi-card">
+                    <div class="user-kpi-card__label">Tổng tài khoản</div>
+                    <div class="user-kpi-card__value" th:text="${totalUsers + totalPartners + totalAdmins}">0</div>
+                </div>
+                <div class="user-kpi-card">
+                    <div class="user-kpi-card__label">Người dùng (USER)</div>
+                    <div class="user-kpi-card__value" style="color:#0284c7;" th:text="${totalUsers}">0</div>
+                </div>
+                <div class="user-kpi-card">
+                    <div class="user-kpi-card__label">Đối tác (PARTNER)</div>
+                    <div class="user-kpi-card__value" style="color:#b45309;" th:text="${totalPartners}">0</div>
+                </div>
+                <div class="user-kpi-card">
+                    <div class="user-kpi-card__label">Quản trị (ADMIN)</div>
+                    <div class="user-kpi-card__value" style="color:#7c3aed;" th:text="${totalAdmins}">0</div>
+                </div>
+            </div>
+
+            <!-- Search & filter toolbar -->
+            <div class="table-search">
+                <input type="text" id="userSearch" placeholder="🔍 Tìm theo tên, email, số điện thoại..." oninput="filterUsers()" />
+                <select id="roleFilter" onchange="filterUsers()">
+                    <option value="all">Tất cả vai trò</option>
+                    <option value="USER">👤 User</option>
+                    <option value="PARTNER">🏨 Partner</option>
+                    <option value="ADMIN">🛡 Admin</option>
+                </select>
+                <select id="statusFilter" onchange="filterUsers()">
+                    <option value="all">Tất cả trạng thái</option>
+                    <option value="ACTIVE">✅ Hoạt động</option>
+                    <option value="LOCKED">🔒 Bị khóa</option>
+                </select>
+            </div>
+
+            <!-- User Table -->
+            <div class="admin-section">
+                <div class="section-title"><i class="fa-solid fa-users"></i> Danh Sách Tài Khoản</div>
+
+                <div th:if="${#lists.isEmpty(users)}" class="empty-state">
+                    <i class="fa-solid fa-users" style="font-size:40px;opacity:.2;margin-bottom:10px;"></i>
+                    <p>Chưa có tài khoản nào trong hệ thống.</p>
+                </div>
+
+                <div th:if="${!#lists.isEmpty(users)}" class="user-table-wrap">
+                    <table class="user-table" id="usersTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Họ và tên</th>
+                                <th>Email</th>
+                                <th>Số điện thoại</th>
+                                <th>Vai trò</th>
+                                <th>Loại hình (Partner)</th>
+                                <th>Ngày đăng ký</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr th:each="u, stat : ${users}"
+                                th:data-search="${u.name + ' ' + u.email + ' ' + (u.phone != null ? u.phone : '')}"
+                                th:data-role="${u.role.name()}"
+                                th:data-status="${u.status}">
+                                <td style="color:#6b7280;font-size:12px;" th:text="${stat.index + 1}">1</td>
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <!-- Avatar màu theo role -->
+                                        <div class="user-avatar"
+                                             th:style="${u.role.name() == 'ADMIN'} ? 'background:#7c3aed;' :
+                                                        (${u.role.name() == 'PARTNER'} ? 'background:#d97706;' : 'background:#0284c7;')"
+                                             th:text="${u.name != null && u.name.length() >= 2 ? u.name.substring(0,2).toUpperCase() : 'U?'}">NA</div>
+                                        <div>
+                                            <div style="font-weight:600;" th:text="${u.name}">Tên</div>
+                                            <div style="font-size:11px;color:#6b7280;" th:if="${u.partnerPropertyType != null}"
+                                                 th:text="'🏠 ' + ${u.partnerPropertyType.name()}"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="font-size:13px;" th:text="${u.email}">email@example.com</td>
+                                <td style="font-size:13px;" th:text="${u.phone != null ? u.phone : '—'}">0901 234 567</td>
+                                <td>
+                                    <span class="badge-role-admin"   th:if="${u.role.name() == 'ADMIN'}">🛡 Admin</span>
+                                    <span class="badge-role-partner" th:if="${u.role.name() == 'PARTNER'}">🏨 Partner</span>
+                                    <span class="badge-role-user"    th:if="${u.role.name() == 'USER'}">👤 User</span>
+                                </td>
+                                <td>
+                                    <span th:if="${u.partnerPropertyType != null}"
+                                          style="background:#fef9c3;color:#a16207;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;"
+                                          th:text="${u.partnerPropertyType.name()}">HOTEL</span>
+                                    <span th:if="${u.partnerPropertyType == null}" style="color:#d1d5db;">—</span>
+                                </td>
+                                <td style="font-size:12px;color:#6b7280;white-space:nowrap;"
+                                    th:text="${u.createdAt != null ? #temporals.format(u.createdAt, 'dd/MM/yyyy') : '—'}">01/01/2025</td>
+                                <td>
+                                    <span class="badge-status-active"  th:if="${u.status == 'ACTIVE'}">✅ Hoạt động</span>
+                                    <span class="badge-status-locked"  th:if="${u.status == 'LOCKED'}">🔒 Bị khóa</span>
+                                    <span class="badge-status-other"   th:if="${u.status != 'ACTIVE' and u.status != 'LOCKED'}" th:text="${u.status}">—</span>
+                                </td>
+                                <td>
+                                    <!-- Admin: không thể khóa -->
+                                    <span th:if="${u.role.name() == 'ADMIN'}"
+                                          style="font-size:11px;color:#9ca3af;">—</span>
+                                    <!-- Non-admin ACTIVE: hiện nút Khóa -->
+                                    <form th:if="${u.role.name() != 'ADMIN' and u.status == 'ACTIVE'}"
+                                          th:action="@{/admin/users/{id}/lock(id=${u.id})}"
+                                          method="post" style="display:inline;">
+                                        <button type="submit" class="btn-lock"
+                                                onclick="return confirm('Khóa tài khoản này? Người dùng sẽ không thể đăng nhập!')">
+                                            🔒 Khóa
+                                        </button>
+                                    </form>
+                                    <!-- Non-admin LOCKED: hiện nút Mở khóa -->
+                                    <form th:if="${u.role.name() != 'ADMIN' and u.status == 'LOCKED'}"
+                                          th:action="@{/admin/users/{id}/unlock(id=${u.id})}"
+                                          method="post" style="display:inline;">
+                                        <button type="submit" class="btn-unlock">
+                                            🔓 Mở khóa
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/admin.js"></script>
+<script>
+function filterUsers() {
+    const q      = document.getElementById('userSearch').value.toLowerCase();
+    const role   = document.getElementById('roleFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    document.querySelectorAll('#usersTableBody tr[data-role]').forEach(row => {
+        const searchStr  = (row.dataset.search || '').toLowerCase();
+        const rowRole    = row.dataset.role   || '';
+        const rowStatus  = row.dataset.status || '';
+        const matchQ      = !q || searchStr.includes(q);
+        const matchRole   = role   === 'all' || rowRole   === role;
+        const matchStatus = status === 'all' || rowStatus === status;
+        row.style.display = (matchQ && matchRole && matchStatus) ? '' : 'none';
+    });
+}
+
+// ── Auto-activate filter từ URL query param ──
+document.addEventListener('DOMContentLoaded', function() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var paramRole = urlParams.get('role');
+    if (paramRole) {
+        var roleSelect = document.getElementById('roleFilter');
+        if (roleSelect) {
+            // try to match the option value
+            for (var i = 0; i < roleSelect.options.length; i++) {
+                if (roleSelect.options[i].value === paramRole) {
+                    roleSelect.value = paramRole;
+                    break;
+                }
+            }
+        }
+    }
+    filterUsers();
+});
+</script>
+</body>
+</html>

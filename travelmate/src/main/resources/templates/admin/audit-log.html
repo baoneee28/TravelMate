@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nhật Ký Thao Tác – Admin TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        /* ── Page header banner ───────────────────────────── */
+        .audit-hero {
+            background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 55%, #2563eb 100%);
+            border-radius: 16px;
+            padding: 28px 32px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .audit-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .audit-hero__icon {
+            width: 56px; height: 56px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px;
+            flex-shrink: 0;
+            backdrop-filter: blur(8px);
+        }
+        .audit-hero__text h2 {
+            color: #fff;
+            font-size: 22px; font-weight: 800; margin: 0 0 4px;
+        }
+        .audit-hero__text p { color: rgba(255,255,255,.7); font-size: 13px; margin: 0; }
+        .audit-hero__stats { display: flex; gap: 20px; flex-shrink: 0; }
+        .audit-hero__stat {
+            background: rgba(255,255,255,.12);
+            border: 1px solid rgba(255,255,255,.2);
+            border-radius: 12px;
+            padding: 12px 20px;
+            text-align: center;
+            backdrop-filter: blur(8px);
+        }
+        .audit-hero__stat-val { color:#fff; font-size:22px; font-weight:800; line-height:1; }
+        .audit-hero__stat-lbl { color:rgba(255,255,255,.65); font-size:11px; margin-top:3px; }
+
+        /* ── Filter bar ────────────────────────────────────── */
+        .filter-bar {
+            background: #fff;
+            border-radius: 12px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.06);
+            border: 1px solid #e5e7eb;
+        }
+        .ftab {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 14px; border-radius: 20px;
+            font-size: 12px; font-weight: 600;
+            border: 1.5px solid #e5e7eb; background: #f9fafb;
+            cursor: pointer; color: #374151; transition: all .15s;
+        }
+        .ftab:hover { background:#eff6ff; border-color:#93c5fd; color:#1d4ed8; }
+        .ftab.active { background:#2563eb; border-color:#2563eb; color:#fff; box-shadow:0 2px 8px rgba(37,99,235,.35); }
+        .search-box {
+            display: flex; align-items: center; gap: 8px;
+            background: #f9fafb; border: 1.5px solid #e5e7eb;
+            border-radius: 20px; padding: 6px 14px;
+            margin-left: auto;
+        }
+        .search-box i { color: #9ca3af; font-size: 12px; }
+        .search-box input {
+            border: none; outline: none; background: transparent;
+            font-size: 13px; color: #374151; width: 180px;
+        }
+        .result-count {
+            font-size: 12px; color: #6b7280; white-space: nowrap;
+            background: #f3f4f6; padding: 5px 12px; border-radius: 20px;
+        }
+
+        /* ── Action badge ─────────────────────────────────── */
+        .act-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 4px 10px; border-radius: 20px;
+            font-size: 11px; font-weight: 700; white-space: nowrap;
+            letter-spacing: .02em;
+        }
+        .act-badge i { font-size: 10px; }
+        .act-approve  { background:#d1fae5; color:#065f46; }
+        .act-reject   { background:#fee2e2; color:#991b1b; }
+        .act-lock     { background:#fef9c3; color:#92400e; }
+        .act-unlock   { background:#dbeafe; color:#1e3a8a; }
+        .act-checkin  { background:#ede9fe; color:#5b21b6; }
+        .act-complete { background:#d1fae5; color:#065f46; }
+        .act-noshow   { background:#fce7f3; color:#9d174d; }
+        .act-hide     { background:#f3f4f6; color:#374151; }
+        .act-default  { background:#f1f5f9; color:#475569; }
+
+        /* ── Target type chip ─────────────────────────────── */
+        .type-chip {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 9px; border-radius: 6px;
+            font-size: 11px; font-weight: 600;
+        }
+        .type-booking       { background:#eff6ff; color:#1d4ed8; }
+        .type-accommodation { background:#f0fdf4; color:#15803d; }
+        .type-room          { background:#faf5ff; color:#7e22ce; }
+        .type-user          { background:#fff7ed; color:#c2410c; }
+        .type-review        { background:#fefce8; color:#a16207; }
+        .type-default       { background:#f8fafc; color:#475569; }
+
+        /* ── Table ────────────────────────────────────────── */
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .log-table thead th {
+            background: #f8fafc;
+            color: #6b7280;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            padding: 10px 14px;
+            border-bottom: 2px solid #e5e7eb;
+            white-space: nowrap;
+        }
+        .log-table thead th:first-child { border-radius: 8px 0 0 0; }
+        .log-table thead th:last-child  { border-radius: 0 8px 0 0; }
+        .log-table tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+            transition: background .12s;
+        }
+        .log-table tbody tr:hover { background: #f8fafc; }
+        .log-table tbody tr:last-child { border-bottom: none; }
+        .log-table td { padding: 11px 14px; vertical-align: middle; }
+
+        .row-num {
+            color: #d1d5db;
+            font-size: 11px;
+            font-weight: 600;
+            width: 32px;
+            text-align: center;
+        }
+        .col-time { white-space: nowrap; color: #374151; }
+        .col-time .date { font-weight: 600; font-size: 12px; }
+        .col-time .time { color: #9ca3af; font-size: 11px; }
+        .col-admin { font-size: 12px; color: #374151; font-weight: 500; }
+        .col-desc { color: #374151; max-width: 280px; }
+        .col-note {
+            color: #6b7280; font-size: 12px; max-width: 200px;
+            font-style: italic;
+        }
+        .col-id {
+            font-family: 'Courier New', monospace;
+            font-size: 11px; font-weight: 700;
+            color: #6366f1;
+            background: #eef2ff;
+            padding: 2px 8px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        /* ── Table wrapper card ───────────────────────────── */
+        .table-card {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 6px rgba(0,0,0,.06);
+            overflow: hidden;
+        }
+
+        /* ── Empty state ──────────────────────────────────── */
+        .empty-state {
+            text-align: center; padding: 60px 20px; color: #9ca3af;
+        }
+        .empty-state i { font-size: 48px; opacity: .2; display: block; margin-bottom: 12px; }
+        .empty-state p { font-size: 14px; margin: 0; }
+
+        @media(max-width:768px){
+            .audit-hero { flex-direction:column; align-items:flex-start; }
+            .audit-hero__stats { width:100%; }
+            .audit-hero__stat { flex:1; }
+        }
+    </style>
+</head>
+<body>
+<div class="admin-wrapper">
+    <!-- ══ SIDEBAR ══════════════════════════════════════════ -->
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar__header">
+            <a href="/admin/dashboard" class="sidebar-logo">
+                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                <div>
+                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                    <span class="admin-sidebar__badge">ADMIN PANEL</span>
+                </div>
+            </a>
+        </div>
+        <nav class="admin-sidebar__nav">
+            <div class="admin-sidebar__section-title">Tổng quan</div>
+            <a href="/admin/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
+            <div class="admin-sidebar__section-title">Quản lý đặt phòng</div>
+            <a href="/admin/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt phòng</a>
+            <a href="/admin/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng</a>
+                <div class="admin-sidebar__section-title">Quản lý nội dung</div>
+            <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
+            <a href="/admin/rooms" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
+            <a href="/admin/reviews" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
+            <a href="/admin/users" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
+            <div class="admin-sidebar__section-title">Tài chính</div>
+            <a href="/admin/revenue" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
+            <a href="/admin/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
+            <a href="/admin/vouchers" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
+            <div class="admin-sidebar__section-title">Hỗ trợ</div>
+            <a href="/admin/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
+            <div class="admin-sidebar__section-title">Hệ thống</div>
+            <a href="/admin/audit-log" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">📜</span> Nhật ký thao tác</a>
+            <a href="/" class="admin-sidebar__link" target="_blank"><span class="admin-sidebar__link-icon">🌐</span> Xem trang User</a>
+        </nav>
+        <div class="admin-sidebar__footer">
+            <div class="admin-sidebar__user">
+                <div class="admin-sidebar__user-avatar">AD</div>
+                <div class="admin-sidebar__user-info">
+                    <div class="admin-sidebar__user-name" sec:authentication="name">Admin</div>
+                    <div class="admin-sidebar__user-role">Quản trị viên</div>
+                </div>
+            </div>
+            <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
+                <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
+            </form>
+        </div>
+    </aside>
+    <div class="admin-sidebar-overlay"></div>
+
+    <!-- ══ MAIN ═════════════════════════════════════════════ -->
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div style="display:flex;align-items:center;gap:var(--space-4)">
+                <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                <h1 class="admin-topbar__title">📜 Nhật Ký Thao Tác</h1>
+            </div>
+        </header>
+
+        <main class="admin-content">
+
+            <!-- ── Hero Banner ─────────────────────────── -->
+            <div class="audit-hero">
+                <div style="display:flex;align-items:center;gap:16px;">
+                    <div class="audit-hero__icon">📜</div>
+                    <div class="audit-hero__text">
+                        <h2>Audit Log — Lịch sử thao tác Admin</h2>
+                        <p>Ghi lại minh bạch mọi quyết định: duyệt/từ chối booking, khoá tài khoản, quản lý listing...</p>
+                    </div>
+                </div>
+                <div class="audit-hero__stats">
+                    <div class="audit-hero__stat">
+                        <div class="audit-hero__stat-val" th:text="${totalCount}">0</div>
+                        <div class="audit-hero__stat-lbl">Tổng thao tác</div>
+                    </div>
+                    <div class="audit-hero__stat" id="stat-visible">
+                        <div class="audit-hero__stat-val" id="stat-visible-val" th:text="${totalCount}">0</div>
+                        <div class="audit-hero__stat-lbl">Đang hiển thị</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Filter bar ──────────────────────────── -->
+            <div class="filter-bar">
+                <button class="ftab active" data-log-filter="all">
+                    <i class="fa-solid fa-list"></i> Tất cả
+                </button>
+                <button class="ftab" data-log-filter="BOOKING">
+                    <i class="fa-solid fa-calendar-check"></i> Booking
+                </button>
+                <button class="ftab" data-log-filter="ACCOMMODATION">
+                    <i class="fa-solid fa-hotel"></i> Listing
+                </button>
+                <button class="ftab" data-log-filter="ROOM">
+                    <i class="fa-solid fa-bed"></i> Phòng
+                </button>
+                <button class="ftab" data-log-filter="USER">
+                    <i class="fa-solid fa-user"></i> Người dùng
+                </button>
+                <button class="ftab" data-log-filter="REVIEW">
+                    <i class="fa-solid fa-star"></i> Đánh giá
+                </button>
+                <button class="ftab" data-log-filter="VOUCHER">
+                    <i class="fa-solid fa-ticket"></i> Voucher
+                </button>
+                <button class="ftab" data-log-filter="SETTLEMENT">
+                    <i class="fa-solid fa-landmark"></i> Quyết toán
+                </button>
+                <button class="ftab" data-log-filter="TICKET">
+                    <i class="fa-solid fa-headset"></i> Hỗ trợ
+                </button>
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="log-search" placeholder="Tìm hành động, mô tả..." />
+                </div>
+                <span class="result-count" id="log-count">— bản ghi</span>
+            </div>
+
+            <!-- ── Empty state ─────────────────────────── -->
+            <div th:if="${#lists.isEmpty(logs)}" class="table-card">
+                <div class="empty-state">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    <p>Chưa có thao tác nào được ghi nhận.<br>
+                       <span style="font-size:12px;">Hệ thống sẽ tự động ghi lại khi Admin thực hiện các hành động quản trị.</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- ── Log Table ───────────────────────────── -->
+            <div th:if="${!#lists.isEmpty(logs)}" class="table-card">
+                <div style="overflow-x:auto;">
+                    <table class="log-table">
+                        <thead>
+                            <tr>
+                                <th class="row-num">#</th>
+                                <th>Thời gian</th>
+                                <th>Admin</th>
+                                <th>Hành động</th>
+                                <th>Đối tượng</th>
+                                <th>ID</th>
+                                <th>Mô tả</th>
+                                <th>Ghi chú / Lý do</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="log, stat : ${logs}"
+                                th:attr="data-log-type=${log.targetType},data-log-search=${(log.description ?: '') + ' ' + log.adminEmail + ' ' + log.actionType}">
+
+                                <!-- # -->
+                                <td class="row-num" th:text="${stat.index + 1}">1</td>
+
+                                <!-- Thời gian -->
+                                <td class="col-time">
+                                    <div class="date" th:text="${#temporals.format(log.createdAt, 'dd/MM/yyyy')}">01/01</div>
+                                    <div class="time" th:text="${#temporals.format(log.createdAt, 'HH:mm:ss')}">00:00</div>
+                                </td>
+
+                                <!-- Admin -->
+                                <td class="col-admin">
+                                    <div style="display:flex;align-items:center;gap:7px;">
+                                        <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;">AD</div>
+                                        <span th:text="${log.adminEmail}">admin@...</span>
+                                    </div>
+                                </td>
+
+                                <!-- Hành động -->
+                                <td>
+                                    <!-- APPROVE / COMPLETE -->
+                                    <span class="act-badge act-approve"
+                                          th:if="${log.actionType.contains('APPROVE') or log.actionType.contains('COMPLETE')}">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                        <span th:text="${log.actionType}"></span>
+                                    </span>
+                                    <!-- REJECT -->
+                                    <span class="act-badge act-reject"
+                                          th:if="${log.actionType.contains('REJECT')}">
+                                        <i class="fa-solid fa-circle-xmark"></i>
+                                        <span th:text="${log.actionType}"></span>
+                                    </span>
+                                    <!-- HIDE -->
+                                    <span class="act-badge act-hide"
+                                          th:if="${log.actionType.contains('HIDE')}">
+                                        <i class="fa-solid fa-eye-slash"></i>
+                                        <span th:text="${log.actionType}"></span>
+                                    </span>
+                                    <!-- LOCK -->
+                                    <span class="act-badge act-lock"
+                                          th:if="${log.actionType == 'LOCK_USER'}">
+                                        <i class="fa-solid fa-lock"></i>
+                                        <span th:text="${log.actionType}"></span>
+                                    </span>
+                                    <!-- UNLOCK -->
+                                    <span class="act-badge act-unlock"
+                                          th:if="${log.actionType == 'UNLOCK_USER'}">
+                                        <i class="fa-solid fa-lock-open"></i>
+                                        <span th:text="${log.actionType}"></span>
+                                    </span>
+                                    <!-- CHECKIN -->
+                                    <span class="act-badge act-checkin"
+                                          th:if="${log.actionType.contains('CHECKIN')}">
+                                        <i class="fa-solid fa-right-to-bracket"></i>
+                                        <span th:text="${log.actionType}"></span>
+                                    </span>
+                                    <!-- NOSHOW -->
+                                    <span class="act-badge act-noshow"
+                                          th:if="${log.actionType.contains('NOSHOW')}">
+                                        <i class="fa-solid fa-person-circle-xmark"></i>
+                                        <span th:text="${log.actionType}"></span>
+                                    </span>
+                                    <!-- DEFAULT -->
+                                    <span class="act-badge act-default"
+                                          th:unless="${log.actionType.contains('APPROVE') or log.actionType.contains('REJECT') or log.actionType.contains('LOCK') or log.actionType.contains('UNLOCK') or log.actionType.contains('COMPLETE') or log.actionType.contains('CHECKIN') or log.actionType.contains('NOSHOW') or log.actionType.contains('HIDE')}">
+                                        <i class="fa-solid fa-circle-dot"></i>
+                                        <span th:text="${log.actionType}"></span>
+                                    </span>
+                                </td>
+
+                                <!-- Đối tượng -->
+                                <td>
+                                    <span class="type-chip type-booking"       th:if="${log.targetType == 'BOOKING'}"><i class="fa-solid fa-calendar-check"></i> Booking</span>
+                                    <span class="type-chip type-accommodation" th:if="${log.targetType == 'ACCOMMODATION'}"><i class="fa-solid fa-hotel"></i> Listing</span>
+                                    <span class="type-chip type-room"          th:if="${log.targetType == 'ROOM'}"><i class="fa-solid fa-bed"></i> Phòng</span>
+                                    <span class="type-chip type-user"          th:if="${log.targetType == 'USER'}"><i class="fa-solid fa-user"></i> User</span>
+                                    <span class="type-chip type-review"        th:if="${log.targetType == 'REVIEW'}"><i class="fa-solid fa-star"></i> Review</span>
+                                    <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:600;background:#ede9fe;color:#5b21b6;"
+                                           th:if="${log.targetType == 'VOUCHER'}"><i class="fa-solid fa-ticket"></i> Voucher</span>
+                                    <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:600;background:#dcfce7;color:#166534;"
+                                           th:if="${log.targetType == 'SETTLEMENT'}"><i class="fa-solid fa-landmark"></i> Settlement</span>
+                                    <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:600;background:#fef3c7;color:#92400e;"
+                                           th:if="${log.targetType == 'TICKET'}"><i class="fa-solid fa-headset"></i> Ticket</span>
+                                    <span class="type-chip type-default"
+                                          th:unless="${log.targetType == 'BOOKING' or log.targetType == 'ACCOMMODATION' or log.targetType == 'ROOM' or log.targetType == 'USER' or log.targetType == 'REVIEW' or log.targetType == 'VOUCHER' or log.targetType == 'SETTLEMENT' or log.targetType == 'TICKET'}"
+                                          th:text="${log.targetType}">—</span>
+                                </td>
+
+                                <!-- ID -->
+                                <td>
+                                    <span th:if="${log.targetId != null}" class="col-id" th:text="'#' + ${log.targetId}">—</span>
+                                    <span th:if="${log.targetId == null}" style="color:#d1d5db;">—</span>
+                                </td>
+
+                                <!-- Mô tả -->
+                                <td class="col-desc" th:text="${log.description}">—</td>
+
+                                <!-- Ghi chú -->
+                                <td>
+                                    <span th:if="${log.note == null or log.note.isEmpty()}" style="color:#d1d5db;">—</span>
+                                    <div th:if="${log.note != null and !log.note.isEmpty()}"
+                                         style="display:flex;align-items:flex-start;gap:6px;">
+                                        <i class="fa-solid fa-comment-dots" style="color:#f59e0b;margin-top:2px;font-size:11px;flex-shrink:0;"></i>
+                                        <span class="col-note" th:text="${log.note}">—</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/admin.js"></script>
+<script>
+(function(){
+    var logFilter = 'all';
+
+    function filterLogs() {
+        var q = (document.getElementById('log-search').value || '').toLowerCase().trim();
+        var visible = 0;
+        document.querySelectorAll('tr[data-log-type]').forEach(function(row){
+            var type   = row.dataset.logType;
+            var search = (row.dataset.logSearch || '').toLowerCase();
+            var show   = (logFilter === 'all' || type === logFilter) &&
+                         (!q || search.includes(q));
+            row.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        var el = document.getElementById('log-count');
+        if (el) el.textContent = visible + ' bản ghi';
+        var sv = document.getElementById('stat-visible-val');
+        if (sv) sv.textContent = visible;
+    }
+
+    document.querySelectorAll('[data-log-filter]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+            document.querySelectorAll('[data-log-filter]').forEach(function(b){ b.classList.remove('active'); });
+            btn.classList.add('active');
+            logFilter = btn.dataset.logFilter;
+            filterLogs();
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function(){
+        filterLogs();
+        document.getElementById('log-search').addEventListener('input', filterLogs);
+    });
+})();
+</script>
+</body>
+</html>

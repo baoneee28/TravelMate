@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tiện nghi phòng – Partner TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <link rel="stylesheet" href="/assets/css/partners.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        .amenity-card {
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: #334155;
+            background: #fff;
+            transition: border-color .15s, background .15s;
+            user-select: none;
+        }
+        .amenity-card:hover { border-color: #93c5fd; background: #f0f9ff; }
+        .amenity-card.checked { border-color: #2563eb; background: #eff6ff; color: #1e40af; }
+        .amenity-card input[type=checkbox] {
+            width: 16px; height: 16px;
+            accent-color: #2563eb;
+            flex-shrink: 0;
+        }
+        .group-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #2563eb;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1.5px solid #dbeafe;
+        }
+        .amenity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .room-chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 12px; border-radius: 20px;
+            font-size: 12px; font-weight: 600;
+            background: #f1f5f9; color: #334155;
+            border: 1px solid #e2e8f0;
+            cursor: pointer; transition: all .15s;
+        }
+        .room-chip:hover, .room-chip.active {
+            background: #eff6ff; color: #1d4ed8; border-color: #93c5fd;
+        }
+        .room-chip.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+    </style>
+</head>
+
+<body>
+<div class="admin-wrapper">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar__header">
+            <a href="/partner/dashboard" class="sidebar-logo">
+                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                <div>
+                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                    <span class="admin-sidebar__badge">PARTNER CENTER</span>
+                </div>
+            </a>
+        </div>
+        <nav class="admin-sidebar__nav">
+            <div class="admin-sidebar__section-title">Tổng quan</div>
+            <a href="/partner/dashboard" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">📊</span> Dashboard
+            </a>
+            <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
+            <a href="/partner/accommodations" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">🏨</span> Nơi lưu trú của tôi
+            </a>
+            <a href="/partner/accommodations/new" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">＋</span> Đăng ký mới
+            </a>
+            <a href="/partner/amenities" class="admin-sidebar__link active">
+                <span class="admin-sidebar__link-icon">🏷</span> Tiện nghi phòng
+            </a>
+            <a href="/partner/bookings" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">📋</span> Đơn đặt phòng
+            </a>
+            <a href="/partner/room-status" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏠</span> Tình trạng phòng hôm nay</a>
+            <a href="/partner/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Kiểm tra lịch trống</a>
+            <a href="/partner/direct-booking" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">➕</span> Booking trực tiếp</a>
+            <a href="/partner/reviews" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">⭐</span> Đánh giá của khách
+            </a>
+            <div class="admin-sidebar__section-title">Tài chính</div>
+            <a href="/partner/revenue" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">💰</span> Doanh thu
+            </a>
+            <a href="/partner/settlements" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">🏦</span> Quyết toán
+            </a>
+            <a href="/partner/vouchers" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">🎟</span> Voucher của tôi
+            </a>
+            <div class="admin-sidebar__section-title">Hỗ trợ</div>
+            <a href="/partner/support" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ
+            </a>
+            <a href="/partner/profile" class="admin-sidebar__link">
+                <span class="admin-sidebar__link-icon">👤</span> Hồ sơ của tôi
+            </a>
+        </nav>
+        <div class="admin-sidebar__footer">
+            <div class="admin-sidebar__user">
+                <div class="admin-sidebar__user-avatar">PT</div>
+                <div class="admin-sidebar__user-info">
+                    <div class="admin-sidebar__user-name" th:text="${partnerName} ?: 'Partner'">Partner</div>
+                    <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+    <div class="admin-sidebar-overlay"></div>
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div style="display: flex; align-items: center; gap: var(--space-4)">
+                <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                <h1 class="admin-topbar__title">🏷 Tiện nghi phòng / căn</h1>
+            </div>
+            <div class="admin-topbar__actions">
+                <a href="/partner/accommodations" class="btn btn--ghost btn--sm">← Quay lại</a>
+                <form th:action="@{/auth/logout}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn--ghost btn--sm">🚪 Đăng xuất</button>
+                </form>
+            </div>
+        </header>
+
+        <main class="admin-content">
+            <div class="page-header">
+                <div>
+                    <h2 class="page-header__title">🏷 Quản lý tiện nghi phòng / căn lưu trú</h2>
+                    <p class="page-header__subtitle">
+                        Chọn phòng → tích tiện nghi → Lưu cập nhật. Tiện nghi sẽ hiển thị cho khách khi xem chi tiết phòng.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Flash messages -->
+            <div th:if="${successMessage}" style="margin-bottom:var(--space-4);padding:12px 16px;background:#ecfdf5;border-radius:8px;font-size:13px;color:#065f46;border:1px solid #a7f3d0;">
+                <span th:text="${successMessage}"></span>
+            </div>
+            <div th:if="${errorMessage}" style="margin-bottom:var(--space-4);padding:12px 16px;background:#fef2f2;border-radius:8px;font-size:13px;color:#991b1b;border:1px solid #fecaca;">
+                <span th:text="${errorMessage}"></span>
+            </div>
+
+            <!-- Empty state -->
+            <div th:if="${myRooms == null or #lists.isEmpty(myRooms)}"
+                 style="text-align:center;padding:60px 20px;color:#64748b;">
+                <div style="font-size:48px;margin-bottom:12px;">🛏</div>
+                <div style="font-weight:600;font-size:16px;margin-bottom:8px;">Chưa có phòng nào được duyệt</div>
+                <p style="font-size:13px;">Phòng phải được Admin duyệt (APPROVED) mới cập nhật tiện nghi được.</p>
+                <a href="/partner/accommodations" class="btn btn--primary" style="margin-top:16px;">
+                    ← Về quản lý nơi lưu trú
+                </a>
+            </div>
+
+            <!-- Layout 2 cột: danh sách phòng + form tiện nghi -->
+            <div th:if="${myRooms != null and !#lists.isEmpty(myRooms)}"
+                 style="display:grid;grid-template-columns:280px 1fr;gap:var(--space-5);align-items:start;">
+
+                <!-- Cột trái: danh sách phòng -->
+                <div class="chart-card" style="position:sticky;top:20px;">
+                    <div class="chart-card__header">
+                        <h3 class="chart-card__title" style="font-size:14px;">🛏 Phòng của bạn</h3>
+                    </div>
+                    <div style="padding:12px;display:flex;flex-direction:column;gap:6px;" id="room-list">
+                        <div th:each="room, stat : ${myRooms}"
+                             class="room-chip"
+                             th:classappend="${stat.first} ? 'active' : ''"
+                             th:attr="data-room-id=${room.id},onclick='selectRoom(this,' + ${room.id} + ')'"
+                             th:id="'chip-' + ${room.id}">
+                            <span th:text="${room.roomCode}" style="font-family:monospace;font-size:11px;color:inherit;">CODE</span>
+                            <span th:text="${room.roomName}" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Tên phòng</span>
+                            <!-- Badge số tiện nghi đã có -->
+                            <span th:if="${room.amenities != null and !#lists.isEmpty(room.amenities)}"
+                                  th:text="${#lists.size(room.amenities)}"
+                                  style="background:#2563eb;color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;font-weight:700;flex-shrink:0;">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cột phải: form tiện nghi -->
+                <div id="amenity-form-area">
+                    <div th:each="room, stat : ${myRooms}"
+                         th:id="'form-' + ${room.id}"
+                         th:style="${stat.first ? '' : 'display:none;'}">
+
+                        <div class="chart-card" style="margin-bottom:var(--space-4);">
+                            <div class="chart-card__header" style="background:linear-gradient(135deg,#eff6ff,#f0fdf4);">
+                                <div>
+                                    <h3 class="chart-card__title" th:text="${room.roomName}">Tên phòng</h3>
+                                    <div style="font-size:12px;color:#64748b;margin-top:2px;">
+                                        <span style="font-family:monospace;font-weight:600;" th:text="${room.roomCode}">CODE</span>
+                                        &nbsp;·&nbsp;
+                                        <span th:text="${room.bedType ?: 'N/A'}">Giường</span>
+                                        &nbsp;·&nbsp;
+                                        <span th:text="${room.capacity} + ' khách'">2 khách</span>
+                                        &nbsp;·&nbsp;
+                                        <span th:text="${#numbers.formatDecimal(room.pricePerNight, 0, 'COMMA', 0, 'POINT')} + 'đ/đêm'">0đ</span>
+                                    </div>
+                                </div>
+                                <!-- Hiển thị tiện nghi hiện tại -->
+                                <div th:if="${room.amenities != null and !#lists.isEmpty(room.amenities)}"
+                                     style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
+                                    <span th:each="a : ${room.amenities}"
+                                          style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:#dcfce7;color:#166534;border-radius:12px;font-size:11px;font-weight:600;">
+                                        <span th:text="${a.icon}">🔧</span>
+                                        <span th:text="${a.name}">Tiện nghi</span>
+                                    </span>
+                                </div>
+                                <div th:if="${room.amenities == null or #lists.isEmpty(room.amenities)}"
+                                     style="margin-top:8px;font-size:12px;color:#94a3b8;font-style:italic;">
+                                    Chưa có tiện nghi nào. Hãy chọn bên dưới.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form cập nhật tiện nghi -->
+                        <form th:action="@{/partner/amenities/{id}(id=${room.id})}" method="post"
+                              class="chart-card">
+                            <div class="chart-card__header">
+                                <h3 class="chart-card__title">✏️ Chọn tiện nghi</h3>
+                            </div>
+                            <div style="padding:var(--space-5);">
+
+                                <div th:each="entry : ${amenityGroups}" style="margin-bottom:20px;">
+                                    <div class="group-title" th:text="${entry.key}">Nhóm</div>
+                                    <div class="amenity-grid">
+                                        <label th:each="amenity : ${entry.value}"
+                                               class="amenity-card"
+                                               th:classappend="${room.amenities != null and #lists.contains(room.amenities, amenity)} ? 'checked' : ''"
+                                               onclick="toggleAmenityCard(this)">
+                                            <input type="checkbox" name="amenityIds"
+                                                   th:value="${amenity.id}"
+                                                   th:checked="${room.amenities != null and #lists.contains(room.amenities, amenity)}" />
+                                            <span th:text="${amenity.icon + ' ' + amenity.name}">icon Tên</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div style="display:flex;gap:12px;margin-top:var(--space-4);padding-top:var(--space-4);border-top:1px solid #e2e8f0;">
+                                    <button type="submit" class="btn btn--primary">
+                                        💾 Lưu tiện nghi
+                                    </button>
+                                    <button type="button" class="btn btn--ghost"
+                                            onclick="selectAll(this.closest('form'))">
+                                        ☑ Chọn tất cả
+                                    </button>
+                                    <button type="button" class="btn btn--ghost"
+                                            onclick="clearAll(this.closest('form'))">
+                                        ☐ Bỏ chọn tất cả
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hướng dẫn -->
+            <div style="margin-top:var(--space-4);padding:12px 16px;background:#f0f9ff;border-radius:8px;font-size:12px;color:#0369a1;border:1px solid #bae6fd;">
+                <strong>📌 Lưu ý:</strong>
+                Tiện nghi bạn khai báo sẽ hiển thị trong trang chi tiết phòng khi khách hàng xem và đặt phòng.
+                Khai báo đúng thực tế giúp tăng uy tín và số lượng đặt phòng.
+                Bạn cũng có thể khai báo tiện nghi ngay khi <a href="/partner/accommodations" style="color:#2563eb;font-weight:600;">thêm phòng mới</a>.
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/admin.js"></script>
+<script>
+    function selectRoom(chip, roomId) {
+        // Ẩn tất cả form
+        document.querySelectorAll('#amenity-form-area > div').forEach(function(d) {
+            d.style.display = 'none';
+        });
+        // Bỏ active tất cả chip
+        document.querySelectorAll('.room-chip').forEach(function(c) {
+            c.classList.remove('active');
+        });
+        // Hiện form của phòng được chọn
+        var target = document.getElementById('form-' + roomId);
+        if (target) target.style.display = '';
+        chip.classList.add('active');
+    }
+
+    function toggleAmenityCard(label) {
+        var cb = label.querySelector('input[type=checkbox]');
+        cb.checked = !cb.checked;
+        label.classList.toggle('checked', cb.checked);
+    }
+
+    function selectAll(form) {
+        form.querySelectorAll('input[type=checkbox]').forEach(function(cb) {
+            cb.checked = true;
+            cb.closest('label').classList.add('checked');
+        });
+    }
+
+    function clearAll(form) {
+        form.querySelectorAll('input[type=checkbox]').forEach(function(cb) {
+            cb.checked = false;
+            cb.closest('label').classList.remove('checked');
+        });
+    }
+</script>
+</body>
+</html>

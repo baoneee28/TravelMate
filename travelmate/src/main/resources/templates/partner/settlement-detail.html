@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chi tiết quyết toán – Partner TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <link rel="stylesheet" href="/assets/css/partners.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+<body>
+<div class="admin-wrapper">
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar__header">
+            <a href="/partner/dashboard" class="sidebar-logo">
+                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                <div>
+                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                    <span class="admin-sidebar__badge">PARTNER CENTER</span>
+                </div>
+            </a>
+        </div>
+        <nav class="admin-sidebar__nav">
+            <div class="admin-sidebar__section-title">Tổng quan</div>
+            <a href="/partner/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
+            <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
+            <a href="/partner/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Nơi lưu trú của tôi</a>
+            <a href="/partner/accommodations/new" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">＋</span> Đăng ký mới</a>
+            <a href="/partner/amenities" class="admin-sidebar__link">
+                    <span class="admin-sidebar__link-icon">🏷</span> Tiện nghi phòng
+                </a>
+                <a href="/partner/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đơn đặt phòng</a>
+            <a href="/partner/room-status" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏠</span> Tình trạng phòng hôm nay</a>
+            <a href="/partner/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Kiểm tra lịch trống</a>
+            <a href="/partner/direct-booking" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">➕</span> Booking trực tiếp</a>
+                <a href="/partner/reviews" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá của khách</a>
+            <div class="admin-sidebar__section-title">Tài chính</div>
+            <a href="/partner/revenue" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
+            <a href="/partner/settlements" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
+            <a href="/partner/vouchers" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher của tôi</a>
+            <div class="admin-sidebar__section-title">Hỗ trợ</div>
+            <a href="/partner/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ</a>
+            <a href="/partner/profile" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👤</span> Hồ sơ của tôi</a>
+        </nav>
+        <div class="admin-sidebar__footer">
+            <div class="admin-sidebar__user">
+                <div class="admin-sidebar__user-avatar">PT</div>
+                <div class="admin-sidebar__user-info">
+                    <div class="admin-sidebar__user-name" th:text="${partnerName} ?: 'Partner'">Partner</div>
+                    <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+    <div class="admin-sidebar-overlay"></div>
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div style="display:flex;align-items:center;gap:var(--space-4)">
+                <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                <h1 class="admin-topbar__title">🏦 Chi tiết quyết toán</h1>
+            </div>
+            <div class="admin-topbar__actions">
+                <form th:action="@{/auth/logout}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn--ghost btn--sm">🚪 Đăng xuất</button>
+                </form>
+            </div>
+        </header>
+
+        <main class="admin-content">
+            <div class="page-header">
+                <div>
+                    <h2 class="page-header__title">🏦 Chi tiết kỳ quyết toán</h2>
+                    <p class="page-header__subtitle">
+                        Kỳ: <strong th:text="${#temporals.format(settlement.periodStart,'dd/MM/yyyy')} + ' → ' + ${#temporals.format(settlement.periodEnd,'dd/MM/yyyy')}">—</strong>
+                    </p>
+                </div>
+                <a href="/partner/settlements" class="btn btn--ghost">← Quay lại</a>
+            </div>
+
+            <!-- KPI summary -->
+            <div class="stats-grid" style="margin-bottom:var(--space-5);">
+                <div class="stats-card">
+                    <div class="stats-card__icon stats-card__icon--blue">💵</div>
+                    <div>
+                        <div class="stats-card__value" th:text="${#numbers.formatDecimal(settlement.grossAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
+                <div class="stats-card__label">Tiền TM thu online (ONLINE)</div>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-card__icon stats-card__icon--amber">📊</div>
+                    <div>
+                        <div class="stats-card__value" th:text="${#numbers.formatDecimal(settlement.commissionAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
+                        <div class="stats-card__label">Chiết khấu nền tảng</div>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-card__icon stats-card__icon--green">💰</div>
+                    <div>
+                        <div class="stats-card__value" style="color:#16a34a;"
+                             th:text="${#numbers.formatDecimal(settlement.payoutAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
+                        <div class="stats-card__label">Số tiền nhận được</div>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div th:if="${settlement.settlementStatus.name()=='PAID'}" class="stats-card__icon stats-card__icon--green">✅</div>
+                    <div th:if="${settlement.settlementStatus.name()!='PAID'}" class="stats-card__icon stats-card__icon--amber">⏳</div>
+                    <div>
+                        <div class="stats-card__value" style="font-size:16px;"
+                             th:if="${settlement.settlementStatus.name()=='PAID'}" th:text="'Đã thanh toán'">—</div>
+                        <div class="stats-card__value" style="font-size:16px;"
+                             th:if="${settlement.settlementStatus.name()!='PAID'}" th:text="'Chờ thanh toán'">—</div>
+                        <div class="stats-card__label">Trạng thái quyết toán</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thông tin quyết toán -->
+            <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:var(--space-5);margin-bottom:var(--space-5);">
+                <h3 style="font-size:15px;font-weight:700;margin-bottom:var(--space-4);color:var(--color-primary);">📋 Thông tin quyết toán</h3>
+                <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                    <tr style="border-bottom:1px solid #f3f4f6;">
+                        <td style="padding:10px 0;color:#6b7280;width:200px;">Kỳ quyết toán:</td>
+                        <td style="padding:10px 0;font-weight:600;"
+                            th:text="${#temporals.format(settlement.periodStart,'dd/MM/yyyy')} + ' → ' + ${#temporals.format(settlement.periodEnd,'dd/MM/yyyy')}">—</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #f3f4f6;">
+                        <td style="padding:10px 0;color:#6b7280;">Tiền TravelMate thu online:</td>
+                        <td style="padding:10px 0;font-weight:600;"
+                            th:text="${#numbers.formatDecimal(settlement.grossAmount,0,'COMMA',0,'POINT')} + 'đ'">—</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #f3f4f6;">
+                        <td style="padding:10px 0;color:#6b7280;">Chiết khấu nền tảng:</td>
+                        <td style="padding:10px 0;color:#dc2626;"
+                            th:text="'- ' + ${#numbers.formatDecimal(settlement.commissionAmount,0,'COMMA',0,'POINT')} + 'đ'">—</td>
+                    </tr>
+                    <tr th:if="${settlement.voucherDeductionAmount != null and settlement.voucherDeductionAmount > 0}" style="border-bottom:1px solid #f3f4f6;">
+                        <td style="padding:10px 0;color:#6b7280;">Voucher partner chịu:</td>
+                        <td style="padding:10px 0;color:#d97706;"
+                            th:text="'- ' + ${#numbers.formatDecimal(settlement.voucherDeductionAmount,0,'COMMA',0,'POINT')} + 'đ'">—</td>
+                    </tr>
+                    <tr style="border-bottom:2px solid #e5e7eb;background:#f9fafb;">
+                        <td style="padding:12px 0;font-weight:700;">Số tiền nhận được:</td>
+                        <td style="padding:12px 0;font-weight:700;font-size:18px;color:#16a34a;"
+                            th:text="${#numbers.formatDecimal(settlement.payoutAmount,0,'COMMA',0,'POINT')} + 'đ'">—</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #f3f4f6;">
+                        <td style="padding:10px 0;color:#6b7280;">Trạng thái:</td>
+                        <td style="padding:10px 0;">
+                            <span th:if="${settlement.settlementStatus.name()=='PAID'}" class="badge badge--success">✅ Đã thanh toán</span>
+                            <span th:if="${settlement.settlementStatus.name()!='PAID'}" class="badge badge--warning">⏳ Chờ thanh toán</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${settlement.settlementDate != null}">
+                        <td style="padding:10px 0;color:#6b7280;">Ngày thanh toán:</td>
+                        <td style="padding:10px 0;" th:text="${#temporals.format(settlement.settlementDate,'dd/MM/yyyy HH:mm')}">—</td>
+                    </tr>
+                    <tr th:if="${settlement.note != null and !#strings.isEmpty(settlement.note)}">
+                        <td style="padding:10px 0;color:#6b7280;">Ghi chú Admin:</td>
+                        <td style="padding:10px 0;" th:text="${settlement.note}">—</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Booking trong kỳ -->
+            <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:var(--space-5);">
+                <h3 style="font-size:15px;font-weight:700;margin-bottom:var(--space-4);color:var(--color-primary);">
+                    📋 Booking trong kỳ (<span th:text="${#lists.size(periodBookings)}">0</span> đơn)
+                </h3>
+                <div th:if="${#lists.isEmpty(periodBookings)}" style="text-align:center;padding:24px;color:#6b7280;">
+                    Không có booking nào trong kỳ này.
+                </div>
+                <div class="table-wrap" th:if="${!#lists.isEmpty(periodBookings)}">
+                    <table class="table data-table">
+                        <thead>
+                            <tr>
+                                <th>Mã booking</th>
+                                <th>Khách hàng</th>
+                                <th>Cơ sở / Phòng</th>
+                                <th>Check-in</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="b : ${periodBookings}">
+                                <td style="font-family:monospace;font-size:12px;color:var(--color-primary);font-weight:600;">
+                                    <a th:href="@{/partner/bookings/{id}(id=${b.id})}" th:text="${b.bookingCode}"
+                                       style="color:var(--color-primary);text-decoration:none;">BK-XXX</a>
+                                </td>
+                                <td th:text="${b.customerName}">—</td>
+                                <td>
+                                    <div style="font-weight:500;" th:text="${b.accommodation.name}">—</div>
+                                    <div style="font-size:12px;color:#6b7280;" th:text="${b.room.roomName}">—</div>
+                                </td>
+                                <td th:text="${#temporals.format(b.checkIn,'dd/MM/yyyy')}">—</td>
+                                <td style="font-weight:600;color:var(--color-primary);"
+                                    th:text="${#numbers.formatDecimal(b.totalAmount,0,'COMMA',0,'POINT')} + 'đ'">—</td>
+                                <td>
+                                    <span class="badge" th:classappend="${b.bookingStatus.name()=='COMPLETED'?'badge--success':'badge--primary'}"
+                                          th:text="${b.bookingStatus.name()=='COMPLETED'?'Hoàn thành':'Đã xác nhận'}">—</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/admin.js"></script>
+</body>
+</html>
