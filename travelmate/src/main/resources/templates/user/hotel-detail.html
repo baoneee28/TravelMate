@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title th:text="'TravelMate – ' + ${hotel.name} + ' | ' + (${hotel.propertyType?.name() == 'VILLA'} ? 'Villa' : (${hotel.propertyType?.name() == 'HOMESTAY'} ? 'Homestay' : (${hotel.propertyType?.name() == 'RESORT'} ? 'Resort' : 'Khách sạn')))">TravelMate – Chi tiết khách sạn</title>
+    <title th:text="${'TravelMate – ' + hotel.name + ' | ' + (hotel.propertyType?.name() == 'VILLA' ? 'Villa' : (hotel.propertyType?.name() == 'HOMESTAY' ? 'Homestay' : (hotel.propertyType?.name() == 'RESORT' ? 'Resort' : 'Khách sạn')))}">TravelMate – Chi tiết khách sạn</title>
 
     <!-- Font Google -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -24,8 +24,8 @@
             background: #fff;
             border-bottom: 1px solid #e5e7eb;
             position: sticky;
-            top: 0;
-            z-index: 100;
+            top: 72px;
+            z-index: 1000;
             padding: 0;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
@@ -118,9 +118,8 @@
         /* Sticky Tabs Nav */
         .hd-tabs-nav {
             position: sticky;
-            top: 72px;
-            /* Dưới search bar */
-            z-index: 99;
+            top: 136px;
+            z-index: 990;
             background: #fff;
             border-bottom: 1px solid #e2e8f0;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
@@ -924,102 +923,225 @@
 </head>
 
 <body>
-    <!-- ===== HEADER (giống trang chủ) ===== -->
-    <header class="header header-static"
-        style="background: #fff; position: relative; padding: 15px 0; border-bottom: 1px solid #e2e8f0">
-        <div class="container navbar">
-            <a href="/" class="logo">
-                <div class="logo-icon"><i class="fa-solid fa-building"></i></div>
-                <span class="logo-text"><span class="logo-blue">TRAVEL</span><span class="logo-yellow">MATE</span></span>
-            </a>
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/user.js"></script>
+    <div th:replace="~{fragments/user-header :: header(true, 'hotels')}"></div>
 
-            <nav class="menu">
-                <ul class="menu-list">
-                    <li><a href="/">TRANG CHỦ</a></li>
-                    <li><a href="/accommodations">GỢI Ý DU LỊCH</a></li>
-                    <li><a href="/news">TIN TỨC</a></li>
-                    <li><a href="/contact">LIÊN HỆ</a></li>
-                    <li>
-                        <a href="/my-bookings"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a>
-                    </li>
-                </ul>
-            </nav>
 
-            <!-- Chưa đăng nhập -->
-            <a href="/auth/login" class="login-btn" sec:authorize="isAnonymous()">ĐĂNG NHẬP</a>
-            <!-- Bell Notification (authenticated) -->
-            <div class="notif-wrap" id="notifWrap" sec:authorize="isAuthenticated()" style="position:relative;display:flex;align-items:center;margin-right:10px;">
-                <button class="notif-btn" id="notifBtn" type="button" aria-label="Thông báo"
-                        style="background:none;border:none;cursor:pointer;color:#0f172a;font-size:1.15rem;padding:8px 10px;border-radius:10px;position:relative;transition:background 0.15s,color 0.15s;">
-                    <i class="fa-solid fa-bell"></i>
-                    <span class="notif-badge" id="notifBadge" style="display:none;position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:0.6rem;font-weight:700;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px;line-height:1;"></span>
-                </button>
-                <div class="notif-dropdown" id="notifDropdown" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:340px;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.18);z-index:9999;overflow:hidden;border:1px solid #e2e8f0;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid #f1f5f9;">
-                        <span style="font-weight:700;font-size:0.95rem;color:#0f172a;">Thông báo</span>
-                        <button type="button" id="notifReadAll" style="background:none;border:none;font-size:0.78rem;font-weight:600;color:#2563eb;cursor:pointer;font-family:inherit;padding:0;">Đọc hết</button>
-                    </div>
-                    <div style="max-height:340px;overflow-y:auto;" id="notifList">
-                        <p style="text-align:center;color:#94a3b8;font-size:0.85rem;padding:24px 16px;margin:0;">Không có thông báo</p>
-                    </div>
-                </div>
-            </div>
-            <!-- Đã đăng nhập -->
-            <div class="header-user" id="headerUser" sec:authorize="isAuthenticated()">
-                <button class="header-user-btn" id="headerUserBtn" type="button">
-                    <div class="header-avatar"><i class="fa-solid fa-user"></i></div>
-                    <span class="header-user-name" sec:authentication="principal.fullName">User</span>
-                    <i class="fa-solid fa-chevron-down header-chevron"></i>
-                </button>
-                <div class="header-user-dropdown" id="headerUserDropdown">
-                    <a href="/my-bookings" class="dropdown-item"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a>
-                    <div class="dropdown-divider"></div>
-                    <form method="post" action="/auth/logout">
-                        <button type="submit" class="dropdown-item dropdown-logout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- ===== SEARCH NAV BAR (sticky) ===== -->
+    <!-- ===== SEARCH NAV BAR (sticky, functional) ===== -->
     <div class="search-nav">
         <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px">
-            <div class="mini-search-bar" style="padding: 12px 0">
+            <form class="mini-search-bar" id="msbForm" action="/accommodations" method="get" style="padding: 12px 0">
+                <input type="hidden" name="type" th:value="${hotel.propertyType != null ? hotel.propertyType.name() : 'HOTEL'}" />
+                <input type="hidden" name="checkIn"  id="msbCheckIn"  th:value="${checkIn}" />
+                <input type="hidden" name="checkOut" id="msbCheckOut" th:value="${checkOut}" />
+                <input type="hidden" name="adults"   id="msbAdults"   th:value="${adults != null ? adults : 1}" />
+                <input type="hidden" name="children" id="msbChildren" th:value="${children != null ? children : 0}" />
+                <input type="hidden" name="rooms"    id="msbRooms"    th:value="${rooms != null ? rooms : 1}" />
+
                 <div class="mini-search-container">
+                    <!-- Keyword -->
                     <div class="msb-field" style="flex: 1.4">
                         <i class="fa-solid fa-location-dot"></i>
-                        <input type="text" th:value="${hotel.city}" readonly />
+                        <input type="text" name="keyword" id="msbKeyword" th:value="${hotel.city}"
+                               placeholder="Điểm đến..." autocomplete="off" />
                     </div>
                     <div class="msb-divider"></div>
-                    <div class="msb-field" style="flex: 1.2">
+
+                    <!-- Date range with popup -->
+                    <div class="msb-field msb-date-wrap" id="msbDateField" style="flex: 1.2; position: relative; cursor: pointer;">
                         <i class="fa-regular fa-calendar-days"></i>
-                        <input type="text" readonly
-                               th:value="${!#strings.isEmpty(checkIn) and !#strings.isEmpty(checkOut) ?
-                                   (#strings.substring(checkIn,8,10) + '/' + #strings.substring(checkIn,5,7) + '/' + #strings.substring(checkIn,0,4)
-                                    + ' → ' +
-                                    #strings.substring(checkOut,8,10) + '/' + #strings.substring(checkOut,5,7) + '/' + #strings.substring(checkOut,0,4)) :
-                                   'Chọn ngày'}" />
+                        <input type="text" id="msbDateDisplay" readonly
+                               th:value="${!#strings.isEmpty(checkInDisplay) and !#strings.isEmpty(checkOutDisplay) ?
+                                   (checkInDisplay + ' → ' + checkOutDisplay) :
+                                   'Chọn ngày'}"
+                               placeholder="Chọn ngày" style="cursor:pointer;" />
+                        <!-- Date popup -->
+                        <div class="msb-date-popup" id="msbDatePopup" style="display:none;position:absolute;top:calc(100% + 8px);left:0;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.12);padding:16px 18px;z-index:2000;min-width:300px;">
+                            <div style="font-size:0.8rem;font-weight:700;color:#334155;margin-bottom:12px;">Chọn ngày lưu trú</div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+                                <div>
+                                    <label style="display:block;font-size:0.7rem;font-weight:600;color:#64748b;margin-bottom:4px;text-transform:uppercase;">Nhận phòng</label>
+                                    <input type="date" id="msbCheckInPicker" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.8125rem;font-family:inherit;box-sizing:border-box;" />
+                                </div>
+                                <div>
+                                    <label style="display:block;font-size:0.7rem;font-weight:600;color:#64748b;margin-bottom:4px;text-transform:uppercase;">Trả phòng</label>
+                                    <input type="date" id="msbCheckOutPicker" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.8125rem;font-family:inherit;box-sizing:border-box;" />
+                                </div>
+                            </div>
+                            <div style="display:flex;gap:8px;justify-content:flex-end;">
+                                <button type="button" id="msbDateClose" style="padding:7px 16px;border:1.5px solid #e2e8f0;background:#fff;color:#475569;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;">Đóng</button>
+                                <button type="button" id="msbDateApply" style="padding:7px 16px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;">Áp dụng</button>
+                            </div>
+                        </div>
                     </div>
                     <div class="msb-divider"></div>
-                    <div class="msb-field" style="flex: 1">
+
+                    <!-- Guest counter with popup -->
+                    <div class="msb-field msb-guest-wrap" id="msbGuestField" style="flex: 1; position: relative; cursor: pointer;">
                         <i class="fa-solid fa-user"></i>
-                        <input type="text" readonly
-                               th:value="${adults != null ? (adults + children) + ' khách, ' + rooms + ' phòng' : '1 khách, 1 phòng'}" />
+                        <input type="text" id="msbGuestDisplay" readonly style="cursor:pointer;"
+                               th:value="${adults != null ? (adults + children) + ' khách, ' + rooms + ' phòng' : '1 khách, 1 phòng'}"
+                               placeholder="Khách & Phòng" />
+                        <!-- Guest popup -->
+                        <div class="msb-guest-popup" id="msbGuestPopup" style="display:none;position:absolute;top:calc(100% + 8px);left:0;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.12);padding:16px 18px;z-index:2000;min-width:240px;">
+                            <div class="msb-guest-row" style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f5f9;">
+                                <div><div style="font-size:0.85rem;font-weight:600;color:#0f172a;">Người lớn</div></div>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <button type="button" data-msb-target="adults" data-msb-op="dec" style="width:28px;height:28px;border:1.5px solid #e2e8f0;background:#fff;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;color:#475569;">−</button>
+                                    <span id="msbCountAdults" style="font-weight:700;min-width:20px;text-align:center;">1</span>
+                                    <button type="button" data-msb-target="adults" data-msb-op="inc" style="width:28px;height:28px;border:1.5px solid #2563eb;background:#eff6ff;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;color:#2563eb;">+</button>
+                                </div>
+                            </div>
+                            <div class="msb-guest-row" style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f5f9;">
+                                <div><div style="font-size:0.85rem;font-weight:600;color:#0f172a;">Trẻ em</div></div>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <button type="button" data-msb-target="children" data-msb-op="dec" style="width:28px;height:28px;border:1.5px solid #e2e8f0;background:#fff;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;color:#475569;">−</button>
+                                    <span id="msbCountChildren" style="font-weight:700;min-width:20px;text-align:center;">0</span>
+                                    <button type="button" data-msb-target="children" data-msb-op="inc" style="width:28px;height:28px;border:1.5px solid #2563eb;background:#eff6ff;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;color:#2563eb;">+</button>
+                                </div>
+                            </div>
+                            <div class="msb-guest-row" style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;">
+                                <div><div style="font-size:0.85rem;font-weight:600;color:#0f172a;">Số phòng</div></div>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <button type="button" data-msb-target="rooms" data-msb-op="dec" style="width:28px;height:28px;border:1.5px solid #e2e8f0;background:#fff;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;color:#475569;">−</button>
+                                    <span id="msbCountRooms" style="font-weight:700;min-width:20px;text-align:center;">1</span>
+                                    <button type="button" data-msb-target="rooms" data-msb-op="inc" style="width:28px;height:28px;border:1.5px solid #2563eb;background:#eff6ff;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;color:#2563eb;">+</button>
+                                </div>
+                            </div>
+                            <button type="button" id="msbGuestDone" style="margin-top:12px;width:100%;padding:9px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">Xong</button>
+                        </div>
                     </div>
-                    <a th:href="@{/accommodations(checkIn=${checkIn},checkOut=${checkOut},adults=${adults},children=${children},rooms=${rooms},type=${hotel.propertyType != null ? hotel.propertyType.name() : 'HOTEL'})}"
-                       class="msb-submit" style="text-decoration:none">
+
+                    <button type="submit" class="msb-submit">
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <span th:text="${hotel.propertyType != null ?
-                            (hotel.propertyType.name() == 'VILLA'    ? 'Tìm Villa'    :
-                            (hotel.propertyType.name() == 'HOMESTAY' ? 'Tìm Homestay' :
-                            (hotel.propertyType.name() == 'RESORT'   ? 'Tìm Resort'   : 'Tìm khách sạn')))
+                            (hotel.propertyType.name() == 'VILLA'    ? 'Tìm villa'    :
+                            (hotel.propertyType.name() == 'HOMESTAY' ? 'Tìm homestay' :
+                            (hotel.propertyType.name() == 'RESORT'   ? 'Tìm resort'   : 'Tìm khách sạn')))
                             : 'Tìm khách sạn'}">Tìm khách sạn</span>
-                    </a>
+                    </button>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
+    <script>
+    (function () {
+        // ── Helpers ──
+        function fmtISO(d) {
+            return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        }
+        function fmtVN(s) {
+            if (!s) return '';
+            var p = s.split('-'); return p[2]+'/'+p[1]+'/'+p[0];
+        }
+        var today = new Date(); today.setHours(0,0,0,0);
+        var tomorrow = new Date(today.getTime()+86400000);
+
+        // ── Date popup ──
+        var dateField   = document.getElementById('msbDateField');
+        var datePopup   = document.getElementById('msbDatePopup');
+        var ciPicker    = document.getElementById('msbCheckInPicker');
+        var coPicker    = document.getElementById('msbCheckOutPicker');
+        var dateDisplay = document.getElementById('msbDateDisplay');
+        var dateClose   = document.getElementById('msbDateClose');
+        var dateApply   = document.getElementById('msbDateApply');
+        var hidCI       = document.getElementById('msbCheckIn');
+        var hidCO       = document.getElementById('msbCheckOut');
+
+        // Init pickers from hidden inputs (server-side values)
+        if (hidCI.value) { ciPicker.value = hidCI.value; } else { ciPicker.value = fmtISO(today); }
+        if (hidCO.value) { coPicker.value = hidCO.value; } else { coPicker.value = fmtISO(tomorrow); }
+        ciPicker.min = fmtISO(today);
+
+        ciPicker.addEventListener('change', function () {
+            var minOut = new Date(this.value+'T00:00:00');
+            minOut.setDate(minOut.getDate()+1);
+            coPicker.min = fmtISO(minOut);
+            if (coPicker.value <= this.value) coPicker.value = fmtISO(minOut);
+        });
+
+        dateField.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (datePopup.style.display === 'block') return;
+            datePopup.style.display = 'block';
+        });
+        datePopup.addEventListener('click', function (e) { e.stopPropagation(); });
+        dateClose.addEventListener('click', function () { datePopup.style.display = 'none'; });
+        dateApply.addEventListener('click', function () {
+            if (!ciPicker.value || !coPicker.value) return;
+            if (coPicker.value <= ciPicker.value) {
+                coPicker.style.borderColor = '#dc2626';
+                setTimeout(function(){coPicker.style.borderColor='';}, 2000);
+                return;
+            }
+            hidCI.value = ciPicker.value;
+            hidCO.value = coPicker.value;
+            dateDisplay.value = fmtVN(ciPicker.value) + ' → ' + fmtVN(coPicker.value);
+            datePopup.style.display = 'none';
+        });
+
+        // ── Guest popup ──
+        var guestField   = document.getElementById('msbGuestField');
+        var guestPopup   = document.getElementById('msbGuestPopup');
+        var guestDisplay = document.getElementById('msbGuestDisplay');
+        var guestDone    = document.getElementById('msbGuestDone');
+        var hidAdults    = document.getElementById('msbAdults');
+        var hidChildren  = document.getElementById('msbChildren');
+        var hidRooms     = document.getElementById('msbRooms');
+
+        var msbState = {
+            adults:   parseInt(hidAdults.value)   || 1,
+            children: parseInt(hidChildren.value) || 0,
+            rooms:    parseInt(hidRooms.value)    || 1
+        };
+
+        function updateMsbGuestDisplay() {
+            document.getElementById('msbCountAdults').textContent   = msbState.adults;
+            document.getElementById('msbCountChildren').textContent = msbState.children;
+            document.getElementById('msbCountRooms').textContent    = msbState.rooms;
+            guestDisplay.value = (msbState.adults + msbState.children) + ' khách, ' + msbState.rooms + ' phòng';
+            hidAdults.value   = msbState.adults;
+            hidChildren.value = msbState.children;
+            hidRooms.value    = msbState.rooms;
+        }
+        updateMsbGuestDisplay();
+
+        guestField.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (guestPopup.style.display === 'block') return;
+            guestPopup.style.display = 'block';
+            // Close date popup if open
+            datePopup.style.display = 'none';
+        });
+        guestPopup.addEventListener('click', function (e) { e.stopPropagation(); });
+        guestDone.addEventListener('click', function () { guestPopup.style.display = 'none'; });
+
+        document.querySelectorAll('[data-msb-target]').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var tgt = this.dataset.msbTarget;
+                var op  = this.dataset.msbOp;
+                if (op === 'inc') {
+                    if (tgt === 'adults'   && msbState.adults   < 20) msbState.adults++;
+                    if (tgt === 'children' && msbState.children < 10) msbState.children++;
+                    if (tgt === 'rooms'    && msbState.rooms    < 10) msbState.rooms++;
+                } else {
+                    if (tgt === 'adults'   && msbState.adults   > 1)  msbState.adults--;
+                    if (tgt === 'children' && msbState.children > 0)  msbState.children--;
+                    if (tgt === 'rooms'    && msbState.rooms    > 1)  msbState.rooms--;
+                }
+                updateMsbGuestDisplay();
+            });
+        });
+
+        // Close both popups on outside click
+        document.addEventListener('click', function () {
+            datePopup.style.display  = 'none';
+            guestPopup.style.display = 'none';
+        });
+    })();
+    </script>
 
     <!-- ===== TABS NAV (sticky) ===== -->
     <div class="hd-tabs-nav">
@@ -1030,6 +1152,7 @@
                 <a href="#availability" class="hd-tab">📅 Lịch trống</a>
                 <a href="#amenities" class="hd-tab">Tiện ích</a>
                 <a href="#policies" class="hd-tab">Chính sách</a>
+                <a th:if="${travelSuggestions != null and !#lists.isEmpty(travelSuggestions)}" href="#travel-guide" class="hd-tab">Gợi ý du lịch</a>
                 <a href="#reviews" class="hd-tab">Đánh giá</a>
             </div>
         </div>
@@ -1195,13 +1318,13 @@
                  style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;margin-bottom:16px;font-size:0.8125rem;font-weight:600;color:#166534;">
                 <i class="fa-solid fa-circle-check"></i>
                 Hiển thị tình trạng phòng cho ngày
-                <strong th:text="${#strings.substring(checkIn,8,10) + '/' + #strings.substring(checkIn,5,7) + '/' + #strings.substring(checkIn,0,4)}">dd/mm/yyyy</strong>
+                <strong th:text="${checkInDisplay}">dd/mm/yyyy</strong>
                 →
-                <strong th:text="${#strings.substring(checkOut,8,10) + '/' + #strings.substring(checkOut,5,7) + '/' + #strings.substring(checkOut,0,4)}">dd/mm/yyyy</strong>
+                <strong th:text="${checkOutDisplay}">dd/mm/yyyy</strong>
                 <span style="margin-left:8px;display:inline-flex;gap:8px;">
-                    <span style="padding:2px 8px;border-radius:5px;background:#dcfce7;color:#15803d;font-size:0.75rem;">● AVAILABLE</span>
-                    <span style="padding:2px 8px;border-radius:5px;background:#fef3c7;color:#b45309;font-size:0.75rem;">● LIMITED</span>
-                    <span style="padding:2px 8px;border-radius:5px;background:#fee2e2;color:#b91c1c;font-size:0.75rem;">● FULL</span>
+                    <span style="padding:2px 8px;border-radius:5px;background:#dcfce7;color:#15803d;font-size:0.75rem;">● Còn trống</span>
+                    <span style="padding:2px 8px;border-radius:5px;background:#fef3c7;color:#b45309;font-size:0.75rem;">● Sắp hết</span>
+                    <span style="padding:2px 8px;border-radius:5px;background:#fee2e2;color:#b91c1c;font-size:0.75rem;">● Hết phòng</span>
                 </span>
             </div>
 
@@ -1265,8 +1388,8 @@
                                 <span>Tổng: <strong th:text="${avail.totalQuantity}">0</strong></span>
                             </div>
                             <div style="height:6px;border-radius:3px;background:#e2e8f0;overflow:hidden;">
-                                <div th:style="'width:' + ${avail.availablePercent} + '%;height:100%;border-radius:3px;background:' +
-                                              (${isFull} ? '#ef4444' : (${isLimited} ? '#f59e0b' : '#22c55e'))"></div>
+                                <div th:style="${'width:' + avail.availablePercent + '%;height:100%;border-radius:3px;background:' +
+                                              (isFull ? '#ef4444' : (isLimited ? '#f59e0b' : '#22c55e'))}"></div>
                             </div>
                         </div>
                     </div>
@@ -1335,11 +1458,11 @@
                                     <td class="text-center" style="font-weight: 700;">
                                         <!-- Khi có ngày: hiện số phòng từ AvailabilityDto -->
                                         <span th:if="${avail != null}"
-                                              th:text="'x' + ${avail.availableQuantity}"
+                                              th:text="${'x' + avail.availableQuantity}"
                                               th:style="${isLimited} ? 'color:#b45309;' : 'color:#15803d;'">x5</span>
                                         <!-- Khi chưa chọn ngày: hiện availableQuantity từ entity -->
                                         <span th:if="${avail == null}"
-                                              th:text="'x' + ${room.availableQuantity}"
+                                              th:text="${'x' + room.availableQuantity}"
                                               style="color:#475569;">x0</span>
                                     </td>
                                     <td class="action-col">
@@ -1789,6 +1912,49 @@
             </div>
         </div>
 
+        <!-- TRAVEL SUGGESTIONS SECTION -->
+        <div class="hd-card" id="travel-guide" style="margin-bottom:30px"
+             th:if="${travelSuggestions != null and !#lists.isEmpty(travelSuggestions)}">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:18px;">
+                <div>
+                    <h2 class="section-title" style="margin-bottom:6px;"
+                        th:text="${'Gợi ý du lịch tại ' + travelDestinationLabel}">Gợi ý du lịch tại Đà Lạt</h2>
+                    <p style="margin:0;color:#64748b;font-size:.9rem;line-height:1.6;">
+                        Các cẩm nang và địa điểm tham khảo liên quan đến khu vực lưu trú này.
+                    </p>
+                </div>
+                <a th:href="@{/travel(destination=${travelDestinationLabel},checkIn=${checkIn},checkOut=${checkOut},adults=${adults},children=${children},rooms=${rooms})}"
+                   style="display:inline-flex;align-items:center;gap:8px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:10px 16px;border-radius:12px;font-weight:800;font-size:.86rem;text-decoration:none;white-space:nowrap;">
+                    <i class="fa-solid fa-map-location-dot"></i> Xem tất cả gợi ý
+                </a>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;">
+                <a th:each="p : ${travelSuggestions}"
+                   th:href="@{/travel(destination=${travelDestinationLabel},checkIn=${checkIn},checkOut=${checkOut},adults=${adults},children=${children},rooms=${rooms})}"
+                   style="display:block;text-decoration:none;color:inherit;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;background:#fff;transition:.18s;box-shadow:0 4px 14px rgba(15,23,42,.04);">
+                    <div style="height:130px;background:#f1f5f9;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:2rem;">
+                        <img th:if="${p.thumbnailUrl != null and !#strings.isEmpty(p.thumbnailUrl)}"
+                             th:src="${p.thumbnailUrl}" alt="" loading="lazy"
+                             style="width:100%;height:100%;object-fit:cover;display:block;" />
+                        <i th:unless="${p.thumbnailUrl != null and !#strings.isEmpty(p.thumbnailUrl)}"
+                           class="fa-solid fa-map-location-dot"></i>
+                    </div>
+                    <div style="padding:14px;">
+                        <div style="display:inline-flex;align-items:center;gap:5px;background:#eff6ff;color:#1d4ed8;border-radius:999px;padding:4px 9px;font-size:.72rem;font-weight:800;margin-bottom:8px;"
+                             th:text="${p.category.displayName}">Cẩm nang</div>
+                        <h3 style="font-size:.95rem;font-weight:800;color:#0f172a;line-height:1.35;margin:0 0 6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;"
+                            th:text="${p.title}">Tiêu đề bài viết</h3>
+                        <p style="font-size:.8rem;line-height:1.55;color:#64748b;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;"
+                           th:text="${p.summary}">Tóm tắt</p>
+                        <div style="margin-top:10px;font-size:.74rem;color:#94a3b8;font-weight:700;">
+                            <i class="fa-solid fa-link"></i>
+                            <span th:text="${p.sourceName != null ? p.sourceName : 'Nguồn tham khảo'}">Vietnam.travel</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
         <!-- REVIEWS SECTION -->
         <div class="hd-card" id="reviews" style="margin-bottom: 30px">
             <h2 class="section-title">Đánh giá của khách hàng</h2>
@@ -1805,7 +1971,7 @@
                                    (hotel.rating >= 7 ? 'Tốt' :
                                    (hotel.rating >= 6 ? 'Hài lòng' : 'Trung bình')))}">Tốt</div>
                     <div style="font-size: 0.85rem; color: #64748b"
-                         th:text="'Dựa trên ' + ${reviewCount} + ' đánh giá'">Dựa trên 0 đánh giá</div>
+                         th:text="${'Dựa trên ' + reviewCount + ' đánh giá'}">Dựa trên 0 đánh giá</div>
                 </div>
             </div>
 
@@ -1876,6 +2042,7 @@
                 document.getElementById("availability"),
                 document.getElementById("amenities"),
                 document.getElementById("policies"),
+                document.getElementById("travel-guide"),
                 document.getElementById("reviews"),
             ];
 
@@ -2048,8 +2215,9 @@
         });
     </script>
 
-    <script>
+    <script th:inline="javascript">
         // ──── ROOM QUANTITY SELECTOR ──────────────────────────────────────────
+        const requestedRooms = Math.max(1, parseInt(/*[[${rooms}]]*/ 1) || 1);
 
         function changeRoomQty(roomId, delta) {
             const span   = document.getElementById('qty-' + roomId);
@@ -2098,15 +2266,37 @@
                 qtyNote.style.cssText = 'font-size:0.72rem;color:#64748b;margin-top:2px;text-align:center;';
                 priceEl.parentNode.insertBefore(qtyNote, priceEl.nextSibling);
             }
-            qtyNote.textContent = qty > 1 ? '(' + qty + ' phong x ' + single.toLocaleString('vi-VN') + ')' : '';
+            qtyNote.textContent = qty > 1 ? '(' + qty + ' phòng x ' + single.toLocaleString('vi-VN') + ')' : '';
         }
 
-        // Khởi tạo data-single cho tất cả phòng khi load trang
+        // Khởi tạo giá đơn và số lượng theo tham số rooms trên URL
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.price-new').forEach(function(el) {
                 if (!el.dataset.single) {
                     el.dataset.single = el.textContent.replace(/[^0-9]/g, '');
                 }
+            });
+
+            document.querySelectorAll('[id^="qty-"]').forEach(function(span) {
+                const roomId = span.id.replace('qty-', '');
+                const decBtn = document.getElementById('dec-' + roomId);
+                const incBtn = document.getElementById('inc-' + roomId);
+                if (!incBtn) return;
+
+                const max = parseInt(incBtn.dataset.max) || 1;
+                const initialQty = Math.max(1, Math.min(requestedRooms, max));
+                span.textContent = initialQty;
+
+                const atMin = initialQty <= 1;
+                const atMax = initialQty >= max;
+                if (decBtn) {
+                    decBtn.style.opacity = atMin ? '0.4' : '1';
+                    decBtn.style.cursor = atMin ? 'not-allowed' : 'pointer';
+                }
+                incBtn.style.opacity = atMax ? '0.4' : '1';
+                incBtn.style.cursor = atMax ? 'not-allowed' : 'pointer';
+
+                updateRoomPriceLabel(roomId, initialQty);
             });
         });
 
@@ -2150,20 +2340,6 @@
                     alert('⚠️ Ngày trả phòng phải sau ngày nhận phòng!');
                 }
             });
-        })();
-
-        /* ── Notification bell toggle ── */
-        (function() {
-            const notifBtn  = document.getElementById('notifBtn');
-            const notifDrop = document.getElementById('notifDropdown');
-            if (notifBtn && notifDrop) {
-                notifBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    notifDrop.style.display = notifDrop.style.display === 'block' ? 'none' : 'block';
-                });
-                document.addEventListener('click', function() { notifDrop.style.display = 'none'; });
-                notifDrop.addEventListener('click', function(e) { e.stopPropagation(); });
-            }
         })();
 
         /* ── Photo Gallery Lightbox ── */
@@ -2243,6 +2419,8 @@
             collectImages();
         })();
     </script>
+
+    <div th:replace="~{fragments/user-footer :: footer}"></div>
 </body>
 
 </html>

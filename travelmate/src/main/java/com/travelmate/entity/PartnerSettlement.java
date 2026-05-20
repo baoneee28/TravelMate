@@ -12,10 +12,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * PartnerSettlement — Bản ghi quyết toán tuần cho partner.
+ * PartnerSettlement — Bản ghi quyết toán tháng cho partner.
  *
  * Luồng:
- *  1. Admin bấm "Generate Weekly" → tạo PartnerSettlement PENDING cho tuần trước
+ *  1. Admin bấm "Tạo quyết toán tháng trước" → tạo PartnerSettlement PENDING cho tháng trước
  *  2. Admin kiểm tra số liệu, bấm "Đánh dấu đã thanh toán" → PAID
  *
  * Công thức:
@@ -46,11 +46,11 @@ public class PartnerSettlement {
     @JoinColumn(name = "partner_id", nullable = false)
     private User partner;
 
-    /** Ngày bắt đầu kỳ quyết toán (thứ 2 tuần trước) */
+    /** Ngày bắt đầu kỳ quyết toán tháng */
     @Column(name = "period_start", nullable = false)
     private LocalDate periodStart;
 
-    /** Ngày kết thúc kỳ quyết toán (chủ nhật tuần trước) */
+    /** Ngày kết thúc kỳ quyết toán tháng */
     @Column(name = "period_end", nullable = false)
     private LocalDate periodEnd;
 

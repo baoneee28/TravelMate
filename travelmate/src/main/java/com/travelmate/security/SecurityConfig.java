@@ -4,6 +4,7 @@ import com.travelmate.service.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,9 +22,9 @@ import org.springframework.security.web.SecurityFilterChain;
  *   5. Nếu sai → redirect về /auth/login?error
  *
  * Phân quyền route hiện tại:
- *   - /admin/**  → chỉ ADMIN (sẽ bật sau khi demo ổn định)
- *   - /partner/** → chỉ PARTNER (sẽ bật sau khi demo ổn định)
- *   - Còn lại → public tạm thời để tiện test
+ *   - /admin/**   → chỉ ADMIN
+ *   - /partner/** → chỉ PARTNER
+ *   - Trang public/user/API được mở có kiểm soát theo từng route bên dưới
  */
 @Configuration
 @EnableWebSecurity
@@ -92,7 +93,7 @@ public class SecurityConfig {
 
                 // Static resources — CSS, JS, images phải public
                 // Nếu không permitAll thì CSS/JS sẽ bị chặn → trang trắng
-                .requestMatchers("/assets/**").permitAll()
+                .requestMatchers("/assets/**", "/uploads/**").permitAll()
 
                 // Trang auth — đăng nhập/đăng ký phải public
                 .requestMatchers("/auth/**").permitAll()
@@ -102,12 +103,33 @@ public class SecurityConfig {
                 // Chỉ /booking mới yêu cầu đăng nhập (cấu hình bên dưới)
                 // /error phải public để Spring Boot error page hiển thị được khi có exception
                 .requestMatchers("/", "/accommodations", "/accommodations/**", "/travel", "/news",
-                                 "/contact", "/contact/submit", "/vouchers", "/error").permitAll()
+                                 "/contact", "/contact/submit", "/contact/report", "/vouchers", "/error").permitAll()
+
+                // VNPAY callback routes — KHÔNG cần đăng nhập
+                // VNPAY gọi IPN mà không có session user, Return URL cũng vậy
+                .requestMatchers("/payment/vnpay-return", "/payment/vnpay-ipn")
+                    .permitAll()
+
+                // Chatbot API — public, không cần đăng nhập
+                .requestMatchers("/api/chatbot/**").permitAll()
+
+                // Travel posts API — GET public để guest/user xem chi tiết bài viết.
+                // Các thao tác thay đổi nội dung phải là ADMIN ngay từ security layer.
+                .requestMatchers(HttpMethod.GET, "/api/travel-posts/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/travel-posts/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/travel-posts/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/travel-posts/**").hasRole("ADMIN")
+
+                // Profile routes — chỉ USER role
+                .requestMatchers("/profile", "/profile/**").hasRole("USER")
 
                 // Booking routes — chỉ USER role mới được đặt phòng / xem booking của mình
                 // ADMIN và PARTNER không cần dùng luồng này
                 .requestMatchers("/booking", "/booking/**", "/my-bookings", "/my-bookings/**")
                     .hasRole("USER")
+
+                // Payment initiation — chỉ USER (tạo URL VNPAY để redirect)
+                .requestMatchers("/payment/vnpay/create/**").hasRole("USER")
 
                 // Admin routes — chỉ tài khoản có role ADMIN mới vào được
                 .requestMatchers("/admin/**").hasRole("ADMIN")

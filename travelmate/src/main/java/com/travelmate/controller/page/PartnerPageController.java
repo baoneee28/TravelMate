@@ -19,7 +19,6 @@ import com.travelmate.entity.enums.DiscountType;
 import com.travelmate.entity.enums.PartnerBookingStatus;
 import com.travelmate.entity.enums.PropertyType;
 import com.travelmate.entity.enums.RoomCategory;
-import com.travelmate.service.AccommodationService;
 import com.travelmate.service.AvailabilityService.RoomStatusDto;
 import com.travelmate.repository.UserRepository;
 import com.travelmate.security.CustomUserDetails;
@@ -41,7 +40,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.travelmate.entity.AdminActionLog;
-import com.travelmate.entity.enums.PaymentStatus;
+import com.travelmate.entity.enums.PaymentOption;
+import com.travelmate.entity.enums.RemainingPaymentStatus;
 import com.travelmate.repository.AdminActionLogRepository;
 import com.travelmate.repository.BookingRepository;
 import java.math.BigDecimal;
@@ -115,6 +115,29 @@ public class PartnerPageController {
         actionLogRepository.save(new AdminActionLog(email, actionType, targetType, targetId, description, note));
     }
 
+    /**
+     * Helper: thêm dynamic UI labels vào Model theo loại lưu trú của partner.
+     * VILLA  → unitLabel = "căn", addUnitLabel = "Thêm căn", ...
+     * Others → unitLabel = "phòng", addUnitLabel = "Thêm phòng", ...
+     */
+    private void addUnitLabels(Model model, User partner) {
+        PropertyType propType = partner.getPartnerPropertyType();
+        boolean isVilla = propType == PropertyType.VILLA;
+        model.addAttribute("partnerPropertyType", propType);
+        model.addAttribute("isVillaPartner",  isVilla);
+        model.addAttribute("unitLabel",       isVilla ? "căn"        : "phòng");
+        model.addAttribute("unitLabelCap",    isVilla ? "Căn"        : "Phòng");
+        model.addAttribute("unitTypeLabel",   isVilla ? "loại căn"   : "loại phòng");
+        model.addAttribute("addUnitLabel",    isVilla ? "Thêm căn"   : "Thêm phòng");
+        model.addAttribute("blockUnitLabel",  isVilla ? "Chặn căn"   : "Chặn phòng");
+        model.addAttribute("unitStatusTitle", isVilla ? "Tình trạng căn hôm nay"    : "Tình trạng phòng hôm nay");
+        model.addAttribute("quotaLabel",      isVilla ? "Tổng quota căn TravelMate" : "Tổng quota TravelMate");
+        model.addAttribute("checkinLabel",    isVilla ? "Chờ nhận căn"              : "Chờ check-in");
+        model.addAttribute("propertyWord",    isVilla ? "villa"
+                : (propType == PropertyType.HOMESTAY ? "homestay"
+                : (propType == PropertyType.RESORT   ? "resort" : "cơ sở")));
+    }
+
     // ─── Lấy partner hiện tại từ Security context ────────────────────────────
 
     private User getCurrentPartner(CustomUserDetails userDetails) {
@@ -147,6 +170,37 @@ public class PartnerPageController {
                 .count();
         long noShowCount = bookings.stream()
                 .filter(b -> b.getBookingStatus() == BookingStatus.NO_SHOW)
+                .count();
+
+        // Breakdown by booking source
+        long onlineBookingCount = bookings.stream()
+                .filter(b -> b.getBookingSource() == BookingSource.ONLINE)
+                .count();
+        long directBookingCount = bookings.stream()
+                .filter(b -> b.getBookingSource() == BookingSource.DIRECT)
+                .count();
+        long blockCount = bookings.stream()
+                .filter(b -> b.getBookingSource() == BookingSource.MANUAL_BLOCK)
+                .count();
+
+        // "Việc cần xử lý hôm nay"
+        LocalDate today = LocalDate.now();
+        // checkinToday: chỉ tính ONLINE (không tính MANUAL_BLOCK)
+        long checkinTodayCount = bookings.stream()
+                .filter(b -> b.getBookingStatus() == BookingStatus.CONFIRMED
+                          && today.equals(b.getCheckIn())
+                          && b.getBookingSource() != BookingSource.MANUAL_BLOCK)
+                .count();
+        long checkoutTodayCount = bookings.stream()
+                .filter(b -> b.getBookingStatus() == BookingStatus.CHECKED_IN
+                          && today.equals(b.getCheckOut()))
+                .count();
+        // depositPendingCollect: chỉ đếm CHECKED_IN + DEPOSIT_30 + chưa thu 70%
+        long depositPendingCollectCount = bookings.stream()
+                .filter(b -> b.getBookingStatus() == BookingStatus.CHECKED_IN)
+                .filter(b -> b.getPaymentOption() == PaymentOption.DEPOSIT_30)
+                .filter(b -> b.getRemainingPaymentStatus() == null
+                          || b.getRemainingPaymentStatus() != RemainingPaymentStatus.PAID_AT_PROPERTY)
                 .count();
 
         // Stats accommodation
@@ -183,7 +237,7 @@ public class PartnerPageController {
         int dashBlocked      = roomStatuses.stream().mapToInt(r -> r.blocked + r.directOccupied).sum();
 
         model.addAttribute("partnerName", partner.getName());
-        model.addAttribute("partnerPropertyType", partner.getPartnerPropertyType());
+        addUnitLabels(model, partner);
         model.addAttribute("totalBookings", totalBookings);
         model.addAttribute("pendingConfirmCount", pendingConfirmCount);
         model.addAttribute("confirmedCount", confirmedCount);
@@ -201,6 +255,16 @@ public class PartnerPageController {
         model.addAttribute("dashCheckedIn",   dashCheckedIn);
         model.addAttribute("dashHeldOnline",  dashHeldOnline);
         model.addAttribute("dashBlocked",     dashBlocked);
+
+        // Booking source breakdown
+        model.addAttribute("onlineBookingCount",  onlineBookingCount);
+        model.addAttribute("directBookingCount",  directBookingCount);
+        model.addAttribute("blockCount",          blockCount);
+
+        // Việc cần xử lý hôm nay
+        model.addAttribute("checkinTodayCount",          checkinTodayCount);
+        model.addAttribute("checkoutTodayCount",         checkoutTodayCount);
+        model.addAttribute("depositPendingCollectCount", depositPendingCollectCount);
 
         // Lấy 5 booking gần nhất để preview
         model.addAttribute("recentBookings", bookings.stream().limit(5).toList());
@@ -237,7 +301,7 @@ public class PartnerPageController {
         model.addAttribute("approvedCount", approvedCount);
         model.addAttribute("pendingCount", pendingCount);
         model.addAttribute("rejectedCount", rejectedCount);
-        model.addAttribute("partnerPropertyType", partner.getPartnerPropertyType());
+        addUnitLabels(model, partner);
         model.addAttribute("roomCountMap", roomCountMap);
 
         return "partner/accommodations";
@@ -323,6 +387,7 @@ public class PartnerPageController {
 
         model.addAttribute("accommodation", acc);
         model.addAttribute("partnerName", partner.getName());
+        addUnitLabels(model, partner);
         model.addAttribute("roomCategories", RoomCategory.values());
         // Truyền tất cả tiện nghi để render checkbox, nhóm theo category
         List<Amenity> allAmenities = accommodationService.getAllAmenities();
@@ -409,6 +474,7 @@ public class PartnerPageController {
                         java.util.LinkedHashMap::new,
                         java.util.stream.Collectors.toList()));
         model.addAttribute("partnerName", partner.getName());
+        addUnitLabels(model, partner);
         model.addAttribute("myRooms", myRooms);
         model.addAttribute("allAmenities", allAmenities);
         model.addAttribute("amenityGroups", amenityGroups);
@@ -455,8 +521,7 @@ public class PartnerPageController {
         // Lấy TẤT CẢ booking của partner (kể cả DIRECT, BLOCK)
         List<Booking> allBookings = bookingService.getAllBookingsForPartner(partner);
 
-        // Booking online (từ admin duyệt) — loại trừ PENDING_ADMIN_APPROVAL
-        List<Booking> onlineBookings = bookingService.getBookingsForPartner(partner);
+        // Booking online (từ admin duyệt) — loại trừ PENDING_ADMIN_APPROVAL - computed inline below
 
         // Booking trực tiếp
         List<Booking> directBookings = allBookings.stream()
@@ -473,9 +538,12 @@ public class PartnerPageController {
         // Gộp tất cả để hiển thị (online + direct + block), đã có đủ
         List<Booking> displayBookings = allBookings.stream()
                 .filter(b -> {
-                    // Online: chỉ hiển thị sau khi admin duyệt
+                    // Online: chỉ hiển thị sau khi TravelMate/Admin đã xác nhận thanh toán
                     if (b.getBookingSource() == null || b.getBookingSource() == BookingSource.ONLINE) {
-                        return b.getBookingStatus() != BookingStatus.PENDING_ADMIN_APPROVAL
+                        return b.getBookingStatus() == BookingStatus.CONFIRMED
+                                || b.getBookingStatus() == BookingStatus.CHECKED_IN
+                                || b.getBookingStatus() == BookingStatus.COMPLETED
+                                || b.getBookingStatus() == BookingStatus.NO_SHOW
                                 || b.getBookingStatus() == BookingStatus.CANCELLED;
                     }
                     // Direct/Block: hiển thị tất cả (kể cả đã hủy để partner xem lịch sử)
@@ -484,6 +552,7 @@ public class PartnerPageController {
                 .collect(Collectors.toList());
 
         // Thống kê
+        addUnitLabels(model, partner);
         model.addAttribute("bookings", displayBookings);
         model.addAttribute("totalCount", (long) displayBookings.size());
         model.addAttribute("confirmedCount",
@@ -579,8 +648,12 @@ public class PartnerPageController {
             logPartnerAction(partner, "PARTNER_REPORT_NO_SHOW", "BOOKING", id,
                     "Partner báo no-show: " + b.getBookingCode()
                     + " — " + b.getCustomerName(), null);
-            ra.addFlashAttribute("successMessage",
-                    "⚠️ Đã ghi nhận khách không đến. Trạng thái booking đã được cập nhật.");
+            boolean isDeposit = b.getPaymentOption() != null
+                    && b.getPaymentOption() == com.travelmate.entity.enums.PaymentOption.DEPOSIT_30;
+            String msg = isDeposit
+                    ? "✅ Đã ghi nhận khách không đến (No-show). Cọc 30% bị giữ lại theo chính sách và quota phòng đã được mở lại trên TravelMate."
+                    : "✅ Đã ghi nhận khách không đến (No-show). Booking đã được cập nhật và quota phòng đã được mở lại trên TravelMate.";
+            ra.addFlashAttribute("successMessage", msg);
         } catch (RuntimeException e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
         }
@@ -605,6 +678,7 @@ public class PartnerPageController {
         }
         model.addAttribute("booking", booking);
         model.addAttribute("partnerName", partner.getName());
+        addUnitLabels(model, partner);
 
         if (booking.getBookingStatus() == BookingStatus.NO_SHOW) {
             BigDecimal forfeited = booking.getPaidAmount() != null ? booking.getPaidAmount() : BigDecimal.ZERO;
@@ -676,7 +750,7 @@ public class PartnerPageController {
                            RedirectAttributes ra) {
         User partner = getCurrentPartner(userDetails);
         try {
-            Booking b = bookingService.addPartnerNote(id, partner, note);
+            bookingService.addPartnerNote(id, partner, note);
             ra.addFlashAttribute("successMessage", "✅ Đã thêm ghi chú thành công!");
         } catch (RuntimeException e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
@@ -691,6 +765,7 @@ public class PartnerPageController {
         User partner = getCurrentPartner(userDetails);
         PartnerRevenueSummaryDto summary = revenueService.calculatePartnerRevenueSummary(partner);
         List<RevenueItemDto> items       = revenueService.getRevenueItemsForPartner(partner);
+        addUnitLabels(model, partner);
         model.addAttribute("summary",      summary);
         model.addAttribute("revenueItems", items);
         model.addAttribute("partnerName",  partner.getName());
@@ -708,6 +783,7 @@ public class PartnerPageController {
                 .filter(a -> a.getApprovalStatus() == ApprovalStatus.APPROVED)
                 .collect(Collectors.toList());
         List<Room> myRooms = accommodationService.getApprovedRoomsForPartner(partner);
+        addUnitLabels(model, partner);
         model.addAttribute("vouchers",        vouchers);
         model.addAttribute("accommodations",  myAccommodations);
         model.addAttribute("rooms",           myRooms);
@@ -817,6 +893,8 @@ public class PartnerPageController {
 
     /**
      * GET /partner/settlements/{id} — Chi tiết 1 kỳ quyết toán.
+     *
+     * Sử dụng chung getBreakdownForSettlement() với Admin → đồng bộ dữ liệu tài chính.
      */
     @GetMapping("/settlements/{id}")
     public String settlementDetail(@PathVariable Long id,
@@ -829,19 +907,11 @@ public class PartnerPageController {
         if (settlementOpt.isEmpty()) return "redirect:/partner/settlements";
         PartnerSettlement settlement = settlementOpt.get();
 
-        // Lấy các booking trong kỳ quyết toán
-        List<Booking> periodBookings = bookingService.getBookingsForPartner(partner).stream()
-                .filter(b -> b.getCreatedAt() != null) 
-                .filter(b -> {
-                    LocalDate d = b.getCreatedAt().toLocalDate();
-                    return !d.isBefore(settlement.getPeriodStart()) && !d.isAfter(settlement.getPeriodEnd());
-                })
-                .filter(b -> b.getPaymentStatus() == PaymentStatus.APPROVED
-                        || b.getPaymentStatus() == PaymentStatus.DEPOSIT_FORFEITED)
-                .toList();
+        // Dùng chung logic với Admin — đồng bộ dữ liệu tài chính
+        var breakdown = settlementService.getBreakdownForSettlement(settlement);
 
         model.addAttribute("settlement",     settlement);
-        model.addAttribute("periodBookings", periodBookings);
+        model.addAttribute("breakdown",      breakdown);
         model.addAttribute("partnerName",    partner.getName());
         return "partner/settlement-detail";
     }
@@ -969,6 +1039,7 @@ public class PartnerPageController {
             }
         }
 
+        addUnitLabels(model, partner);
         model.addAttribute("partnerName", partnerName);
         model.addAttribute("checkIn",     checkIn);
         model.addAttribute("checkOut",    checkOut);
@@ -1046,6 +1117,7 @@ public class PartnerPageController {
                 .collect(Collectors.toList());
         List<Room> myRooms = accommodationService.getApprovedRoomsForPartner(partner);
 
+        addUnitLabels(model, partner);
         model.addAttribute("roomStatuses",      roomStatuses);
         model.addAttribute("totalRooms",        totalRooms);
         model.addAttribute("freeRooms",         freeRooms);
@@ -1071,6 +1143,7 @@ public class PartnerPageController {
                 .stream().filter(a -> a.getApprovalStatus() == ApprovalStatus.APPROVED)
                 .collect(Collectors.toList());
         List<Room> myRooms = accommodationService.getApprovedRoomsForPartner(partner);
+        addUnitLabels(model, partner);
         model.addAttribute("myAccommodations", myAccommodations);
         model.addAttribute("myRooms",          myRooms);
         model.addAttribute("partnerName",      partner.getName());

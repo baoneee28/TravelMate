@@ -16,46 +16,7 @@
 </head>
 <body>
 <div class="admin-wrapper">
-    <aside class="admin-sidebar">
-        <div class="admin-sidebar__header">
-            <a href="/partner/dashboard" class="sidebar-logo">
-                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                <div>
-                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
-                    <span class="admin-sidebar__badge">PARTNER CENTER</span>
-                </div>
-            </a>
-        </div>
-        <nav class="admin-sidebar__nav">
-            <div class="admin-sidebar__section-title">Tổng quan</div>
-            <a href="/partner/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
-            <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
-            <a href="/partner/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Nơi lưu trú của tôi</a>
-            <a href="/partner/accommodations/new" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">＋</span> Đăng ký mới</a>
-            <a href="/partner/amenities" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏷</span> Tiện nghi phòng</a>
-            <a href="/partner/bookings" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">📋</span> Đơn đặt phòng</a>
-            <a href="/partner/room-status" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏠</span> Tình trạng phòng</a>
-            <a href="/partner/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Kiểm tra lịch trống</a>
-            <a href="/partner/direct-booking" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">➕</span> Booking trực tiếp</a>
-            <a href="/partner/reviews" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá của khách</a>
-            <div class="admin-sidebar__section-title">Tài chính</div>
-            <a href="/partner/revenue" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
-            <a href="/partner/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
-            <a href="/partner/vouchers" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher của tôi</a>
-            <div class="admin-sidebar__section-title">Hỗ trợ</div>
-            <a href="/partner/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ</a>
-            <a href="/partner/profile" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👤</span> Hồ sơ của tôi</a>
-        </nav>
-        <div class="admin-sidebar__footer">
-            <div class="admin-sidebar__user">
-                <div class="admin-sidebar__user-avatar">PT</div>
-                <div class="admin-sidebar__user-info">
-                    <div class="admin-sidebar__user-name" th:text="${partnerName} ?: 'Partner'">Partner</div>
-                    <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
-                </div>
-            </div>
-        </div>
-    </aside>
+    <aside th:replace="~{fragments/partner-sidebar :: sidebar('bookings', ${partnerName})}"></aside>
     <div class="admin-sidebar-overlay"></div>
 
     <div class="admin-main">
@@ -96,8 +57,8 @@
                     <h3 style="font-size:15px;font-weight:700;margin-bottom:var(--space-4);color:var(--color-primary);">🏨 Thông tin lưu trú</h3>
                     <table style="width:100%;border-collapse:collapse;font-size:14px;">
                         <tr><td style="padding:8px 0;color:#6b7280;width:140px;">Cơ sở:</td><td style="padding:8px 0;font-weight:600;" th:text="${booking.accommodation.name}">—</td></tr>
-                        <tr><td style="padding:8px 0;color:#6b7280;">Phòng:</td><td style="padding:8px 0;" th:text="${booking.room.roomName}">—</td></tr>
-                        <tr><td style="padding:8px 0;color:#6b7280;">Số phòng đặt:</td><td style="padding:8px 0;" th:text="${booking.roomQuantity} + ' phòng'">—</td></tr>
+                        <tr><td style="padding:8px 0;color:#6b7280;" th:text="${(unitLabelCap ?: 'Phòng') + ':'}">Phòng:</td><td style="padding:8px 0;" th:text="${booking.room.roomName}">—</td></tr>
+                        <tr><td style="padding:8px 0;color:#6b7280;" th:text="${'Số ' + (unitLabel ?: 'phòng') + ' đặt:'}">Số phòng đặt:</td><td style="padding:8px 0;" th:text="${booking.roomQuantity + ' ' + (unitLabel ?: 'phòng')}">—</td></tr>
                         <tr><td style="padding:8px 0;color:#6b7280;">Nhận phòng:</td><td style="padding:8px 0;font-weight:600;color:#16a34a;" th:text="${#temporals.format(booking.checkIn,'dd/MM/yyyy')}">—</td></tr>
                         <tr><td style="padding:8px 0;color:#6b7280;">Trả phòng:</td><td style="padding:8px 0;font-weight:600;color:#dc2626;" th:text="${#temporals.format(booking.checkOut,'dd/MM/yyyy')}">—</td></tr>
                     </table>
@@ -128,52 +89,107 @@
                     <table style="width:100%;border-collapse:collapse;font-size:14px;">
                         <tr><td style="padding:8px 0;color:#6b7280;width:160px;">Tổng tiền đơn:</td>
                             <td style="padding:8px 0;font-weight:700;font-size:16px;color:var(--color-primary);"
-                                th:text="${#numbers.formatDecimal(booking.totalAmount,0,'POINT',0,'COMMA')} + '₫'">—</td></tr>
-
-                        <!-- FULL_PAYMENT -->
-                        <tr th:if="${booking.paymentOption.name() == 'FULL_PAYMENT'}">
-                            <td style="padding:8px 0;color:#6b7280;">Loại thanh toán:</td>
-                            <td style="padding:8px 0;"><span style="background:#f0fdf4;color:#166534;border-radius:8px;padding:2px 10px;font-size:12px;font-weight:700;">💳 Thanh toán 100% qua TravelMate</span></td></tr>
-
-                        <!-- DEPOSIT_30: phân tách rõ -->
-                        <tr th:if="${booking.paymentOption.name() == 'DEPOSIT_30'}">
-                            <td style="padding:8px 0;color:#6b7280;">Loại thanh toán:</td>
-                            <td style="padding:8px 0;"><span style="background:#fffbeb;color:#92400e;border-radius:8px;padding:2px 10px;font-size:12px;font-weight:700;">💰 Cọc 30% qua TravelMate</span></td></tr>
-
-                        <tr><td style="padding:8px 0;color:#6b7280;">Đã cọc qua TM:</td>
-                            <td style="padding:8px 0;font-weight:700;color:#16a34a;font-size:15px;"
-                                th:text="${#numbers.formatDecimal(booking.paidAmount,0,'POINT',0,'COMMA')} + '₫'">—</td></tr>
-
-                        <!-- Còn lại cho DEPOSIT_30 -->
-                        <tr th:if="${booking.paymentOption.name() == 'DEPOSIT_30' and booking.remainingAmount != null and booking.remainingAmount > 0}">
-                            <td style="padding:8px 0;color:#6b7280;">Cần thu tại cơ sở:</td>
-                            <td style="padding:8px 0;font-weight:700;color:#dc2626;font-size:15px;"
-                                th:text="${#numbers.formatDecimal(booking.remainingAmount,0,'POINT',0,'COMMA')} + '₫'">—</td></tr>
-
-                        <!-- Trạng thái thu tiền còn lại -->
-                        <tr th:if="${booking.paymentOption.name() == 'DEPOSIT_30'}">
-                            <td style="padding:8px 0;color:#6b7280;">Trạng thái thu:</td>
-                            <td style="padding:8px 0;">
-                                <span th:if="${booking.remainingPaymentStatus == null or booking.remainingPaymentStatus.name() == 'UNPAID'}"
-                                      style="background:#fef2f2;color:#dc2626;border-radius:8px;padding:3px 10px;font-size:12px;font-weight:700;">
-                                    ⏳ Chưa thu tại cơ sở
-                                </span>
-                                <span th:if="${booking.remainingPaymentStatus != null and booking.remainingPaymentStatus.name() == 'PAID_AT_PROPERTY'}"
-                                      style="background:#f0fdf4;color:#16a34a;border-radius:8px;padding:3px 10px;font-size:12px;font-weight:700;">
-                                    ✅ Đã thu tại cơ sở
-                                </span>
-                                <span th:if="${booking.remainingPaidAt != null}"
-                                      style="font-size:11px;color:#94a3b8;margin-left:6px;"
-                                      th:text="'lúc ' + ${#temporals.format(booking.remainingPaidAt,'HH:mm dd/MM/yyyy')}">—</span>
+                                th:if="${booking.bookingSource == null or booking.bookingSource.name() == 'ONLINE'}"
+                                th:text="${#numbers.formatDecimal(booking.totalAmount,0,'POINT',0,'COMMA')} + '₫'">—</td>
+                            <td style="padding:8px 0;font-weight:700;font-size:14px;color:#b45309;"
+                                th:if="${booking.bookingSource != null and booking.bookingSource.name() == 'DIRECT'}"
+                                th:text="${#numbers.formatDecimal(booking.totalAmount,0,'POINT',0,'COMMA')} + '₫ (thu tại cơ sở)'">—</td>
+                            <td style="padding:8px 0;font-size:13px;color:#dc2626;"
+                                th:if="${booking.bookingSource != null and booking.bookingSource.name() == 'MANUAL_BLOCK'}">
+                                <span style="background:#fee2e2;color:#dc2626;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:700;">🔒 Không phát sinh thanh toán</span>
                             </td></tr>
 
-                        <tr th:if="${booking.voucherCode != null}">
-                            <td style="padding:8px 0;color:#6b7280;">Voucher:</td>
-                            <td style="padding:8px 0;"><span class="badge badge--primary" th:text="${booking.voucherCode}">VOUCHER</span></td></tr>
-                        <tr th:if="${booking.discountAmount != null and booking.discountAmount > 0}">
-                            <td style="padding:8px 0;color:#6b7280;">Giảm giá:</td>
-                            <td style="padding:8px 0;color:#dc2626;font-weight:600;"
-                                th:text="'- ' + ${#numbers.formatDecimal(booking.discountAmount,0,'POINT',0,'COMMA')} + '₫'">—</td></tr>
+                        <!-- ===== ONLINE booking: hiển thị đầy đủ thanh toán TravelMate ===== -->
+                        <th:block th:if="${booking.bookingSource == null or booking.bookingSource.name() == 'ONLINE'}">
+                            <!-- FULL_PAYMENT -->
+                            <tr th:if="${booking.paymentOption.name() == 'FULL_PAYMENT'}">
+                                <td style="padding:8px 0;color:#6b7280;">Hình thức:</td>
+                                <td style="padding:8px 0;"><span style="background:#f0fdf4;color:#166534;border-radius:8px;padding:2px 10px;font-size:12px;font-weight:700;">💳 Thanh toán 100% qua TravelMate</span></td></tr>
+                            <tr th:if="${booking.paymentOption.name() == 'FULL_PAYMENT'}">
+                                <td style="padding:8px 0;color:#6b7280;">Đã thanh toán qua TravelMate:</td>
+                                <td style="padding:8px 0;font-weight:700;color:#16a34a;font-size:15px;"
+                                    th:text="${#numbers.formatDecimal(booking.paidAmount,0,'POINT',0,'COMMA')} + '₫'">—</td></tr>
+
+                            <!-- DEPOSIT_30 -->
+                            <tr th:if="${booking.paymentOption.name() == 'DEPOSIT_30'}">
+                                <td style="padding:8px 0;color:#6b7280;">Hình thức:</td>
+                                <td style="padding:8px 0;"><span style="background:#fffbeb;color:#92400e;border-radius:8px;padding:2px 10px;font-size:12px;font-weight:700;">💰 Cọc 30% qua TravelMate</span></td></tr>
+                            <tr th:if="${booking.paymentOption.name() == 'DEPOSIT_30'}">
+                                <td style="padding:8px 0;color:#6b7280;">Cọc đã thanh toán qua TravelMate:</td>
+                                <td style="padding:8px 0;font-weight:700;color:#16a34a;font-size:15px;"
+                                    th:text="${#numbers.formatDecimal(booking.paidAmount,0,'POINT',0,'COMMA')} + '₫'">—</td></tr>
+                            <tr th:if="${booking.paymentOption.name() == 'DEPOSIT_30' and booking.remainingAmount != null and booking.remainingAmount.compareTo(T(java.math.BigDecimal).ZERO) gt 0}">
+                                <td style="padding:8px 0;color:#6b7280;">Cần thu tại cơ sở (70%):</td>
+                                <td style="padding:8px 0;font-weight:700;color:#dc2626;font-size:15px;"
+                                    th:text="${#numbers.formatDecimal(booking.remainingAmount,0,'POINT',0,'COMMA')} + '₫'">—</td></tr>
+                            <tr th:if="${booking.paymentOption.name() == 'DEPOSIT_30'}">
+                                <td style="padding:8px 0;color:#6b7280;">Trạng thái thu:</td>
+                                <td style="padding:8px 0;">
+                                    <span th:if="${booking.remainingPaymentStatus == null or booking.remainingPaymentStatus.name() == 'UNPAID'}"
+                                          style="background:#fef2f2;color:#dc2626;border-radius:8px;padding:3px 10px;font-size:12px;font-weight:700;">
+                                        ⏳ Chưa thu tại cơ sở
+                                    </span>
+                                    <span th:if="${booking.remainingPaymentStatus != null and booking.remainingPaymentStatus.name() == 'PAID_AT_PROPERTY'}"
+                                          style="background:#f0fdf4;color:#16a34a;border-radius:8px;padding:3px 10px;font-size:12px;font-weight:700;">
+                                        ✅ Đã thu tại cơ sở
+                                    </span>
+                                    <span th:if="${booking.remainingPaidAt != null}"
+                                          style="font-size:11px;color:#94a3b8;margin-left:6px;"
+                                          th:text="'lúc ' + ${#temporals.format(booking.remainingPaidAt,'HH:mm dd/MM/yyyy')}">—</span>
+                                </td></tr>
+
+                            <!-- Voucher / Giảm giá -->
+                            <tr th:if="${booking.voucherCode != null}">
+                                <td style="padding:8px 0;color:#6b7280;">Voucher:</td>
+                                <td style="padding:8px 0;"><span class="badge badge--primary" th:text="${booking.voucherCode}">VOUCHER</span></td></tr>
+                            <tr th:if="${booking.discountAmount != null and booking.discountAmount.compareTo(T(java.math.BigDecimal).ZERO) gt 0}">
+                                <td style="padding:8px 0;color:#6b7280;">Giảm giá:</td>
+                                <td style="padding:8px 0;color:#dc2626;font-weight:600;"
+                                    th:text="'- ' + ${#numbers.formatDecimal(booking.discountAmount,0,'POINT',0,'COMMA')} + '₫'">—</td></tr>
+                        </th:block>
+
+                        <!-- ===== DIRECT booking: thu trực tiếp tại cơ sở ===== -->
+                        <th:block th:if="${booking.bookingSource != null and booking.bookingSource.name() == 'DIRECT'}">
+                            <tr>
+                                <td style="padding:8px 0;color:#6b7280;">Hình thức:</td>
+                                <td style="padding:8px 0;">
+                                    <span style="background:#fef3c7;color:#b45309;border-radius:8px;padding:2px 10px;font-size:12px;font-weight:700;">🏃 Booking trực tiếp tại cơ sở</span>
+                                </td></tr>
+                            <tr>
+                                <td style="padding:8px 0;color:#6b7280;">Tổng thu tại cơ sở:</td>
+                                <td style="padding:8px 0;font-weight:700;color:#b45309;font-size:15px;"
+                                    th:text="${#numbers.formatDecimal(booking.totalAmount,0,'POINT',0,'COMMA')} + '₫'">—</td></tr>
+                            <tr>
+                                <td colspan="2" style="padding:10px 0 0;">
+                                    <div style="background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:12px;color:#92400e;line-height:1.7;">
+                                        <strong>ℹ️ Lưu ý:</strong>
+                                        Booking trực tiếp <strong>không phát sinh thanh toán online qua TravelMate</strong>.
+                                        Tiền thu từ khách trực tiếp tại cơ sở.
+                                        <strong>Không tính commission / không vào quyết toán.</strong>
+                                    </div>
+                                </td></tr>
+                        </th:block>
+
+                        <!-- ===== MANUAL_BLOCK: chặn căn/bảo trì ===== -->
+                        <th:block th:if="${booking.bookingSource != null and booking.bookingSource.name() == 'MANUAL_BLOCK'}">
+                            <tr>
+                                <td style="padding:8px 0;color:#6b7280;">Loại:</td>
+                                <td style="padding:8px 0;">
+                                    <span th:text="${'🔒 Chặn ' + (unitLabel ?: 'phòng') + ' / Bảo trì'}"
+                                          style="background:#fee2e2;color:#b91c1c;border-radius:8px;padding:2px 10px;font-size:12px;font-weight:700;">🔒 Chặn phòng</span>
+                                </td></tr>
+                            <tr th:if="${booking.blockReason != null and !#strings.isEmpty(booking.blockReason)}">
+                                <td style="padding:8px 0;color:#6b7280;">Lý do chặn:</td>
+                                <td style="padding:8px 0;color:#374151;" th:text="${booking.blockReason}">—</td></tr>
+                            <tr>
+                                <td colspan="2" style="padding:10px 0 0;">
+                                    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;font-size:12px;color:#991b1b;line-height:1.7;">
+                                        <strong>ℹ️ Lưu ý:</strong>
+                                        Chặn <span th:text="${unitLabel ?: 'phòng'}">phòng</span> <strong>không phát sinh thanh toán</strong>.
+                                        Khoảng thời gian này <strong>không tính doanh thu, không tính commission, không quyết toán</strong>.
+                                    </div>
+                                </td></tr>
+                        </th:block>
                     </table>
                 </div>
                 <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:var(--space-5);">
@@ -182,15 +198,35 @@
                         <tr><td style="padding:8px 0;color:#6b7280;width:160px;">Trạng thái booking:</td>
                             <td style="padding:8px 0;">
                                 <span class="badge"
-                                      th:classappend="${booking.bookingStatus.name()=='CONFIRMED'?'badge--primary':booking.bookingStatus.name()=='CHECKED_IN'?'badge--info':booking.bookingStatus.name()=='COMPLETED'?'badge--success':booking.bookingStatus.name()=='NO_SHOW'?'badge--danger':'badge--muted'}"
-                                      th:text="${booking.bookingStatus.name()=='CONFIRMED'?'Đã xác nhận':booking.bookingStatus.name()=='CHECKED_IN'?'Check-in':booking.bookingStatus.name()=='COMPLETED'?'Hoàn thành':booking.bookingStatus.name()=='NO_SHOW'?'Không đến':'Đã hủy'}">—</span>
+                                      th:classappend="${booking.bookingStatus.name()=='CONFIRMED'?'badge--primary':booking.bookingStatus.name()=='CHECKED_IN'?'badge--info':booking.bookingStatus.name()=='COMPLETED'?'badge--success':booking.bookingStatus.name()=='NO_SHOW'?'badge--danger':booking.bookingStatus.name()=='PENDING_PAYMENT'?'badge--warning':booking.bookingStatus.name()=='PENDING_ADMIN_APPROVAL'?'badge--warning':'badge--muted'}"
+                                      th:text="${booking.bookingStatus.name()=='PENDING_PAYMENT'?'⏳ Chờ khách thanh toán VNPAY':booking.bookingStatus.name()=='PENDING_ADMIN_APPROVAL'?'⏳ TravelMate đang xét duyệt':booking.bookingStatus.name()=='CONFIRMED'?'✅ Đã xác nhận':booking.bookingStatus.name()=='CHECKED_IN'?'🏨 Đang lưu trú':booking.bookingStatus.name()=='COMPLETED'?'🏁 Hoàn thành':booking.bookingStatus.name()=='NO_SHOW'?'🚫 Không đến':'❌ Đã hủy'}">—</span>
                             </td></tr>
-                        <tr><td style="padding:8px 0;color:#6b7280;">Thanh toán:</td>
-                            <td style="padding:8px 0;" th:text="${booking.paymentStatus.name()}">—</td></tr>
+                        <tr><td style="padding:8px 0;color:#6b7280;">Trạng thái thanh toán:</td>
+                            <td style="padding:8px 0;">
+                                <span th:switch="${booking.paymentStatus.name()}">
+                                    <span th:case="'PENDING_PAYMENT'" style="background:#e0f2fe;color:#0369a1;border-radius:6px;padding:2px 9px;font-size:12px;font-weight:700;">⏳ Chờ khách thanh toán VNPAY</span>
+                                    <span th:case="'PENDING_ADMIN_APPROVAL'" style="background:#fffbeb;color:#92400e;border-radius:6px;padding:2px 9px;font-size:12px;font-weight:700;">⏳ Chờ TravelMate xác nhận thanh toán</span>
+                                    <span th:case="'APPROVED'" style="background:#f0fdf4;color:#166534;border-radius:6px;padding:2px 9px;font-size:12px;font-weight:700;">✅ TravelMate đã xác nhận thanh toán</span>
+                                    <span th:case="'NOT_REQUIRED'" style="background:#f1f5f9;color:#475569;border-radius:6px;padding:2px 9px;font-size:12px;font-weight:700;">➖ Thu trực tiếp tại cơ sở</span>
+                                    <span th:case="'FAILED'" style="background:#fef2f2;color:#991b1b;border-radius:6px;padding:2px 9px;font-size:12px;font-weight:700;">❌ Thanh toán VNPAY thất bại</span>
+                                    <span th:case="'EXPIRED'" style="background:#f1f5f9;color:#6b7280;border-radius:6px;padding:2px 9px;font-size:12px;font-weight:700;">⌛ Hết thời gian thanh toán</span>
+                                    <span th:case="'DEPOSIT_FORFEITED'" style="background:#fef2f2;color:#991b1b;border-radius:6px;padding:2px 9px;font-size:12px;font-weight:700;">🔒 Cọc bị giữ (No-show)</span>
+                                    <span th:case="'CANCELLED'" style="background:#f1f5f9;color:#6b7280;border-radius:6px;padding:2px 9px;font-size:12px;font-weight:700;">❌ Đã hủy</span>
+                                    <span th:case="'REFUND_PENDING'" style="background:#fffbeb;color:#b45309;border-radius:6px;padding:2px 9px;font-size:12px;font-weight:700;">↩ Chờ hoàn tiền</span>
+                                    <span th:case="'REFUNDED'" style="background:#f0fdf4;color:#166534;border-radius:6px;padding:2px 9px;font-size:12px;font-weight:700;">✅ Đã hoàn tiền</span>
+                                    <span th:case="*" th:text="${booking.paymentStatus.name()}" style="color:#64748b;font-size:12px;">—</span>
+                                </span>
+                            </td></tr>
                         <tr><td style="padding:8px 0;color:#6b7280;">Xác nhận partner:</td>
                             <td style="padding:8px 0;">
-                                <span th:if="${booking.partnerStatus == null}" class="badge badge--muted">Chưa xác nhận</span>
-                                <span th:if="${booking.partnerStatus != null}" class="badge badge--success" th:text="${booking.partnerStatus.name()}">—</span>
+                                <span th:if="${booking.partnerStatus == null}" class="badge badge--muted">⏳ Chưa xác nhận</span>
+                                <span th:if="${booking.partnerStatus != null}" class="badge"
+                                      th:classappend="${booking.partnerStatus.name() == 'PARTNER_CONFIRMED' or booking.partnerStatus.name() == 'PARTNER_COMPLETED' ? ' badge--success' :
+                                                       booking.partnerStatus.name() == 'PARTNER_CANCELLED' ? ' badge--danger' : ' badge--warning'}"
+                                      th:text="${booking.partnerStatus.name() == 'PENDING_PARTNER_CONFIRMATION' ? '⏳ Chờ xác nhận'      :
+                                                booking.partnerStatus.name() == 'PARTNER_CONFIRMED'            ? '✅ Đã xác nhận giữ phòng' :
+                                                booking.partnerStatus.name() == 'PARTNER_COMPLETED'            ? '🏁 Đã hoàn tất'       :
+                                                booking.partnerStatus.name() == 'PARTNER_CANCELLED'            ? '❌ Đã từ chối'         : booking.partnerStatus.name()}">—</span>
                             </td></tr>
                         <tr><td style="padding:8px 0;color:#6b7280;">Mã booking:</td>
                             <td style="padding:8px 0;font-family:monospace;font-weight:600;" th:text="${booking.bookingCode}">—</td></tr>
@@ -214,7 +250,7 @@
                  style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:20px;margin-bottom:16px;">
                 <h3 style="font-size:14px;font-weight:700;color:#1e40af;margin-bottom:10px;">📦 Bước 1 — Xác nhận giữ phòng</h3>
                 <p style="font-size:13px;color:#3b82f6;margin-bottom:14px;">
-                    Admin đã duyệt đơn này. Bạn cần xác nhận có thể giữ phòng cho khách trước ngày nhận phòng.
+                    TravelMate đã xác nhận thanh toán. Bạn cần xác nhận có thể giữ phòng cho khách trước ngày nhận phòng.
                 </p>
                 <div style="display:flex;gap:10px;flex-wrap:wrap;">
                     <form th:action="@{/partner/bookings/{id}/confirm-hold(id=${booking.id})}" method="post">
@@ -294,7 +330,7 @@
                 </p>
 
                 <!-- Thông tin còn lại nếu cọc 30% -->
-                <div th:if="${booking.paymentOption.name() == 'DEPOSIT_30' and booking.remainingAmount > 0}"
+                <div th:if="${booking.paymentOption.name() == 'DEPOSIT_30' and booking.remainingAmount != null and booking.remainingAmount.compareTo(T(java.math.BigDecimal).ZERO) gt 0}"
                      style="background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;">
                     <strong>💰 Nhắc nhở:</strong> Khách cọc 30% — còn lại
                     <strong style="color:#dc2626;"
@@ -303,19 +339,121 @@
                 </div>
 
                 <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                    <form th:action="@{/partner/bookings/{id}/check-in(id=${booking.id})}" method="post">
-                        <button type="submit"
-                                style="background:linear-gradient(135deg,#059669,#047857);color:#fff;border:none;border-radius:8px;padding:10px 22px;font-size:14px;font-weight:700;cursor:pointer;"
-                                onclick="return confirm('Xác nhận khách đã đến và thực hiện check-in?')">
-                            🏨 Check-in khách
+
+                    <!-- DEPOSIT_30: mở modal check-in để xác nhận thu 70% -->
+                    <th:block th:if="${booking.paymentOption != null and booking.paymentOption.name() == 'DEPOSIT_30'}">
+                        <button type="button"
+                                onclick="document.getElementById('detail-checkin-modal').style.display='flex'"
+                                style="background:linear-gradient(135deg,#059669,#047857);color:#fff;border:none;border-radius:8px;padding:10px 22px;font-size:14px;font-weight:700;cursor:pointer;">
+                            🏨 Check-in khách (cọc 30%)
                         </button>
+                    </th:block>
+
+                    <!-- FULL_PAYMENT: check-in thông thường -->
+                    <th:block th:if="${booking.paymentOption == null or booking.paymentOption.name() == 'FULL_PAYMENT'}">
+                        <form th:action="@{/partner/bookings/{id}/check-in(id=${booking.id})}" method="post">
+                            <button type="submit"
+                                    style="background:linear-gradient(135deg,#059669,#047857);color:#fff;border:none;border-radius:8px;padding:10px 22px;font-size:14px;font-weight:700;cursor:pointer;"
+                                    onclick="return confirm('Xác nhận khách đã đến và thực hiện check-in?\n\nThao tác này không thể hoàn tác.')">
+                                🏨 Check-in khách
+                            </button>
+                        </form>
+                    </th:block>
+
+                    <!-- No-show: CHỈ hiển thị cho đơn cọc 30% -->
+                    <th:block th:if="${booking.paymentOption != null and booking.paymentOption.name() == 'DEPOSIT_30'}">
+                        <button type="button"
+                                onclick="document.getElementById('detail-noshow-modal').style.display='flex'"
+                                style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:8px;padding:10px 22px;font-size:13px;font-weight:700;cursor:pointer;">
+                            🚫 No-show &amp; Mở lại phòng (Giữ cọc 30%)
+                        </button>
+                    </th:block>
+                    <!-- FULL_PAYMENT: không có nút no-show, hướng dẫn liên hệ admin -->
+                    <th:block th:if="${booking.paymentOption == null or booking.paymentOption.name() == 'FULL_PAYMENT'}">
+                        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 16px;font-size:12px;color:#64748b;display:flex;align-items:center;gap:8px;">
+                            <i class="fa-solid fa-circle-info" style="color:#94a3b8;"></i>
+                            <span>Khách đã thanh toán 100%. Nếu khách không đến, vui lòng liên hệ Admin để xử lý theo chính sách.</span>
+                        </div>
+                    </th:block>
+                </div>
+            </div>
+
+            <!-- Modal: Check-in cọc 30% -->
+            <div id="detail-checkin-modal"
+                 style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1001;align-items:center;justify-content:center;">
+                <div style="background:#fff;border-radius:16px;padding:28px;max-width:460px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+                    <h3 style="font-size:16px;font-weight:700;color:#065f46;margin:0 0 6px;">🏨 Xác nhận Check-in — Đơn cọc 30%</h3>
+                    <p style="font-size:13px;color:#64748b;margin:0 0 16px;">
+                        Khách <strong th:text="${booking.customerName}">—</strong> đã đến nhận phòng.
+                    </p>
+                    <div style="background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#92400e;">
+                        <div style="font-weight:700;margin-bottom:6px;">💰 Nhắc nhở thu tiền còn lại tại cơ sở</div>
+                        <div>Khách đã cọc 30% qua TravelMate.
+                            Số tiền cần thu tại cơ sở:
+                            <strong style="color:#dc2626;font-size:15px;"
+                                    th:text="${#numbers.formatDecimal(booking.remainingAmount,0,'COMMA',0,'POINT')} + '₫'">0₫</strong>
+                        </div>
+                    </div>
+                    <form th:action="@{/partner/bookings/{id}/check-in-with-confirm(id=${booking.id})}" method="post">
+                        <div style="margin-bottom:14px;">
+                            <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#374151;cursor:pointer;">
+                                <input type="checkbox" name="remainingConfirmed" value="true"
+                                       style="width:16px;height:16px;accent-color:#059669;" />
+                                <span>Đã thu đủ phần còn lại tại cơ sở ngay khi check-in</span>
+                            </label>
+                            <div style="font-size:11px;color:#94a3b8;margin-top:4px;margin-left:24px;">Bỏ chọn nếu chưa thu — có thể xác nhận sau khi khách đã ở.</div>
+                        </div>
+                        <input type="hidden" name="remainingNote" value="Xác nhận thu tại cơ sở khi check-in" />
+                        <div style="display:flex;gap:10px;justify-content:flex-end;">
+                            <button type="button"
+                                    onclick="document.getElementById('detail-checkin-modal').style.display='none'"
+                                    style="background:#f1f5f9;color:#475569;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;">
+                                Huỷ
+                            </button>
+                            <button type="submit"
+                                    style="background:linear-gradient(135deg,#059669,#047857);color:#fff;border:none;border-radius:8px;padding:10px 22px;font-size:13px;font-weight:700;cursor:pointer;">
+                                ✅ Xác nhận Check-in
+                            </button>
+                        </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- Modal: Xác nhận No-show (chỉ hiển thị cho đơn cọc 30%) -->
+            <div id="detail-noshow-modal"
+                 style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1001;align-items:center;justify-content:center;">
+                <div style="background:#fff;border-radius:16px;padding:28px;max-width:480px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+                    <h3 style="font-size:16px;font-weight:700;color:#991b1b;margin:0 0 6px;">🚫 Xác nhận Khách Không Đến (No-show)</h3>
+                    <p style="font-size:13px;color:#64748b;margin:0 0 16px;">
+                        Khách <strong th:text="${booking.customerName}">—</strong> đã không đến nhận phòng
+                        (<strong style="color:#92400e;">Đơn cọc 30%</strong>).
+                    </p>
+                    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px;margin-bottom:18px;">
+                        <div style="font-size:13px;font-weight:700;color:#991b1b;margin-bottom:10px;">Hệ thống sẽ thực hiện:</div>
+                        <ul style="margin:0;padding-left:18px;font-size:13px;color:#7f1d1d;line-height:2.2;">
+                            <li>Chuyển booking sang trạng thái <strong>No-show</strong></li>
+                            <li>Giữ lại <strong style="color:#dc2626;">toàn bộ cọc 30%</strong> theo chính sách hủy phòng</li>
+                            <li><strong>Mở lại quota phòng</strong> trên TravelMate để đón khách mới</li>
+                            <li>Booking này <strong>không thể đánh giá</strong> sau khi no-show</li>
+                        </ul>
+                    </div>
+                    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#92400e;">
+                        <strong>💰 Cọc 30%:</strong>
+                        <span th:text="${#numbers.formatDecimal(booking.paidAmount,0,'POINT',0,'COMMA')} + '₫'">—</span>
+                        sẽ được giữ lại và tính vào quyết toán kỳ tiếp theo.
+                    </div>
                     <form th:action="@{/partner/bookings/{id}/report-no-show(id=${booking.id})}" method="post">
-                        <button type="submit"
-                                style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:8px;padding:10px 22px;font-size:13px;font-weight:700;cursor:pointer;"
-                                onclick="return confirm('Xác nhận khách không đến? Với cọc 30%, khách sẽ mất cọc theo chính sách.')">
-                            🚫 Báo khách không đến (No-show)
-                        </button>
+                        <div style="display:flex;gap:10px;justify-content:flex-end;">
+                            <button type="button"
+                                    onclick="document.getElementById('detail-noshow-modal').style.display='none'"
+                                    style="background:#f1f5f9;color:#475569;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;">
+                                Huỷ — Khách chưa hẹn đến
+                            </button>
+                            <button type="submit"
+                                    style="background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border:none;border-radius:8px;padding:10px 22px;font-size:13px;font-weight:700;cursor:pointer;">
+                                🚫 Xác nhận No-show &amp; Mở lại phòng
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -385,7 +523,7 @@
                             <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">
                                 Ghi chú (tuỳ chọn)
                             </label>
-                            <textarea name="note" rows="3"
+                            <textarea name="paymentNote" rows="3"
                                       placeholder="VD: Khách thanh toán tiền mặt lúc 14:30..."
                                       style="width:100%;border:1px solid #d1d5db;border-radius:8px;padding:8px 12px;font-size:13px;resize:none;box-sizing:border-box;"></textarea>
                         </div>
@@ -452,7 +590,7 @@
                         </div>
                         <!-- Partner payout -->
                         <div style="background:#f0fdf4;border:2px solid #86efac;border-radius:8px;padding:10px 12px;text-align:center;">
-                            <div style="font-size:10px;color:#15803d;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;">Bạn nhận về</div>
+                            <div style="font-size:10px;color:#15803d;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;">Đối tác nhận về</div>
                             <div style="font-size:15px;font-weight:800;color:#15803d;"
                                  th:text="${#numbers.formatInteger(noShowPartnerPayout, 0, 'COMMA')} + ' đ'">244,800 đ</div>
                         </div>
@@ -461,7 +599,7 @@
                     <!-- Info note -->
                     <div style="padding:8px 12px;background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;font-size:11px;color:#92400e;display:flex;gap:6px;">
                         <span>ℹ️</span>
-                        <span>Khoản tiền này sẽ được thanh toán trong kỳ quyết toán tuần tiếp theo. Kiểm tra trang <strong>Doanh thu & Quyết toán</strong> để xem tiến trình.</span>
+                        <span>Khoản tiền này sẽ được thanh toán trong kỳ quyết toán tháng tiếp theo. Kiểm tra trang <strong>Doanh thu & Quyết toán</strong> để xem tiến trình.</span>
                     </div>
                 </div>
             </div>

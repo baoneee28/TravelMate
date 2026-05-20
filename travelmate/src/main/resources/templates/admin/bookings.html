@@ -28,6 +28,7 @@
         .badge-cancelled { background:#f1f5f9;color:#64748b; }
         .badge-partner-pending   { background:#fef3c7;color:#92400e;font-size:10px; }
         .badge-partner-confirmed { background:#dcfce7;color:#166534;font-size:10px; }
+        .badge-partner-completed { background:#ede9fe;color:#5b21b6;font-size:10px; }
         .badge-partner-cancelled { background:#fee2e2;color:#991b1b;font-size:10px; }
         .badge-pay-pending  { background:#fef3c7;color:#92400e;font-size:10px; }
         .badge-pay-approved { background:#dcfce7;color:#166534;font-size:10px; }
@@ -92,6 +93,7 @@
                 <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
                 <a href="/admin/rooms" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
                 <a href="/admin/reviews" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
+                <a href="/admin/travel-posts" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗺️</span> Bài viết du lịch</a>
                 <a href="/admin/users" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
                 <div class="admin-sidebar__section-title">Tài chính</div>
                 <a href="/admin/revenue" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
@@ -140,19 +142,23 @@
                     <span th:text="${errorMessage}"></span>
                 </div>
 
-                <!-- Stats cards (8 thẻ) -->
+                <!-- Stats cards (11 thẻ — đầy đủ toàn bộ trạng thái) -->
                 <div class="bk-stats">
                     <div class="bk-stat" style="--st-color:#2563eb;--st-bg:#eff6ff;">
                         <div class="bk-stat__icon"><i class="fa-solid fa-clipboard-list"></i></div>
                         <div><div class="bk-stat__val" th:text="${totalCount}">0</div><div class="bk-stat__lbl">Tổng đơn</div></div>
                     </div>
+                    <div class="bk-stat" style="--st-color:#f59e0b;--st-bg:#fef3c7;">
+                        <div class="bk-stat__icon"><i class="fa-solid fa-credit-card"></i></div>
+                        <div><div class="bk-stat__val" th:text="${pendingPaymentCount}">0</div><div class="bk-stat__lbl">Chờ KH thanh toán</div></div>
+                    </div>
                     <div class="bk-stat" style="--st-color:#d97706;--st-bg:#fffbeb;">
                         <div class="bk-stat__icon"><i class="fa-solid fa-hourglass-half"></i></div>
-                        <div><div class="bk-stat__val" th:text="${pendingCount}">0</div><div class="bk-stat__lbl">Chờ duyệt</div></div>
+                        <div><div class="bk-stat__val" th:text="${pendingCount}">0</div><div class="bk-stat__lbl">Chờ Admin xác nhận TT</div></div>
                     </div>
                     <div class="bk-stat" style="--st-color:#16a34a;--st-bg:#f0fdf4;">
                         <div class="bk-stat__icon"><i class="fa-solid fa-circle-check"></i></div>
-                        <div><div class="bk-stat__val" th:text="${confirmedCount}">0</div><div class="bk-stat__lbl">Đã duyệt</div></div>
+                        <div><div class="bk-stat__val" th:text="${confirmedCount}">0</div><div class="bk-stat__lbl">Đã xác nhận TT</div></div>
                     </div>
                     <div class="bk-stat" style="--st-color:#0891b2;--st-bg:#ecfeff;">
                         <div class="bk-stat__icon"><i class="fa-solid fa-door-open"></i></div>
@@ -165,6 +171,14 @@
                     <div class="bk-stat" style="--st-color:#dc2626;--st-bg:#fef2f2;">
                         <div class="bk-stat__icon"><i class="fa-solid fa-ban"></i></div>
                         <div><div class="bk-stat__val" th:text="${noShowCount}">0</div><div class="bk-stat__lbl">No-show</div></div>
+                    </div>
+                    <div class="bk-stat" style="--st-color:#64748b;--st-bg:#f1f5f9;">
+                        <div class="bk-stat__icon"><i class="fa-solid fa-xmark"></i></div>
+                        <div><div class="bk-stat__val" th:text="${cancelledCount}">0</div><div class="bk-stat__lbl">Đã hủy</div></div>
+                    </div>
+                    <div class="bk-stat" style="--st-color:#9333ea;--st-bg:#faf5ff;">
+                        <div class="bk-stat__icon"><i class="fa-solid fa-rotate-left"></i></div>
+                        <div><div class="bk-stat__val" th:text="${refundPendingCount}">0</div><div class="bk-stat__lbl">Chờ hoàn tiền</div></div>
                     </div>
                     <div class="bk-stat" style="--st-color:#b45309;--st-bg:#fef9c3;">
                         <div class="bk-stat__icon">🏃</div>
@@ -180,8 +194,9 @@
                 <div class="filter-bar">
                     <!-- Filter theo trạng thái -->
                     <button class="filter-tab active" data-status-filter="all" data-source-filter="all"><i class="fa-solid fa-list"></i> Tất cả</button>
-                    <button class="filter-tab" data-status-filter="PENDING_ADMIN_APPROVAL" data-source-filter="all"><i class="fa-solid fa-hourglass-half"></i> Chờ duyệt</button>
-                    <button class="filter-tab" data-status-filter="CONFIRMED" data-source-filter="all"><i class="fa-solid fa-circle-check"></i> Đã duyệt</button>
+                    <button class="filter-tab" data-status-filter="PENDING_PAYMENT" data-source-filter="all"><i class="fa-solid fa-credit-card"></i> Chờ KH thanh toán</button>
+                    <button class="filter-tab" data-status-filter="PENDING_ADMIN_APPROVAL" data-source-filter="all"><i class="fa-solid fa-hourglass-half"></i> Chờ Admin xác nhận</button>
+                    <button class="filter-tab" data-status-filter="CONFIRMED" data-source-filter="all"><i class="fa-solid fa-circle-check"></i> Đã xác nhận</button>
                     <button class="filter-tab" data-status-filter="CHECKED_IN" data-source-filter="all"><i class="fa-solid fa-door-open"></i> Đang ở</button>
                     <button class="filter-tab" data-status-filter="COMPLETED" data-source-filter="all"><i class="fa-solid fa-flag-checkered"></i> Hoàn tất</button>
                     <button class="filter-tab" data-status-filter="NO_SHOW" data-source-filter="all"><i class="fa-solid fa-ban"></i> No-show</button>
@@ -224,9 +239,19 @@
                                 </td>
                             </tr>
                             <tr th:each="b, stat : ${bookings}"
-                                th:attr="data-booking-status=${b.bookingStatus},
-                                         data-booking-source=${b.bookingSource != null ? b.bookingSource.name() : 'ONLINE'},
-                                         data-booking-search=${b.bookingCode + ' ' + b.customerName + ' ' + b.accommodation.name}">
+                                th:with="
+                                    bkStatus=${b.bookingStatus != null ? b.bookingStatus.name() : ''},
+                                    bkSource=${b.bookingSource != null ? b.bookingSource.name() : 'ONLINE'},
+                                    payStatus=${b.paymentStatus != null ? b.paymentStatus.name() : 'NOT_REQUIRED'},
+                                    partnerSt=${b.partnerStatus != null ? b.partnerStatus.name() : ''},
+                                    payOpt=${b.paymentOption != null ? b.paymentOption.name() : 'FULL_PAYMENT'},
+                                    remPaySt=${b.remainingPaymentStatus != null ? b.remainingPaymentStatus.name() : 'NOT_REQUIRED'},
+                                    accName=${b.accommodation != null ? b.accommodation.name : 'Không rõ cơ sở'},
+                                    roomName=${b.room != null ? b.room.roomName : 'Không rõ phòng'}
+                                "
+                                th:attr="data-booking-status=${bkStatus},
+                                         data-booking-source=${bkSource},
+                                         data-booking-search=${(b.bookingCode ?: '') + ' ' + (b.customerName ?: '') + ' ' + accName}">
 
                                 <!-- # -->
                                 <td style="color:var(--color-text-muted);font-size:12px;" th:text="${stat.index + 1}">1</td>
@@ -235,15 +260,12 @@
                                 <td>
                                     <div class="booking-code" th:text="${b.bookingCode}">BK-XXX</div>
                                     <div style="font-size:10px;color:var(--color-text-muted);margin-top:2px;"
-                                         th:text="${#temporals.format(b.createdAt, 'dd/MM/yyyy HH:mm')}">01/01</div>
+                                         th:text="${b.createdAt != null ? #temporals.format(b.createdAt, 'dd/MM/yyyy HH:mm') : '—'}">01/01</div>
                                     <!-- Nguồn booking badge -->
                                     <div style="margin-top:4px;">
-                                        <span th:if="${b.bookingSource == null or b.bookingSource.name() == 'ONLINE'}"
-                                              class="badge-src-online">🌐 TM Online</span>
-                                        <span th:if="${b.bookingSource != null and b.bookingSource.name() == 'DIRECT'}"
-                                              class="badge-src-direct">🏃 Trực tiếp</span>
-                                        <span th:if="${b.bookingSource != null and b.bookingSource.name() == 'MANUAL_BLOCK'}"
-                                              class="badge-src-block">🔒 Chặn phòng</span>
+                                        <span th:if="${bkSource == 'ONLINE' or bkSource == ''}" class="badge-src-online">🌐 TM Online</span>
+                                        <span th:if="${bkSource == 'DIRECT'}"                   class="badge-src-direct">🏃 Trực tiếp</span>
+                                        <span th:if="${bkSource == 'MANUAL_BLOCK'}"             class="badge-src-block">🔒 Chặn phòng</span>
                                     </div>
                                 </td>
 
@@ -256,10 +278,10 @@
 
                                 <!-- Cơ sở / Phòng -->
                                 <td>
-                                    <div style="font-weight:500;font-size:13px;" th:text="${b.accommodation.name}">Cơ sở</div>
-                                    <div style="font-size:11px;color:var(--color-text-muted);" th:text="${b.room.roomName}">Phòng</div>
+                                    <div style="font-weight:500;font-size:13px;" th:text="${accName}">Cơ sở</div>
+                                    <div style="font-size:11px;color:var(--color-text-muted);" th:text="${roomName}">Phòng</div>
                                     <div style="font-size:11px;color:var(--color-text-muted);"
-                                         th:text="${b.adults + ' người lớn' + (b.children gt 0 ? ', ' + b.children + ' trẻ em' : '')}">2 người lớn</div>
+                                         th:text="${(b.adults ?: 0) + ' người lớn' + (b.children != null and b.children gt 0 ? ', ' + b.children + ' trẻ em' : '')}">2 người lớn</div>
                                 </td>
 
                                 <!-- Ngày -->
@@ -275,48 +297,54 @@
                                 <!-- Tổng tiền -->
                                 <td style="white-space:nowrap;">
                                     <!-- MANUAL_BLOCK: không có tiền -->
-                                    <div th:if="${b.bookingSource != null and b.bookingSource.name() == 'MANUAL_BLOCK'}"
+                                    <div th:if="${bkSource == 'MANUAL_BLOCK'}"
                                          style="font-size:11px;color:#9ca3af;font-style:italic;">Không phát sinh</div>
                                     <!-- Có tiền -->
-                                    <th:block th:if="${b.bookingSource == null or b.bookingSource.name() != 'MANUAL_BLOCK'}">
+                                    <th:block th:if="${bkSource != 'MANUAL_BLOCK'}">
                                         <div style="font-weight:700;font-size:13px;color:#111827;"
                                              th:text="${#numbers.formatInteger(b.totalAmount, 0, 'COMMA') + '₫'}">0₫</div>
                                         <div th:if="${b.discountAmount != null and b.discountAmount.compareTo(T(java.math.BigDecimal).ZERO) gt 0}"
                                              style="font-size:10px;color:#dc2626;"
                                              th:text="'-' + ${#numbers.formatInteger(b.discountAmount, 0, 'COMMA') + '₫ (voucher)'}"></div>
                                         <div style="font-size:10px;color:#6b7280;"
-                                             th:text="${b.paymentOption == T(com.travelmate.entity.enums.PaymentOption).FULL_PAYMENT ? '💳 100%' : '💵 Cọc 30%'}">Loại</div>
+                                             th:text="${payOpt == 'FULL_PAYMENT' ? '💳 100%' : '💵 Cọc 30%'}">Loại</div>
                                     </th:block>
                                 </td>
 
                                 <!-- Thanh toán -->
                                 <td style="white-space:nowrap;">
                                     <!-- MANUAL_BLOCK -->
-                                    <div th:if="${b.bookingSource != null and b.bookingSource.name() == 'MANUAL_BLOCK'}"
+                                    <div th:if="${bkSource == 'MANUAL_BLOCK'}"
                                          style="font-size:11px;color:#9ca3af;font-style:italic;">—</div>
                                     <!-- Có thanh toán -->
-                                    <th:block th:if="${b.bookingSource == null or b.bookingSource.name() != 'MANUAL_BLOCK'}">
-                                        <span class="badge-status"
-                                              th:classappend="${b.paymentStatus.name() == 'APPROVED' ? 'badge-pay-approved' :
-                                                               (b.paymentStatus.name() == 'REFUND_PENDING' ? 'badge-pay-refund' :
-                                                               (b.paymentStatus.name() == 'REFUNDED' ? 'badge-pay-approved' :
-                                                               (b.paymentStatus.name() == 'REJECTED' or b.paymentStatus.name() == 'DEPOSIT_FORFEITED' ? 'badge-pay-rejected' : 'badge-pay-pending')))}"
-                                              th:text="${b.paymentStatus.name() == 'PENDING_ADMIN_APPROVAL' ? '⏳ Chờ duyệt' :
-                                                        (b.paymentStatus.name() == 'APPROVED' ? '✅ Đã duyệt' :
-                                                        (b.paymentStatus.name() == 'REJECTED' ? '❌ Từ chối' :
-                                                        (b.paymentStatus.name() == 'DEPOSIT_FORFEITED' ? '💸 Mất cọc' :
-                                                        (b.paymentStatus.name() == 'REFUND_PENDING' ? '🔄 Đang hoàn tiền' :
-                                                        (b.paymentStatus.name() == 'REFUNDED' ? '↩ Đã hoàn tiền' : b.paymentStatus.name())))))}">--</span>
+                                    <th:block th:if="${bkSource != 'MANUAL_BLOCK'}">
+                                        <!-- th:switch thay cho ternary lồng nhau để tránh SpelParseException -->
+                                        <th:block th:switch="${payStatus}">
+                                            <span th:case="'PENDING_PAYMENT'" class="badge-status badge-pay-pending"
+                                                  th:text="${payOpt == 'DEPOSIT_30' ? '⏳ Chờ cọc 30% qua VNPAY' : '⏳ Chờ thanh toán 100% qua VNPAY'}">--</span>
+                                            <span th:case="'PENDING_ADMIN_APPROVAL'" class="badge-status badge-pay-pending"
+                                                  th:text="${payOpt == 'DEPOSIT_30' ? '💰 Đã cọc 30% VNPAY — chờ xác nhận' : '💳 Đã thanh toán 100% VNPAY — chờ xác nhận'}">--</span>
+                                            <span th:case="'APPROVED'" class="badge-status badge-pay-approved"
+                                                  th:text="${payOpt == 'DEPOSIT_30' ? '✅ Đã xác nhận cọc 30%' : '✅ Đã xác nhận thanh toán 100%'}">--</span>
+                                            <span th:case="'FAILED'"            class="badge-status badge-pay-rejected">❌ Giao dịch VNPAY thất bại</span>
+                                            <span th:case="'CANCELLED'"         class="badge-status badge-pay-rejected">🚫 User hủy giao dịch VNPAY</span>
+                                            <span th:case="'EXPIRED'"           class="badge-status badge-pay-rejected">⌛ Giao dịch VNPAY hết hạn</span>
+                                            <span th:case="'REJECTED'"          class="badge-status badge-pay-rejected">❌ Từ chối thanh toán</span>
+                                            <span th:case="'DEPOSIT_FORFEITED'" class="badge-status badge-pay-rejected">💸 Mất cọc (no-show)</span>
+                                            <span th:case="'REFUND_PENDING'"    class="badge-status badge-pay-refund">🔄 Đang chờ hoàn tiền</span>
+                                            <span th:case="'REFUNDED'"          class="badge-status badge-pay-approved">↩ Đã hoàn tiền</span>
+                                            <span th:case="*" class="badge-status badge-pay-pending" th:text="${payStatus != '' ? payStatus : '—'}">--</span>
+                                        </th:block>
                                         <div style="font-size:10px;color:#6b7280;margin-top:2px;"
-                                             th:text="'Đã trả: ' + ${#numbers.formatInteger(b.paidAmount, 0, 'COMMA') + '₫'}">Đã trả</div>
+                                             th:text="'TravelMate đã thu: ' + ${#numbers.formatInteger(b.paidAmount, 0, 'COMMA') + '₫'}">TM đã thu</div>
                                         <!-- Còn lại (DEPOSIT_30) -->
-                                        <div th:if="${b.paymentOption != null and b.paymentOption.name() == 'DEPOSIT_30' and b.remainingAmount != null and b.remainingAmount.compareTo(T(java.math.BigDecimal).ZERO) gt 0}"
+                                        <div th:if="${payOpt == 'DEPOSIT_30' and b.remainingAmount != null and b.remainingAmount.compareTo(T(java.math.BigDecimal).ZERO) gt 0}"
                                              style="font-size:10px;margin-top:2px;">
-                                            <span th:if="${b.remainingPaymentStatus == null or b.remainingPaymentStatus.name() == 'UNPAID'}"
+                                            <span th:if="${remPaySt == 'NOT_REQUIRED' or remPaySt == 'UNPAID' or remPaySt == ''}"
                                                   style="color:#d97706;font-weight:700;">⏳ Chưa thu:
                                                 <span th:text="${#numbers.formatInteger(b.remainingAmount, 0, 'COMMA') + '₫'}">0₫</span>
                                             </span>
-                                            <span th:if="${b.remainingPaymentStatus != null and b.remainingPaymentStatus.name() == 'PAID_AT_PROPERTY'}"
+                                            <span th:if="${remPaySt == 'PAID_AT_PROPERTY'}"
                                                   style="color:#16a34a;font-weight:700;">✅ Đã thu tại cơ sở</span>
                                         </div>
                                     </th:block>
@@ -325,16 +353,18 @@
                                 <!-- Trạng thái booking -->
                                 <td>
                                     <span class="badge-status"
-                                          th:classappend="${b.bookingStatus.name() == 'PENDING_ADMIN_APPROVAL'} ? 'badge-pending' :
-                                                         (${b.bookingStatus.name() == 'CONFIRMED'} ? 'badge-confirmed' :
-                                                         (${b.bookingStatus.name() == 'CHECKED_IN'} ? 'badge-checkedin' :
-                                                         (${b.bookingStatus.name() == 'COMPLETED'} ? 'badge-completed' :
-                                                         (${b.bookingStatus.name() == 'NO_SHOW'} ? 'badge-noshow' : 'badge-cancelled'))))"
-                                          th:text="${b.bookingStatus.name() == 'PENDING_ADMIN_APPROVAL'} ? '⏳ Chờ duyệt' :
-                                                    (${b.bookingStatus.name() == 'CONFIRMED'} ? '✅ Đã xác nhận' :
-                                                    (${b.bookingStatus.name() == 'CHECKED_IN'} ? '🏨 Đang ở' :
-                                                    (${b.bookingStatus.name() == 'COMPLETED'} ? '🏁 Hoàn tất' :
-                                                    (${b.bookingStatus.name() == 'NO_SHOW'} ? '🚫 No-show' : '❌ Đã hủy'))))">--</span>
+                                          th:classappend="${bkStatus == 'PENDING_PAYMENT'}       ? 'badge-pay-pending' :
+                                                         (${bkStatus == 'PENDING_ADMIN_APPROVAL'} ? 'badge-pending' :
+                                                         (${bkStatus == 'CONFIRMED'}              ? 'badge-confirmed' :
+                                                         (${bkStatus == 'CHECKED_IN'}             ? 'badge-checkedin' :
+                                                         (${bkStatus == 'COMPLETED'}              ? 'badge-completed' :
+                                                         (${bkStatus == 'NO_SHOW'}                ? 'badge-noshow' : 'badge-cancelled')))))"
+                                          th:text="${bkStatus == 'PENDING_PAYMENT'}       ? '⏳ Chờ khách thanh toán VNPAY' :
+                                                   (${bkStatus == 'PENDING_ADMIN_APPROVAL'} ? '💳 Đã thanh toán — chờ TravelMate xác nhận' :
+                                                   (${bkStatus == 'CONFIRMED'}              ? '✅ TravelMate đã xác nhận' :
+                                                   (${bkStatus == 'CHECKED_IN'}             ? '🏨 Đang lưu trú' :
+                                                   (${bkStatus == 'COMPLETED'}              ? '🏁 Hoàn tất' :
+                                                   (${bkStatus == 'NO_SHOW'}                ? '🚫 No-show' : '❌ Đã hủy')))))">--</span>
                                     <!-- Block reason tooltip -->
                                     <div th:if="${b.blockReason != null and !#strings.isEmpty(b.blockReason)}"
                                          style="font-size:10px;color:#9ca3af;margin-top:3px;max-width:130px;line-height:1.4;"
@@ -344,19 +374,22 @@
                                 <!-- Partner status -->
                                 <td>
                                     <!-- MANUAL_BLOCK: hiển thị đặc biệt -->
-                                    <span th:if="${b.bookingSource != null and b.bookingSource.name() == 'MANUAL_BLOCK'}"
+                                    <span th:if="${bkSource == 'MANUAL_BLOCK'}"
                                           style="font-size:10px;background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:10px;font-weight:700;">🔒 Đang chặn</span>
                                     <!-- DIRECT -->
-                                    <span th:if="${b.bookingSource != null and b.bookingSource.name() == 'DIRECT'}"
+                                    <span th:if="${bkSource == 'DIRECT'}"
                                           style="font-size:10px;background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:10px;font-weight:700;">🏃 Partner tạo</span>
                                     <!-- ONLINE: partner status bình thường -->
-                                    <th:block th:if="${b.bookingSource == null or b.bookingSource.name() == 'ONLINE'}">
-                                        <span th:if="${b.partnerStatus == null}" style="font-size:11px;color:#9ca3af;">—</span>
-                                        <span th:if="${b.partnerStatus != null}" class="badge-status"
-                                              th:classappend="${b.partnerStatus.name() == 'PARTNER_CONFIRMED'} ? 'badge-partner-confirmed' :
-                                                             (${b.partnerStatus.name() == 'PARTNER_CANCELLED'} ? 'badge-partner-cancelled' : 'badge-partner-pending')"
-                                              th:text="${b.partnerStatus.name() == 'PENDING_PARTNER_CONFIRMATION'} ? '⏳ Chờ partner' :
-                                                        (${b.partnerStatus.name() == 'PARTNER_CONFIRMED'} ? '✅ Partner OK' : '❌ Partner hủy')">--</span>
+                                    <th:block th:if="${bkSource == 'ONLINE' or bkSource == ''}">
+                                        <span th:if="${partnerSt == ''}" style="font-size:11px;color:#9ca3af;">—</span>
+                                        <span th:if="${partnerSt != ''}" class="badge-status"
+                                              th:classappend="${partnerSt == 'PARTNER_CONFIRMED'} ? 'badge-partner-confirmed' :
+                                                             (${partnerSt == 'PARTNER_COMPLETED'}  ? 'badge-partner-completed' :
+                                                             (${partnerSt == 'PARTNER_CANCELLED'}  ? 'badge-partner-cancelled' : 'badge-partner-pending'))"
+                                              th:text="${partnerSt == 'PENDING_PARTNER_CONFIRMATION'} ? '⏳ Chờ partner'   :
+                                                       (${partnerSt == 'PARTNER_CONFIRMED'}         ? '✅ Partner OK'     :
+                                                       (${partnerSt == 'PARTNER_COMPLETED'}         ? '🏁 Hoàn tất'       :
+                                                       (${partnerSt == 'PARTNER_CANCELLED'}         ? '❌ Partner hủy'    : partnerSt)))">--</span>
                                     </th:block>
                                 </td>
 
@@ -364,53 +397,66 @@
                                 <td>
                                     <div style="display:flex;flex-direction:column;gap:5px;min-width:110px;align-items:flex-start;">
 
-                                        <!-- ONLINE + PENDING_ADMIN_APPROVAL: Duyệt + Từ chối -->
-                                        <th:block th:if="${b.bookingStatus.name() == 'PENDING_ADMIN_APPROVAL' and (b.bookingSource == null or b.bookingSource.name() == 'ONLINE')}">
+                                        <!-- PENDING_PAYMENT: chờ khách thanh toán VNPAY — Admin chỉ giám sát -->
+                                        <th:block th:if="${bkStatus == 'PENDING_PAYMENT'}">
+                                            <span style="font-size:11px;color:#b45309;background:#fef3c7;padding:3px 8px;border-radius:10px;font-weight:700;">⏳ Chờ VNPAY</span>
+                                        </th:block>
+
+                                        <!-- ONLINE + PENDING_ADMIN_APPROVAL: Xác nhận thanh toán + Từ chối -->
+                                        <th:block th:if="${bkStatus == 'PENDING_ADMIN_APPROVAL' and (bkSource == 'ONLINE' or bkSource == '')}">
                                             <button type="button" class="action-btn btn-approve"
-                                                    th:attr="onclick='openApproveModal(' + ${b.id} + ')'">✅ Duyệt</button>
+                                                    th:attr="onclick='openApproveModal(' + ${b.id} + ')'">✅ Xác nhận TT</button>
                                             <button type="button" class="action-btn btn-reject"
                                                     th:attr="onclick='openRejectModal(' + ${b.id} + ')'">❌ Từ chối</button>
                                         </th:block>
 
                                         <!-- ONLINE + CONFIRMED: partner flow -->
-                                        <th:block th:if="${b.bookingStatus.name() == 'CONFIRMED' and (b.bookingSource == null or b.bookingSource.name() == 'ONLINE')}">
-                                            <span th:if="${b.partnerStatus != null and b.partnerStatus.name() == 'PARTNER_CONFIRMED'}"
+                                        <th:block th:if="${bkStatus == 'CONFIRMED' and (bkSource == 'ONLINE' or bkSource == '')}">
+                                            <span th:if="${partnerSt == 'PARTNER_CONFIRMED'}"
                                                   style="font-size:11px;color:#065f46;background:#d1fae5;padding:3px 8px;border-radius:10px;font-weight:700;">✅ Partner OK</span>
-                                            <span th:if="${b.partnerStatus == null or b.partnerStatus.name() == 'PENDING_PARTNER_CONFIRMATION'}"
+                                            <span th:if="${partnerSt == '' or partnerSt == 'PENDING_PARTNER_CONFIRMATION'}"
                                                   style="font-size:11px;color:#b45309;">⏳ Chờ partner</span>
-                                            <button th:if="${b.partnerStatus != null and b.partnerStatus.name() == 'PARTNER_CANCELLED'}"
+                                            <button th:if="${partnerSt == 'PARTNER_CANCELLED'}"
                                                     type="button" class="action-btn btn-cancel"
                                                     th:attr="onclick='openPartnerCancelModal(' + ${b.id} + ')'">🚫 Xử lý hủy</button>
                                         </th:block>
 
                                         <!-- DIRECT + CONFIRMED: partner đang quản lý -->
-                                        <th:block th:if="${b.bookingStatus.name() == 'CONFIRMED' and b.bookingSource != null and b.bookingSource.name() == 'DIRECT'}">
+                                        <th:block th:if="${bkStatus == 'CONFIRMED' and bkSource == 'DIRECT'}">
                                             <span style="font-size:11px;color:#b45309;background:#fef3c7;padding:3px 8px;border-radius:10px;font-weight:700;">🏃 Partner quản lý</span>
                                         </th:block>
 
                                         <!-- MANUAL_BLOCK + CONFIRMED: đang chặn -->
-                                        <th:block th:if="${b.bookingStatus.name() == 'CONFIRMED' and b.bookingSource != null and b.bookingSource.name() == 'MANUAL_BLOCK'}">
+                                        <th:block th:if="${bkStatus == 'CONFIRMED' and bkSource == 'MANUAL_BLOCK'}">
                                             <span style="font-size:11px;color:#991b1b;background:#fee2e2;padding:3px 8px;border-radius:10px;font-weight:700;">🔒 Đang chặn</span>
                                         </th:block>
 
                                         <!-- CHECKED_IN: Partner quản lý check-out -->
-                                        <th:block th:if="${b.bookingStatus.name() == 'CHECKED_IN'}">
+                                        <th:block th:if="${bkStatus == 'CHECKED_IN'}">
                                             <span style="font-size:11px;color:#065f46;background:#d1fae5;padding:3px 8px;border-radius:10px;font-weight:700;">🏨 Đang lưu trú</span>
                                         </th:block>
 
                                         <!-- REFUND_PENDING: nút xác nhận hoàn tiền nhanh -->
-                                        <th:block th:if="${b.paymentStatus != null and b.paymentStatus.name() == 'REFUND_PENDING'}">
+                                        <th:block th:if="${payStatus == 'REFUND_PENDING'}">
                                             <form th:action="@{/admin/bookings/{id}/mark-refunded(id=${b.id})}" method="post" style="display:inline;">
                                                 <input type="hidden" name="note" value="Đã chuyển khoản hoàn tiền cho khách" />
                                                 <button type="submit" class="action-btn"
                                                         style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;"
                                                         onclick="return confirm('Xác nhận đã hoàn tiền cho đơn này?')">
-                                                    ✅ Hoàn tiền
+                                                    ↩ Hoàn tiền
                                                 </button>
                                             </form>
                                         </th:block>
 
-                                        <!-- Link Chi tiết (tất cả trạng thái trừ PENDING online đã có 2 nút) -->
+                                        <!-- CANCELLED: hiển thị trạng thái + REFUNDED nếu đã hoàn -->
+                                        <th:block th:if="${bkStatus == 'CANCELLED' or bkStatus == 'NO_SHOW'}">
+                                            <span th:if="${payStatus == 'REFUNDED'}"
+                                                  style="font-size:11px;color:#166534;background:#dcfce7;padding:3px 8px;border-radius:10px;font-weight:700;">↩ Đã hoàn tiền</span>
+                                            <span th:if="${payStatus == 'DEPOSIT_FORFEITED'}"
+                                                  style="font-size:11px;color:#991b1b;background:#fee2e2;padding:3px 8px;border-radius:10px;font-weight:700;">💸 Mất cọc</span>
+                                        </th:block>
+
+                                        <!-- Link Chi tiết (luôn hiển thị) -->
                                         <a th:href="@{/admin/bookings/{id}(id=${b.id})}"
                                            style="font-size:11px;color:#2563eb;text-decoration:none;font-weight:600;display:block;margin-top:2px;">
                                             🔍 Chi tiết
@@ -425,7 +471,7 @@
                 <!-- Flow info -->
                 <div style="margin-top:20px;padding:14px 18px;background:linear-gradient(135deg,#eff6ff,#f0fdf4);border-radius:12px;border:1px solid #bfdbfe;font-size:12px;color:#1e40af;line-height:1.7;">
                     <strong>📌 Phân loại nguồn booking:</strong>
-                    <span style="background:#eff6ff;color:#1d4ed8;padding:1px 8px;border-radius:10px;font-weight:700;font-size:11px;">🌐 TM Online</span> — khách đặt qua web, Admin duyệt thanh toán;
+                    <span style="background:#eff6ff;color:#1d4ed8;padding:1px 8px;border-radius:10px;font-weight:700;font-size:11px;">🌐 TM Online</span> — khách đặt qua web, Admin xác nhận thanh toán rồi chuyển Partner;
                     <span style="background:#fef3c7;color:#b45309;padding:1px 8px;border-radius:10px;font-weight:700;font-size:11px;">🏃 Trực tiếp</span> — Partner tạo cho khách walk-in, Admin chỉ giám sát;
                     <span style="background:#fee2e2;color:#991b1b;padding:1px 8px;border-radius:10px;font-weight:700;font-size:11px;">🔒 Chặn phòng</span> — Partner giữ phòng bảo trì/nội bộ, không tính doanh thu.
                 </div>
@@ -433,21 +479,23 @@
         </div>
     </div>
 
-    <!-- Modal: Duyệt đơn -->
+    <!-- Modal: Xác nhận giao dịch booking -->
     <div class="modal-overlay" id="modal-approve">
         <div class="modal-box">
             <div class="modal-box__head">
-                <h3>✅ Xác nhận duyệt đơn</h3>
-                <p style="font-size:12.5px;color:#64748b;margin:0;">Sau khi duyệt, đơn chuyển sang Partner để xác nhận giữ phòng.</p>
+                <h3>✅ Xác nhận giao dịch booking</h3>
+                <p style="font-size:12.5px;color:#64748b;margin:0;">Sau khi xác nhận, booking sẽ chuyển sang Partner để xác nhận giữ phòng.</p>
             </div>
             <div class="modal-box__body">
                 <form id="form-approve" method="post">
                     <div style="background:#f0fdf4;border-radius:8px;padding:12px;font-size:12.5px;color:#166534;margin-bottom:12px;">
-                        Chỉ duyệt đơn <strong>TravelMate Online</strong>. Booking trực tiếp và chặn phòng không cần admin duyệt.
+                        <strong>Admin xác nhận khoản thanh toán/cọc đã nhận được từ cổng VNPAY.</strong>
+                        <br/>Sau khi xác nhận, Partner sẽ nhận được thông báo và xác nhận giữ phòng.
+                        <br/>Chỉ áp dụng cho đơn <strong>TravelMate Online</strong>.
                     </div>
                     <div class="modal-actions">
                         <button type="button" class="btn-modal-cancel" onclick="closeModal('modal-approve')">Hủy bỏ</button>
-                        <button type="submit" class="btn-modal-submit" style="background:linear-gradient(135deg,#16a34a,#15803d);">✅ Xác nhận duyệt</button>
+                        <button type="submit" class="btn-modal-submit" style="background:linear-gradient(135deg,#16a34a,#15803d);">✅ Xác nhận giao dịch booking</button>
                     </div>
                 </form>
             </div>

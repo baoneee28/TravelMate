@@ -48,64 +48,7 @@
 </head>
 <body>
 <div class="admin-wrapper">
-    <aside class="admin-sidebar">
-        <div class="admin-sidebar__header">
-            <a href="/partner/dashboard" class="sidebar-logo">
-                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                <div>
-                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
-                    <span class="admin-sidebar__badge">PARTNER CENTER</span>
-                </div>
-            </a>
-        </div>
-        <nav class="admin-sidebar__nav">
-            <div class="admin-sidebar__section-title">Tổng quan</div>
-            <a href="/partner/dashboard" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">📊</span> Dashboard
-            </a>
-            <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
-            <a href="/partner/accommodations" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">🏨</span> Nơi lưu trú của tôi
-            </a>
-            <a href="/partner/accommodations/new" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">＋</span> Đăng ký mới
-            </a>
-            <a href="/partner/amenities" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">🏷</span> Tiện nghi phòng
-                </a>
-            <a href="/partner/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đơn đặt phòng</a>
-            <a href="/partner/room-status" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏠</span> Tình trạng phòng hôm nay</a>
-            <a href="/partner/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Kiểm tra lịch trống</a>
-            <a href="/partner/direct-booking" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">➕</span> Booking trực tiếp</a>
-            <a href="/partner/reviews" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá của khách</a>
-            <div class="admin-sidebar__section-title">Tài chính</div>
-            <a href="/partner/revenue" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">💰</span> Doanh thu
-            </a>
-            <a href="/partner/settlements" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">🏦</span> Quyết toán
-            </a>
-            <a href="/partner/vouchers" class="admin-sidebar__link active">
-                <span class="admin-sidebar__link-icon">🎟</span> Voucher của tôi
-            </a>
-            <div class="admin-sidebar__section-title">Hỗ trợ</div>
-            <a href="/partner/support" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ
-            </a>
-                <a href="/partner/profile" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">👤</span> Hồ sơ của tôi
-                </a>
-        </nav>
-        <div class="admin-sidebar__footer">
-            <div class="admin-sidebar__user">
-                <div class="admin-sidebar__user-avatar">PT</div>
-                <div class="admin-sidebar__user-info">
-                    <div class="admin-sidebar__user-name" th:text="${partnerName} ?: 'Partner'">Partner</div>
-                    <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
-                </div>
-            </div>
-        </div>
-    </aside>
+    <aside th:replace="~{fragments/partner-sidebar :: sidebar('vouchers', ${partnerName})}"></aside>
     <div class="admin-sidebar-overlay"></div>
 
     <div class="admin-main">
@@ -132,8 +75,8 @@
 
             <!-- Info box -->
             <div class="info-box">
-                ⚠️ <strong>Lưu ý:</strong> Voucher bạn tạo sẽ gắn với <strong>cơ sở lưu trú / phòng của bạn</strong>.
-                Chi phí giảm giá do <strong>bạn chịu</strong> — bị <strong>trừ vào quyết toán</strong> của tuần đó.
+                ⚠️ <strong>Lưu ý:</strong> Voucher bạn tạo sẽ gắn với <strong>cơ sở lưu trú / <span th:text="${unitLabel ?: 'phòng'}">phòng</span> của bạn</strong>.
+                Chi phí giảm giá do <strong>bạn chịu</strong> — bị <strong>trừ vào quyết toán</strong> của tháng đó.
                 Voucher do Admin cấp (USER_GLOBAL) thì Admin chịu, không ảnh hưởng số tiền bạn nhận.
             </div>
 
@@ -146,7 +89,8 @@
                     <button class="tab-btn active" type="button" onclick="switchTab('acc', this)">
                         🏨 Theo Cơ sở lưu trú
                     </button>
-                    <button class="tab-btn" type="button" onclick="switchTab('room', this)">
+                    <button class="tab-btn" type="button" onclick="switchTab('room', this)"
+                            th:text="${'🛏 Theo ' + (unitLabelCap ?: 'Phòng') + ' cụ thể'}">
                         🛏 Theo Phòng cụ thể
                     </button>
                 </div>
@@ -220,16 +164,16 @@
                 <!-- TAB 2: Voucher theo Room -->
                 <div id="tab-room" class="tab-panel">
                     <div th:if="${#lists.isEmpty(rooms)}" style="color:#6b7280;font-size:13px;padding:16px;background:#f9fafb;border-radius:8px;border:1px dashed #d1d5db;">
-                        <strong>📭 Chưa có phòng nào được duyệt.</strong><br/>
-                        Hãy thêm phòng cho nơi lưu trú đã được duyệt và chờ Admin phê duyệt.
+                        <strong th:text="${'📭 Chưa có ' + (unitLabel ?: 'phòng') + ' nào được duyệt.'}">📭 Chưa có phòng nào được duyệt.</strong><br/>
+                        <span th:text="${'Hãy thêm ' + (unitLabel ?: 'phòng') + ' cho nơi lưu trú đã được duyệt và chờ Admin phê duyệt.'}">Hãy thêm phòng cho nơi lưu trú đã được duyệt và chờ Admin phê duyệt.</span>
                         <div style="margin-top:8px;"><a href="/partner/accommodations" class="btn btn--ghost btn--sm">→ Quản lý cơ sở lưu trú</a></div>
                     </div>
                     <form th:unless="${#lists.isEmpty(rooms)}"
                           th:action="@{/partner/vouchers/create-for-room}" method="post">                        <div class="form-grid">
                             <div class="form-group">
-                                <label>Phòng áp dụng <span style="color:#ef4444;">*</span></label>
+                                <label><span th:text="${unitLabelCap ?: 'Phòng'}">Phòng</span> áp dụng <span style="color:#ef4444;">*</span></label>
                                 <select name="roomId" required>
-                                    <option value="">-- Chọn phòng --</option>
+                                    <option value="" th:text="${'-- Chọn ' + (unitLabel ?: 'phòng') + ' --'}">-- Chọn phòng --</option>
                                     <option th:each="r : ${rooms}"
                                             th:value="${r.id}"
                                             th:text="${r.accommodation.name} + ' — ' + ${r.roomName}">Phòng</option>
@@ -277,7 +221,9 @@
                             <input type="text" name="description" placeholder="Mô tả ngắn về ưu đãi" />
                         </div>
                         <div style="margin-top:16px;display:flex;gap:10px;">
-                            <button type="submit" class="btn btn--primary"><i class="fa-solid fa-plus"></i> Tạo Voucher Theo Phòng</button>
+                            <button type="submit" class="btn btn--primary"><i class="fa-solid fa-plus"></i>
+                                <span th:text="${'Tạo Voucher Theo ' + (unitLabelCap ?: 'Phòng')}">Tạo Voucher Theo Phòng</span>
+                            </button>
                             <button type="reset"  class="btn btn--ghost">Làm mới</button>
                         </div>
                     </form>
@@ -334,7 +280,7 @@
                                     <span th:if="${v.voucherScope.name() == 'PARTNER_ACCOMMODATION'}"
                                           class="scope-tag">Cơ sở</span>
                                     <span th:if="${v.voucherScope.name() == 'PARTNER_ROOM'}"
-                                          class="scope-tag-room">Phòng</span>
+                                          class="scope-tag-room" th:text="${unitLabelCap ?: 'Phòng'}">Phòng</span>
                                     <div style="font-size:11px;color:#6b7280;margin-top:2px;"
                                          th:if="${v.accommodation != null}" th:text="${v.accommodation.name}">—</div>
                                     <div style="font-size:11px;color:#6b7280;margin-top:2px;"
@@ -423,4 +369,3 @@
 </script>
 </body>
 </html>
-

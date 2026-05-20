@@ -1,10 +1,13 @@
 package com.travelmate.service;
 
 import com.travelmate.dto.SettlementDetailItemDto;
+import com.travelmate.entity.Booking;
 import com.travelmate.entity.PartnerSettlement;
 import com.travelmate.entity.Payment;
 import com.travelmate.entity.Room;
 import com.travelmate.entity.User;
+import com.travelmate.entity.enums.BookingSource;
+import com.travelmate.entity.enums.BookingStatus;
 import com.travelmate.entity.enums.PaymentOption;
 import com.travelmate.entity.enums.PaymentStatus;
 import com.travelmate.entity.enums.SettlementStatus;
@@ -16,28 +19,32 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * SettlementService — Quản lý quyết toán tuần cho partner.
+ * SettlementService — Quản lý quyết toán THÁNG cho partner.
  *
  * Luồng:
- *  1. Admin bấm "Generate Weekly":
- *     → Tính tất cả Payment APPROVED/DEPOSIT_FORFEITED trong tuần trước
+ *  1. Admin bấm "Tạo quyết toán tháng trước":
+ *     → Tính tất cả Payment đủ điều kiện quyết toán trong tháng trước
  *     → Group by partner, tạo PartnerSettlement PENDING
  *     → Tránh tạo trùng (check exists)
  *  2. Admin bấm "Đánh dấu đã TT" → PAID
  *
- * Kỳ quyết toán: thứ 2 → chủ nhật tuần trước.
+ * Kỳ quyết toán: Ngày 01 → cuối tháng trước.
  *
- * Quy tắc commission (cuối): chỉ tính trên tiền thực thu online (payment.amount).
- *   - DEPOSIT_30 + APPROVED: commBase = cọc 30% đã thu online (không tính 70% tại cơ sở)
+ * Điều kiện đưa booking vào quyết toán (isSettlementEligible):
+ *  - Booking ONLINE + Payment APPROVED + BookingStatus COMPLETED
+ *  - Booking ONLINE + Payment DEPOSIT_FORFEITED + BookingStatus NO_SHOW
+ *  → Chỉ booking đã hoàn tất lưu trú hoặc khách không đến mới được quyết toán.
+ *
+ * Quy tắc commission: chỉ tính trên tiền thực thu online (payment.amount).
+ *   - DEPOSIT_30 + APPROVED: commBase = cọc 30% đã thu online
  *   - DEPOSIT_30 + DEPOSIT_FORFEITED (no-show): commBase = cọc 30% bị giữ
  *   - FULL_PAYMENT: commBase = 100% đã thu
  *   payout = max(0, gross - commission - voucherPartnerDeduct)
@@ -67,32 +74,27 @@ public class SettlementService {
     // ─── GENERATE ─────────────────────────────────────────────────────────────
 
     /**
-     * Tạo settlement cho TẤT CẢ partner trong tuần trước.
-     * Admin bấm "Generate Weekly" → gọi hàm này.
+     * Tạo settlement cho TẤT CẢ partner trong THÁNG trước.
+     * Admin bấm "Tạo quyết toán tháng trước" → gọi hàm này.
      *
      * @return Danh sách settlement mới tạo (bỏ qua partner đã có settlement trong kỳ)
      */
     @Transactional
-    public List<PartnerSettlement> generateWeeklySettlements() {
-        // Xác định kỳ quyết toán: thứ 2 → chủ nhật tuần trước
-        LocalDate today = LocalDate.now();
-        LocalDate currentWeekMonday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDate lastMonday  = currentWeekMonday.minusWeeks(1);
-        LocalDate lastSunday  = lastMonday.plusDays(6);
+    public List<PartnerSettlement> generateMonthlySettlements() {
+        // Xác định kỳ quyết toán: ngày 01 → cuối tháng trước
+        YearMonth lastMonth = YearMonth.now().minusMonths(1);
+        LocalDate periodStart = lastMonth.atDay(1);
+        LocalDate periodEnd   = lastMonth.atEndOfMonth();
 
-        // Lấy tất cả payment APPROVED/DEPOSIT_FORFEITED trong tuần trước
+        // Lấy tất cả payment APPROVED/DEPOSIT_FORFEITED
         List<Payment> allPayments = paymentRepository.findByPaymentStatusIn(REVENUE_STATUSES);
 
-        // Lọc payment trong kỳ — dùng approvedAt (thời điểm admin duyệt, chuẩn hơn createdAt)
+        // Lọc payment đủ điều kiện quyết toán VÀ nằm trong kỳ tháng trước
         List<Payment> periodPayments = allPayments.stream()
+                .filter(this::isSettlementEligible)
                 .filter(p -> {
-                    LocalDateTime approvedAt = p.getApprovedAt();
-                    // Fallback về paidAt rồi createdAt nếu chưa có approvedAt (dữ liệu cũ)
-                    LocalDateTime dt = approvedAt != null ? approvedAt :
-                            (p.getPaidAt() != null ? p.getPaidAt() :
-                                    (p.getBooking().getCreatedAt() != null ? p.getBooking().getCreatedAt() : LocalDateTime.now()));
-                    LocalDate paymentDate = dt.toLocalDate();
-                    return !paymentDate.isBefore(lastMonday) && !paymentDate.isAfter(lastSunday);
+                    LocalDate paymentDate = resolveSettlementDate(p);
+                    return !paymentDate.isBefore(periodStart) && !paymentDate.isAfter(periodEnd);
                 })
                 .toList();
 
@@ -106,7 +108,7 @@ public class SettlementService {
         for (User partner : partners) {
             // Tránh tạo trùng
             if (settlementRepository.existsByPartnerAndPeriodStartAndPeriodEnd(
-                    partner, lastMonday, lastSunday)) {
+                    partner, periodStart, periodEnd)) {
                 continue;
             }
 
@@ -120,7 +122,7 @@ public class SettlementService {
 
             if (partnerPayments.isEmpty()) continue; // Không có doanh thu → không tạo
 
-            // Tính toán — v3: dùng commission base đúng theo nghiệp vụ
+            // Tính toán
             BigDecimal gross = BigDecimal.ZERO;
             BigDecimal commission = BigDecimal.ZERO;
             BigDecimal voucherDeduct = BigDecimal.ZERO;
@@ -128,10 +130,6 @@ public class SettlementService {
             for (Payment p : partnerPayments) {
                 BigDecimal g = p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO;
 
-                // Cơ sở tính commission = số tiền khách thanh toán online qua TravelMate.
-                // FULL_PAYMENT: 100% đã thu online.
-                // DEPOSIT_30:   30% cọ online (70% khách trả tại cơ sở không tính).
-                // DIRECT/MANUAL_BLOCK: không phát sinh payment online — không tính commission.
                 Room room = p.getBooking().getRoom();
                 BigDecimal commBase = resolveCommissionBase(p);
                 BigDecimal c = commissionService.calculateCommission(commBase, room);
@@ -151,8 +149,8 @@ public class SettlementService {
 
             PartnerSettlement settlement = new PartnerSettlement();
             settlement.setPartner(partner);
-            settlement.setPeriodStart(lastMonday);
-            settlement.setPeriodEnd(lastSunday);
+            settlement.setPeriodStart(periodStart);
+            settlement.setPeriodEnd(periodEnd);
             settlement.setGrossAmount(gross);
             settlement.setCommissionAmount(commission);
             settlement.setVoucherDeductionAmount(voucherDeduct);
@@ -163,6 +161,56 @@ public class SettlementService {
         }
 
         return created;
+    }
+
+    // ─── ELIGIBILITY ─────────────────────────────────────────────────────────
+
+    /**
+     * Kiểm tra 1 payment có đủ điều kiện đưa vào quyết toán hay không.
+     *
+     * Chỉ chấp nhận:
+     * - ONLINE + APPROVED + COMPLETED  → khách đã hoàn tất lưu trú
+     * - ONLINE + DEPOSIT_FORFEITED + NO_SHOW → khách không đến, cọc bị giữ
+     *
+     * Loại bỏ: PENDING_ADMIN_APPROVAL, CONFIRMED, CHECKED_IN, CANCELLED, REFUNDED,
+     *           DIRECT, MANUAL_BLOCK...
+     */
+    private boolean isSettlementEligible(Payment p) {
+        if (p == null || p.getBooking() == null) return false;
+
+        Booking b = p.getBooking();
+
+        // Chỉ booking ONLINE mới quyết toán
+        if (b.getBookingSource() != null && b.getBookingSource() != BookingSource.ONLINE) {
+            return false;
+        }
+
+        PaymentStatus ps = p.getPaymentStatus();
+        BookingStatus bs = b.getBookingStatus();
+
+        // Case 1: Booking COMPLETED + Payment APPROVED → đã hoàn tất lưu trú
+        if (ps == PaymentStatus.APPROVED && bs == BookingStatus.COMPLETED) {
+            return true;
+        }
+
+        // Case 2: Booking NO_SHOW + Payment DEPOSIT_FORFEITED → khách không đến
+        if (ps == PaymentStatus.DEPOSIT_FORFEITED && bs == BookingStatus.NO_SHOW) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Xác định ngày để xếp payment vào kỳ quyết toán tháng.
+     * Ưu tiên: approvedAt → paidAt → booking.createdAt → now.
+     */
+    private LocalDate resolveSettlementDate(Payment p) {
+        LocalDateTime approvedAt = p.getApprovedAt();
+        LocalDateTime dt = approvedAt != null ? approvedAt :
+                (p.getPaidAt() != null ? p.getPaidAt() :
+                        (p.getBooking().getCreatedAt() != null ? p.getBooking().getCreatedAt() : LocalDateTime.now()));
+        return dt.toLocalDate();
     }
 
     // ─── HELPERS ──────────────────────────────────────────────────────────────
@@ -230,7 +278,8 @@ public class SettlementService {
 
     /**
      * Trả về danh sách chi tiết từng booking trong kỳ của settlement.
-     * Tái sử dụng logic date-filter giống generateWeeklySettlements().
+     * Tái sử dụng logic isSettlementEligible + date-filter giống generateMonthlySettlements().
+     * Admin và Partner đều dùng chung method này → đồng bộ dữ liệu tài chính.
      */
     public List<SettlementDetailItemDto> getBreakdownForSettlement(PartnerSettlement s) {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -239,13 +288,9 @@ public class SettlementService {
                         s.getPartner(), REVENUE_STATUSES);
 
         return partnerPayments.stream()
+                .filter(this::isSettlementEligible)
                 .filter(p -> {
-                    // Dùng approvedAt để lọc, fallback về paidAt/createdAt nếu chưa có
-                    LocalDateTime approvedAt = p.getApprovedAt();
-                    LocalDateTime dt = approvedAt != null ? approvedAt :
-                            (p.getPaidAt() != null ? p.getPaidAt() :
-                                    (p.getBooking().getCreatedAt() != null ? p.getBooking().getCreatedAt() : LocalDateTime.now()));
-                    LocalDate d = dt.toLocalDate();
+                    LocalDate d = resolveSettlementDate(p);
                     return !d.isBefore(s.getPeriodStart()) && !d.isAfter(s.getPeriodEnd());
                 })
                 .map(p -> {

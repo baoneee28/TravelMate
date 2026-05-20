@@ -251,6 +251,9 @@ public class VoucherService {
     /**
      * Tính số tiền giảm giá từ voucher và giá trị đơn hàng.
      *
+     * Guard: Không cho giảm giá làm tổng tiền về dưới 5.000₫ (VNPAY minimum).
+     * Nếu voucher giảm quá nhiều → giới hạn discount = orderAmount - 5.000₫.
+     *
      * @param voucher     Voucher đã validate
      * @param orderAmount Giá trị đơn hàng
      * @return            Số tiền được giảm (≥ 0)
@@ -276,6 +279,16 @@ public class VoucherService {
 
         // Không giảm nhiều hơn giá trị đơn hàng
         if (discount.compareTo(orderAmount) > 0) discount = orderAmount;
+
+        // Guard: Không cho giảm giá làm tổng tiền về dưới 5.000₫ (VNPAY minimum)
+        // Nếu sau giảm giá mà tổng tiền < 5000₫ → giới hạn discount
+        BigDecimal MIN_VNPAY = new BigDecimal("5000");
+        BigDecimal afterDiscount = orderAmount.subtract(discount);
+        if (afterDiscount.compareTo(MIN_VNPAY) < 0) {
+            // Giảm tối đa sao cho còn lại ít nhất 5.000₫
+            discount = orderAmount.subtract(MIN_VNPAY);
+            if (discount.compareTo(BigDecimal.ZERO) < 0) discount = BigDecimal.ZERO;
+        }
 
         return discount;
     }

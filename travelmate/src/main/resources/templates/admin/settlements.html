@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quyết Toán Partner – Admin TravelMate</title>
-    <meta name="description" content="Trang quyết toán hàng tuần cho partner – Admin TravelMate." />
+    <meta name="description" content="Trang quyết toán hàng tháng cho partner – Admin TravelMate." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&subset=vietnamese&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/assets/css/base.css" />
@@ -57,6 +57,7 @@
             <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
             <a href="/admin/rooms"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
             <a href="/admin/reviews"        class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
+            <a href="/admin/travel-posts" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗺️</span> Bài viết du lịch</a>
             <a href="/admin/users"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
             <div class="admin-sidebar__section-title">Tài chính</div>
             <a href="/admin/revenue"     class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
@@ -90,10 +91,10 @@
                 <h1 class="admin-topbar__title">🏦 Quyết Toán Partner</h1>
             </div>
             <div class="admin-topbar__actions">
-                <form th:action="@{/admin/settlements/generate-weekly}" method="post" style="display:inline;">
+                <form th:action="@{/admin/settlements/generate-monthly}" method="post" style="display:inline;">
                     <button type="submit" class="btn btn--primary btn--sm"
-                            onclick="return confirm('Tạo quyết toán cho tuần trước (Thứ Hai → Chủ Nhật)? Partner đã có settlement trong kỳ sẽ bị bỏ qua.')">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> Tạo quyết toán tuần trước
+                            onclick="return confirm('Tạo quyết toán cho tháng trước? Chỉ booking COMPLETED hoặc NO_SHOW (giữ cọc) mới được tính. Partner đã có settlement trong kỳ sẽ bị bỏ qua.')">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Tạo quyết toán tháng trước
                     </button>
                 </form>
                 <a href="/admin/revenue" class="btn btn--ghost btn--sm" style="margin-left:8px;">
@@ -110,18 +111,19 @@
 
             <!-- Luồng quyết toán -->
             <div class="flow-info">
-                <strong>📌 Quy trình quyết toán hàng tuần:</strong><br/>
-                1. Mỗi <strong>Thứ Hai hàng tuần</strong>, Admin bấm <strong>"Tạo quyết toán tuần trước"</strong>
-                   → Hệ thống gom toàn bộ doanh thu từ <strong>Thứ Hai đến Chủ Nhật tuần trước</strong> cho từng partner → Tạo bản ghi PENDING.<br/>
-                2. Admin kiểm tra số liệu → Bấm <strong>"Đánh dấu đã TT"</strong> để xác nhận đã chuyển khoản cho partner vào <strong>Thứ Ba tuần này</strong>.<br/>
-                &nbsp;&nbsp;<em style="font-size:12px;color:#6b7280;">⚠️ Mỗi partner + mỗi kỳ tuần = 1 settlement duy nhất. Bấm lại sẽ không tạo trùng.</em>
+                <strong>📌 Quy trình quyết toán hàng tháng:</strong><br/>
+                1. <strong>Đầu mỗi tháng</strong>, Admin bấm <strong>"Tạo quyết toán tháng trước"</strong>
+                   → Hệ thống gom toàn bộ booking đủ điều kiện từ <strong>ngày 01 đến cuối tháng trước</strong> cho từng partner → Tạo bản ghi PENDING.<br/>
+                2. Admin kiểm tra số liệu → Bấm <strong>"Xác nhận đã chuyển khoản"</strong> để xác nhận đã chuyển khoản cho partner.<br/>
+                &nbsp;&nbsp;<em style="font-size:12px;color:#6b7280;">⚠️ Mỗi partner + mỗi kỳ tháng = 1 settlement duy nhất. Bấm lại sẽ không tạo trùng.</em><br/>
+                &nbsp;&nbsp;<em style="font-size:12px;color:#6b7280;">⚠️ Chỉ booking <strong>COMPLETED</strong> hoặc <strong>NO_SHOW</strong> (giữ cọc) mới đủ điều kiện quyết toán.</em>
                 <div class="formula-box">
-                    <strong>Công thức quyết toán cho Partner (Kỳ Thứ Hai – Chủ Nhật tuần trước):</strong><br/>
-                    Payout = Tiền TravelMate thu online − Commission nền tảng − Voucher partner chịu<br/>
+                    <strong>Công thức quyết toán cho Partner (Kỳ tháng trước: 01 → cuối tháng):</strong><br/>
+                    Số tiền chuyển khoản cho Partner = Tiền TravelMate thu online − Hoa hồng nền tảng − Voucher partner chịu<br/>
                     <span style="font-size:12px;color:#374151;">
-                        &nbsp;&nbsp;▸ <strong>Tiền TravelMate thu online</strong>: Số tiền đã thu qua hệ thống (Đã duyệt hoặc Giữ cọ no-show).<br/>
+                        &nbsp;&nbsp;▸ <strong>Tiền TravelMate thu online</strong>: Số tiền đã thu qua hệ thống (booking COMPLETED hoặc NO_SHOW giữ cọc).<br/>
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;• FULL_PAYMENT: 100% tổng giá trị booking<br/>
-                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;• DEPOSIT_30: chỉ 30% cọ online (70% khách trả tại cơ sở không tính vào đây)<br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;• DEPOSIT_30: chỉ 30% cọc online (70% khách trả tại cơ sở không tính vào đây)<br/>
                         &nbsp;&nbsp;▸ <strong>Commission nền tảng</strong>: Tỷ lệ commission &times; Số tiền TravelMate thu online<br/>
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Tỷ lệ mặc định: Khách sạn 15% · Biệt thự 12% · Homestay 10% · Resort 18%<br/>
                         &nbsp;&nbsp;▸ <strong>Voucher partner chịu</strong>: Giảm giá từ voucher do partner tự tạo (trừ vào payout)<br/>
@@ -153,7 +155,7 @@
 
                 <div th:if="${#lists.isEmpty(settlements)}" class="empty-state">
                     <i class="fa-solid fa-inbox" style="font-size:40px;opacity:.25;margin-bottom:10px;"></i>
-                    <p>Chưa có settlement nào. Hãy bấm <strong>"Tạo quyết toán tuần trước"</strong> để tạo quyết toán cho kỳ Thứ Hai → Chủ Nhật tuần qua.</p>
+                    <p>Chưa có settlement nào. Hãy bấm <strong>"Tạo quyết toán tháng trước"</strong> để tạo quyết toán cho kỳ tháng vừa qua.</p>
                 </div>
 
                 <div th:if="${!#lists.isEmpty(settlements)}" class="set-table-wrap">
@@ -203,8 +205,8 @@
                                 <td style="font-weight:700;color:#1d4ed8;"
                                     th:text="${#numbers.formatDecimal(s.payoutAmount,0,'COMMA',0,'POINT')}">0</td>
                                 <td>
-                                    <span class="badge-pending" th:if="${s.settlementStatus.name() == 'PENDING'}">⏳ Chờ TT</span>
-                                    <span class="badge-paid"    th:if="${s.settlementStatus.name() == 'PAID'}">✅ Đã TT</span>
+                                    <span class="badge-pending" th:if="${s.settlementStatus.name() == 'PENDING'}">⏳ Chờ chuyển khoản</span>
+                                    <span class="badge-paid"    th:if="${s.settlementStatus.name() == 'PAID'}">✅ Đã chuyển khoản</span>
                                 </td>
                                 <td style="font-size:12px;color:#6b7280;"
                                     th:text="${s.settlementDate != null ? #temporals.format(s.settlementDate,'dd/MM/yyyy HH:mm') : '—'}">—</td>
@@ -219,10 +221,10 @@
                                         <button th:if="${s.settlementStatus.name() == 'PENDING'}"
                                                 class="btn-mark-paid"
                                                 th:onclick="'openPayModal(' + ${s.id} + ')'">
-                                            <i class="fa-solid fa-check"></i> Đánh dấu Đã TT
+                                            <i class="fa-solid fa-check"></i> Xác nhận đã chuyển khoản
                                         </button>
                                         <span th:if="${s.settlementStatus.name() != 'PENDING'}"
-                                              style="color:#16a34a;font-size:12px;font-weight:600;">✅ Đã TT</span>
+                                              style="color:#16a34a;font-size:12px;font-weight:600;">✅ Đã chuyển khoản</span>
                                     </div>
                                 </td>
                             </tr>
@@ -261,7 +263,7 @@
                 <div style="margin-bottom:20px;">
                     <label style="display:block;font-size:12.5px;font-weight:700;color:#374151;margin-bottom:6px;">📝 Ghi chú thanh toán</label>
                     <textarea name="note" id="pay-note" rows="3"
-                              placeholder="VD: Đã chuyển khoản qua Vietcombank, đủ số tiền quyết toán tuần..."
+                              placeholder="VD: Đã chuyển khoản qua Vietcombank, đủ số tiền quyết toán tháng..."
                               style="width:100%;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;box-sizing:border-box;resize:none;font-family:inherit;"></textarea>
                 </div>
                 <div style="display:flex;gap:10px;justify-content:flex-end;">

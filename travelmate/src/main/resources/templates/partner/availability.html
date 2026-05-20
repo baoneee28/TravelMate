@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tình trạng phòng – Partner TravelMate</title>
+    <title>Kiểm tra lịch trống – Partner TravelMate</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&subset=vietnamese&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/assets/css/base.css" />
@@ -114,94 +114,40 @@
 
 <body>
 <div class="admin-wrapper">
-    <aside class="admin-sidebar">
-        <div class="admin-sidebar__header">
-            <a href="/partner/dashboard" class="sidebar-logo">
-                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                <div>
-                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
-                    <span class="admin-sidebar__badge">PARTNER CENTER</span>
-                </div>
-            </a>
-        </div>
-        <nav class="admin-sidebar__nav">
-            <div class="admin-sidebar__section-title">Tổng quan</div>
-            <a href="/partner/dashboard" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">📊</span> Dashboard
-            </a>
-            <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
-            <a href="/partner/accommodations" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">🏨</span> Nơi lưu trú của tôi
-            </a>
-            <a href="/partner/accommodations/new" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">＋</span> Đăng ký mới
-            </a>
-            <a href="/partner/amenities" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">🏷</span> Tiện nghi phòng
-                </a>
-                <a href="/partner/bookings" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">📋</span> Đơn đặt phòng
-            </a>
-            <a href="/partner/availability" class="admin-sidebar__link active">
-                <span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng
-            </a>
-            <a href="/partner/reviews" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">⭐</span> Đánh giá của khách
-            </a>
-            <div class="admin-sidebar__section-title">Tài chính</div>
-            <a href="/partner/revenue" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">💰</span> Doanh thu
-            </a>
-            <a href="/partner/settlements" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">🏦</span> Quyết toán
-            </a>
-            <a href="/partner/vouchers" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">🎟</span> Voucher của tôi
-            </a>
-            <div class="admin-sidebar__section-title">Hỗ trợ</div>
-            <a href="/partner/support" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ
-            </a>
-            <a href="/partner/profile" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">👤</span> Hồ sơ của tôi
-            </a>
-        </nav>
-        <div class="admin-sidebar__footer">
-            <div class="admin-sidebar__user">
-                <div class="admin-sidebar__user-avatar">PT</div>
-                <div class="admin-sidebar__user-info">
-                    <div class="admin-sidebar__user-name" th:text="${partnerName} ?: 'Partner'">Partner</div>
-                    <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
-                </div>
-            </div>
-            <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
-                <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
-            </form>
-        </div>
-    </aside>
+    <aside th:replace="~{fragments/partner-sidebar :: sidebar('availability', ${partnerName})}"></aside>
     <div class="admin-sidebar-overlay"></div>
 
     <main class="admin-main">
-        <div class="admin-topbar">
-            <button class="admin-topbar__menu-btn" id="sidebarToggle"><i class="fa-solid fa-bars"></i></button>
-            <div class="admin-topbar__title">Tình trạng phòng</div>
-        </div>
+        <header class="admin-topbar">
+            <div style="display:flex;align-items:center;gap:var(--space-4)">
+                <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                <h1 class="admin-topbar__title">🗓️ Kiểm tra lịch trống</h1>
+            </div>
+            <div class="admin-topbar__actions">
+                <form th:action="@{/auth/logout}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn--ghost btn--sm">🚪 Đăng xuất</button>
+                </form>
+            </div>
+        </header>
 
         <div class="admin-content">
             <!-- Page Header -->
             <div class="avail-header">
                 <div class="avail-header-icon"><i class="fa-solid fa-calendar-check"></i></div>
                 <div class="avail-header-text">
-                    <h1>Lịch tình trạng phòng</h1>
-                    <p>Xem phòng nào đang bị giữ, phòng nào còn trống theo khoảng ngày — chỉ hiện cơ sở của bạn</p>
+                    <h1>🗓️ Kiểm tra lịch trống theo ngày</h1>
+                    <p th:text="${'Xem ' + (unitLabel ?: 'phòng') + ' nào đang bị giữ, ' + (unitLabel ?: 'phòng') + ' nào còn trống theo khoảng ngày — chỉ hiện cơ sở của bạn'}">Xem phòng nào đang bị giữ, phòng nào còn trống theo khoảng ngày — chỉ hiện cơ sở của bạn</p>
                 </div>
             </div>
 
             <!-- Info box -->
             <div class="info-box">
                 <i class="fa-solid fa-circle-info"></i>
-                <p>Trang này chỉ hiển thị phòng thuộc <strong>cơ sở lưu trú đã được Admin duyệt</strong> của bạn.
-                   Phòng bị tính "đang giữ" bao gồm các đơn: <strong>Chờ duyệt</strong>, <strong>Đã xác nhận</strong> và <strong>Đang check-in</strong>.</p>
+                <p><span th:text="|Trang này chỉ hiển thị ${unitLabel ?: 'phòng'} thuộc|">Trang này chỉ hiển thị phòng thuộc</span> <strong>cơ sở lưu trú đã được Admin duyệt</strong> của bạn.
+                   <span th:text="${(unitLabelCap ?: 'Phòng') + ' bị tính &quot;đang giữ&quot; bao gồm các đơn có trạng thái:'}">Phòng bị tính "đang giữ" bao gồm các đơn có trạng thái:</span> <strong>Chờ duyệt</strong>, <strong>Đã xác nhận</strong> và <strong>Đang check-in</strong>.
+                   <br/>
+                   <span style="color:#065f46;font-weight:600;">📌 Booking đã No-show, đã Huỷ hoặc đã Hoàn tất sẽ <em>không</em> chiếm <span th:text="|quota ${unitLabel ?: 'phòng'}|">quota phòng</span></span> — quota được mở lại ngay sau khi partner xác nhận No-show hoặc khách <span th:text="|trả ${unitLabel ?: 'phòng'}|">trả phòng</span>.
+                </p>
             </div>
 
             <!-- Filter Card -->
@@ -210,11 +156,11 @@
                 <form method="get" action="/partner/availability">
                     <div class="filter-grid">
                         <div class="filter-group">
-                            <label>📅 Ngày nhận phòng</label>
+                            <label th:text="|📅 Ngày nhận ${unitLabel ?: 'phòng'}|">📅 Ngày nhận phòng</label>
                             <input type="date" name="checkIn" th:value="${checkIn}" required />
                         </div>
                         <div class="filter-group">
-                            <label>📅 Ngày trả phòng</label>
+                            <label th:text="|📅 Ngày trả ${unitLabel ?: 'phòng'}|">📅 Ngày trả phòng</label>
                             <input type="date" name="checkOut" th:value="${checkOut}" required />
                         </div>
                         <div class="filter-group" style="display:flex;gap:8px;">
@@ -238,25 +184,25 @@
             <!-- Summary Cards -->
             <div th:if="${summary != null}" class="summary-grid">
                 <div class="sum-card" style="--sc:#059669;">
-                    <div class="sum-card__lbl">Còn phòng</div>
+                    <div class="sum-card__lbl" th:text="${'Còn ' + (unitLabel ?: 'phòng')}">Còn phòng</div>
                     <div class="sum-card__val" th:text="${summary.availableTypes}">0</div>
-                    <div class="sum-card__sub">loại phòng</div>
+                    <div class="sum-card__sub" th:text="${'loại ' + (unitLabel ?: 'phòng')}">loại phòng</div>
                     <span class="sum-card__icon">✅</span>
                 </div>
                 <div class="sum-card" style="--sc:#f59e0b;">
                     <div class="sum-card__lbl">Sắp hết</div>
                     <div class="sum-card__val" th:text="${summary.limitedTypes}">0</div>
-                    <div class="sum-card__sub">loại phòng</div>
+                    <div class="sum-card__sub" th:text="${'loại ' + (unitLabel ?: 'phòng')}">loại phòng</div>
                     <span class="sum-card__icon">⚠️</span>
                 </div>
                 <div class="sum-card" style="--sc:#ef4444;">
-                    <div class="sum-card__lbl">Hết phòng</div>
+                    <div class="sum-card__lbl" th:text="${'Hết ' + (unitLabel ?: 'phòng')}">Hết phòng</div>
                     <div class="sum-card__val" th:text="${summary.fullTypes}">0</div>
-                    <div class="sum-card__sub">loại phòng</div>
+                    <div class="sum-card__sub" th:text="${'loại ' + (unitLabel ?: 'phòng')}">loại phòng</div>
                     <span class="sum-card__icon">🚫</span>
                 </div>
                 <div class="sum-card" style="--sc:#0ea5e9;">
-                    <div class="sum-card__lbl">Phòng còn trống</div>
+                    <div class="sum-card__lbl" th:text="${(unitLabelCap ?: 'Phòng') + ' còn trống'}">Phòng còn trống</div>
                     <div class="sum-card__val" th:text="${summary.freeRooms}">0</div>
                     <div class="sum-card__sub">trên tổng <span th:text="${summary.totalRooms}"></span></div>
                     <span class="sum-card__icon">🛏</span>
@@ -268,22 +214,22 @@
                 <div th:if="${#lists.isEmpty(results)}" class="avail-table-wrap">
                     <div class="state-box">
                         <div class="state-icon">🔍</div>
-                        <h3>Chưa có phòng nào</h3>
-                        <p>Bạn chưa có cơ sở được duyệt hoặc không có phòng phù hợp. Đăng ký thêm cơ sở hoặc thêm phòng mới.</p>
+                        <h3 th:text="${'Chưa có ' + (unitLabel ?: 'phòng') + ' nào'}">Chưa có phòng nào</h3>
+                        <p th:text="${'Bạn chưa có cơ sở được duyệt hoặc không có ' + (unitLabel ?: 'phòng') + ' phù hợp. Đăng ký thêm cơ sở hoặc thêm ' + (unitLabel ?: 'phòng') + ' mới.'}">Bạn chưa có cơ sở được duyệt hoặc không có phòng phù hợp. Đăng ký thêm cơ sở hoặc thêm phòng mới.</p>
                     </div>
                 </div>
 
                 <div th:if="${not #lists.isEmpty(results)}" class="avail-table-wrap">
                     <div class="avail-table-head">
-                        <h2>📋 Tình trạng phòng của bạn</h2>
-                        <span class="table-count" th:text="${#lists.size(results)} + ' loại phòng'"></span>
+                        <h2 th:text="${'📋 Tình trạng ' + (unitLabel ?: 'phòng') + ' của bạn'}">📋 Tình trạng phòng của bạn</h2>
+                        <span class="table-count" th:text="${#lists.size(results) + ' loại ' + (unitLabel ?: 'phòng')}"></span>
                     </div>
                     <div style="overflow-x:auto;">
                         <table class="avail-tbl">
                             <thead>
                                 <tr>
                                     <th>Cơ sở lưu trú</th>
-                                    <th>Loại phòng</th>
+                                    <th th:text="${'Loại ' + (unitLabel ?: 'phòng')}">Loại phòng</th>
                                     <th>Hạng</th>
                                     <th>Giá/đêm</th>
                                     <th style="text-align:center;">Tổng</th>
@@ -348,13 +294,15 @@
                                     </td>
                                     <td style="text-align:center;">
                                         <span th:if="${r.status == 'AVAILABLE'}" class="badge-avail badge-available">
-                                            <i class="fa-solid fa-circle-check"></i> Còn phòng
+                                            <i class="fa-solid fa-circle-check"></i>
+                                            <span th:text="${'Còn ' + (unitLabel ?: 'phòng')}">Còn phòng</span>
                                         </span>
                                         <span th:if="${r.status == 'LIMITED'}" class="badge-avail badge-limited">
                                             <i class="fa-solid fa-triangle-exclamation"></i> Sắp hết
                                         </span>
                                         <span th:if="${r.status == 'FULL'}" class="badge-avail badge-full">
-                                            <i class="fa-solid fa-ban"></i> Hết phòng
+                                            <i class="fa-solid fa-ban"></i>
+                                            <span th:text="${'Hết ' + (unitLabel ?: 'phòng')}">Hết phòng</span>
                                         </span>
                                     </td>
                                 </tr>
@@ -363,9 +311,13 @@
                     </div>
                     <div class="legend">
                         <span style="font-weight:600;color:#374151;">Chú thích:</span>
-                        <span class="legend-item"><span class="legend-dot" style="background:#22c55e;"></span> Còn phòng (trống &gt; 30%)</span>
+                        <span class="legend-item"><span class="legend-dot" style="background:#22c55e;"></span>
+                            <span th:text="${'Còn ' + (unitLabel ?: 'phòng') + ' (trống > 30%)'}">Còn phòng (trống > 30%)</span>
+                        </span>
                         <span class="legend-item"><span class="legend-dot" style="background:#f59e0b;"></span> Sắp hết (trống ≤ 30%)</span>
-                        <span class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span> Hết phòng</span>
+                        <span class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span>
+                            <span th:text="${'Hết ' + (unitLabel ?: 'phòng')}">Hết phòng</span>
+                        </span>
                         <span style="margin-left:auto;font-size:11px;color:#94a3b8;">
                             Cập nhật theo thời gian thực từ hệ thống đặt phòng
                         </span>
@@ -378,7 +330,7 @@
                 <div class="state-box">
                     <div class="state-icon">🗓️</div>
                     <h3>Chọn ngày để xem tình trạng</h3>
-                    <p>Nhập khoảng ngày ở trên và bấm <strong>Kiểm tra</strong> để xem phòng nào đang bị giữ và phòng nào còn trống trong cơ sở của bạn.</p>
+                    <p th:text="${'Nhập khoảng ngày ở trên và bấm Kiểm tra để xem ' + (unitLabel ?: 'phòng') + ' nào đang bị giữ và ' + (unitLabel ?: 'phòng') + ' nào còn trống trong cơ sở của bạn.'}">Nhập khoảng ngày ở trên và bấm Kiểm tra để xem phòng nào đang bị giữ và phòng nào còn trống trong cơ sở của bạn.</p>
                     <div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
                         <a href="#" onclick="setQuickDate(0,1); return false;"
                            style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#ecfdf5;color:#059669;border-radius:10px;font-size:12.5px;font-weight:600;text-decoration:none;border:1px solid #bbf7d0;">
@@ -390,7 +342,7 @@
                         </a>
                         <a href="#" onclick="setQuickDate(10,14); return false;"
                            style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#f0fdf4;color:#15803d;border-radius:10px;font-size:12.5px;font-weight:600;text-decoration:none;border:1px solid #bbf7d0;">
-                            <i class="fa-solid fa-calendar-plus"></i> Demo (+10 → +14 ngày)
+                            <i class="fa-solid fa-calendar-plus"></i> Khoảng ngày gợi ý (+10 → +14)
                         </a>
                     </div>
                 </div>
@@ -400,6 +352,8 @@
     </main>
 </div>
 
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/admin.js"></script>
 <script>
 function setQuickDate(daysIn, daysOut) {
     const today = new Date();
@@ -411,14 +365,6 @@ function setQuickDate(daysIn, daysOut) {
     form.querySelector('[name="checkOut"]').value = fmt(co);
     form.submit();
 }
-
-const sidebarToggle = document.getElementById('sidebarToggle');
-const wrapper = document.querySelector('.admin-wrapper');
-if (sidebarToggle) {
-    sidebarToggle.addEventListener('click', () => wrapper.classList.toggle('sidebar-open'));
-}
-document.querySelector('.admin-sidebar-overlay')?.addEventListener('click', () =>
-    wrapper.classList.remove('sidebar-open'));
 </script>
 </body>
 </html>

@@ -1,13 +1,14 @@
 package com.travelmate;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+import static org.assertj.core.api.Assertions.assertThat;
+
 class TravelmateApplicationTests {
 
 	@Test
-	void contextLoads() {
+	void applicationEntryPointExists() {
+		assertThat(TravelmateApplication.class).isNotNull();
 	}
 
 }

@@ -11,7 +11,6 @@ import com.travelmate.repository.UserRepository;
 import com.travelmate.service.AccommodationService;
 import com.travelmate.service.AvailabilityService;
 import com.travelmate.service.BookingService;
-import com.travelmate.repository.PaymentRepository;
 import com.travelmate.service.ReviewService;
 import com.travelmate.security.CustomUserDetails;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -46,20 +45,17 @@ public class BookingPageController {
     private final ReviewService reviewService;
     private final UserRepository userRepository;
     private final AvailabilityService availabilityService;
-    private final PaymentRepository paymentRepository;
 
     public BookingPageController(AccommodationService accommodationService,
                                   BookingService bookingService,
                                   ReviewService reviewService,
                                   UserRepository userRepository,
-                                  AvailabilityService availabilityService,
-                                  PaymentRepository paymentRepository) {
+                                  AvailabilityService availabilityService) {
         this.accommodationService = accommodationService;
         this.bookingService = bookingService;
         this.reviewService = reviewService;
         this.userRepository = userRepository;
         this.availabilityService = availabilityService;
-        this.paymentRepository = paymentRepository;
     }
 
     /**
@@ -161,11 +157,15 @@ public class BookingPageController {
     }
 
     /**
-     * Xử lý tạo booking sau khi user xác nhận thanh toán.
+     * Khởi tạo booking và redirect sang VNPAY Sandbox để thanh toán.
      *
      * POST /booking/confirm
-     * Form data: roomId, checkIn, checkOut, adults, children, rooms,
-     *            customerName, customerPhone, customerEmail, paymentOption
+     *
+     * Luồng mới (VNPAY thật):
+     *   1. Validate + tạo booking PENDING_PAYMENT + payment PENDING_PAYMENT
+     *   2. Phòng được giữ tạm 15 phút
+     *   3. Redirect sang GET /payment/vnpay/create/{bookingId}
+     *   4. VNPAY xử lý → trả kết quả qua IPN + Return URL
      */
     @PostMapping("/booking/confirm")
     public String confirmBooking(
@@ -183,29 +183,23 @@ public class BookingPageController {
             @AuthenticationPrincipal CustomUserDetails currentUser,
             RedirectAttributes redirectAttributes) {
 
-        // Kiểm tra đăng nhập
         if (currentUser == null) {
             return "redirect:/auth/login";
         }
 
         try {
-            // Lấy User entity từ DB
             User user = userRepository.findByEmail(currentUser.getUsername())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản!"));
 
-            // Lấy Room + Accommodation
             Room room = accommodationService.getRoomById(roomId)
                     .orElseThrow(() -> new RuntimeException("Phòng không tồn tại!"));
             Accommodation accommodation = room.getAccommodation();
 
-            // Parse ngày
-            LocalDate checkInDate = LocalDate.parse(checkIn);
+            LocalDate checkInDate  = LocalDate.parse(checkIn);
             LocalDate checkOutDate = LocalDate.parse(checkOut);
+            PaymentOption option   = PaymentOption.valueOf(paymentOption);
 
-            // Parse payment option
-            PaymentOption option = PaymentOption.valueOf(paymentOption);
-
-            // Tạo booking (có voucher nếu user nhập)
+            // Tạo booking PENDING_PAYMENT + payment PENDING_PAYMENT (giữ phòng 15 phút)
             Booking booking = bookingService.createBooking(
                     user, room, accommodation,
                     customerName, customerPhone, customerEmail,
@@ -214,29 +208,12 @@ public class BookingPageController {
                     option,
                     (voucherCode != null && !voucherCode.isBlank()) ? voucherCode : null);
 
-            // === Lấy mã giao dịch TXN từ DB thay vì tự sinh ở FE ===
-            // Đảm bảo popup, hóa đơn, DB đều hiển thị cùng một mã
-            String txnCode = paymentRepository.findByBooking(booking)
-                    .map(p -> p.getTransactionCode())
-                    .orElse("TXN-" + String.format("%08d", booking.getId()));
-
-            // Flash attributes for booking success modal
-            redirectAttributes.addFlashAttribute("txnCode",         txnCode);
-            redirectAttributes.addFlashAttribute("newBookingCode",   booking.getBookingCode());
-            redirectAttributes.addFlashAttribute("newPaidAmount",    booking.getPaidAmount());
-            redirectAttributes.addFlashAttribute("newTotalAmount",   booking.getTotalAmount());
-            redirectAttributes.addFlashAttribute("newPaymentOption", booking.getPaymentOption().name());
-            redirectAttributes.addFlashAttribute("newAccomName",
-                    booking.getAccommodation() != null ? booking.getAccommodation().getName() : "");
-            redirectAttributes.addFlashAttribute("newRoomName",
-                    booking.getRoom() != null ? booking.getRoom().getRoomName() : "");
-
-            return "redirect:/my-bookings";
+            // Redirect sang controller VNPAY để tạo URL và chuyển hướng sang cổng thanh toán
+            return "redirect:/payment/vnpay/create/" + booking.getId();
 
         } catch (Exception e) {
-            // Nếu lỗi → redirect lại booking page với thông báo lỗi
             redirectAttributes.addFlashAttribute("errorMessage",
-                    "❌ Lỗi đặt phòng: " + e.getMessage());
+                    "Lỗi đặt phòng: " + e.getMessage());
             return "redirect:/booking?roomId=" + roomId
                     + "&checkIn=" + checkIn + "&checkOut=" + checkOut
                     + "&adults=" + adults + "&children=" + children + "&rooms=" + rooms;
@@ -303,11 +280,16 @@ public class BookingPageController {
             User user = userRepository.findByEmail(currentUser.getUsername())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản!"));
 
-            // Gọi service hủy booking (service sẽ validate quyền + trạng thái)
-            bookingService.cancelBooking(id, user);
+            // Gọi service hủy booking (service validate quyền + trạng thái, trả về booking đã hủy)
+            com.travelmate.entity.Booking cancelled = bookingService.cancelBooking(id, user);
 
-            redirectAttributes.addFlashAttribute("successMessage",
-                    "✅ Đã hủy đặt phòng thành công!");
+            if (cancelled.getPaymentStatus() == com.travelmate.entity.enums.PaymentStatus.REFUND_PENDING) {
+                redirectAttributes.addFlashAttribute("successMessage",
+                        "✅ Đã ghi nhận yêu cầu hủy. TravelMate đã nhận tiền thanh toán của bạn và sẽ xử lý hoàn tiền theo chính sách trong 3–5 ngày làm việc.");
+            } else {
+                redirectAttributes.addFlashAttribute("successMessage",
+                        "✅ Đã hủy đặt phòng thành công! Phòng đã được giải phóng.");
+            }
 
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage",

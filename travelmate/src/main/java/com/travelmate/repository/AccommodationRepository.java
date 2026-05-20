@@ -43,6 +43,10 @@ public interface AccommodationRepository extends JpaRepository<Accommodation, Lo
     /** Đếm số nơi lưu trú theo loại hình — dùng kiểm tra seed data */
     long countByPropertyType(PropertyType propertyType);
 
+    boolean existsByNameIgnoreCase(String name);
+
+    Optional<Accommodation> findFirstByNameIgnoreCase(String name);
+
     /** Đếm accommodation theo trạng thái duyệt — dùng cho admin dashboard */
     long countByApprovalStatus(ApprovalStatus approvalStatus);
 
@@ -67,4 +71,3 @@ public interface AccommodationRepository extends JpaRepository<Accommodation, Lo
     /** Tìm accommodation theo ID và owner — kiểm tra ownership an toàn */
     Optional<Accommodation> findByIdAndOwner(Long id, User owner);
 }
-

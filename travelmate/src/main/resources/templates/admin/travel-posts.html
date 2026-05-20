@@ -26,6 +26,8 @@
 .tp-card-body{padding:12px}
 .tp-card-title{font-size:.85rem;font-weight:700;color:#0f172a;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.35}
 .tp-card-summary{font-size:.76rem;color:#64748b;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4;margin-bottom:8px}
+.tp-card-destination{display:inline-flex;align-items:center;gap:5px;max-width:100%;font-size:.7rem;font-weight:700;color:#1d4ed8;background:#eff6ff;border:1px solid #bfdbfe;border-radius:999px;padding:3px 8px;margin-bottom:8px}
+.tp-card-destination span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tp-card-footer{display:flex;align-items:center;justify-content:space-between;gap:6px}
 .tp-badge-v{display:inline-flex;align-items:center;gap:3px;background:#dcfce7;color:#166534;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px}
 .tp-badge-h{display:inline-flex;align-items:center;gap:3px;background:#f3f4f6;color:#6b7280;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px}
@@ -175,6 +177,7 @@
         <div class="tp-card"
              th:data-id="${p.id}" th:data-cat="${p.category.name()}" th:data-status="${p.status.name()}"
              th:data-title="${p.title}" th:data-summary="${p.summary}"
+             th:data-destination="${p.destination}" th:data-source-name="${p.sourceName}"
              th:data-content="${p.content}" th:data-thumb="${p.thumbnailUrl}"
              th:data-src="${p.sourceUrl}">
           <div th:if="${p.status.name() == 'HIDDEN'}" class="tp-hidden-overlay"><span class="tp-hidden-label"><i class="fa-solid fa-eye-slash"></i> Đã ẩn</span></div>
@@ -183,6 +186,9 @@
           <div class="tp-card-body">
             <div class="tp-card-title" th:text="${p.title}">Tiêu đề</div>
             <div class="tp-card-summary" th:text="${p.summary != null ? p.summary : 'Chưa có mô tả'}"></div>
+            <div class="tp-card-destination" th:if="${p.destination != null and !#strings.isEmpty(p.destination)}">
+              <i class="fa-solid fa-location-dot"></i><span th:text="${p.destination}">Đà Lạt</span>
+            </div>
             <div class="tp-card-footer">
               <span th:class="${p.status.name() == 'VISIBLE' ? 'tp-badge-v' : 'tp-badge-h'}">
                 <i th:class="${p.status.name() == 'VISIBLE' ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash'}"></i>
@@ -218,6 +224,7 @@
         <div class="tp-card"
              th:data-id="${p.id}" th:data-cat="${p.category.name()}" th:data-status="${p.status.name()}"
              th:data-title="${p.title}" th:data-summary="${p.summary}"
+             th:data-destination="${p.destination}" th:data-source-name="${p.sourceName}"
              th:data-content="${p.content}" th:data-thumb="${p.thumbnailUrl}"
              th:data-src="${p.sourceUrl}">
           <div th:if="${p.status.name() == 'HIDDEN'}" class="tp-hidden-overlay"><span class="tp-hidden-label"><i class="fa-solid fa-eye-slash"></i> Đã ẩn</span></div>
@@ -226,6 +233,9 @@
           <div class="tp-card-body">
             <div class="tp-card-title" th:text="${p.title}">Tiêu đề</div>
             <div class="tp-card-summary" th:text="${p.summary != null ? p.summary : 'Chưa có mô tả'}"></div>
+            <div class="tp-card-destination" th:if="${p.destination != null and !#strings.isEmpty(p.destination)}">
+              <i class="fa-solid fa-location-dot"></i><span th:text="${p.destination}">Đà Lạt</span>
+            </div>
             <div class="tp-card-footer">
               <span th:class="${p.status.name() == 'VISIBLE' ? 'tp-badge-v' : 'tp-badge-h'}">
                 <i th:class="${p.status.name() == 'VISIBLE' ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash'}"></i>
@@ -261,6 +271,7 @@
         <div class="tp-card"
              th:data-id="${p.id}" th:data-cat="${p.category.name()}" th:data-status="${p.status.name()}"
              th:data-title="${p.title}" th:data-summary="${p.summary}"
+             th:data-destination="${p.destination}" th:data-source-name="${p.sourceName}"
              th:data-content="${p.content}" th:data-thumb="${p.thumbnailUrl}"
              th:data-src="${p.sourceUrl}">
           <div th:if="${p.status.name() == 'HIDDEN'}" class="tp-hidden-overlay"><span class="tp-hidden-label"><i class="fa-solid fa-eye-slash"></i> Đã ẩn</span></div>
@@ -269,6 +280,9 @@
           <div class="tp-card-body">
             <div class="tp-card-title" th:text="${p.title}">Tiêu đề</div>
             <div class="tp-card-summary" th:text="${p.summary != null ? p.summary : 'Chưa có mô tả'}"></div>
+            <div class="tp-card-destination" th:if="${p.destination != null and !#strings.isEmpty(p.destination)}">
+              <i class="fa-solid fa-location-dot"></i><span th:text="${p.destination}">Đà Lạt</span>
+            </div>
             <div class="tp-card-footer">
               <span th:class="${p.status.name() == 'VISIBLE' ? 'tp-badge-v' : 'tp-badge-h'}">
                 <i th:class="${p.status.name() == 'VISIBLE' ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash'}"></i>
@@ -299,13 +313,14 @@
   <div class="table-container">
     <table class="data-table" id="tpTable">
       <thead><tr>
-        <th style="width:60px">Ảnh</th><th>Tiêu đề</th><th style="width:130px">Danh mục</th>
+        <th style="width:60px">Ảnh</th><th>Tiêu đề</th><th style="width:120px">Điểm đến</th><th style="width:130px">Danh mục</th>
         <th style="width:100px">Trạng thái</th><th style="width:110px">Ngày tạo</th><th style="width:120px">Thao tác</th>
       </tr></thead>
       <tbody>
-        <tr th:if="${#lists.isEmpty(posts)}"><td colspan="6" style="text-align:center;color:#94a3b8;padding:32px">Chưa có bài viết nào.</td></tr>
+        <tr th:if="${#lists.isEmpty(posts)}"><td colspan="7" style="text-align:center;color:#94a3b8;padding:32px">Chưa có bài viết nào.</td></tr>
         <tr th:each="p : ${posts}" th:data-cat="${p.category.name()}"
             th:data-id="${p.id}" th:data-title="${p.title}" th:data-summary="${p.summary}"
+            th:data-destination="${p.destination}" th:data-source-name="${p.sourceName}"
             th:data-content="${p.content}" th:data-thumb="${p.thumbnailUrl}" th:data-src="${p.sourceUrl}">
           <td>
             <img th:if="${p.thumbnailUrl != null and !#strings.isEmpty(p.thumbnailUrl)}" th:src="${p.thumbnailUrl}" alt="" style="width:52px;height:38px;object-fit:cover;border-radius:6px;border:1px solid #e5e7eb"/>
@@ -315,6 +330,7 @@
             <div style="font-weight:600;font-size:13px;color:#0f172a;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden" th:text="${p.title}"></div>
             <div style="font-size:11px;color:#94a3b8;margin-top:2px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden" th:text="${p.summary}"></div>
           </td>
+          <td class="tp-row-destination" style="font-size:12px;font-weight:700;color:#1d4ed8" th:text="${p.destination != null ? p.destination : '—'}">Đà Lạt</td>
           <td><span th:class="${p.category.name() == 'GUIDE' ? 'badge-guide' : (p.category.name() == 'ATTRACTION' ? 'badge-attraction' : 'badge-essential')}" th:text="${p.category.displayName}"></span></td>
           <td><span th:class="${p.status.name() == 'VISIBLE' ? 'tp-badge-v' : 'tp-badge-h'}"><i th:class="${p.status.name() == 'VISIBLE' ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash'}"></i><span th:text="${p.status.name() == 'VISIBLE' ? 'Hiển thị' : 'Đã ẩn'}"></span></span></td>
           <td style="font-size:12px;color:#64748b" th:text="${#temporals.format(p.createdAt,'dd/MM/yyyy')}"></td>
@@ -346,6 +362,18 @@
 <div class="tp-fg">
 <label>Tiêu đề bài viết <span style="color:#ef4444">*</span></label>
 <input type="text" id="fTitle" placeholder="Nhập tiêu đề hấp dẫn..."/>
+</div>
+<div class="tp-fg-row">
+<div class="tp-fg">
+<label>Điểm đến <span style="color:#ef4444">*</span></label>
+<input type="text" id="fDestination" placeholder="Đà Lạt, Nha Trang, Hội An..."/>
+<div class="tp-hint">Hệ thống tự chuẩn hóa: dalat, da lat, Đà Lạt → da-lat</div>
+</div>
+<div class="tp-fg">
+<label>Tên nguồn</label>
+<input type="text" id="fSourceName" placeholder="Vietnam.travel"/>
+<div class="tp-hint">Hiển thị trên card để chứng minh nguồn tham khảo</div>
+</div>
 </div>
 <div class="tp-fg-row">
 <div class="tp-fg">
@@ -410,6 +438,8 @@ document.querySelectorAll('.tp-card[data-id], tr[data-id]').forEach(el => {
   const id = el.dataset.id;
   if (!POSTS[id]) POSTS[id] = {
     id, title: el.dataset.title || '',
+    destination: el.dataset.destination || '',
+    sourceName: el.dataset.sourceName || '',
     summary: el.dataset.summary || '',
     content: el.dataset.content || '',
     thumbnailUrl: el.dataset.thumb || '',
@@ -471,6 +501,8 @@ function openEdit(id) {
   editing = true;
   document.getElementById('editId').value = id;
   document.getElementById('fTitle').value = p.title;
+  document.getElementById('fDestination').value = p.destination || '';
+  document.getElementById('fSourceName').value = p.sourceName || '';
   document.getElementById('fSummary').value = p.summary;
   document.getElementById('fContent').value = p.content;
   document.getElementById('fThumb').value = p.thumbnailUrl;
@@ -490,30 +522,37 @@ formOverlay.addEventListener('click', e => { if (e.target===formOverlay) closeFo
 document.getElementById('formSave').addEventListener('click', () => {
   const id = document.getElementById('editId').value;
   const title = document.getElementById('fTitle').value.trim();
+  const destination = document.getElementById('fDestination').value.trim();
+  const sourceName = document.getElementById('fSourceName').value.trim() || 'Vietnam.travel';
   const sourceUrl = document.getElementById('fSourceUrl').value.trim();
   const summary = document.getElementById('fSummary').value.trim();
   const content = document.getElementById('fContent').value.trim();
   const thumbnailUrl = document.getElementById('fThumb').value.trim();
   const category = document.getElementById('fCategory').value;
   const errEl = document.getElementById('formErr');
-  if (!title || !sourceUrl) { errEl.textContent='Vui lòng điền tiêu đề và URL nguồn.'; errEl.style.display='block'; return; }
+  if (!title || !destination || !sourceUrl) { errEl.textContent='Vui lòng điền tiêu đề, điểm đến và URL nguồn.'; errEl.style.display='block'; return; }
   errEl.style.display='none';
   const saveBtn = document.getElementById('formSave');
   saveBtn.disabled=true; document.getElementById('saveLbl').textContent='Đang lưu...';
   const method = editing ? 'PUT' : 'POST';
   const url = editing ? '/api/travel-posts/'+id : '/api/travel-posts';
-  fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify({title,sourceUrl,summary,content,thumbnailUrl,category}) })
+  fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify({title,destination,sourceName,sourceUrl,summary,content,thumbnailUrl,category}) })
     .then(r=>r.json()).then(data => {
       if (data.error) { errEl.textContent=data.error; errEl.style.display='block'; return; }
       POSTS[data.id] = data;
       if (editing) {
         document.querySelectorAll(`[data-id="${data.id}"]`).forEach(el => {
           el.dataset.title=data.title; el.dataset.summary=data.summary;
+          el.dataset.destination=data.destination || ''; el.dataset.sourceName=data.sourceName || '';
           el.dataset.content=data.content; el.dataset.thumb=data.thumbnailUrl; el.dataset.src=data.sourceUrl;
           const titleEl = el.querySelector('.tp-card-title');
           const sumEl = el.querySelector('.tp-card-summary');
+          const destEl = el.querySelector('.tp-card-destination span');
+          const rowDestEl = el.querySelector('.tp-row-destination');
           if (titleEl) titleEl.textContent=data.title;
           if (sumEl) sumEl.textContent=data.summary||'Chưa có mô tả';
+          if (destEl) destEl.textContent=data.destination||'';
+          if (rowDestEl) rowDestEl.textContent=data.destination||'—';
         });
       } else {
         const catIcons = {GUIDE:'fa-book-open',ATTRACTION:'fa-map-location-dot',ESSENTIAL:'fa-suitcase-rolling'};
@@ -523,6 +562,7 @@ document.getElementById('formSave').addEventListener('click', () => {
           const card = document.createElement('div');
           card.className='tp-card'; card.dataset.id=data.id; card.dataset.cat=data.category;
           card.dataset.status='VISIBLE'; card.dataset.title=data.title;
+          card.dataset.destination=data.destination||''; card.dataset.sourceName=data.sourceName||'';
           card.dataset.summary=data.summary; card.dataset.content=data.content;
           card.dataset.thumb=data.thumbnailUrl; card.dataset.src=data.sourceUrl;
           card.style.animation='newsCardFadeIn 0.4s ease';
@@ -530,6 +570,7 @@ document.getElementById('formSave').addEventListener('click', () => {
           <div class="tp-card-body">
             <div class="tp-card-title">${data.title}</div>
             <div class="tp-card-summary">${data.summary||'Chưa có mô tả'}</div>
+            <div class="tp-card-destination"><i class="fa-solid fa-location-dot"></i><span>${data.destination||''}</span></div>
             <div class="tp-card-footer">
               <span class="tp-badge-v"><i class="fa-solid fa-eye"></i> Hiển thị</span>
               <div class="tp-card-actions">
@@ -565,6 +606,9 @@ function openView(id) {
   const imgEl = document.getElementById('viewImg');
   if (p.thumbnailUrl) { imgEl.src=p.thumbnailUrl; imgEl.style.display='block'; } else imgEl.style.display='none';
   document.getElementById('viewCatBadge').innerHTML = `<span style="background:${CAT_COLORS[p.category]};color:#fff;font-size:.78rem;font-weight:700;padding:4px 12px;border-radius:20px">${CAT_LABELS[p.category]||p.category}</span>`;
+  document.getElementById('viewMeta').textContent =
+    (p.destination ? 'Điểm đến: ' + p.destination + ' · ' : '') +
+    'Nguồn: ' + (p.sourceName || 'Nguồn tham khảo');
   document.getElementById('viewContent').textContent = p.content || p.summary || 'Chưa có nội dung chi tiết.';
   document.getElementById('viewSrcLink').href = p.sourceUrl;
   document.getElementById('viewEditBtn').onclick = () => { closeView(); openEdit(id); };

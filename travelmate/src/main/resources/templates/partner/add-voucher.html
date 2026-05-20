@@ -19,62 +19,7 @@
 
 <body>
     <div class="admin-wrapper">
-        <aside class="admin-sidebar">
-            <div class="admin-sidebar__header">
-                <a href="/partner/rooms" class="sidebar-logo">
-                    <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                    <div>
-                        <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
-                        <span class="admin-sidebar__badge">PARTNER CENTER</span>
-                    </div>
-                </a>
-            </div>
-            <nav class="admin-sidebar__nav">
-                <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
-                <a href="/partner/rooms" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">🛏</span> Danh sách phòng
-                </a>
-                <a href="/partner/rooms/add" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">＋</span> Thêm phòng
-                </a>
-                <a href="/partner/rooms/pending" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">⏳</span> Chờ duyệt
-                </a>
-                <a href="/partner/amenities" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">🏷</span> Tiện nghi phòng
-                </a>
-                <a href="/partner/bookings" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">📋</span> Lịch sử đặt phòng
-                </a>
-                <div class="admin-sidebar__section-title">Tiện ích</div>
-                <a href="/partner/rooms/furniture" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">🪑</span> Thêm nội thất
-                </a>
-                <a href="/partner/vouchers" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">🎟</span> Add voucher
-                </a>
-                <div class="admin-sidebar__section-title">Tài chính</div>
-                <a href="/partner/revenue" class="admin-sidebar__link active">
-                    <span class="admin-sidebar__link-icon">💰</span> Doanh thu
-                </a>
-                <div class="admin-sidebar__section-title">Hỗ trợ</div>
-                <a href="/partner/support" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ
-                </a>
-                <a href="/partner/profile" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">👤</span> Hồ sơ của tôi
-                </a>
-            </nav>
-            <div class="admin-sidebar__footer">
-                <div class="admin-sidebar__user">
-                    <div class="admin-sidebar__user-avatar">PT</div>
-                    <div class="admin-sidebar__user-info">
-                        <div class="admin-sidebar__user-name">Sunrise Sapa Lodge</div>
-                        <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
-                    </div>
-                </div>
-            </div>
-        </aside>
+        <aside th:replace="~{fragments/partner-sidebar :: sidebar('vouchers', ${partnerName})}"></aside>
         <div class="admin-sidebar-overlay"></div>
 
         <div class="admin-main">
@@ -92,7 +37,7 @@
                                 <div>
                                     <h2 class="page-header__title">Chọn voucher admin cho phòng</h2>
                                     <p class="page-header__subtitle">
-                                        Partner chỉ có thể gán voucher cho các phòng đã được admin duyệt.
+                                        Partner chỉ có thể gán voucher cho các phòng đã được Admin duyệt.
                                     </p>
                                 </div>
                             </div>

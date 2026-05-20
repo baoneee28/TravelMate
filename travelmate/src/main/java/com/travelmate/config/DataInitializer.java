@@ -256,6 +256,10 @@ public class DataInitializer {
                 seedResorts(accommodationRepository, partnerResort);
             }
 
+            // ── SEED BỔ SUNG: đủ điểm demo theo loại hình, idempotent theo name/roomCode ──
+            seedMissingDemoAccommodations(accommodationRepository, roomRepository,
+                    partnerHotel, partnerResort, partnerVilla, partnerHomestay);
+
             // ── FIX: Cập nhật settlement notes khớp đúng với partner ─────────
             fixSettlementNotes(settlementRepository, partnerHotel, partnerResort, partnerVilla, partnerHomestay);
 
@@ -359,6 +363,185 @@ public class DataInitializer {
         ));
         repo.save(r1);
         System.out.println("✅ [DataInitializer] Seed 1 Resort cho partner RESORT");
+    }
+
+    private void seedMissingDemoAccommodations(AccommodationRepository accommodationRepository,
+                                               RoomRepository roomRepository,
+                                               User partnerHotel,
+                                               User partnerResort,
+                                               User partnerVilla,
+                                               User partnerHomestay) {
+        seedDemoAccommodationIfMissing(accommodationRepository, roomRepository, partnerHotel,
+                "InterContinental Nha Trang",
+                "32-34 Trần Phú, Lộc Thọ", "Nha Trang",
+                "Khách sạn 5 sao quốc tế tọa lạc ngay trung tâm bãi biển Trần Phú, view biển toàn cảnh.",
+                "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80",
+                PropertyType.HOTEL, 5, 9.0, 1456,
+                List.of(
+                        new DemoRoom("ICN-STD", "Superior City View", "1 giường King", 2, "1850000", 10,
+                                "Phòng 32m² hướng thành phố, tiện nghi chuẩn 5 sao.", "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400&q=70", RoomCategory.STANDARD),
+                        new DemoRoom("ICN-DLX", "Deluxe Ocean Front", "1 giường King cỡ lớn", 2, "3200000", 6,
+                                "Phòng 42m² hướng biển, ban công riêng ngắm bình minh trên vịnh Nha Trang.", "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&q=70", RoomCategory.DELUXE)
+                ));
+
+        seedDemoAccommodationIfMissing(accommodationRepository, roomRepository, partnerHotel,
+                "Novotel Đà Nẵng Premier",
+                "36 Bạch Đằng, Hải Châu", "Đà Nẵng",
+                "Khách sạn 4 sao hiện đại tọa lạc bên sông Hàn, cách bãi biển Mỹ Khê 5 phút.",
+                "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80",
+                PropertyType.HOTEL, 4, 8.7, 2103,
+                List.of(
+                        new DemoRoom("NVD-STD", "Standard River View", "1 giường Queen", 2, "1100000", 12,
+                                "Phòng 28m² hướng sông Hàn, view cầu Rồng lung linh về đêm.", "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400&q=70", RoomCategory.STANDARD),
+                        new DemoRoom("NVD-DLX", "Deluxe Premium", "1 giường King", 2, "1650000", 8,
+                                "Phòng 35m², tầng cao, bao gồm bữa sáng buffet.", "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&q=70", RoomCategory.DELUXE)
+                ));
+
+        seedDemoAccommodationIfMissing(accommodationRepository, roomRepository, partnerHotel,
+                "Sofitel Legend Metropole Hà Nội",
+                "15 Ngô Quyền, Tràng Tiền, Hoàn Kiếm", "Hà Nội",
+                "Khách sạn lịch sử 5 sao nằm tại trung tâm quận Hoàn Kiếm, kiến trúc Pháp cổ điển.",
+                "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=80",
+                PropertyType.HOTEL, 5, 9.4, 3201,
+                List.of(
+                        new DemoRoom("SLM-PRE", "Premium Room", "1 giường King", 2, "4500000", 8,
+                                "Phòng 32m² khu Historical Wing, nội thất gỗ cổ điển.", "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400&q=70", RoomCategory.DELUXE),
+                        new DemoRoom("SLM-FAM", "Family Heritage", "2 giường Queen", 4, "7800000", 2,
+                                "Phòng gia đình 52m², hai phòng ngủ, view Hồ Hoàn Kiếm.", "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=400&q=70", RoomCategory.FAMILY)
+                ));
+
+        seedDemoAccommodationIfMissing(accommodationRepository, roomRepository, partnerVilla,
+                "Pine Hill Villa Đà Lạt",
+                "12 Hoàng Hoa Thám, Phường 10", "Đà Lạt",
+                "Villa riêng giữa đồi thông Đà Lạt, có bếp, sân BBQ và phòng khách rộng cho nhóm gia đình.",
+                "https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=800&q=80",
+                PropertyType.VILLA, 4, 8.9, 216,
+                List.of(
+                        new DemoRoom("PHV-DLX", "Deluxe Pine Villa", "2 giường Queen", 4, "2400000", 3,
+                                "Căn villa 2 phòng ngủ nhìn ra đồi thông, phù hợp gia đình nhỏ.", "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&q=70", RoomCategory.DELUXE),
+                        new DemoRoom("PHV-FAM", "Family BBQ Villa", "3 giường Queen", 6, "3600000", 2,
+                                "Căn villa sân vườn, bếp riêng và khu BBQ ngoài trời.", "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=70", RoomCategory.FAMILY)
+                ));
+
+        seedDemoAccommodationIfMissing(accommodationRepository, roomRepository, partnerVilla,
+                "Sunset Beach Villa Phú Quốc",
+                "Bãi Trường, Dương Tơ", "Phú Quốc",
+                "Villa biển phía tây Phú Quốc, thích hợp nhóm bạn và gia đình muốn nghỉ dưỡng riêng tư.",
+                "https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=800&q=80",
+                PropertyType.VILLA, 5, 9.1, 334,
+                List.of(
+                        new DemoRoom("SBV-SEA", "Sea Breeze Villa", "2 giường King", 4, "4200000", 3,
+                                "Villa hai phòng ngủ gần biển, có ban công ngắm hoàng hôn.", "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=400&q=70", RoomCategory.VIP),
+                        new DemoRoom("SBV-POOL", "Private Pool Villa", "3 giường King", 6, "6800000", 1,
+                                "Villa hồ bơi riêng cho nhóm lớn, có bếp và phòng khách.", "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&q=70", RoomCategory.SUITE)
+                ));
+
+        seedDemoAccommodationIfMissing(accommodationRepository, roomRepository, partnerHomestay,
+                "Tam Cốc Garden Homestay",
+                "Đội 3, Văn Lâm, Ninh Hải", "Ninh Bình",
+                "Homestay gần bến Tam Cốc, view núi đá vôi, có xe đạp miễn phí và bữa sáng địa phương.",
+                "https://images.unsplash.com/photo-1555921015-5532091f6026?w=800&q=80",
+                PropertyType.HOMESTAY, 3, 8.8, 189,
+                List.of(
+                        new DemoRoom("TCG-STD", "Phòng Vườn Tiêu Chuẩn", "1 giường Queen", 2, "420000", 5,
+                                "Phòng riêng nhìn ra vườn, phù hợp khách đi cặp đôi.", "https://images.unsplash.com/photo-1586375300773-8384e3e4916f?w=400&q=70", RoomCategory.STANDARD),
+                        new DemoRoom("TCG-FAM", "Phòng Gia Đình Tam Cốc", "2 giường Queen", 4, "720000", 3,
+                                "Phòng gia đình rộng, có ban công nhìn núi đá vôi.", "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=400&q=70", RoomCategory.FAMILY)
+                ));
+
+        seedDemoAccommodationIfMissing(accommodationRepository, roomRepository, partnerHomestay,
+                "Sapa Valley Homestay",
+                "Lao Chải, Sa Pa", "Sa Pa",
+                "Homestay bản làng nhìn ra thung lũng Mường Hoa, phù hợp du khách thích trekking và trải nghiệm địa phương.",
+                "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&q=80",
+                PropertyType.HOMESTAY, 3, 8.7, 241,
+                List.of(
+                        new DemoRoom("SVH-STD", "Phòng Gỗ View Núi", "1 giường đôi", 2, "380000", 6,
+                                "Phòng gỗ đơn giản, có cửa sổ nhìn ruộng bậc thang.", "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=400&q=70", RoomCategory.STANDARD),
+                        new DemoRoom("SVH-DLX", "Deluxe Valley Room", "1 giường King", 2, "620000", 4,
+                                "Phòng có ban công riêng, bao gồm bữa sáng địa phương.", "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&q=70", RoomCategory.DELUXE)
+                ));
+
+        seedDemoAccommodationIfMissing(accommodationRepository, roomRepository, partnerResort,
+                "Sunset Pearl Resort Phú Quốc",
+                "Bãi Trường, Dương Tơ", "Phú Quốc",
+                "Resort ven biển phía tây đảo Phú Quốc, có hồ bơi ngoài trời và nhà hàng hải sản.",
+                "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+                PropertyType.RESORT, 5, 9.2, 876,
+                List.of(
+                        new DemoRoom("SPQ-DLX", "Deluxe Garden Room", "1 giường King", 2, "2100000", 8,
+                                "Phòng 38m² hướng vườn nhiệt đới, bao gồm bữa sáng buffet.", "https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=400&q=70", RoomCategory.DELUXE),
+                        new DemoRoom("SPQ-SEA", "Ocean Sunset Suite", "1 giường King cỡ lớn", 2, "3900000", 4,
+                                "Suite 58m² hướng biển, ban công riêng ngắm hoàng hôn.", "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&q=70", RoomCategory.SUITE)
+                ));
+
+        seedDemoAccommodationIfMissing(accommodationRepository, roomRepository, partnerResort,
+                "Legacy Bay Resort Hạ Long",
+                "Bãi Cháy, Hạ Long", "Quảng Ninh",
+                "Resort nghỉ dưỡng bên vịnh Hạ Long, phù hợp khách tìm Quảng Ninh hoặc Hạ Long.",
+                "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&q=80",
+                PropertyType.RESORT, 5, 9.0, 512,
+                List.of(
+                        new DemoRoom("LBR-DLX", "Deluxe Bay View", "1 giường King", 2, "2600000", 7,
+                                "Phòng hướng vịnh, ban công riêng và bữa sáng buffet.", "https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=400&q=70", RoomCategory.DELUXE),
+                        new DemoRoom("LBR-SUI", "Heritage Bay Suite", "1 giường King cỡ lớn", 2, "4800000", 3,
+                                "Suite tầng cao nhìn toàn cảnh vịnh Hạ Long, có phòng khách riêng.", "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&q=70", RoomCategory.SUITE)
+                ));
+    }
+
+    private void seedDemoAccommodationIfMissing(AccommodationRepository accommodationRepository,
+                                                RoomRepository roomRepository,
+                                                User owner,
+                                                String name,
+                                                String address,
+                                                String city,
+                                                String description,
+                                                String thumbnailUrl,
+                                                PropertyType propertyType,
+                                                Integer starRating,
+                                                Double rating,
+                                                Integer reviewCount,
+                                                List<DemoRoom> demoRooms) {
+        Accommodation accommodation = accommodationRepository.findFirstByNameIgnoreCase(name)
+                .orElseGet(() -> {
+                    Accommodation acc = new Accommodation();
+                    acc.setName(name);
+                    acc.setAddress(address);
+                    acc.setCity(city);
+                    acc.setDescription(description);
+                    acc.setThumbnailUrl(thumbnailUrl);
+                    acc.setPropertyType(propertyType);
+                    acc.setApprovalStatus(ApprovalStatus.APPROVED);
+                    acc.setOwner(owner);
+                    acc.setStarRating(starRating);
+                    acc.setRating(rating);
+                    acc.setReviewCount(reviewCount);
+                    return accommodationRepository.save(acc);
+                });
+
+        for (DemoRoom demoRoom : demoRooms) {
+            if (roomRepository.existsByRoomCode(demoRoom.code())) {
+                continue;
+            }
+            Room room = createRoom(
+                    demoRoom.code(),
+                    demoRoom.name(),
+                    demoRoom.bedType(),
+                    demoRoom.capacity(),
+                    new BigDecimal(demoRoom.price()),
+                    demoRoom.availableQuantity(),
+                    demoRoom.imageUrl(),
+                    demoRoom.description(),
+                    accommodation,
+                    demoRoom.category(),
+                    null);
+            roomRepository.save(room);
+        }
+    }
+
+    private record DemoRoom(String code, String name, String bedType, int capacity,
+                            String price, int availableQuantity, String description,
+                            String imageUrl, RoomCategory category) {
     }
 
     // ── BACKFILL HELPERS ────────────────────────────────────────────────────
@@ -510,12 +693,7 @@ public class DataInitializer {
             }
 
             if (contaminated) {
-                // Thay note bằng ghi chú hợp lệ cho partner này
-                String rep = partnerRepresentative.getOrDefault(partner, "booking thuộc cơ sở");
-                String newNote = note
-                    // Giữ lại phần tuần số nếu có
-                    .replaceAll("Tuần \\d+:", "").trim();
-                // Tạo note mới sạch
+                // Tạo note mới sạch, thay thế note sai bằng ghi chú hợp lệ cho partner này
                 String typeName = partner.getPartnerPropertyType() != null
                     ? partner.getPartnerPropertyType().name() : "property";
                 s.setNote("Đã thanh toán cho partner " + partner.getName() + " (" + typeName + ").");
@@ -524,9 +702,8 @@ public class DataInitializer {
         }
 
         if (fixCount > 0) {
-            repo.saveAll(all);
+            repo.saveAll(java.util.Collections.unmodifiableList(all));
             System.out.println("🔧 [DataInitializer] Đã sửa " + fixCount + " settlement note bị lẫn dữ liệu sai.");
         }
     }
 }
-

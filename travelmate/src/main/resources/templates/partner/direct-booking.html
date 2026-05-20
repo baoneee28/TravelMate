@@ -11,49 +11,12 @@
     <link rel="stylesheet" href="/assets/css/components.css" />
     <link rel="stylesheet" href="/assets/css/admin.css" />
     <link rel="stylesheet" href="/assets/css/partners.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 </head>
 <body>
 <div class="admin-wrapper">
-    <aside class="admin-sidebar">
-        <div class="admin-sidebar__header">
-            <a href="/partner/dashboard" class="sidebar-logo">
-                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                <div>
-                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
-                    <span class="admin-sidebar__badge">PARTNER CENTER</span>
-                </div>
-            </a>
-        </div>
-        <nav class="admin-sidebar__nav">
-            <div class="admin-sidebar__section-title">Tổng quan</div>
-            <a href="/partner/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
-            <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
-            <a href="/partner/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Nơi lưu trú của tôi</a>
-            <a href="/partner/amenities" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏷</span> Tiện nghi phòng</a>
-            <a href="/partner/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đơn đặt phòng</a>
-            <a href="/partner/room-status" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏠</span> Tình trạng phòng</a>
-            <a href="/partner/direct-booking" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">➕</span> Booking trực tiếp</a>
-            <a href="/partner/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Kiểm tra lịch trống</a>
-            <a href="/partner/reviews" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá của khách</a>
-            <div class="admin-sidebar__section-title">Tài chính</div>
-            <a href="/partner/revenue" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
-            <a href="/partner/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
-            <a href="/partner/vouchers" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher của tôi</a>
-            <div class="admin-sidebar__section-title">Hỗ trợ</div>
-            <a href="/partner/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ</a>
-            <a href="/partner/profile" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👤</span> Hồ sơ của tôi</a>
-        </nav>
-        <div class="admin-sidebar__footer">
-            <div class="admin-sidebar__user">
-                <div class="admin-sidebar__user-avatar">PT</div>
-                <div class="admin-sidebar__user-info">
-                    <div class="admin-sidebar__user-name" th:text="${partnerName} ?: 'Partner'">Partner</div>
-                    <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
-                </div>
-            </div>
-        </div>
-    </aside>
+    <aside th:replace="~{fragments/partner-sidebar :: sidebar('direct-booking', ${partnerName})}"></aside>
     <div class="admin-sidebar-overlay"></div>
 
     <div class="admin-main">
@@ -75,11 +38,12 @@
                     <h2 class="page-header__title">➕ Tạo Booking Trực Tiếp tại Cơ Sở</h2>
                     <p class="page-header__subtitle">
                         Dùng khi khách đến trực tiếp và thanh toán tại cơ sở (không qua TravelMate online).
-                        Hệ thống sẽ cập nhật số phòng còn trống để tránh overbooking.
+                        Hệ thống sẽ cập nhật số <span th:text="${unitLabel ?: 'phòng'}">phòng</span> còn trống để tránh overbooking.
                     </p>
                 </div>
                 <a href="/partner/room-status" class="btn btn--outline btn--sm">
-                    <i class="fa-solid fa-arrow-left" style="margin-right:4px;"></i> Quay lại tình trạng phòng
+                    <i class="fa-solid fa-arrow-left" style="margin-right:4px;"></i>
+                    <span th:text="${'Quay lại tình trạng ' + (unitLabel ?: 'phòng')}">Quay lại tình trạng phòng</span>
                 </a>
             </div>
 
@@ -98,10 +62,21 @@
                 <div style="font-weight:700;margin-bottom:6px;">⚠️ Lưu ý về Booking trực tiếp</div>
                 <ul style="margin:0;padding-left:18px;line-height:1.8;">
                     <li>Booking trực tiếp <strong>không qua thanh toán TravelMate</strong> — tiền thu tại cơ sở.</li>
-                    <li>Hệ thống sẽ <strong>trừ số phòng còn trống</strong> trên TravelMate để tránh overbooking.</li>
+                    <li>Hệ thống sẽ <strong>trừ số <span th:text="${unitLabel ?: 'phòng'}">phòng</span> còn trống</strong> trên TravelMate để tránh overbooking.</li>
                     <li>Booking trực tiếp <strong>không tính commission</strong> và không vào quyết toán.</li>
-                    <li>Admin có thể xem để kiểm soát tồn phòng toàn hệ thống.</li>
+                    <li>Admin có thể xem để kiểm soát <span th:text="${'tồn ' + (unitLabel ?: 'phòng')}">tồn phòng</span> toàn hệ thống.</li>
                 </ul>
+            </div>
+
+            <!-- Homestay: entire-home rental tip -->
+            <div th:if="${propertyWord == 'homestay'}"
+                 style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px 18px;margin-bottom:var(--space-5);font-size:13px;color:#166534;">
+                <div style="font-weight:700;margin-bottom:6px;">🏠 Gợi ý dành cho Homestay</div>
+                <p style="margin:0;line-height:1.8;">
+                    Nếu homestay của bạn cho thuê <strong>nguyên căn</strong> (toàn bộ nhà), hãy chọn loại phòng
+                    <strong>"Nguyên căn homestay"</strong>. Sau khi tạo booking, hệ thống tự động giữ 1 căn
+                    khỏi bán online trong khoảng thời gian đó — tránh overbooking hiệu quả.
+                </p>
             </div>
 
             <!-- Form -->
@@ -126,14 +101,15 @@
                             </select>
                         </div>
 
-                        <!-- Chọn phòng -->
+                        <!-- Chọn phòng/căn -->
                         <div style="margin-bottom:18px;">
-                            <label style="font-size:13px;font-weight:700;color:#0f172a;display:block;margin-bottom:6px;">
+                            <label style="font-size:13px;font-weight:700;color:#0f172a;display:block;margin-bottom:6px;"
+                                   th:text="${isVillaPartner} ? '🏡 Căn villa *' : '🛏️ Loại phòng/căn *'">
                                 🛏️ Loại phòng/căn *
                             </label>
                             <select name="roomId" id="room-select" required
                                     style="width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:10px;font-size:13px;box-sizing:border-box;background:#fff;">
-                                <option value="">— Chọn loại phòng/căn —</option>
+                                <option value="" th:text="${isVillaPartner} ? '— Chọn căn —' : '— Chọn loại phòng/căn —'">— Chọn loại phòng/căn —</option>
                                 <option th:each="room : ${myRooms}"
                                         th:value="${room.id}"
                                         th:text="${room.roomName} + ' — ' + ${#numbers.formatDecimal(room.pricePerNight, 0, 'POINT', 0, 'COMMA')} + '₫/đêm'"
@@ -145,7 +121,8 @@
                         <!-- Ngày -->
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
                             <div>
-                                <label style="font-size:13px;font-weight:700;color:#0f172a;display:block;margin-bottom:6px;">
+                                <label style="font-size:13px;font-weight:700;color:#0f172a;display:block;margin-bottom:6px;"
+                                       th:text="${'📅 Ngày nhận ' + (unitLabel ?: 'phòng') + ' *'}">
                                     📅 Ngày nhận phòng *
                                 </label>
                                 <input type="date" name="checkIn" id="check-in" required
@@ -154,7 +131,8 @@
                                        style="width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:10px;font-size:13px;box-sizing:border-box;" />
                             </div>
                             <div>
-                                <label style="font-size:13px;font-weight:700;color:#0f172a;display:block;margin-bottom:6px;">
+                                <label style="font-size:13px;font-weight:700;color:#0f172a;display:block;margin-bottom:6px;"
+                                       th:text="${'📅 Ngày trả ' + (unitLabel ?: 'phòng') + ' *'}">
                                     📅 Ngày trả phòng *
                                 </label>
                                 <input type="date" name="checkOut" id="check-out" required
@@ -163,10 +141,11 @@
                             </div>
                         </div>
 
-                        <!-- Số phòng và khách -->
+                        <!-- Số phòng/căn và khách -->
                         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px;">
                             <div>
-                                <label style="font-size:13px;font-weight:700;color:#0f172a;display:block;margin-bottom:6px;">
+                                <label style="font-size:13px;font-weight:700;color:#0f172a;display:block;margin-bottom:6px;"
+                                       th:text="${'🏠 Số ' + (unitLabel ?: 'phòng') + ' *'}">
                                     🏠 Số phòng *
                                 </label>
                                 <input type="number" name="roomQuantity" value="1" min="1" max="50" required onchange="calcTotal()"
@@ -176,7 +155,7 @@
                                 <label style="font-size:13px;font-weight:700;color:#0f172a;display:block;margin-bottom:6px;">
                                     👨 Người lớn
                                 </label>
-                                <input type="number" name="adults" value="1" min="0" max="50"
+                                <input type="number" name="adults" value="1" min="1" max="50" required
                                        style="width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:10px;font-size:13px;box-sizing:border-box;" />
                             </div>
                             <div>
@@ -239,7 +218,7 @@
                                 <span style="font-weight:700;color:#0f172a;" id="sum-nights">—</span>
                             </div>
                             <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
-                                <span style="color:#64748b;">Số phòng</span>
+                                <span style="color:#64748b;" th:text="${'Số ' + (unitLabel ?: 'phòng')}">Số phòng</span>
                                 <span style="font-weight:700;color:#0f172a;" id="sum-qty">1</span>
                             </div>
                             <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
@@ -258,14 +237,17 @@
                         </div>
                     </div>
 
-                    <!-- Chặn phòng link -->
+                    <!-- Chặn phòng/căn link -->
                     <div style="background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:16px;">
-                        <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:10px;">🔒 Chặn phòng/bảo trì</div>
-                        <p style="font-size:12px;color:#64748b;margin:0 0 12px;line-height:1.6;">
+                        <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:10px;"
+                             th:text="${'🔒 ' + (blockUnitLabel ?: 'Chặn phòng') + '/bảo trì'}">🔒 Chặn phòng/bảo trì</div>
+                        <p style="font-size:12px;color:#64748b;margin:0 0 12px;line-height:1.6;"
+                           th:text="${'Cần ' + (blockUnitLabel ?: 'chặn phòng') + ' cho bảo trì, giữ nội bộ hoặc không muốn bán online trong khoảng thời gian nhất định?'}">
                             Cần chặn phòng cho bảo trì, giữ nội bộ hoặc không muốn bán online trong khoảng thời gian nhất định?
                         </p>
                         <a href="/partner/room-status" class="btn btn--outline btn--sm" style="width:100%;justify-content:center;">
-                            <i class="fa-solid fa-ban" style="margin-right:4px;"></i> Đến trang chặn phòng
+                            <i class="fa-solid fa-ban" style="margin-right:4px;"></i>
+                            <span th:text="${'Đến trang ' + (blockUnitLabel ?: 'chặn phòng')}">Đến trang chặn phòng</span>
                         </a>
                     </div>
                 </div>
@@ -276,10 +258,14 @@
 
 <script src="/assets/js/main.js"></script>
 <script src="/assets/js/admin.js"></script>
-<script>
+<script th:inline="javascript">
+// Snapshot all room options before any DOM mutation so filterRooms can restore them
+const originalRoomOptions = Array.from(document.querySelectorAll('.room-option'))
+    .map(opt => opt.cloneNode(true));
+
 // Map room price per night
 const roomPrices = {};
-document.querySelectorAll('.room-option').forEach(opt => {
+originalRoomOptions.forEach(opt => {
     roomPrices[opt.value] = parseFloat(opt.dataset.price || 0);
 });
 
@@ -287,7 +273,7 @@ function filterRooms(accSelect) {
     const accId = accSelect.value;
     const roomSel = document.getElementById('room-select');
     roomSel.innerHTML = '<option value="">— Chọn loại phòng/căn —</option>';
-    document.querySelectorAll('.room-option').forEach(opt => {
+    originalRoomOptions.forEach(opt => {
         if (!accId || opt.dataset.accId === accId) {
             roomSel.appendChild(opt.cloneNode(true));
         }
@@ -301,7 +287,7 @@ function calcTotal() {
     const roomId = document.getElementById('room-select').value;
     const qty = parseInt(document.querySelector('input[name=roomQuantity]').value) || 1;
 
-    document.getElementById('sum-qty').textContent = qty + ' phòng';
+    document.getElementById('sum-qty').textContent = qty + ' ' + /*[[${unitLabel}]]*/ 'phòng';
 
     if (roomId && roomPrices[roomId]) {
         const price = roomPrices[roomId];

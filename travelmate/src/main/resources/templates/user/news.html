@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tin Tức Du Lịch - TravelMate</title>
+    <title>Tin tức du lịch - TravelMate</title>
     <meta name="description"
-        content="Cập nhật tin tức du lịch mới nhất, điểm đến hot, kinh nghiệm du lịch Việt Nam và thế giới." />
+        content="Cập nhật cẩm nang, gợi ý lịch trình và nguồn tham khảo du lịch Việt Nam từ TravelMate." />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -20,99 +20,8 @@
 <body>
     <script src="/assets/js/main.js"></script>
     <script src="/assets/js/user.js"></script>
+    <div th:replace="~{fragments/user-header :: header(true, 'news')}"></div>
 
-    <!-- SIDEBAR -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    <aside class="sidebar-menu" id="sidebarMenu" role="dialog" aria-label="Menu điều hướng">
-        <div class="sidebar-header">
-            <div class="sidebar-logo">
-                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                <span class="s-logo-text">TRAVEL<span>MATE</span></span>
-            </div>
-            <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Đóng menu">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <nav class="sidebar-nav">
-            <div class="sidebar-nav-label">Chức năng</div>
-            <a href="/accommodations" id="sb-hotels"><span class="s-icon"><i class="fa-solid fa-bed"></i></span> Đặt
-                phòng</a>
-            <a href="/travel" id="sb-travel"><span class="s-icon"><i
-                        class="fa-solid fa-map-location-dot"></i></span> Gợi ý du lịch</a>
-            <a href="/news" id="sb-news" class="active-sidebar"><span class="s-icon"><i
-                        class="fa-solid fa-newspaper"></i></span> Tin tức</a>
-            <a href="/contact" id="sb-contact"><span class="s-icon"><i class="fa-solid fa-headset"></i></span> Liên
-                hệ</a>
-            <a href="/vouchers" id="sb-voucher">
-                <span class="s-icon"><i class="fa-solid fa-ticket"></i></span>
-                Kho voucher
-            </a>
-        </nav>
-        <div class="sidebar-divider"></div>
-        <div class="sidebar-auth" id="sidebarAuth"></div>
-    </aside>
-
-    <!-- HEADER -->
-    <header class="header header-static" id="header">
-        <div class="container navbar">
-            <div class="logo-wrapper">
-                <a href="/" class="logo">
-                    <div class="logo-icon"><i class="fa-solid fa-building"></i></div>
-                    <span class="logo-text"><span class="logo-blue">TRAVEL</span><span
-                            class="logo-yellow">MATE</span></span>
-                </a>
-                <button class="hamburger-btn" id="hamburgerBtn" aria-label="Mở menu" aria-expanded="false">
-                    <span class="bar"></span><span class="bar"></span><span class="bar"></span>
-                </button>
-            </div>
-            <nav class="menu">
-                <ul class="menu-list">
-                    <li><a href="/">TRANG CHỦ</a></li>
-                    <li><a href="/travel">GỢI Ý DU LỊCH</a></li>
-                    <li><a href="/news">TIN TỨC</a></li>
-                    <li><a href="/contact">LIÊN HỆ</a></li>
-                    <li><a href="/my-bookings" class="my-booking"><i class="fa-solid fa-bed"></i> Đặt phòng của
-                            tôi</a></li>
-                </ul>
-            </nav>
-            <!-- Chưa đăng nhập -->
-            <a href="/auth/login" class="login-btn" sec:authorize="isAnonymous()">ĐĂNG NHẬP</a>
-            <!-- Bell Notification (authenticated) -->
-            <div id="notifWrap" sec:authorize="isAuthenticated()" style="position:relative;display:flex;align-items:center;margin-right:10px;">
-                <button id="notifBtn" type="button" aria-label="Thông báo"
-                        style="background:none;border:none;cursor:pointer;font-size:1.15rem;padding:8px 10px;border-radius:10px;position:relative;transition:background 0.15s,color 0.15s;">
-                    <i class="fa-solid fa-bell"></i>
-                    <span id="notifBadge" style="display:none;position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:0.6rem;font-weight:700;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px;line-height:1;"></span>
-                </button>
-                <div id="notifDropdown" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:340px;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.18);z-index:9999;overflow:hidden;border:1px solid #e2e8f0;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid #f1f5f9;">
-                        <span style="font-weight:700;font-size:0.95rem;color:#0f172a;">Thông báo</span>
-                        <button type="button" style="background:none;border:none;font-size:0.78rem;font-weight:600;color:#2563eb;cursor:pointer;font-family:inherit;padding:0;">Đọc hết</button>
-                    </div>
-                    <div style="max-height:340px;overflow-y:auto;">
-                        <p style="text-align:center;color:#94a3b8;font-size:0.85rem;padding:24px 16px;margin:0;">Không có thông báo</p>
-                    </div>
-                </div>
-            </div>
-            <!-- Đã đăng nhập -->
-            <div class="header-user" id="headerUser" sec:authorize="isAuthenticated()">
-                <button class="header-user-btn" id="headerUserBtn" type="button">
-                    <div class="header-avatar"><i class="fa-solid fa-user"></i></div>
-                    <span class="header-user-name" sec:authentication="principal.fullName">User</span>
-                    <i class="fa-solid fa-chevron-down header-chevron"></i>
-                </button>
-                <div class="header-user-dropdown" id="headerUserDropdown">
-                    <a href="/my-bookings" class="dropdown-item"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a>
-                    <div class="dropdown-divider"></div>
-                    <form method="post" action="/auth/logout">
-                        <button type="submit" class="dropdown-item dropdown-logout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- NEWS HERO BANNER -->
     <section class="news-hero">
         <div class="news-hero-bg" style="background-image: url('/assets/images/MienNam/TienGiang.jpg');"></div>
         <div class="news-hero-overlay"></div>
@@ -121,13 +30,11 @@
             <h1 class="hero-title-right">
                 <span class="text-gradient">CẬP NHẬT DU LỊCH</span>
             </h1>
-            <p>Khám phá những tin tức mới nhất về du lịch Việt Nam và thế giới, cập nhật điểm đến hot và kinh nghiệm du
-                lịch hữu ích.</p>
+            <p>Cẩm nang điểm đến, lịch trình và trải nghiệm được lấy từ dữ liệu bài viết TravelMate, kèm nguồn tham khảo thật để bạn đọc thêm.</p>
         </div>
         <div class="news-hero-bottom"></div>
     </section>
 
-    <!-- LOCATION FILTER BAR -->
     <section class="news-filter-section">
         <div class="container">
             <div class="news-filter-bar" id="newsFilterBar">
@@ -143,262 +50,132 @@
                     <div class="filter-suggestions" id="filterSuggestions"></div>
                 </div>
                 <div class="filter-tags" id="filterTags">
-                    <button class="filter-tag active" data-location="all"><i class="fa-solid fa-fire"></i> Tất
-                        cả</button>
-                    <button class="filter-tag" data-location="Đà Nẵng"><i class="fa-solid fa-hashtag"></i> Đà
-                        Nẵng</button>
-                    <button class="filter-tag" data-location="Hà Nội"><i class="fa-solid fa-hashtag"></i> Hà
-                        Nội</button>
-                    <button class="filter-tag" data-location="Phú Quốc"><i class="fa-solid fa-hashtag"></i> Phú
-                        Quốc</button>
-                    <button class="filter-tag" data-location="Sapa"><i class="fa-solid fa-hashtag"></i> Sapa</button>
-                    <button class="filter-tag" data-location="Hội An"><i class="fa-solid fa-hashtag"></i> Hội
-                        An</button>
-                    <button class="filter-tag" data-location="Nha Trang"><i class="fa-solid fa-hashtag"></i> Nha
-                        Trang</button>
+                    <button type="button" class="filter-tag active" data-location="all">
+                        <i class="fa-solid fa-fire"></i> Tất cả
+                    </button>
+                    <button type="button" class="filter-tag" th:each="location : ${newsLocations}"
+                            th:attr="data-location=${location}">
+                        <i class="fa-solid fa-hashtag"></i>
+                        <span th:text="${location}">Đà Nẵng</span>
+                    </button>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ADD NEWS LINK -->
-    <section class="news-add-section">
+    <section class="news-add-section" th:if="${isAdmin}">
         <div class="container">
-            <div class="news-add-card" id="newsAddCard">
-                <div class="add-card-header" id="addCardToggle">
+            <div class="news-add-card">
+                <div class="add-card-header" style="cursor:default;">
                     <div class="add-card-title">
-                        <i class="fa-solid fa-link"></i>
-                        <span>Thêm tin tức từ link</span>
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        <span>Quản lý bài viết du lịch</span>
                     </div>
-                    <i class="fa-solid fa-chevron-down add-card-arrow" id="addCardArrow"></i>
-                </div>
-                <div class="add-card-body" id="addCardBody">
-                    <p class="add-card-desc">Dán link bài báo du lịch để thêm vào bảng tin của bạn</p>
-                    <div class="add-link-form">
-                        <div class="add-link-input-wrap">
-                            <i class="fa-solid fa-paste"></i>
-                            <input type="url" id="newsLinkInput"
-                                placeholder="Dán link tin tức tại đây... (VD: https://vnexpress.net/du-lich/...)" />
-                        </div>
-                        <div class="add-link-location-wrap">
-                            <i class="fa-solid fa-map-marker-alt"></i>
-                            <input type="text" id="newsLocationInput" placeholder="Địa điểm liên quan (VD: Đà Nẵng)" />
-                        </div>
-                        <button type="button" class="add-link-btn" id="addLinkBtn">
-                            <i class="fa-solid fa-plus"></i> Thêm tin
-                        </button>
-                    </div>
-                    <div class="add-link-preview" id="addLinkPreview" style="display:none;"></div>
+                    <a th:href="@{/admin/travel-posts}" class="add-link-btn" style="text-decoration:none;">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Mở CMS
+                    </a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- MAIN NEWS CONTENT -->
     <section class="news-main-section">
         <div class="container">
-            <div class="news-layout" id="newsLayout">
-
-                <!-- FEATURED (LEFT BIG) -->
+            <div class="news-layout" id="newsLayout" th:if="${featuredPost != null}">
                 <div class="news-featured" id="newsFeatured">
-                    <a href="https://vnexpress.net/cam-nang-du-lich-da-nang-4470111.html" target="_blank"
-                        class="featured-card" data-location="Đà Nẵng">
+                    <a th:href="${featuredPost.sourceUrl}" target="_blank" rel="noopener noreferrer"
+                       class="featured-card js-news-card"
+                       th:attr="data-location=${featuredPost.destination}">
                         <div class="featured-img-wrap">
-                            <img src="/assets/images/MienTrung/DN.jpg" alt="Đà Nẵng" />
+                            <img th:if="${featuredPost.thumbnailUrl != null and !#strings.isEmpty(featuredPost.thumbnailUrl)}"
+                                 th:src="${featuredPost.thumbnailUrl}" th:alt="${featuredPost.destination}" />
+                            <div th:unless="${featuredPost.thumbnailUrl != null and !#strings.isEmpty(featuredPost.thumbnailUrl)}"
+                                 class="grid-card-placeholder"><i class="fa-solid fa-newspaper"></i></div>
                             <div class="featured-img-overlay"></div>
                             <span class="featured-badge"><i class="fa-solid fa-bolt"></i> Nổi bật</span>
-                            <span class="featured-location"><i class="fa-solid fa-location-dot"></i> Đà Nẵng</span>
+                            <span class="featured-location">
+                                <i class="fa-solid fa-location-dot"></i>
+                                <span th:text="${featuredPost.destination}">Đà Nẵng</span>
+                            </span>
                         </div>
                         <div class="featured-body">
-                            <h2>Trọn bộ cẩm nang kinh nghiệm du lịch Đà Nẵng năm 2026 </h2>
-                            <p class="featured-excerpt">Đà Nẵng là nơi chuyển tiếp đan xen giữa khí hậu miền Bắc và miền
-                                Nam, với tính trội là khí hậu nhiệt đới ở phía Nam...</p>
+                            <h2 th:text="${featuredPost.title}">Cẩm nang du lịch</h2>
+                            <p class="featured-excerpt" th:text="${featuredPost.summary}">Tóm tắt bài viết</p>
                             <div class="featured-meta">
-                                <span class="meta-source"><i class="fa-solid fa-newspaper"></i> VnExpress</span>
-                                <span class="meta-time"><i class="fa-regular fa-clock"></i> 2 giờ trước</span>
-                                <span class="meta-views"><i class="fa-regular fa-eye"></i> 1.2K lượt xem</span>
+                                <span class="meta-source">
+                                    <i class="fa-solid fa-link"></i>
+                                    <span th:text="${featuredPost.sourceName != null ? featuredPost.sourceName : 'Vietnam.travel'}">Vietnam.travel</span>
+                                </span>
+                                <span class="meta-time"><i class="fa-regular fa-clock"></i> Nguồn tham khảo</span>
+                                <span class="meta-views"><i class="fa-solid fa-arrow-up-right-from-square"></i> Mở tab mới</span>
                             </div>
                         </div>
                     </a>
                 </div>
 
-                <!-- SIDE NEWS (RIGHT) -->
                 <div class="news-sidebar-list" id="newsSidebarList">
-                    <a href="https://vnexpress.net/du-lich" target="_blank" class="news-side-item"
-                        data-location="Phú Quốc">
+                    <a th:each="post : ${sidebarPosts}"
+                       th:href="${post.sourceUrl}" target="_blank" rel="noopener noreferrer"
+                       class="news-side-item js-news-card"
+                       th:attr="data-location=${post.destination}">
                         <div class="side-img-wrap">
-                            <img src="https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?q=80&w=400"
-                                alt="Phú Quốc" />
+                            <img th:if="${post.thumbnailUrl != null and !#strings.isEmpty(post.thumbnailUrl)}"
+                                 th:src="${post.thumbnailUrl}" th:alt="${post.destination}" />
+                            <div th:unless="${post.thumbnailUrl != null and !#strings.isEmpty(post.thumbnailUrl)}"
+                                 class="grid-card-placeholder"><i class="fa-solid fa-link"></i></div>
                         </div>
                         <div class="side-body">
-                            <h3>Phú Quốc mở thêm 5 tuyến cáp treo mới phục vụ du khách</h3>
+                            <h3 th:text="${post.title}">Tiêu đề bài viết</h3>
                             <div class="side-meta">
-                                <span class="meta-source">TravelMate</span>
+                                <span class="meta-source" th:text="${post.sourceName != null ? post.sourceName : 'Vietnam.travel'}">Vietnam.travel</span>
                                 <span class="meta-dot">·</span>
-                                <span class="meta-time">30 phút</span>
-                                <span class="meta-location"><i class="fa-solid fa-location-dot"></i> Phú Quốc</span>
-                            </div>
-                        </div>
-                    </a>
-                    <a href="https://vnexpress.net/du-lich" target="_blank" class="news-side-item" data-location="Sapa">
-                        <div class="side-img-wrap">
-                            <img src="https://images.unsplash.com/photo-1665905905591-fb66b0496481?q=80&w=400"
-                                alt="Sapa" />
-                        </div>
-                        <div class="side-body">
-                            <h3>Sapa đón lượng khách kỷ lục trong mùa hoa đào 2026</h3>
-                            <div class="side-meta">
-                                <span class="meta-source">Báo Tuổi Trẻ</span>
-                                <span class="meta-dot">·</span>
-                                <span class="meta-time">1 giờ</span>
-                                <span class="meta-location"><i class="fa-solid fa-location-dot"></i> Sapa</span>
-                            </div>
-                        </div>
-                    </a>
-                    <a href="https://vnexpress.net/du-lich" target="_blank" class="news-side-item"
-                        data-location="Hội An">
-                        <div class="side-img-wrap">
-                            <img src="https://images.unsplash.com/photo-1540611025311-01df3cef54b5?q=80&w=400"
-                                alt="Hội An" />
-                        </div>
-                        <div class="side-body">
-                            <h3>Phố cổ Hội An lung linh trong lễ hội đèn lồng quốc tế</h3>
-                            <div class="side-meta">
-                                <span class="meta-source">VnExpress</span>
-                                <span class="meta-dot">·</span>
-                                <span class="meta-time">2 giờ</span>
-                                <span class="meta-location"><i class="fa-solid fa-location-dot"></i> Hội An</span>
-                            </div>
-                        </div>
-                    </a>
-                    <a href="https://vnexpress.net/du-lich" target="_blank" class="news-side-item"
-                        data-location="Hà Nội">
-                        <div class="side-img-wrap">
-                            <img src="https://images.unsplash.com/photo-1583417319070-4a69db38a482?q=80&w=400"
-                                alt="Hà Nội" />
-                        </div>
-                        <div class="side-body">
-                            <h3>Hà Nội ra mắt tour đêm khám phá phố cổ bằng xe điện</h3>
-                            <div class="side-meta">
-                                <span class="meta-source">Nhân Dân</span>
-                                <span class="meta-dot">·</span>
-                                <span class="meta-time">3 giờ</span>
-                                <span class="meta-location"><i class="fa-solid fa-location-dot"></i> Hà Nội</span>
-                            </div>
-                        </div>
-                    </a>
-                    <a href="https://vnexpress.net/du-lich" target="_blank" class="news-side-item"
-                        data-location="Nha Trang">
-                        <div class="side-img-wrap">
-                            <img src="https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?q=80&w=400"
-                                alt="Nha Trang" />
-                        </div>
-                        <div class="side-body">
-                            <h3>Nha Trang triển khai hệ thống lặn biển ngắm san hô thực tế ảo</h3>
-                            <div class="side-meta">
-                                <span class="meta-source">Thanh Niên</span>
-                                <span class="meta-dot">·</span>
-                                <span class="meta-time">4 giờ</span>
-                                <span class="meta-location"><i class="fa-solid fa-location-dot"></i> Nha Trang</span>
+                                <span class="meta-time" th:text="${post.category.displayName}">Cẩm nang</span>
+                                <span class="meta-location">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    <span th:text="${post.destination}">Đà Nẵng</span>
+                                </span>
                             </div>
                         </div>
                     </a>
                 </div>
             </div>
 
-            <!-- MORE NEWS GRID -->
-            <div class="news-more-section">
+            <div class="news-more-section" th:if="${gridPosts != null and !#lists.isEmpty(gridPosts)}">
                 <div class="news-more-header">
                     <h2><i class="fa-solid fa-newspaper"></i> Tin tức mới nhất</h2>
                 </div>
                 <div class="news-grid" id="newsGrid">
-                    <a href="https://vnexpress.net/du-lich" target="_blank" class="news-grid-card"
-                        data-location="Đà Nẵng">
-                        <div class="grid-card-img"><img
-                                src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=500" alt="" />
+                    <a th:each="post : ${gridPosts}"
+                       th:href="${post.sourceUrl}" target="_blank" rel="noopener noreferrer"
+                       class="news-grid-card js-news-card"
+                       th:attr="data-location=${post.destination}">
+                        <div class="grid-card-img">
+                            <img th:if="${post.thumbnailUrl != null and !#strings.isEmpty(post.thumbnailUrl)}"
+                                 th:src="${post.thumbnailUrl}" th:alt="${post.destination}" />
+                            <div th:unless="${post.thumbnailUrl != null and !#strings.isEmpty(post.thumbnailUrl)}"
+                                 class="grid-card-placeholder"><i class="fa-solid fa-link"></i></div>
                         </div>
                         <div class="grid-card-body">
-                            <span class="grid-card-tag">Đà Nẵng</span>
-                            <h3>Top 10 quán cà phê view biển đẹp nhất Đà Nẵng</h3>
-                            <p>Tổng hợp những quán cà phê có không gian tuyệt đẹp, nhìn ra biển Mỹ Khê...</p>
+                            <span class="grid-card-tag" th:text="${post.destination}">Đà Nẵng</span>
+                            <h3 th:text="${post.title}">Tiêu đề bài viết</h3>
+                            <p th:text="${post.summary}">Tóm tắt bài viết</p>
                             <div class="grid-card-meta">
-                                <span><i class="fa-regular fa-clock"></i> 5 giờ trước</span>
-                            </div>
-                        </div>
-                    </a>
-                    <a href="https://vnexpress.net/du-lich" target="_blank" class="news-grid-card"
-                        data-location="Phú Quốc">
-                        <div class="grid-card-img"><img
-                                src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=500" alt="" />
-                        </div>
-                        <div class="grid-card-body">
-                            <span class="grid-card-tag">Phú Quốc</span>
-                            <h3>Phú Quốc xây dựng khu nghỉ dưỡng sinh thái đầu tiên</h3>
-                            <p>Dự án khu nghỉ dưỡng thân thiện với môi trường sử dụng năng lượng mặt trời...</p>
-                            <div class="grid-card-meta">
-                                <span><i class="fa-regular fa-clock"></i> 6 giờ trước</span>
-                            </div>
-                        </div>
-                    </a>
-                    <a href="https://vnexpress.net/du-lich" target="_blank" class="news-grid-card" data-location="Sapa">
-                        <div class="grid-card-img"><img
-                                src="https://images.unsplash.com/photo-1665905905591-fb66b0496481?q=80&w=500" alt="" />
-                        </div>
-                        <div class="grid-card-body">
-                            <span class="grid-card-tag">Sapa</span>
-                            <h3>Mùa lúa chín Sapa - Thời điểm đẹp nhất để ghé thăm</h3>
-                            <p>Ruộng bậc thang vàng óng ả tạo nên bức tranh thiên nhiên tuyệt đẹp...</p>
-                            <div class="grid-card-meta">
-                                <span><i class="fa-regular fa-clock"></i> 8 giờ trước</span>
-                            </div>
-                        </div>
-                    </a>
-                    <a href="https://vnexpress.net/du-lich" target="_blank" class="news-grid-card"
-                        data-location="Hà Nội">
-                        <div class="grid-card-img"><img
-                                src="https://images.unsplash.com/photo-1583417319070-4a69db38a482?q=80&w=500" alt="" />
-                        </div>
-                        <div class="grid-card-body">
-                            <span class="grid-card-tag">Hà Nội</span>
-                            <h3>Hà Nội mở rộng phố đi bộ quanh Hồ Gươm vào cuối tuần</h3>
-                            <p>Khu vực phố đi bộ sẽ được mở rộng thêm 5 tuyến phố mới...</p>
-                            <div class="grid-card-meta">
-                                <span><i class="fa-regular fa-clock"></i> 10 giờ trước</span>
-                            </div>
-                        </div>
-                    </a>
-                    <a href="https://vnexpress.net/du-lich" target="_blank" class="news-grid-card"
-                        data-location="Hội An">
-                        <div class="grid-card-img"><img
-                                src="https://images.unsplash.com/photo-1540611025311-01df3cef54b5?q=80&w=500" alt="" />
-                        </div>
-                        <div class="grid-card-body">
-                            <span class="grid-card-tag">Hội An</span>
-                            <h3>Trải nghiệm làm đèn lồng truyền thống tại phố cổ Hội An</h3>
-                            <p>Du khách có thể tự tay làm đèn lồng và mang về làm quà lưu niệm...</p>
-                            <div class="grid-card-meta">
-                                <span><i class="fa-regular fa-clock"></i> 12 giờ trước</span>
-                            </div>
-                        </div>
-                    </a>
-                    <a href="https://vnexpress.net/du-lich" target="_blank" class="news-grid-card"
-                        data-location="Nha Trang">
-                        <div class="grid-card-img"><img
-                                src="https://images.unsplash.com/photo-1506929562872-bb421503ef21?q=80&w=500" alt="" />
-                        </div>
-                        <div class="grid-card-body">
-                            <span class="grid-card-tag">Nha Trang</span>
-                            <h3>Festival biển Nha Trang 2026 với nhiều hoạt động hấp dẫn</h3>
-                            <p>Chương trình nghệ thuật, thể thao biển và ẩm thực đường phố...</p>
-                            <div class="grid-card-meta">
-                                <span><i class="fa-regular fa-clock"></i> 1 ngày trước</span>
+                                <span>
+                                    <i class="fa-solid fa-link"></i>
+                                    <span th:text="${post.sourceName != null ? post.sourceName : 'Vietnam.travel'}">Vietnam.travel</span>
+                                </span>
                             </div>
                         </div>
                     </a>
                 </div>
             </div>
 
-            <!-- NO RESULTS -->
+            <div class="news-no-result" id="newsEmptyState" th:if="${featuredPost == null}">
+                <i class="fa-solid fa-newspaper"></i>
+                <h3>Chưa có bài viết du lịch</h3>
+                <p>Admin có thể bổ sung nội dung tại trang quản lý bài viết du lịch.</p>
+            </div>
+
             <div class="news-no-result" id="newsNoResult" style="display:none;">
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <h3>Không tìm thấy tin tức</h3>
@@ -407,329 +184,111 @@
         </div>
     </section>
 
-    <!-- FOOTER -->
-    <footer class="footer">
-        <div class="container footer-grid">
-            <div class="footer-brand">
-                <div class="logo">
-                    <div class="logo-icon bg-sky"><i class="fa-solid fa-building"></i></div>
-                    <span class="logo-text text-white">TRAVEL<span class="logo-yellow">MATE</span></span>
-                </div>
-                <p class="footer-desc">TravelMate giúp bạn tìm được nơi nghỉ dưỡng hoàn hảo với giá tốt nhất và trải
-                    nghiệm tối ưu.</p>
-            </div>
-            <div class="footer-links">
-                <h4>Khám phá</h4>
-                <ul>
-                    <li><a href="#">Khách sạn</a></li>
-                    <li><a href="#">Villa & Resort</a></li>
-                    <li><a href="#">Cẩm nang du lịch</a></li>
-                    <li><a href="#">Ưu đãi đặc biệt</a></li>
-                </ul>
-            </div>
-            <div class="footer-links">
-                <h4>Hỗ trợ</h4>
-                <ul>
-                    <li><a href="#">Câu hỏi thường gặp</a></li>
-                    <li><a href="#">Chính sách hoàn tiền</a></li>
-                    <li><a href="#">Hướng dẫn đặt phòng</a></li>
-                    <li><a href="#">Liên hệ</a></li>
-                </ul>
-            </div>
-            <div class="footer-contact">
-                <h4>Liên hệ</h4>
-                <p><i class="fa-solid fa-phone"></i> +84 123 456 789</p>
-                <p><i class="fa-solid fa-envelope"></i> support@travelmate.vn</p>
-                <div class="social-links">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                </div>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2024 TravelMate. Đồ án Cơ sở lập trình Web.</p>
-            <p>Thiết kế đẹp, trải nghiệm nhanh.</p>
-        </div>
-    </footer>
-
-    <!-- SCRIPTS -->
     <script>
-        // ===== SIDEBAR =====
-        (function () {
-            const hamburgerBtn = document.getElementById('hamburgerBtn');
-            const sidebarMenu = document.getElementById('sidebarMenu');
-            const sidebarOverlay = document.getElementById('sidebarOverlay');
-            const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
-            const sidebarAuth = document.getElementById('sidebarAuth');
-
-            function isLoggedIn() { return !!localStorage.getItem('travelmate_user'); }
-
-            function renderAuth() {
-                if (isLoggedIn()) {
-                    sidebarAuth.innerHTML = `<a href="#" class="btn-logout-side" id="sidebarLogoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a>`;
-                    document.getElementById('sidebarLogoutBtn').addEventListener('click', function (e) {
-                        e.preventDefault(); localStorage.removeItem('travelmate_user'); closeSidebar(); renderAuth();
-                    });
-                } else {
-                    sidebarAuth.innerHTML = `<a href="/auth/login" class="btn-login-side"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</a><a href="/auth/register" class="btn-register-side"><i class="fa-solid fa-user-plus"></i> Đăng ký</a>`;
-                }
-            }
-
-            function openSidebar() { sidebarMenu.classList.add('active'); sidebarOverlay.classList.add('active'); hamburgerBtn.setAttribute('aria-expanded', 'true'); document.body.style.overflow = 'hidden'; renderAuth(); }
-            function closeSidebar() { sidebarMenu.classList.remove('active'); sidebarOverlay.classList.remove('active'); hamburgerBtn.setAttribute('aria-expanded', 'false'); document.body.style.overflow = ''; }
-
-            hamburgerBtn.addEventListener('click', openSidebar);
-            sidebarCloseBtn.addEventListener('click', closeSidebar);
-            sidebarOverlay.addEventListener('click', closeSidebar);
-            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSidebar(); });
-        })();
-
-        // ===== HEADER SCROLL EFFECT =====
-        window.addEventListener('scroll', () => {
-            const header = document.getElementById('header');
-            if (window.scrollY > 50) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
-        });
-
-        // ===== LOCATION FILTER =====
         (function () {
             const input = document.getElementById('locationFilterInput');
             const clearBtn = document.getElementById('filterClearBtn');
             const suggestions = document.getElementById('filterSuggestions');
-            const filterTags = document.querySelectorAll('.filter-tag');
             const noResult = document.getElementById('newsNoResult');
+            const filterTags = [...document.querySelectorAll('.filter-tag')];
+            const cards = [...document.querySelectorAll('.js-news-card')];
+            const newsLayout = document.getElementById('newsLayout');
+            const moreSection = document.querySelector('.news-more-section');
+            const locations = [...new Set(cards.map(card => card.dataset.location).filter(Boolean))];
 
-            const allLocations = ['Đà Nẵng', 'Hà Nội', 'Phú Quốc', 'Sapa', 'Hội An', 'Nha Trang', 'Huế', 'Ninh Bình', 'Quảng Ninh', 'Hà Giang', 'Quy Nhơn', 'Đà Lạt', 'Vũng Tàu', 'Cần Thơ', 'Hồ Chí Minh'];
-
-            let currentFilter = 'all';
+            const normalize = (value) => String(value || '')
+                .replaceAll('Đ', 'D')
+                .replaceAll('đ', 'd')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
 
             function filterNews(location) {
-                currentFilter = location;
-                const allCards = document.querySelectorAll('[data-location]');
+                const query = normalize(location);
+                const showAll = !query || query === 'all';
                 let visibleCount = 0;
 
-                allCards.forEach(card => {
-                    if (location === 'all' || card.dataset.location === location) {
-                        card.style.display = '';
-                        card.style.animation = 'newsCardFadeIn 0.4s ease forwards';
-                        visibleCount++;
-                    } else {
-                        card.style.display = 'none';
-                        card.style.animation = '';
-                    }
+                cards.forEach(card => {
+                    const cardLocation = normalize(card.dataset.location);
+                    const show = showAll || cardLocation.includes(query) || query.includes(cardLocation);
+                    card.style.display = show ? '' : 'none';
+                    if (show) visibleCount++;
                 });
 
-                noResult.style.display = visibleCount === 0 ? 'flex' : 'none';
-                document.querySelector('.news-layout').style.display = visibleCount === 0 ? 'none' : '';
-                document.querySelector('.news-more-section').style.display = visibleCount === 0 ? 'none' : '';
+                if (noResult) noResult.style.display = visibleCount === 0 && cards.length > 0 ? 'flex' : 'none';
+                if (newsLayout) newsLayout.style.display = visibleCount === 0 ? 'none' : '';
+                if (moreSection) moreSection.style.display = visibleCount === 0 ? 'none' : '';
             }
 
-            // Tag click
             filterTags.forEach(tag => {
                 tag.addEventListener('click', () => {
                     filterTags.forEach(t => t.classList.remove('active'));
                     tag.classList.add('active');
-                    input.value = tag.dataset.location === 'all' ? '' : tag.dataset.location;
-                    clearBtn.style.display = tag.dataset.location === 'all' ? 'none' : 'flex';
-                    filterNews(tag.dataset.location);
+                    const location = tag.dataset.location;
+                    input.value = location === 'all' ? '' : location;
+                    clearBtn.style.display = location === 'all' ? 'none' : 'flex';
                     suggestions.style.display = 'none';
+                    filterNews(location);
                 });
             });
 
-            // Input
             input.addEventListener('input', () => {
-                const val = input.value.trim();
-                clearBtn.style.display = val ? 'flex' : 'none';
+                const value = input.value.trim();
+                const normalizedValue = normalize(value);
+                clearBtn.style.display = value ? 'flex' : 'none';
 
-                if (val.length > 0) {
-                    const filtered = allLocations.filter(l => l.toLowerCase().includes(val.toLowerCase()));
-                    if (filtered.length > 0) {
-                        suggestions.innerHTML = filtered.map(l => `<div class="suggestion-item" data-loc="${l}"><i class="fa-solid fa-location-dot"></i> ${l}</div>`).join('');
-                        suggestions.style.display = 'block';
-                    } else {
-                        suggestions.style.display = 'none';
-                    }
-                } else {
+                if (!value) {
                     suggestions.style.display = 'none';
-                    filterTags.forEach(t => t.classList.toggle('active', t.dataset.location === 'all'));
+                    filterTags.forEach(tag => tag.classList.toggle('active', tag.dataset.location === 'all'));
                     filterNews('all');
+                    return;
                 }
+
+                const matched = locations.filter(location => normalize(location).includes(normalizedValue));
+                suggestions.innerHTML = matched.map(location =>
+                    `<div class="suggestion-item" data-location="${location}"><i class="fa-solid fa-location-dot"></i> ${location}</div>`
+                ).join('');
+                suggestions.style.display = matched.length ? 'block' : 'none';
             });
 
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    const val = input.value.trim();
-                    if (val) {
-                        filterNews(val);
-                        suggestions.style.display = 'none';
-                        filterTags.forEach(t => t.classList.toggle('active', t.dataset.location === val));
-                    }
-                }
+            input.addEventListener('keydown', (event) => {
+                if (event.key !== 'Enter') return;
+                event.preventDefault();
+                const value = input.value.trim();
+                filterTags.forEach(tag => tag.classList.toggle('active', normalize(tag.dataset.location) === normalize(value)));
+                filterNews(value || 'all');
+                suggestions.style.display = 'none';
             });
 
-            suggestions.addEventListener('click', (e) => {
-                const item = e.target.closest('.suggestion-item');
-                if (item) {
-                    const loc = item.dataset.loc;
-                    input.value = loc;
-                    clearBtn.style.display = 'flex';
-                    suggestions.style.display = 'none';
-                    filterTags.forEach(t => t.classList.toggle('active', t.dataset.location === loc));
-                    filterNews(loc);
-                }
+            suggestions.addEventListener('click', (event) => {
+                const item = event.target.closest('.suggestion-item');
+                if (!item) return;
+                input.value = item.dataset.location;
+                clearBtn.style.display = 'flex';
+                suggestions.style.display = 'none';
+                filterTags.forEach(tag => tag.classList.toggle('active', tag.dataset.location === item.dataset.location));
+                filterNews(item.dataset.location);
             });
 
             clearBtn.addEventListener('click', () => {
                 input.value = '';
                 clearBtn.style.display = 'none';
-                filterTags.forEach(t => t.classList.toggle('active', t.dataset.location === 'all'));
+                filterTags.forEach(tag => tag.classList.toggle('active', tag.dataset.location === 'all'));
                 filterNews('all');
             });
 
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.filter-left')) suggestions.style.display = 'none';
+            document.addEventListener('click', (event) => {
+                if (!event.target.closest('.filter-left')) {
+                    suggestions.style.display = 'none';
+                }
             });
-        })();
-
-        // ===== ADD NEWS LINK =====
-        (function () {
-            const toggle = document.getElementById('addCardToggle');
-            const body = document.getElementById('addCardBody');
-            const arrow = document.getElementById('addCardArrow');
-            const linkInput = document.getElementById('newsLinkInput');
-            const locationInput = document.getElementById('newsLocationInput');
-            const addBtn = document.getElementById('addLinkBtn');
-            const preview = document.getElementById('addLinkPreview');
-
-            let isOpen = false;
-
-            toggle.addEventListener('click', () => {
-                isOpen = !isOpen;
-                body.style.display = isOpen ? 'block' : 'none';
-                arrow.style.transform = isOpen ? 'rotate(180deg)' : '';
-            });
-
-            addBtn.addEventListener('click', () => {
-                const url = linkInput.value.trim();
-                const loc = locationInput.value.trim() || 'Việt Nam';
-
-                if (!url) { linkInput.focus(); return; }
-
-                try { new URL(url); } catch { alert('Link không hợp lệ!'); return; }
-
-                // Get stored news
-                const stored = JSON.parse(localStorage.getItem('travelmate_custom_news') || '[]');
-
-                const newItem = {
-                    id: Date.now(),
-                    url: url,
-                    location: loc,
-                    title: extractTitle(url),
-                    time: 'Vừa thêm',
-                    source: extractSource(url)
-                };
-
-                stored.unshift(newItem);
-                localStorage.setItem('travelmate_custom_news', JSON.stringify(stored));
-
-                // Add to DOM
-                addNewsToGrid(newItem);
-
-                // Reset
-                linkInput.value = '';
-                locationInput.value = '';
-
-                // Show success
-                preview.style.display = 'flex';
-                preview.innerHTML = `<i class="fa-solid fa-check-circle" style="color:#10b981;font-size:20px;"></i><div><strong>Đã thêm tin tức thành công!</strong><br><small style="color:#64748b;">${url}</small></div>`;
-                setTimeout(() => { preview.style.display = 'none'; }, 3000);
-            });
-
-            function extractSource(url) {
-                try { return new URL(url).hostname.replace('www.', ''); } catch { return 'Tin tức'; }
-            }
-
-            function extractTitle(url) {
-                const parts = url.split('/').filter(p => p && !p.includes('.'));
-                const last = parts[parts.length - 1] || 'Tin tức du lịch';
-                return decodeURIComponent(last).replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase());
-            }
-
-            function addNewsToGrid(item) {
-                const grid = document.getElementById('newsGrid');
-                const card = document.createElement('a');
-                card.href = item.url;
-                card.target = '_blank';
-                card.className = 'news-grid-card user-added';
-                card.dataset.location = item.location;
-                card.style.animation = 'newsCardFadeIn 0.5s ease forwards';
-                card.innerHTML = `
-                    <div class="grid-card-img"><div class="grid-card-placeholder"><i class="fa-solid fa-link"></i></div></div>
-                    <div class="grid-card-body">
-                        <span class="grid-card-tag">${item.location}</span>
-                        <h3>${item.title}</h3>
-                        <p>${item.source}</p>
-                        <div class="grid-card-meta">
-                            <span><i class="fa-regular fa-clock"></i> ${item.time}</span>
-                            <button class="remove-news-btn" data-id="${item.id}" title="Xóa tin"><i class="fa-solid fa-trash-can"></i></button>
-                        </div>
-                    </div>`;
-                grid.insertBefore(card, grid.firstChild);
-            }
-
-            // Load stored
-            const stored = JSON.parse(localStorage.getItem('travelmate_custom_news') || '[]');
-            stored.forEach(item => addNewsToGrid(item));
-
-            // Remove
-            document.addEventListener('click', (e) => {
-                const btn = e.target.closest('.remove-news-btn');
-                if (!btn) return;
-                e.preventDefault();
-                e.stopPropagation();
-                const id = parseInt(btn.dataset.id);
-                const stored = JSON.parse(localStorage.getItem('travelmate_custom_news') || '[]');
-                localStorage.setItem('travelmate_custom_news', JSON.stringify(stored.filter(s => s.id !== id)));
-                btn.closest('.news-grid-card').remove();
-            });
-        })();
-
-        // ===== NOTIFICATION BELL =====
-        (function() {
-            const notifBtn  = document.getElementById('notifBtn');
-            const notifDrop = document.getElementById('notifDropdown');
-            if (notifBtn && notifDrop) {
-                notifBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    notifDrop.style.display = notifDrop.style.display === 'block' ? 'none' : 'block';
-                });
-                document.addEventListener('click', function() { notifDrop.style.display = 'none'; });
-                notifDrop.addEventListener('click', function(e) { e.stopPropagation(); });
-            }
         })();
     </script>
 
-    <!-- CHAT AI -->
-    <div class="ai-chat-widget">
-        <button class="ai-chat-btn" id="aiChatBtn" aria-label="Mở trợ lý AI">
-            <span class="ai-ring ring-1"></span>
-            <span class="ai-ring ring-2"></span>
-            <span class="ai-ring ring-3"></span>
-            <span class="ai-chat-core">
-                <img src="/assets/images/iconChatB.png" alt="AI Chat" class="ai-chat-image" />
-            </span>
-        </button>
-    </div>
-    <button id="scrollTopBtn" class="scroll-top-btn" aria-label="Lên đầu trang">
-        <span class="double-arrow-up">
-            <span class="chevron chevron-1"></span>
-            <span class="chevron chevron-2"></span>
-        </span>
-    </button>
+    <div th:replace="~{fragments/user-footer :: footer}"></div>
 </body>
 
 </html>

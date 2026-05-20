@@ -225,6 +225,7 @@
             <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
             <a href="/admin/rooms" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
             <a href="/admin/reviews" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
+            <a href="/admin/travel-posts" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗺️</span> Bài viết du lịch</a>
             <a href="/admin/users" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
             <div class="admin-sidebar__section-title">Tài chính</div>
             <a href="/admin/revenue" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
@@ -270,7 +271,7 @@
         <main class="admin-content">
             <!-- Info banner -->
             <div class="info-banner">
-                <span>📊 Số liệu thật từ MySQL — lấy từ booking/payment đã lưu trong database.</span>
+                <span>📊 Dữ liệu hệ thống — cập nhật theo thời gian thực từ database.</span>
                 <span>💡 Click vào thẻ để xem chi tiết</span>
             </div>
 
@@ -289,7 +290,7 @@
                     <div class="kpi-icon"><i class="fa-solid fa-hourglass-half"></i></div>
                     <div>
                         <div class="kpi-value" th:text="${pendingBookings}">0</div>
-                        <div class="kpi-label">Chờ duyệt</div>
+                        <div class="kpi-label">Chờ xác nhận TT</div>
                     </div>
                     <i class="fa-solid fa-chevron-right kpi-arrow"></i>
                 </a>
@@ -433,6 +434,9 @@
                             <a href="/admin/accommodations" class="qa-item">
                                 <div class="qa-icon">🏨</div> Cơ sở lưu trú
                             </a>
+                            <a href="/admin/travel-posts" class="qa-item">
+                                <div class="qa-icon">🗺️</div> Bài viết du lịch
+                            </a>
                             <a href="/admin/users" class="qa-item">
                                 <div class="qa-icon">👥</div> Người dùng
                             </a>
@@ -461,7 +465,7 @@
                     </div>
                     <div class="dash-card__body">
                         <div class="sys-note">
-                            <p><i class="fa-solid fa-check-circle note-ok"></i><span><strong>Booking</strong>: Dữ liệu thật từ MySQL</span></p>
+                            <p><i class="fa-solid fa-check-circle note-ok"></i><span><strong>Booking</strong>: Dữ liệu hệ thống</span></p>
                             <p><i class="fa-solid fa-check-circle note-ok"></i><span><strong>Dashboard stats</strong>: Query trực tiếp từ database</span></p>
                             <p><i class="fa-solid fa-check-circle note-ok"></i><span><strong>Doanh thu</strong>: Ghi nhận từ payment APPROVED trong MySQL</span></p>
                             <p><i class="fa-solid fa-check-circle note-ok"></i><span><strong>Revenue/Settlement</strong>: Lấy từ booking/payment trong MySQL</span></p>

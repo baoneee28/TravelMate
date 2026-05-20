@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Thêm Phòng Mới – Partner TravelMate</title>
+    <title th:text="${isVillaPartner} ? 'Thêm Căn Villa Mới – Partner TravelMate' : 'Thêm Phòng Mới – Partner TravelMate'">Thêm Phòng Mới – Partner TravelMate</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&subset=vietnamese&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/assets/css/base.css" />
@@ -18,75 +18,14 @@
 
 <body>
     <div class="admin-wrapper">
-        <aside class="admin-sidebar">
-            <div class="admin-sidebar__header">
-                <a href="/partner/dashboard" class="sidebar-logo">
-                    <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                    <div>
-                        <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
-                        <span class="admin-sidebar__badge">PARTNER CENTER</span>
-                    </div>
-                </a>
-            </div>
-            <nav class="admin-sidebar__nav">
-                <div class="admin-sidebar__section-title">Tổng quan</div>
-                <a href="/partner/dashboard" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">📊</span> Dashboard
-                </a>
-                <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
-                <a href="/partner/accommodations" class="admin-sidebar__link active">
-                    <span class="admin-sidebar__link-icon">🏨</span> Nơi lưu trú của tôi
-                </a>
-                <a href="/partner/accommodations/new" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">＋</span> Đăng ký mới
-                </a>
-                <a href="/partner/amenities" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">🏷</span> Tiện nghi phòng
-                </a>
-                <a href="/partner/bookings" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">📋</span> Đơn đặt phòng
-                </a>
-                <a href="/partner/room-status" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏠</span> Tình trạng phòng hôm nay</a>
-                <a href="/partner/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Kiểm tra lịch trống</a>
-                <a href="/partner/direct-booking" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">➕</span> Booking trực tiếp</a>
-                <a href="/partner/reviews" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">⭐</span> Đánh giá của khách
-                </a>
-                <div class="admin-sidebar__section-title">Tài chính</div>
-                <a href="/partner/revenue" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">💰</span> Doanh thu
-                </a>
-                <a href="/partner/settlements" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">🏦</span> Quyết toán
-                </a>
-                <a href="/partner/vouchers" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">🎟</span> Voucher của tôi
-                </a>
-                <div class="admin-sidebar__section-title">Hỗ trợ</div>
-                <a href="/partner/support" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ
-                </a>
-                <a href="/partner/profile" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">👤</span> Hồ sơ của tôi
-                </a>
-            </nav>
-            <div class="admin-sidebar__footer">
-                <div class="admin-sidebar__user">
-                    <div class="admin-sidebar__user-avatar">PT</div>
-                    <div class="admin-sidebar__user-info">
-                        <div class="admin-sidebar__user-name" th:text="${partnerName} ?: 'Partner'">Partner</div>
-                        <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
-                    </div>
-                </div>
-            </div>
-        </aside>
+        <aside th:replace="~{fragments/partner-sidebar :: sidebar('accommodations', ${partnerName})}"></aside>
         <div class="admin-sidebar-overlay"></div>
 
         <div class="admin-main">
             <header class="admin-topbar">
                 <div style="display: flex; align-items: center; gap: var(--space-4)">
                     <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
-                    <h1 class="admin-topbar__title">🛏 Thêm phòng mới</h1>
+                    <h1 class="admin-topbar__title" th:text="${isVillaPartner} ? '🏡 Thêm căn villa mới' : '🛏 Thêm phòng mới'">🛏 Thêm phòng mới</h1>
                 </div>
                 <div class="admin-topbar__actions">
                     <a href="/partner/accommodations" class="btn btn--ghost btn--sm">← Quay lại</a>
@@ -98,12 +37,13 @@
             <main class="admin-content">
                 <div class="page-header">
                     <div>
-                        <h2 class="page-header__title">🛏 Thêm phòng cho:
-                            <span th:text="${accommodation.name}">Tên khách sạn</span>
+                        <h2 class="page-header__title"
+                            th:text="${(isVillaPartner ? '🏡 Thêm căn villa cho: ' : '🛏 Thêm phòng cho: ') + accommodation.name}">
+                            🛏 Thêm phòng cho: Tên cơ sở
                         </h2>
-                        <p class="page-header__subtitle">
-                            Phòng mới tạo sẽ ở trạng thái <strong>⟳ Chờ Admin duyệt</strong>.
-                            Sau khi Admin phê duyệt, khách hàng mới có thể đặt phòng.
+                        <p class="page-header__subtitle"
+                           th:text="${(unitLabelCap ?: 'Phòng') + ' mới tạo sẽ ở trạng thái ⟳ Chờ Admin duyệt. Sau khi Admin phê duyệt, khách hàng mới có thể đặt ' + (unitLabel ?: 'phòng') + '.'}">
+                            Phòng mới tạo sẽ ở trạng thái ⟳ Chờ Admin duyệt.
                         </p>
                     </div>
                 </div>
@@ -128,26 +68,39 @@
                 <!-- Form -->
                 <div class="chart-card" style="max-width: 720px;">
                     <div class="chart-card__header">
-                        <h3 class="chart-card__title">📝 Thông tin phòng mới</h3>
+                        <h3 class="chart-card__title"
+                            th:text="${isVillaPartner} ? '📝 Thông tin căn villa mới' : '📝 Thông tin phòng mới'">
+                            📝 Thông tin phòng mới
+                        </h3>
                     </div>
                     <div class="review-panel__body" style="padding: var(--space-5);">
                         <form th:action="@{/partner/accommodations/{id}/rooms/new(id=${accommodation.id})}" method="post">
                             <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);">
 
                                 <div class="form-group">
-                                    <label class="form-label">Mã phòng (Room Code) <span style="color:#ef4444;">*</span></label>
+                                    <label class="form-label"
+                                           th:text="${isVillaPartner} ? 'Mã căn (Villa Code)' : 'Mã phòng (Room Code)'">
+                                        Mã phòng (Room Code) <span style="color:#ef4444;">*</span>
+                                    </label>
+                                    <span style="color:#ef4444;font-size:13px;">*</span>
                                     <input type="text" name="roomCode" class="form-control"
-                                           placeholder="VD: LATA-STD" required maxlength="50"
+                                           th:placeholder="${isVillaPartner} ? 'VD: GHV-GARDEN, ANV-BEACH' : 'VD: LATA-STD'"
+                                           required maxlength="50"
                                            style="text-transform:uppercase;" />
-                                    <small style="color:var(--color-text-muted);font-size:11px;">
-                                        Mã duy nhất, dùng để sinh mã booking. VD: LATA-STD, TMG-SUI...
+                                    <small style="color:var(--color-text-muted);font-size:11px;"
+                                           th:text="${isVillaPartner} ? 'Mã duy nhất cho căn villa. VD: GHV-GARDEN, ANV-FOREST...' : 'Mã duy nhất, dùng để sinh mã booking. VD: LATA-STD, TMG-SUI...'">
+                                        Mã duy nhất, dùng để sinh mã booking.
                                     </small>
                                 </div>
 
                                 <div class="form-group">
-                                    <label class="form-label">Tên phòng <span style="color:#ef4444;">*</span></label>
+                                    <label class="form-label">
+                                        <span th:text="${isVillaPartner} ? 'Tên căn / loại căn' : 'Tên phòng'">Tên phòng</span>
+                                        <span style="color:#ef4444;">*</span>
+                                    </label>
                                     <input type="text" name="roomName" class="form-control"
-                                           placeholder="VD: Phòng Tiêu Chuẩn Giường King" required maxlength="200" />
+                                           th:placeholder="${isVillaPartner} ? 'VD: Garden Pool Villa, Beachfront Pool Villa' : 'VD: Phòng Tiêu Chuẩn Giường King'"
+                                           required maxlength="200" />
                                 </div>
 
                                 <div class="form-group">
@@ -169,40 +122,66 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label class="form-label">Số phòng còn trống <span style="color:#ef4444;">*</span></label>
+                                    <label class="form-label">
+                                        <span th:text="${isVillaPartner} ? 'Số lượng căn mở bán trên TravelMate (Quota TM)' : 'Số lượng mở bán trên TravelMate (Quota TM)'">
+                                            Số lượng mở bán trên TravelMate
+                                        </span>
+                                        <span style="color:#ef4444;">*</span>
+                                    </label>
                                     <input type="number" name="availableQuantity" class="form-control"
                                            min="0" max="100" value="1" required />
+                                    <small th:if="${isVillaPartner}" style="color:#059669;font-size:11px;display:block;margin-top:3px;">
+                                        🏡 Villa thường có quota = 1 (một căn). Nếu cùng loại căn có nhiều bản, đặt số tương ứng.
+                                    </small>
+                                    <small th:if="${propertyWord == 'homestay'}" style="color:#0d9488;font-size:11px;display:block;margin-top:3px;">
+                                        🏠 Nếu cho thuê <strong>nguyên căn</strong>, hãy đặt tên phòng là "Nguyên căn homestay" và số lượng mở bán = <strong>1</strong> để tránh overbooking.
+                                    </small>
                                 </div>
 
                                 <div class="form-group" style="grid-column: 1 / -1;">
-                                    <label class="form-label">URL ảnh phòng</label>
+                                    <label class="form-label"
+                                           th:text="${isVillaPartner} ? 'URL ảnh căn villa' : 'URL ảnh phòng'">URL ảnh phòng</label>
                                     <input type="url" name="imageUrl" class="form-control"
+                                           th:placeholder="${isVillaPartner} ? 'https://images.unsplash.com/... (ảnh căn villa)' : 'https://images.unsplash.com/... (ảnh phòng)'"
                                            placeholder="https://images.unsplash.com/..." />
-                                    <small style="color:var(--color-text-muted);font-size:11px;">Để trống nếu chưa có ảnh.</small>
+                                    <small style="color:var(--color-text-muted);font-size:11px;">Để trống nếu chưa có ảnh. Ảnh sẽ hiển thị cho khách khi xem chi tiết.</small>
                                 </div>
 
                                  <div class="form-group" style="grid-column: 1 / -1;">
-                                     <label class="form-label">Mô tả phòng</label>
+                                     <label class="form-label"
+                                            th:text="${isVillaPartner} ? 'Mô tả căn villa' : 'Mô tả phòng'">
+                                         Mô tả phòng
+                                     </label>
                                      <textarea name="description" class="form-control" rows="3"
-                                               placeholder="Mô tả tiện nghi nổi bật của phòng..."></textarea>
+                                               th:placeholder="${isVillaPartner} ? 'Mô tả view, không gian, đặc điểm nổi bật của căn villa...' : 'Mô tả tiện nghi nổi bật của phòng...'">
+                                     </textarea>
                                  </div>
 
-                                 <!-- ★ Loại phòng (RoomCategory) -->
+                                 <!-- ★ Loại phòng/căn (RoomCategory) -->
                                  <div class="form-group">
-                                     <label class="form-label">Loại phòng <span style="color:#ef4444;">*</span></label>
+                                     <label class="form-label">
+                                         <span th:text="${isVillaPartner} ? 'Loại căn' : 'Loại phòng'">Loại phòng</span>
+                                         <span style="color:#ef4444;">*</span>
+                                     </label>
                                      <select name="roomCategory" class="form-control">
                                          <option th:each="cat : ${roomCategories}"
                                                  th:value="${cat.name()}"
-                                                 th:text="${cat.name() == 'STANDARD' ? '🏷 Phòng tiêu chuẩn (STANDARD)' :
+                                                 th:text="${isVillaPartner ?
+                                                           (cat.name() == 'STANDARD' ? '🌿 Căn tiêu chuẩn (STANDARD)' :
+                                                           cat.name() == 'DELUXE'   ? '✨ Căn Deluxe (DELUXE)' :
+                                                           cat.name() == 'FAMILY'   ? '👨‍👩‍👧 Căn gia đình (FAMILY)' :
+                                                           cat.name() == 'VIP'      ? '💎 Căn VIP (VIP)' :
+                                                           cat.name() == 'SUITE'    ? '🌟 Căn Luxury/Suite (SUITE)' : '📦 Khác (OTHER)') :
+                                                           (cat.name() == 'STANDARD' ? '🏷 Phòng tiêu chuẩn (STANDARD)' :
                                                            cat.name() == 'DELUXE'   ? '✨ Phòng Deluxe (DELUXE)' :
                                                            cat.name() == 'FAMILY'   ? '👨‍👩‍👧 Phòng gia đình (FAMILY)' :
                                                            cat.name() == 'VIP'      ? '💎 Phòng VIP (VIP)' :
-                                                           cat.name() == 'SUITE'    ? '🌟 Phòng Suite (SUITE)' :
-                                                                                      '📦 Khác (OTHER)'}">
+                                                           cat.name() == 'SUITE'    ? '🌟 Phòng Suite (SUITE)' : '📦 Khác (OTHER)')}">
                                          </option>
                                      </select>
-                                     <small style="color:var(--color-text-muted);font-size:11px;">
-                                         Loại phòng ảnh hưởng đến rate commission nếu bạn đặt commission riêng.
+                                     <small style="color:var(--color-text-muted);font-size:11px;"
+                                            th:text="${isVillaPartner} ? 'Phân loại căn villa ảnh hưởng đến hiển thị và rate commission.' : 'Loại phòng ảnh hưởng đến rate commission nếu bạn đặt commission riêng.'">
+                                         Loại phòng ảnh hưởng đến rate commission.
                                      </small>
                                  </div>
 
@@ -221,7 +200,7 @@
                                          <span>ℹ</span>
                                          <span>Nếu để trống, hệ thống dùng commission mặc định theo loại lưu trú
                                          (<span th:text="${accommodation.propertyType != null ? accommodation.propertyType.name() : 'HOTEL'}">HOTEL</span>).
-                                         Ví dụ: HOTEL mặc định 15%, bạn có thể đặt 18% cho phòng VIP.</span>
+                                         Có thể đặt rate riêng cho phòng/căn đặc biệt (VD: VIP, Suite, Beachfront...).</span>
                                      </small>
                                  </div>
                             </div>
@@ -229,7 +208,8 @@
                             <!-- ★ TIỆN NGHI PHÒNG / CĂN -->
                             <div th:if="${amenityGroups != null and !amenityGroups.isEmpty()}"
                                  style="margin-top:var(--space-5);padding:20px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;">
-                                <div style="font-weight:700;font-size:15px;color:#0f172a;margin-bottom:4px;">
+                                <div style="font-weight:700;font-size:15px;color:#0f172a;margin-bottom:4px;"
+                                     th:text="${isVillaPartner} ? '🏡 Tiện nghi căn villa' : '🏷 Tiện nghi phòng / căn lưu trú'">
                                     🏷 Tiện nghi phòng / căn lưu trú
                                 </div>
                                 <div style="font-size:12px;color:#64748b;margin-bottom:16px;">
@@ -258,7 +238,8 @@
 
                             <!-- Actions -->
                             <div style="display:flex;gap:var(--space-3);margin-top:var(--space-4);">
-                                <button type="submit" class="btn btn--primary">
+                                <button type="submit" class="btn btn--primary"
+                                        th:text="${isVillaPartner} ? '✅ Thêm căn villa ngay' : '✅ Thêm phòng ngay'">
                                     ✅ Thêm phòng ngay
                                 </button>
                                 <a href="/partner/accommodations" class="btn btn--ghost">Hủy</a>
@@ -275,4 +256,3 @@
 </body>
 
 </html>
-

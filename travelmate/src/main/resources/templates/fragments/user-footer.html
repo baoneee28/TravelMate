@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<footer class="footer" th:fragment="footer">
+    <div class="container footer-grid">
+        <div class="footer-brand">
+            <a th:href="@{/}" class="logo" aria-label="TravelMate">
+                <div class="logo-icon bg-sky"><i class="fa-solid fa-building"></i></div>
+                <span class="logo-text text-white">TRAVEL<span class="logo-yellow">MATE</span></span>
+            </a>
+            <p class="footer-desc">
+                TravelMate giúp bạn tìm được nơi nghỉ dưỡng phù hợp, giá minh bạch và trải nghiệm đặt phòng an tâm.
+            </p>
+        </div>
+
+        <div class="footer-links">
+            <h4>Khám phá</h4>
+            <ul>
+                <li><a th:href="@{/accommodations(type='HOTEL')}">Khách sạn</a></li>
+                <li><a th:href="@{/accommodations(type='VILLA')}">Villa</a></li>
+                <li><a th:href="@{/accommodations(type='RESORT')}">Resort</a></li>
+                <li><a th:href="@{/travel}">Cẩm nang du lịch</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-links">
+            <h4>Hỗ trợ</h4>
+            <ul>
+                <li><a th:href="@{/vouchers}">Kho voucher</a></li>
+                <li><a th:href="@{/my-bookings}">Đặt phòng của tôi</a></li>
+                <li><a th:href="@{/contact}">Liên hệ hỗ trợ</a></li>
+                <li><a th:href="@{/news}">Tin tức</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-contact">
+            <h4>Liên hệ</h4>
+            <p><i class="fa-solid fa-phone"></i> +84 123 456 789</p>
+            <p><i class="fa-solid fa-envelope"></i> travelmatek23@gmail.com</p>
+            <div class="social-links">
+                <a href="https://facebook.com/" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                    <i class="fab fa-facebook-f"></i>
+                </a>
+                <a href="https://instagram.com/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                    <i class="fab fa-instagram"></i>
+                </a>
+                <a href="https://twitter.com/" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
+                    <i class="fab fa-twitter"></i>
+                </a>
+                <a href="https://youtube.com/" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+                    <i class="fab fa-youtube"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container footer-bottom">
+        <p>&copy; 2026 TravelMate. Đồ án cơ sở.</p>
+        <p>Đặt phòng rõ ràng, gợi ý du lịch trực quan.</p>
+    </div>
+    <div th:replace="~{fragments/user-floating-actions :: floatingActions}"></div>
+</footer>
+</body>
+</html>

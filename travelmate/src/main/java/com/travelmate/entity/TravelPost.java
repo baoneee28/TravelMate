@@ -14,7 +14,8 @@ import java.time.LocalDateTime;
 @Table(name = "travel_posts",
        indexes = {
            @Index(name = "idx_tp_category", columnList = "category"),
-           @Index(name = "idx_tp_status",   columnList = "status")
+           @Index(name = "idx_tp_status",   columnList = "status"),
+           @Index(name = "idx_tp_destination_status", columnList = "destination_slug,status")
        })
 @Getter
 @Setter
@@ -43,6 +44,12 @@ public class TravelPost {
     @Column(nullable = false, length = 255)
     private String title;
 
+    @Column(name = "destination_name", length = 100)
+    private String destinationName;
+
+    @Column(name = "destination_slug", length = 120)
+    private String destinationSlug;
+
     @Column(columnDefinition = "TEXT")
     private String summary;
 
@@ -51,6 +58,9 @@ public class TravelPost {
 
     @Column(name = "source_url", nullable = false, length = 500)
     private String sourceUrl;
+
+    @Column(name = "source_name", length = 100)
+    private String sourceName;
 
     @Column(columnDefinition = "TEXT")
     private String content;
@@ -73,4 +83,12 @@ public class TravelPost {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    public String getDestination() {
+        return destinationName;
+    }
+
+    public void setDestination(String destination) {
+        this.destinationName = destination;
+    }
 }

@@ -32,68 +32,7 @@
 </head>
 <body>
 <div class="admin-wrapper">
-    <aside class="admin-sidebar">
-        <div class="admin-sidebar__header">
-            <a href="/partner/dashboard" class="sidebar-logo">
-                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                <div>
-                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
-                    <span class="admin-sidebar__badge">PARTNER CENTER</span>
-                </div>
-            </a>
-        </div>
-        <nav class="admin-sidebar__nav">
-            <div class="admin-sidebar__section-title">Tổng quan</div>
-            <a href="/partner/dashboard" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">📊</span> Dashboard
-            </a>
-            <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
-            <a href="/partner/accommodations" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">🏨</span> Nơi lưu trú của tôi
-            </a>
-            <a href="/partner/accommodations/new" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">＋</span> Đăng ký mới
-            </a>
-            <a href="/partner/amenities" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">🏷</span> Tiện nghi phòng
-                </a>
-            <a href="/partner/bookings" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">📋</span> Đơn đặt phòng
-            </a>
-            <a href="/partner/room-status" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏠</span> Tình trạng phòng hôm nay</a>
-            <a href="/partner/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Kiểm tra lịch trống</a>
-            <a href="/partner/direct-booking" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">➕</span> Booking trực tiếp</a>
-            <a href="/partner/reviews" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">⭐</span> Đánh giá của khách
-            </a>
-            <div class="admin-sidebar__section-title">Tài chính</div>
-            <a href="/partner/revenue" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">💰</span> Doanh thu
-            </a>
-            <a href="/partner/settlements" class="admin-sidebar__link active">
-                <span class="admin-sidebar__link-icon">🏦</span> Quyết toán
-            </a>
-            <a href="/partner/vouchers" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">🎟</span> Voucher của tôi
-            </a>
-            <div class="admin-sidebar__section-title">Hỗ trợ</div>
-            <a href="/partner/support" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ
-            </a>
-                <a href="/partner/profile" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">👤</span> Hồ sơ của tôi
-                </a>
-        </nav>
-        <div class="admin-sidebar__footer">
-            <div class="admin-sidebar__user">
-                <div class="admin-sidebar__user-avatar">PT</div>
-                <div class="admin-sidebar__user-info">
-                    <div class="admin-sidebar__user-name" th:text="${partnerName} ?: 'Partner'">Partner</div>
-                    <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
-                </div>
-            </div>
-        </div>
-    </aside>
+    <aside th:replace="~{fragments/partner-sidebar :: sidebar('settlements', ${partnerName})}"></aside>
     <div class="admin-sidebar-overlay"></div>
 
     <div class="admin-main">
@@ -119,10 +58,10 @@
             </div>
 
             <div class="info-box">
-                📌 Mỗi tuần Admin sẽ tạo bản ghi quyết toán cho doanh thu tuần trước và thực hiện chuyển khoản cho bạn vào <strong>Thứ Ba</strong>.
+                📌 Mỗi tháng Admin sẽ tạo bản ghi quyết toán cho doanh thu tháng trước và thực hiện chuyển khoản cho bạn.
                 Bạn sẽ nhận được thông báo khi trạng thái chuyển sang <strong>Đã thanh toán ✅</strong>.
                 <br/><strong>Số tiền nhận = Tiền TravelMate thu online − Commission nền tảng − Voucher partner chịu</strong>
-                <br/><span style="font-size:12px;color:#1d4ed8;">Với đơn cọc 30%: quyết toán chỉ tính trên 30% đã thanh toán qua TravelMate. Phần 70% còn lại khách trả tại cơ sở không nằm trong quyết toán.</span>
+                <br/><span style="font-size:12px;color:#1d4ed8;">Chỉ booking COMPLETED hoặc NO_SHOW (giữ cọc) mới được quyết toán. Với đơn cọc 30%: quyết toán chỉ tính trên 30% đã thanh toán qua TravelMate.</span>
             </div>
 
             <!-- KPI -->
@@ -148,7 +87,7 @@
                 <div th:if="${#lists.isEmpty(settlements)}" class="empty-state">
                     <i class="fa-solid fa-inbox" style="font-size:40px;opacity:.25;margin-bottom:10px;"></i>
                     <p style="font-weight:600;margin-bottom:6px;">Chưa có settlement nào</p>
-                    <p style="font-size:13px;">Admin sẽ tạo bản ghi quyết toán sau mỗi tuần hoạt động.</p>
+                    <p style="font-size:13px;">Admin sẽ tạo bản ghi quyết toán sau mỗi tháng hoạt động.</p>
                     <div style="margin-top:12px;">
                         <a href="/partner/revenue" class="btn btn--ghost btn--sm">→ Xem doanh thu</a>
                     </div>
@@ -160,10 +99,10 @@
                             <tr>
                                 <th>#</th>
                                 <th>Kỳ quyết toán</th>
-                                <th>Tiền TM thu online (đ)</th>
-                                <th>Chiết khấu (đ)</th>
-                                <th>Voucher trừ (đ)</th>
-                                <th>Bạn nhận (đ)</th>
+                                <th>TravelMate đã thu (đ)</th>
+                                <th>Hoa hồng nền tảng (đ)</th>
+                                <th>Voucher đối tác chịu (đ)</th>
+                                <th>Đối tác nhận (đ)</th>
                                 <th>Trạng thái</th>
                                 <th>Ngày TT</th>
                                 <th>Ghi chú</th>
@@ -186,8 +125,8 @@
                                 <td style="font-weight:700;color:#16a34a;"
                                     th:text="${#numbers.formatDecimal(s.payoutAmount,0,'COMMA',0,'POINT')}">0</td>
                                 <td>
-                                    <span class="badge-pending" th:if="${s.settlementStatus.name() == 'PENDING'}">⏳ Chờ TT</span>
-                                    <span class="badge-paid"    th:if="${s.settlementStatus.name() == 'PAID'}">✅ Đã TT</span>
+                                    <span class="badge-pending" th:if="${s.settlementStatus.name() == 'PENDING'}">⏳ Chờ chuyển khoản</span>
+                                    <span class="badge-paid"    th:if="${s.settlementStatus.name() == 'PAID'}">✅ Đã chuyển khoản</span>
                                     <span style="font-size:12px;color:#6b7280;"
                                           th:if="${s.settlementStatus.name() != 'PENDING' and s.settlementStatus.name() != 'PAID'}"
                                           th:text="${s.settlementStatus.name()}">—</span>

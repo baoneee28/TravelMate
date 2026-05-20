@@ -16,48 +16,7 @@
 </head>
 <body>
 <div class="admin-wrapper">
-    <aside class="admin-sidebar">
-        <div class="admin-sidebar__header">
-            <a href="/partner/dashboard" class="sidebar-logo">
-                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                <div>
-                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
-                    <span class="admin-sidebar__badge">PARTNER CENTER</span>
-                </div>
-            </a>
-        </div>
-        <nav class="admin-sidebar__nav">
-            <div class="admin-sidebar__section-title">Tổng quan</div>
-            <a href="/partner/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
-            <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
-            <a href="/partner/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Nơi lưu trú của tôi</a>
-            <a href="/partner/accommodations/new" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">＋</span> Đăng ký mới</a>
-            <a href="/partner/amenities" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">🏷</span> Tiện nghi phòng
-                </a>
-                <a href="/partner/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đơn đặt phòng</a>
-            <a href="/partner/room-status" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏠</span> Tình trạng phòng hôm nay</a>
-            <a href="/partner/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Kiểm tra lịch trống</a>
-            <a href="/partner/direct-booking" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">➕</span> Booking trực tiếp</a>
-                <a href="/partner/reviews" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá của khách</a>
-            <div class="admin-sidebar__section-title">Tài chính</div>
-            <a href="/partner/revenue" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
-            <a href="/partner/settlements" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
-            <a href="/partner/vouchers" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher của tôi</a>
-            <div class="admin-sidebar__section-title">Hỗ trợ</div>
-            <a href="/partner/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ</a>
-            <a href="/partner/profile" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👤</span> Hồ sơ của tôi</a>
-        </nav>
-        <div class="admin-sidebar__footer">
-            <div class="admin-sidebar__user">
-                <div class="admin-sidebar__user-avatar">PT</div>
-                <div class="admin-sidebar__user-info">
-                    <div class="admin-sidebar__user-name" th:text="${partnerName} ?: 'Partner'">Partner</div>
-                    <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
-                </div>
-            </div>
-        </div>
-    </aside>
+    <aside th:replace="~{fragments/partner-sidebar :: sidebar('settlements', ${partnerName})}"></aside>
     <div class="admin-sidebar-overlay"></div>
 
     <div class="admin-main">
@@ -90,7 +49,7 @@
                     <div class="stats-card__icon stats-card__icon--blue">💵</div>
                     <div>
                         <div class="stats-card__value" th:text="${#numbers.formatDecimal(settlement.grossAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
-                <div class="stats-card__label">Tiền TM thu online (ONLINE)</div>
+                <div class="stats-card__label">TravelMate đã thu (ONLINE)</div>
                     </div>
                 </div>
                 <div class="stats-card">
@@ -168,46 +127,82 @@
                 </table>
             </div>
 
-            <!-- Booking trong kỳ -->
+            <!-- Booking trong kỳ — Chi tiết tài chính -->
             <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:var(--space-5);">
-                <h3 style="font-size:15px;font-weight:700;margin-bottom:var(--space-4);color:var(--color-primary);">
-                    📋 Booking trong kỳ (<span th:text="${#lists.size(periodBookings)}">0</span> đơn)
+                <h3 style="font-size:15px;font-weight:700;margin-bottom:var(--space-4);color:var(--color-primary);display:flex;align-items:center;gap:8px;">
+                    📋 Chi tiết booking trong kỳ
+                    <span style="font-size:13px;font-weight:400;color:#6b7280;">
+                        (<span th:text="${#lists.size(breakdown)}">0</span> đơn)
+                    </span>
                 </h3>
-                <div th:if="${#lists.isEmpty(periodBookings)}" style="text-align:center;padding:24px;color:#6b7280;">
-                    Không có booking nào trong kỳ này.
+                <div th:if="${#lists.isEmpty(breakdown)}" style="text-align:center;padding:32px;color:#6b7280;">
+                    <div style="font-size:36px;opacity:.3;margin-bottom:8px;">📭</div>
+                    Không có booking nào trong kỳ quyết toán này.
                 </div>
-                <div class="table-wrap" th:if="${!#lists.isEmpty(periodBookings)}">
-                    <table class="table data-table">
+                <div class="table-wrap" th:if="${!#lists.isEmpty(breakdown)}" style="overflow-x:auto;">
+                    <table class="table data-table" style="width:100%;border-collapse:collapse;font-size:13px;">
                         <thead>
-                            <tr>
-                                <th>Mã booking</th>
-                                <th>Khách hàng</th>
-                                <th>Cơ sở / Phòng</th>
-                                <th>Check-in</th>
-                                <th>Tổng tiền</th>
-                                <th>Trạng thái</th>
+                            <tr style="background:#f8fafc;">
+                                <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">#</th>
+                                <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Mã booking</th>
+                                <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Cơ sở lưu trú</th>
+                                <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Phòng</th>
+                                <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Check-in</th>
+                                <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Check-out</th>
+                                <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">TM đã thu (đ)</th>
+                                <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Tỷ lệ HH</th>
+                                <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Hoa hồng (đ)</th>
+                                <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Voucher</th>
+                                <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Voucher trừ (đ)</th>
+                                <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Bạn nhận (đ)</th>
+                                <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Trạng thái TT</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr th:each="b : ${periodBookings}">
-                                <td style="font-family:monospace;font-size:12px;color:var(--color-primary);font-weight:600;">
-                                    <a th:href="@{/partner/bookings/{id}(id=${b.id})}" th:text="${b.bookingCode}"
-                                       style="color:var(--color-primary);text-decoration:none;">BK-XXX</a>
+                            <tr th:each="item, stat : ${breakdown}" style="border-bottom:1px solid #f1f5f9;">
+                                <td style="padding:10px 14px;color:#6b7280;" th:text="${stat.index + 1}">1</td>
+                                <td style="padding:10px 14px;font-weight:600;font-family:monospace;color:var(--color-primary);" th:text="${item.bookingCode}">BK001</td>
+                                <td style="padding:10px 14px;" th:text="${item.accName}">—</td>
+                                <td style="padding:10px 14px;" th:text="${item.roomName}">—</td>
+                                <td style="padding:10px 14px;white-space:nowrap;" th:text="${item.checkIn}">—</td>
+                                <td style="padding:10px 14px;white-space:nowrap;" th:text="${item.checkOut}">—</td>
+                                <td style="padding:10px 14px;color:#1d4ed8;font-weight:700;"
+                                    th:text="${#numbers.formatDecimal(item.gross,0,'COMMA',0,'POINT')}">0</td>
+                                <td style="padding:10px 14px;font-size:12px;color:#6b7280;" th:text="${item.commissionRateDisplay}">15%</td>
+                                <td style="padding:10px 14px;color:#dc2626;font-weight:600;"
+                                    th:text="${#numbers.formatDecimal(item.commissionAmount,0,'COMMA',0,'POINT')}">0</td>
+                                <td style="padding:10px 14px;font-size:12px;">
+                                    <span th:if="${item.voucherCode != null}" th:text="${item.voucherCode}"
+                                          style="background:#f3f4f6;padding:1px 6px;border-radius:5px;font-family:monospace;"></span>
+                                    <span th:if="${item.voucherCode == null}" style="color:#d1d5db;">—</span>
                                 </td>
-                                <td th:text="${b.customerName}">—</td>
-                                <td>
-                                    <div style="font-weight:500;" th:text="${b.accommodation.name}">—</div>
-                                    <div style="font-size:12px;color:#6b7280;" th:text="${b.room.roomName}">—</div>
-                                </td>
-                                <td th:text="${#temporals.format(b.checkIn,'dd/MM/yyyy')}">—</td>
-                                <td style="font-weight:600;color:var(--color-primary);"
-                                    th:text="${#numbers.formatDecimal(b.totalAmount,0,'COMMA',0,'POINT')} + 'đ'">—</td>
-                                <td>
-                                    <span class="badge" th:classappend="${b.bookingStatus.name()=='COMPLETED'?'badge--success':'badge--primary'}"
-                                          th:text="${b.bookingStatus.name()=='COMPLETED'?'Hoàn thành':'Đã xác nhận'}">—</span>
+                                <td style="padding:10px 14px;color:#dc2626;font-weight:600;"
+                                    th:text="${item.voucherDeductAmount != null and item.voucherDeductAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0
+                                              ? #numbers.formatDecimal(item.voucherDeductAmount,0,'COMMA',0,'POINT') : '—'}">0</td>
+                                <td style="padding:10px 14px;color:#16a34a;font-weight:700;font-size:14px;"
+                                    th:text="${#numbers.formatDecimal(item.partnerPayout,0,'COMMA',0,'POINT')}">0</td>
+                                <td style="padding:10px 14px;">
+                                    <span style="background:#dcfce7;color:#15803d;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;"
+                                          th:text="${item.paymentStatusVN}">—</span>
                                 </td>
                             </tr>
                         </tbody>
+                        <tfoot>
+                            <tr style="background:#f0fdf4;border-top:2px solid #bbf7d0;">
+                                <td colspan="6" style="padding:12px 14px;text-align:right;font-weight:700;color:#374151;">Tổng cộng:</td>
+                                <td style="padding:12px 14px;font-weight:700;color:#1d4ed8;"
+                                    th:text="${#numbers.formatDecimal(settlement.grossAmount,0,'COMMA',0,'POINT')}">0</td>
+                                <td style="padding:12px 14px;">—</td>
+                                <td style="padding:12px 14px;font-weight:700;color:#dc2626;"
+                                    th:text="${#numbers.formatDecimal(settlement.commissionAmount,0,'COMMA',0,'POINT')}">0</td>
+                                <td style="padding:12px 14px;">—</td>
+                                <td style="padding:12px 14px;font-weight:700;color:#dc2626;"
+                                    th:text="${#numbers.formatDecimal(settlement.voucherDeductionAmount,0,'COMMA',0,'POINT')}">0</td>
+                                <td style="padding:12px 14px;color:#16a34a;font-weight:700;font-size:15px;"
+                                    th:text="${#numbers.formatDecimal(settlement.payoutAmount,0,'COMMA',0,'POINT')}">0</td>
+                                <td style="padding:12px 14px;">—</td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>

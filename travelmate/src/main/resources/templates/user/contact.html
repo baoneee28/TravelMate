@@ -20,99 +20,8 @@
 <body>
     <script src="/assets/js/main.js"></script>
     <script src="/assets/js/user.js"></script>
+    <div th:replace="~{fragments/user-header :: header(true, 'contact')}"></div>
 
-    <!-- SIDEBAR -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    <aside class="sidebar-menu" id="sidebarMenu" role="dialog" aria-label="Menu điều hướng">
-        <div class="sidebar-header">
-            <div class="sidebar-logo">
-                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                <span class="s-logo-text">TRAVEL<span>MATE</span></span>
-            </div>
-            <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Đóng menu">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <nav class="sidebar-nav">
-            <div class="sidebar-nav-label">Chức năng</div>
-            <a href="/accommodations" id="sb-hotels"><span class="s-icon"><i class="fa-solid fa-bed"></i></span> Đặt
-                phòng</a>
-            <a href="/travel" id="sb-travel"><span class="s-icon"><i
-                        class="fa-solid fa-map-location-dot"></i></span> Gợi ý du lịch</a>
-            <a href="/news" id="sb-news"><span class="s-icon"><i class="fa-solid fa-newspaper"></i></span> Tin
-                tức</a>
-            <a href="/contact" id="sb-contact" class="active-sidebar"><span class="s-icon"><i
-                        class="fa-solid fa-headset"></i></span> Liên hệ</a>
-            <a href="/vouchers" id="sb-voucher">
-                <span class="s-icon"><i class="fa-solid fa-ticket"></i></span>
-                Kho voucher
-            </a>
-        </nav>
-        <div class="sidebar-divider"></div>
-        <div class="sidebar-auth" id="sidebarAuth"></div>
-    </aside>
-
-    <!-- HEADER -->
-    <header class="header header-static" id="header">
-        <div class="container navbar">
-            <div class="logo-wrapper">
-                <a href="/" class="logo">
-                    <div class="logo-icon"><i class="fa-solid fa-building"></i></div>
-                    <span class="logo-text"><span class="logo-blue">TRAVEL</span><span
-                            class="logo-yellow">MATE</span></span>
-                </a>
-                <button class="hamburger-btn" id="hamburgerBtn" aria-label="Mở menu" aria-expanded="false">
-                    <span class="bar"></span><span class="bar"></span><span class="bar"></span>
-                </button>
-            </div>
-            <nav class="menu">
-                <ul class="menu-list">
-                    <li><a href="/">TRANG CHỦ</a></li>
-                    <li><a href="/travel">GỢI Ý DU LỊCH</a></li>
-                    <li><a href="/news">TIN TỨC</a></li>
-                    <li><a href="/contact">LIÊN HỆ</a></li>
-                    <li><a href="/my-bookings" class="my-booking"><i class="fa-solid fa-bed"></i> Đặt phòng của
-                            tôi</a></li>
-                </ul>
-            </nav>
-            <!-- Chưa đăng nhập -->
-            <a href="/auth/login" class="login-btn" sec:authorize="isAnonymous()">ĐĂNG NHẬP</a>
-            <!-- Bell Notification (authenticated) -->
-            <div id="notifWrap" sec:authorize="isAuthenticated()" style="position:relative;display:flex;align-items:center;margin-right:10px;">
-                <button id="notifBtn" type="button" aria-label="Thông báo"
-                        style="background:none;border:none;cursor:pointer;font-size:1.15rem;padding:8px 10px;border-radius:10px;position:relative;transition:background 0.15s,color 0.15s;">
-                    <i class="fa-solid fa-bell"></i>
-                    <span id="notifBadge" style="display:none;position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:0.6rem;font-weight:700;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px;line-height:1;"></span>
-                </button>
-                <div id="notifDropdown" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:340px;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.18);z-index:9999;overflow:hidden;border:1px solid #e2e8f0;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid #f1f5f9;">
-                        <span style="font-weight:700;font-size:0.95rem;color:#0f172a;">Thông báo</span>
-                        <button type="button" style="background:none;border:none;font-size:0.78rem;font-weight:600;color:#2563eb;cursor:pointer;font-family:inherit;padding:0;">Đọc hết</button>
-                    </div>
-                    <div style="max-height:340px;overflow-y:auto;">
-                        <p style="text-align:center;color:#94a3b8;font-size:0.85rem;padding:24px 16px;margin:0;">Không có thông báo</p>
-                    </div>
-                </div>
-            </div>
-            <!-- Đã đăng nhập -->
-            <div class="header-user" id="headerUser" sec:authorize="isAuthenticated()">
-                <button class="header-user-btn" id="headerUserBtn" type="button">
-                    <div class="header-avatar"><i class="fa-solid fa-user"></i></div>
-                    <span class="header-user-name" sec:authentication="principal.fullName">User</span>
-                    <i class="fa-solid fa-chevron-down header-chevron"></i>
-                </button>
-                <div class="header-user-dropdown" id="headerUserDropdown">
-                    <a href="/my-bookings" class="dropdown-item"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a>
-                    <div class="dropdown-divider"></div>
-                    <form method="post" action="/auth/logout">
-                        <button type="submit" class="dropdown-item dropdown-logout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- HERO SECTION -->
     <section class="contact-hero">
         <div class="contact-hero-bg"
             style="background-image: url('https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=1400');">
@@ -122,46 +31,36 @@
             <div class="contact-hero-text">
                 <h1>HỖ TRỢ <span class="text-gradient">TRAVELMATE</span></h1>
             </div>
-            <!-- LOGIN PROMPT CARD -->
-            <div class="contact-login-card" id="contactLoginCard">
+            <div class="contact-login-card" sec:authorize="isAnonymous()">
                 <div class="login-card-left">
                     <h3>Đăng nhập vào tài khoản TravelMate của bạn</h3>
-                    <p>Xem yêu cầu của bạn, quản lý đặt phòng và tìm sự hỗ trợ một cách nhanh chóng.</p>
+                    <p>Xem yêu cầu của bạn, quản lý đặt phòng và nhận hỗ trợ nhanh hơn.</p>
                 </div>
                 <a href="/auth/login" class="login-card-btn">ĐĂNG NHẬP</a>
             </div>
         </div>
     </section>
 
-    <!-- FEATURE NAV BAR -->
     <section class="contact-features-section">
         <div class="container">
             <div class="contact-features-grid">
-                <a href="/my-bookings" class="contact-feature-card" id="featureMyRoom">
-                    <div class="feature-card-icon icon-blue">
-                        <i class="fa-solid fa-bed"></i>
-                    </div>
+                <a href="/my-bookings" class="contact-feature-card">
+                    <div class="feature-card-icon icon-blue"><i class="fa-solid fa-bed"></i></div>
                     <h4>Phòng của tôi</h4>
                     <p>Xem và quản lý các đặt phòng hiện tại của bạn</p>
                 </a>
-                <a href="#supportForm" class="contact-feature-card" id="featureSupport">
-                    <div class="feature-card-icon icon-amber">
-                        <i class="fa-solid fa-paper-plane"></i>
-                    </div>
+                <a href="#supportForm" class="contact-feature-card">
+                    <div class="feature-card-icon icon-amber"><i class="fa-solid fa-paper-plane"></i></div>
                     <h4>Gửi yêu cầu hỗ trợ</h4>
                     <p>Liên hệ đội ngũ hỗ trợ để giải quyết vấn đề</p>
                 </a>
-                <a href="#reportSection" class="contact-feature-card" id="featureReport">
-                    <div class="feature-card-icon icon-red">
-                        <i class="fa-solid fa-flag"></i>
-                    </div>
+                <a href="#reportSection" class="contact-feature-card">
+                    <div class="feature-card-icon icon-red"><i class="fa-solid fa-flag"></i></div>
                     <h4>Báo cáo khách sạn</h4>
-                    <p>Báo cáo vấn đề về chất lượng khách sạn</p>
+                    <p>Báo cáo vấn đề về chất lượng cơ sở lưu trú</p>
                 </a>
-                <a href="#faqSection" class="contact-feature-card" id="featureFAQ">
-                    <div class="feature-card-icon icon-emerald">
-                        <i class="fa-solid fa-circle-question"></i>
-                    </div>
+                <a href="#faqSection" class="contact-feature-card">
+                    <div class="feature-card-icon icon-emerald"><i class="fa-solid fa-circle-question"></i></div>
                     <h4>Câu hỏi thường gặp</h4>
                     <p>Tìm câu trả lời nhanh cho các thắc mắc phổ biến</p>
                 </a>
@@ -169,121 +68,129 @@
         </div>
     </section>
 
-    <!-- SUPPORT FORM -->
     <section class="contact-form-section" id="supportForm">
         <div class="container">
             <div class="contact-form-layout">
-                <!-- LEFT: FORM -->
                 <div class="contact-form-card">
                     <div class="form-card-header">
                         <div class="form-header-icon"><i class="fa-solid fa-paper-plane"></i></div>
                         <div>
                             <h2>Gửi yêu cầu hỗ trợ</h2>
-                            <p>Chúng tôi sẽ phản hồi trong vòng 24 giờ</p>
+                            <p>TravelMate sẽ phản hồi trong thời gian sớm nhất</p>
                         </div>
                     </div>
+
                     <div th:if="${contactSuccess}" class="form-success" style="display:flex;">
                         <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
-                        <div><h3>Gui thanh cong!</h3><p>Cam on ban da lien he. TravelMate se phan hoi som nhat.</p></div>
+                        <div>
+                            <h3>Gửi thành công!</h3>
+                            <p>Cảm ơn bạn đã liên hệ. TravelMate sẽ phản hồi sớm nhất.</p>
+                        </div>
                     </div>
-                    <div th:if="${contactError}" style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:12px 16px;color:#dc2626;margin-bottom:16px;" th:text="${contactError}"></div>
+                    <div th:if="${contactError}"
+                         style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:12px 16px;color:#dc2626;margin-bottom:16px;"
+                         th:text="${contactError}">Có lỗi xảy ra.</div>
+
                     <form id="contactForm" class="contact-form" th:action="@{/contact/submit}" method="post">
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="contactName"><i class="fa-solid fa-user"></i> Ho va ten *</label>
-                                <input type="text" id="contactName" name="contactName" th:value="${prefillName}" placeholder="Nhap ho va ten" required />
+                                <label for="contactName"><i class="fa-solid fa-user"></i> Họ và tên *</label>
+                                <input type="text" id="contactName" name="contactName" th:value="${prefillName}"
+                                       placeholder="Nhập họ và tên" required />
                             </div>
                             <div class="form-group">
                                 <label for="contactEmail"><i class="fa-solid fa-envelope"></i> Email *</label>
-                                <input type="email" id="contactEmail" name="contactEmail" th:value="${prefillEmail}" placeholder="email@example.com" required />
+                                <input type="email" id="contactEmail" name="contactEmail" th:value="${prefillEmail}"
+                                       placeholder="email@example.com" required />
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="contactPhone"><i class="fa-solid fa-phone"></i> So dien thoai</label>
-                                <input type="tel" id="contactPhone" name="contactPhone" th:value="${prefillPhone}" placeholder="VD: 0901234567" />
+                                <label for="contactPhone"><i class="fa-solid fa-phone"></i> Số điện thoại</label>
+                                <input type="tel" id="contactPhone" name="contactPhone" th:value="${prefillPhone}"
+                                       placeholder="VD: 0901234567" />
                             </div>
                             <div class="form-group">
-                                <label for="priority"><i class="fa-solid fa-signal"></i> Muc do</label>
+                                <label for="priority"><i class="fa-solid fa-signal"></i> Mức độ</label>
                                 <select id="priority" name="priority">
-                                    <option value="Thap">Thap</option>
-                                    <option value="Trung binh" selected>Trung binh</option>
+                                    <option value="Thấp">Thấp</option>
+                                    <option value="Trung bình" selected>Trung bình</option>
                                     <option value="Cao">Cao</option>
-                                    <option value="Khan cap">Khan cap</option>
+                                    <option value="Khẩn cấp">Khẩn cấp</option>
                                 </select>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="contactCategory"><i class="fa-solid fa-tag"></i> Loai yeu cau *</label>
+                            <label for="contactCategory"><i class="fa-solid fa-tag"></i> Loại yêu cầu *</label>
                             <select id="contactCategory" name="contactCategory" required>
-                                <option value="">Chon loai yeu cau</option>
-                                <option value="Ho tro dat phong">Ho tro dat phong</option>
-                                <option value="Thanh toan">Thanh toan</option>
-                                <option value="Hoan tien / huy phong">Hoan tien / huy phong</option>
-                                <option value="Gop y dich vu">Gop y dich vu</option>
-                                <option value="Khieu nai">Khieu nai</option>
-                                <option value="Khac">Khac</option>
+                                <option value="">Chọn loại yêu cầu</option>
+                                <option value="Hỗ trợ đặt phòng">Hỗ trợ đặt phòng</option>
+                                <option value="Thanh toán">Thanh toán</option>
+                                <option value="Hoàn tiền / hủy phòng">Hoàn tiền / hủy phòng</option>
+                                <option value="Góp ý dịch vụ">Góp ý dịch vụ</option>
+                                <option value="Khiếu nại">Khiếu nại</option>
+                                <option value="Khác">Khác</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="contactSubject"><i class="fa-solid fa-heading"></i> Tieu de *</label>
-                            <input type="text" id="contactSubject" name="contactSubject" placeholder="Tom tat ngan gon van de cua ban" required maxlength="255" />
+                            <label for="contactSubject"><i class="fa-solid fa-heading"></i> Tiêu đề *</label>
+                            <input type="text" id="contactSubject" name="contactSubject"
+                                   placeholder="Tóm tắt ngắn gọn vấn đề của bạn" required maxlength="255" />
                         </div>
                         <div class="form-group">
-                            <label for="contactMessage"><i class="fa-solid fa-message"></i> Noi dung *</label>
-                            <textarea id="contactMessage" name="contactMessage" rows="5" placeholder="Mo ta chi tiet van de cua ban..." required></textarea>
+                            <label for="contactMessage"><i class="fa-solid fa-message"></i> Nội dung *</label>
+                            <textarea id="contactMessage" name="contactMessage" rows="5"
+                                      placeholder="Mô tả chi tiết vấn đề của bạn..." required></textarea>
                         </div>
                         <button type="submit" class="form-submit-btn" id="formSubmitBtn">
-                            <i class="fa-solid fa-paper-plane"></i> Gui yeu cau
+                            <i class="fa-solid fa-paper-plane"></i> Gửi yêu cầu
                         </button>
                     </form>
                 </div>
 
-                <!-- RIGHT: CONTACT INFO -->
                 <div class="contact-info-card">
                     <h3><i class="fa-solid fa-headset"></i> Thông tin liên hệ</h3>
                     <div class="info-item">
                         <div class="info-icon"><i class="fa-solid fa-phone"></i></div>
                         <div>
                             <span class="info-label">Hotline</span>
-                            <span class="info-value">+84 123 456 789</span>
+                            <span class="info-value" th:text="${supportHotline}">+84 123 456 789</span>
                         </div>
                     </div>
                     <div class="info-item">
                         <div class="info-icon"><i class="fa-solid fa-envelope"></i></div>
                         <div>
                             <span class="info-label">Email</span>
-                            <span class="info-value">support@travelmate.vn</span>
+                            <span class="info-value" th:text="${supportEmail}">travelmatek23@gmail.com</span>
                         </div>
                     </div>
                     <div class="info-item">
                         <div class="info-icon"><i class="fa-solid fa-clock"></i></div>
                         <div>
                             <span class="info-label">Giờ làm việc</span>
-                            <span class="info-value">08:00 - 22:00 hàng ngày</span>
+                            <span class="info-value" th:text="${supportWorkingTime}">08:00 - 22:00 hằng ngày</span>
                         </div>
                     </div>
                     <div class="info-item">
                         <div class="info-icon"><i class="fa-solid fa-location-dot"></i></div>
                         <div>
                             <span class="info-label">Địa chỉ</span>
-                            <span class="info-value">123 Nguyễn Văn Linh, Đà Nẵng</span>
+                            <span class="info-value" th:text="${supportAddress}">123 Võ Văn Ngân, TP. Thủ Đức</span>
                         </div>
                     </div>
                     <div class="info-divider"></div>
                     <h4>Kết nối với chúng tôi</h4>
                     <div class="contact-socials">
-                        <a href="#" class="social-circle"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="social-circle"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="social-circle"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="social-circle"><i class="fab fa-youtube"></i></a>
+                        <a href="https://facebook.com/" target="_blank" rel="noopener noreferrer" class="social-circle" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://instagram.com/" target="_blank" rel="noopener noreferrer" class="social-circle" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="https://twitter.com/" target="_blank" rel="noopener noreferrer" class="social-circle" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="https://youtube.com/" target="_blank" rel="noopener noreferrer" class="social-circle" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- REPORT HOTEL -->
     <section class="contact-report-section" id="reportSection">
         <div class="container">
             <div class="report-card">
@@ -291,52 +198,64 @@
                     <div class="report-header-icon"><i class="fa-solid fa-flag"></i></div>
                     <div>
                         <h2>Báo cáo khách sạn</h2>
-                        <p>Giúp chúng tôi cải thiện chất lượng dịch vụ</p>
+                        <p>Thông tin này sẽ được lưu thành ticket hỗ trợ để admin xử lý</p>
                     </div>
                 </div>
-                <form id="reportForm" class="contact-form">
+
+                <div th:if="${reportSuccess}" class="form-success" style="display:flex;">
+                    <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
+                    <div>
+                        <h3>Báo cáo đã được gửi!</h3>
+                        <p>Cảm ơn bạn đã phản hồi. Chúng tôi sẽ xem xét và xử lý trong thời gian sớm nhất.</p>
+                        <a href="/contact#reportSection"
+                           style="display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:9px 18px;background:#2563eb;color:#fff;border-radius:8px;font-size:0.85rem;font-weight:700;text-decoration:none;">
+                            <i class="fa-solid fa-flag"></i> Gửi báo cáo khác
+                        </a>
+                    </div>
+                </div>
+                <div th:if="${reportError}"
+                     style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:12px 16px;color:#dc2626;margin-bottom:16px;"
+                     th:text="${reportError}">Có lỗi xảy ra.</div>
+
+                <form id="reportForm" class="contact-form" th:action="@{/contact/report}" method="post"
+                      th:unless="${reportSuccess}">
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="reportHotel"><i class="fa-solid fa-hotel"></i> Tên khách sạn</label>
-                            <input type="text" id="reportHotel" placeholder="Nhập tên khách sạn" required />
+                            <label for="reportHotel"><i class="fa-solid fa-hotel"></i> Tên khách sạn *</label>
+                            <input type="text" id="reportHotel" name="reportHotel"
+                                   placeholder="Nhập tên khách sạn" required />
                         </div>
                         <div class="form-group">
-                            <label for="reportLocation"><i class="fa-solid fa-location-dot"></i> Địa điểm</label>
-                            <input type="text" id="reportLocation" placeholder="VD: Đà Nẵng, Hà Nội..." required />
+                            <label for="reportLocation"><i class="fa-solid fa-location-dot"></i> Địa điểm *</label>
+                            <input type="text" id="reportLocation" name="reportLocation"
+                                   placeholder="VD: Đà Nẵng, Hà Nội..." required />
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="reportType"><i class="fa-solid fa-triangle-exclamation"></i> Loại vấn đề</label>
-                        <select id="reportType" required>
+                        <label for="reportType"><i class="fa-solid fa-triangle-exclamation"></i> Loại vấn đề *</label>
+                        <select id="reportType" name="reportType" required>
                             <option value="">Chọn loại vấn đề</option>
-                            <option value="quality">Chất lượng phòng không đúng mô tả</option>
-                            <option value="service">Thái độ phục vụ kém</option>
-                            <option value="safety">Vấn đề an toàn</option>
-                            <option value="hygiene">Vệ sinh không đảm bảo</option>
-                            <option value="scam">Lừa đảo / gian lận</option>
-                            <option value="other">Vấn đề khác</option>
+                            <option value="Chất lượng phòng không đúng mô tả">Chất lượng phòng không đúng mô tả</option>
+                            <option value="Thái độ phục vụ kém">Thái độ phục vụ kém</option>
+                            <option value="Vấn đề an toàn">Vấn đề an toàn</option>
+                            <option value="Vệ sinh không đảm bảo">Vệ sinh không đảm bảo</option>
+                            <option value="Lừa đảo / gian lận">Lừa đảo / gian lận</option>
+                            <option value="Vấn đề khác">Vấn đề khác</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="reportDetail"><i class="fa-solid fa-message"></i> Chi tiết báo cáo</label>
-                        <textarea id="reportDetail" rows="4" placeholder="Mô tả chi tiết vấn đề bạn gặp phải..."
-                            required></textarea>
+                        <label for="reportDetail"><i class="fa-solid fa-message"></i> Chi tiết báo cáo *</label>
+                        <textarea id="reportDetail" name="reportDetail" rows="4"
+                                  placeholder="Mô tả chi tiết vấn đề bạn gặp phải..." required></textarea>
                     </div>
                     <button type="submit" class="form-submit-btn report-submit-btn">
                         <i class="fa-solid fa-flag"></i> Gửi báo cáo
                     </button>
                 </form>
-                <div class="form-success" id="reportSuccess" style="display:none;">
-                    <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
-                    <h3>Báo cáo đã được gửi!</h3>
-                    <p>Cảm ơn bạn đã phản hồi. Chúng tôi sẽ xem xét và xử lý trong thời gian sớm nhất.</p>
-                    <button type="button" class="form-reset-btn" id="reportResetBtn">Gửi báo cáo khác</button>
-                </div>
             </div>
         </div>
     </section>
 
-    <!-- FAQ -->
     <section class="contact-faq-section" id="faqSection">
         <div class="container">
             <div class="faq-header">
@@ -350,8 +269,7 @@
                         <i class="fa-solid fa-chevron-down"></i>
                     </button>
                     <div class="faq-answer">
-                        <p>Bạn có thể tìm kiếm khách sạn trên trang chủ, chọn phòng phù hợp, điền thông tin và thanh
-                            toán trực tuyến. Quá trình đặt phòng chỉ mất vài phút.</p>
+                        <p>Bạn tìm kiếm điểm đến, chọn nơi lưu trú phù hợp, chọn phòng, điền thông tin và thanh toán trực tuyến qua VNPAY.</p>
                     </div>
                 </div>
                 <div class="faq-item">
@@ -360,222 +278,43 @@
                         <i class="fa-solid fa-chevron-down"></i>
                     </button>
                     <div class="faq-answer">
-                        <p>Có, bạn có thể hủy đặt phòng miễn phí trước 24 giờ so với thời gian nhận phòng. Sau thời
-                            gian đó, phí hủy sẽ được áp dụng tùy theo chính sách của khách sạn.</p>
+                        <p>Bạn có thể hủy trong mục Đặt phòng của tôi nếu booking còn ở trạng thái cho phép hủy theo chính sách của hệ thống.</p>
                     </div>
                 </div>
                 <div class="faq-item">
                     <button class="faq-question" type="button">
-                        <span>Phương thức thanh toán nào được chấp nhận?</span>
+                        <span>Thanh toán cọc 30% được xử lý thế nào?</span>
                         <i class="fa-solid fa-chevron-down"></i>
                     </button>
                     <div class="faq-answer">
-                        <p>TravelMate chấp nhận thanh toán qua thẻ tín dụng/ghi nợ (Visa, MasterCard), chuyển khoản
-                            ngân hàng, ví điện tử (MoMo, ZaloPay) và thanh toán tại khách sạn.</p>
+                        <p>Hệ thống ghi nhận khoản cọc, hiển thị trạng thái đã thanh toán cọc và phần còn lại sẽ được xử lý theo quy trình của booking.</p>
                     </div>
                 </div>
                 <div class="faq-item">
                     <button class="faq-question" type="button">
-                        <span>Làm sao để được hoàn tiền?</span>
+                        <span>Làm sao để gửi khiếu nại hoặc báo cáo cơ sở lưu trú?</span>
                         <i class="fa-solid fa-chevron-down"></i>
                     </button>
                     <div class="faq-answer">
-                        <p>Gửi yêu cầu hoàn tiền qua mục "Gửi yêu cầu hỗ trợ" phía trên. Đội ngũ chúng tôi sẽ xử lý
-                            trong 3-5 ngày làm việc. Tiền sẽ được hoàn về phương thức thanh toán ban đầu.</p>
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <button class="faq-question" type="button">
-                        <span>Tôi quên mật khẩu, phải làm sao?</span>
-                        <i class="fa-solid fa-chevron-down"></i>
-                    </button>
-                    <div class="faq-answer">
-                        <p>Nhấn vào "Quên mật khẩu" tại trang đăng nhập, nhập email đã đăng ký. Chúng tôi sẽ gửi link
-                            đặt lại mật khẩu qua email của bạn.</p>
+                        <p>Bạn dùng form Gửi yêu cầu hỗ trợ hoặc form Báo cáo khách sạn trên trang này. Nội dung sẽ được lưu vào hệ thống support ticket để admin theo dõi.</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- FOOTER -->
-    <footer class="footer">
-        <div class="container footer-grid">
-            <div class="footer-brand">
-                <div class="logo">
-                    <div class="logo-icon bg-sky"><i class="fa-solid fa-building"></i></div>
-                    <span class="logo-text text-white">TRAVEL<span class="logo-yellow">MATE</span></span>
-                </div>
-                <p class="footer-desc">TravelMate giúp bạn tìm được nơi nghỉ dưỡng hoàn hảo với giá tốt nhất và trải
-                    nghiệm tối ưu.</p>
-            </div>
-            <div class="footer-links">
-                <h4>Khám phá</h4>
-                <ul>
-                    <li><a href="#">Khách sạn</a></li>
-                    <li><a href="#">Villa & Resort</a></li>
-                    <li><a href="#">Cẩm nang du lịch</a></li>
-                    <li><a href="#">Ưu đãi đặc biệt</a></li>
-                </ul>
-            </div>
-            <div class="footer-links">
-                <h4>Hỗ trợ</h4>
-                <ul>
-                    <li><a href="#">Câu hỏi thường gặp</a></li>
-                    <li><a href="#">Chính sách hoàn tiền</a></li>
-                    <li><a href="#">Hướng dẫn đặt phòng</a></li>
-                    <li><a href="#">Liên hệ</a></li>
-                </ul>
-            </div>
-            <div class="footer-contact">
-                <h4>Liên hệ</h4>
-                <p><i class="fa-solid fa-phone"></i> +84 123 456 789</p>
-                <p><i class="fa-solid fa-envelope"></i> support@travelmate.vn</p>
-                <div class="social-links">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                </div>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2024 TravelMate. Đồ án Cơ sở lập trình Web.</p>
-            <p>Thiết kế đẹp, trải nghiệm nhanh.</p>
-        </div>
-    </footer>
-
-    <!-- SCRIPTS -->
     <script>
-        // ===== SIDEBAR =====
-        (function () {
-            const hamburgerBtn = document.getElementById('hamburgerBtn');
-            const sidebarMenu = document.getElementById('sidebarMenu');
-            const sidebarOverlay = document.getElementById('sidebarOverlay');
-            const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
-            const sidebarAuth = document.getElementById('sidebarAuth');
-            function isLoggedIn() { return !!localStorage.getItem('travelmate_user'); }
-            function renderAuth() {
-                if (isLoggedIn()) {
-                    sidebarAuth.innerHTML = `<a href="#" class="btn-logout-side" id="sidebarLogoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a>`;
-                    document.getElementById('sidebarLogoutBtn').addEventListener('click', function (e) { e.preventDefault(); localStorage.removeItem('travelmate_user'); closeSidebar(); renderAuth(); });
-                } else {
-                    sidebarAuth.innerHTML = `<a href="/auth/login" class="btn-login-side"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</a><a href="/auth/register" class="btn-register-side"><i class="fa-solid fa-user-plus"></i> Đăng ký</a>`;
-                }
-            }
-            function openSidebar() { sidebarMenu.classList.add('active'); sidebarOverlay.classList.add('active'); hamburgerBtn.setAttribute('aria-expanded', 'true'); document.body.style.overflow = 'hidden'; renderAuth(); }
-            function closeSidebar() { sidebarMenu.classList.remove('active'); sidebarOverlay.classList.remove('active'); hamburgerBtn.setAttribute('aria-expanded', 'false'); document.body.style.overflow = ''; }
-            hamburgerBtn.addEventListener('click', openSidebar);
-            sidebarCloseBtn.addEventListener('click', closeSidebar);
-            sidebarOverlay.addEventListener('click', closeSidebar);
-            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSidebar(); });
-        })();
-
-        // ===== HEADER SCROLL EFFECT =====
-        window.addEventListener('scroll', () => {
-            const header = document.getElementById('header');
-            if (window.scrollY > 50) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
+        document.querySelectorAll('.faq-item').forEach(item => {
+            const btn = item.querySelector('.faq-question');
+            btn.addEventListener('click', () => {
+                const isOpen = item.classList.contains('open');
+                document.querySelectorAll('.faq-item').forEach(other => other.classList.remove('open'));
+                if (!isOpen) item.classList.add('open');
+            });
         });
-
-        // ===== LOGIN CARD (hide if logged in) =====
-        (function () {
-            const card = document.getElementById('contactLoginCard');
-            if (localStorage.getItem('travelmate_user')) {
-                card.style.display = 'none';
-            }
-        })();
-
-        // ===== CONTACT FORM =====
-        (function () {
-            const form = document.getElementById('contactForm');
-            const success = document.getElementById('formSuccess');
-            const resetBtn = document.getElementById('formResetBtn');
-
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                form.style.display = 'none';
-                document.querySelector('.form-card-header').style.display = 'none';
-                success.style.display = 'flex';
-            });
-
-            resetBtn.addEventListener('click', () => {
-                form.reset();
-                form.style.display = 'flex';
-                document.querySelector('.form-card-header').style.display = 'flex';
-                success.style.display = 'none';
-            });
-        })();
-
-        // ===== REPORT FORM =====
-        (function () {
-            const form = document.getElementById('reportForm');
-            const success = document.getElementById('reportSuccess');
-            const resetBtn = document.getElementById('reportResetBtn');
-            const header = document.querySelector('.report-header');
-
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                form.style.display = 'none';
-                header.style.display = 'none';
-                success.style.display = 'flex';
-            });
-
-            resetBtn.addEventListener('click', () => {
-                form.reset();
-                form.style.display = 'flex';
-                header.style.display = 'flex';
-                success.style.display = 'none';
-            });
-        })();
-
-        // ===== FAQ ACCORDION =====
-        (function () {
-            const items = document.querySelectorAll('.faq-item');
-            items.forEach(item => {
-                const btn = item.querySelector('.faq-question');
-                btn.addEventListener('click', () => {
-                    const isOpen = item.classList.contains('open');
-                    items.forEach(i => i.classList.remove('open'));
-                    if (!isOpen) item.classList.add('open');
-                });
-            });
-        })();
-
-        // ===== NOTIFICATION BELL =====
-        (function() {
-            const notifBtn  = document.getElementById('notifBtn');
-            const notifDrop = document.getElementById('notifDropdown');
-            if (notifBtn && notifDrop) {
-                notifBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    notifDrop.style.display = notifDrop.style.display === 'block' ? 'none' : 'block';
-                });
-                document.addEventListener('click', function() { notifDrop.style.display = 'none'; });
-                notifDrop.addEventListener('click', function(e) { e.stopPropagation(); });
-            }
-        })();
     </script>
 
-    <!-- CHAT AI -->
-    <div class="ai-chat-widget">
-        <button class="ai-chat-btn" id="aiChatBtn" aria-label="Mở trợ lý AI">
-            <span class="ai-ring ring-1"></span>
-            <span class="ai-ring ring-2"></span>
-            <span class="ai-ring ring-3"></span>
-            <span class="ai-chat-core">
-                <img src="/assets/images/iconChatB.png" alt="AI Chat" class="ai-chat-image" />
-            </span>
-        </button>
-    </div>
-    <button id="scrollTopBtn" class="scroll-top-btn" aria-label="Lên đầu trang">
-        <span class="double-arrow-up">
-            <span class="chevron chevron-1"></span>
-            <span class="chevron chevron-2"></span>
-        </span>
-    </button>
+    <div th:replace="~{fragments/user-footer :: footer}"></div>
 </body>
 
 </html>

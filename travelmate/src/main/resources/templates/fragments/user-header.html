@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<th:block th:fragment="header(staticHeader, activeMenu)">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <aside class="sidebar-menu" id="sidebarMenu" role="dialog" aria-label="Menu điều hướng">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                <span class="s-logo-text">TRAVEL<span>MATE</span></span>
+            </div>
+            <button class="sidebar-close-btn" id="sidebarCloseBtn" type="button" aria-label="Đóng menu">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="sidebar-nav-label">Chức năng</div>
+            <a th:href="@{/accommodations}" th:classappend="${activeMenu == 'hotels'} ? 'active-sidebar' : ''">
+                <span class="s-icon"><i class="fa-solid fa-bed"></i></span>
+                Đặt phòng
+            </a>
+            <a th:href="@{/travel}" th:classappend="${activeMenu == 'travel'} ? 'active-sidebar' : ''">
+                <span class="s-icon"><i class="fa-solid fa-map-location-dot"></i></span>
+                Gợi ý du lịch
+            </a>
+            <a th:href="@{/news}" th:classappend="${activeMenu == 'news'} ? 'active-sidebar' : ''">
+                <span class="s-icon"><i class="fa-solid fa-newspaper"></i></span>
+                Tin tức
+            </a>
+            <a th:href="@{/contact}" th:classappend="${activeMenu == 'contact'} ? 'active-sidebar' : ''">
+                <span class="s-icon"><i class="fa-solid fa-headset"></i></span>
+                Liên hệ
+            </a>
+            <a th:href="@{/vouchers}" th:classappend="${activeMenu == 'voucher'} ? 'active-sidebar' : ''">
+                <span class="s-icon"><i class="fa-solid fa-ticket"></i></span>
+                Kho voucher
+            </a>
+            <a th:href="@{/my-bookings}" th:classappend="${activeMenu == 'bookings'} ? 'active-sidebar' : ''">
+                <span class="s-icon"><i class="fa-solid fa-suitcase-rolling"></i></span>
+                Đặt phòng của tôi
+            </a>
+        </nav>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-auth" id="sidebarAuth">
+            <a th:href="@{/auth/login}" class="btn-login-side" sec:authorize="isAnonymous()">
+                <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
+            </a>
+            <a th:href="@{/auth/register}" class="btn-register-side" sec:authorize="isAnonymous()">
+                <i class="fa-solid fa-user-plus"></i> Đăng ký
+            </a>
+            <form method="post" th:action="@{/auth/logout}" sec:authorize="isAuthenticated()" style="width:100%">
+                <button type="submit" class="btn-logout-side">
+                    <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <header id="header" th:class="${staticHeader} ? 'header header-static' : 'header'">
+        <div class="container navbar">
+            <div class="logo-wrapper">
+                <a th:href="@{/}" class="logo" aria-label="TravelMate">
+                    <div class="logo-icon"><i class="fa-solid fa-building"></i></div>
+                    <span class="logo-text">
+                        <span class="logo-blue">TRAVEL</span><span class="logo-yellow">MATE</span>
+                    </span>
+                </a>
+                <button class="hamburger-btn" id="hamburgerBtn" type="button" aria-label="Mở menu" aria-expanded="false">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
+            </div>
+
+            <nav class="menu" aria-label="Điều hướng chính">
+                <ul class="menu-list">
+                    <li><a th:href="@{/}" th:classappend="${activeMenu == 'home'} ? 'active-menu' : ''">TRANG CHỦ</a></li>
+                    <li><a th:href="@{/travel}" th:classappend="${activeMenu == 'travel'} ? 'active-menu' : ''">GỢI Ý DU LỊCH</a></li>
+                    <li><a th:href="@{/news}" th:classappend="${activeMenu == 'news'} ? 'active-menu' : ''">TIN TỨC</a></li>
+                    <li><a th:href="@{/contact}" th:classappend="${activeMenu == 'contact'} ? 'active-menu' : ''">LIÊN HỆ</a></li>
+                    <li>
+                        <a th:href="@{/my-bookings}" class="my-booking" th:classappend="${activeMenu == 'bookings'} ? 'active-menu' : ''">
+                            <i class="fa-solid fa-bed"></i> ĐẶT PHÒNG CỦA TÔI
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="header-actions">
+                <a th:href="@{/auth/login}" class="login-btn" sec:authorize="isAnonymous()">ĐĂNG NHẬP</a>
+
+                <div class="notif-wrap" id="notifWrap" sec:authorize="isAuthenticated()">
+                    <button class="notif-btn" id="notifBtn" type="button" aria-label="Thông báo">
+                        <i class="fa-solid fa-bell"></i>
+                        <span class="notif-badge" id="notifBadge" style="display:none;"></span>
+                    </button>
+                    <div class="notif-dropdown" id="notifDropdown" style="display:none;">
+                        <div class="notif-head">
+                            <span class="notif-head-title">Thông báo</span>
+                            <button type="button" class="notif-read-all" id="notifReadAll">Đọc hết</button>
+                        </div>
+                        <div class="notif-list" id="notifList">
+                            <p class="notif-empty">Không có thông báo</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="header-user" id="headerUser" sec:authorize="isAuthenticated()">
+                    <button class="header-user-btn" id="headerUserBtn" type="button">
+                        <div class="header-avatar">
+                            <img th:if="${#authentication.principal.avatarUrl != null}"
+                                 th:src="${#authentication.principal.avatarUrl}"
+                                 alt="Avatar"
+                                 style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />
+                            <i th:unless="${#authentication.principal.avatarUrl != null}"
+                               class="fa-solid fa-user"></i>
+                        </div>
+                        <span class="header-user-name" sec:authentication="principal.fullName">User</span>
+                        <i class="fa-solid fa-chevron-down header-chevron"></i>
+                    </button>
+                    <div class="header-user-dropdown" id="headerUserDropdown">
+                        <a th:href="@{/profile}" class="dropdown-item">
+                            <i class="fa-solid fa-user-gear"></i> Hồ sơ của tôi
+                        </a>
+                        <a th:href="@{/my-bookings}" class="dropdown-item">
+                            <i class="fa-solid fa-bed"></i> Đặt phòng của tôi
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <form method="post" th:action="@{/auth/logout}">
+                            <button type="submit" class="dropdown-item dropdown-logout">
+                                <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+</th:block>
+</body>
+</html>

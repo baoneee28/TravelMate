@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Fragment: partner-sidebar
+  Usage: <aside th:replace="~{fragments/partner-sidebar :: sidebar('bookings', ${partnerName})}"></aside>
+
+  activeMenu values:
+    dashboard | accommodations | accommodations-new | amenities
+    bookings  | room-status    | direct-booking     | availability
+    reviews   | revenue        | settlements        | vouchers
+    support   | profile
+-->
+<aside th:fragment="sidebar(activeMenu, partnerName)" class="admin-sidebar">
+    <div class="admin-sidebar__header">
+        <a href="/partner/dashboard" class="sidebar-logo">
+            <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+            <div>
+                <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                <span class="admin-sidebar__badge">PARTNER CENTER</span>
+            </div>
+        </a>
+    </div>
+
+    <nav class="admin-sidebar__nav">
+
+        <!-- ── Tổng quan ── -->
+        <div class="admin-sidebar__section-title">Tổng quan</div>
+        <a href="/partner/dashboard"
+           th:classappend="${activeMenu == 'dashboard'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">📊</span> Dashboard
+        </a>
+
+        <!-- ── Quản lý lưu trú ── -->
+        <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
+        <a href="/partner/accommodations"
+           th:classappend="${activeMenu == 'accommodations'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">🏨</span> Nơi lưu trú của tôi
+        </a>
+        <a href="/partner/accommodations/new"
+           th:classappend="${activeMenu == 'accommodations-new'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">＋</span> Đăng ký mới
+        </a>
+        <a href="/partner/amenities"
+           th:classappend="${activeMenu == 'amenities'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">🏷</span> <span th:text="${'Tiện nghi ' + (unitLabel ?: 'phòng')}">Tiện nghi phòng</span>
+        </a>
+        <a href="/partner/bookings"
+           th:classappend="${activeMenu == 'bookings'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">📋</span> <span th:text="${'Đơn đặt ' + (unitLabel ?: 'phòng')}">Đơn đặt phòng</span>
+        </a>
+        <a href="/partner/room-status"
+           th:classappend="${activeMenu == 'room-status'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">🏠</span> <span th:text="${unitStatusTitle ?: 'Tình trạng phòng hôm nay'}">Tình trạng phòng hôm nay</span>
+        </a>
+        <a href="/partner/availability"
+           th:classappend="${activeMenu == 'availability'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">🗓️</span> Kiểm tra lịch trống
+        </a>
+        <a href="/partner/direct-booking"
+           th:classappend="${activeMenu == 'direct-booking'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">➕</span> Booking trực tiếp
+        </a>
+        <a href="/partner/reviews"
+           th:classappend="${activeMenu == 'reviews'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">⭐</span> Đánh giá của khách
+        </a>
+
+        <!-- ── Tài chính ── -->
+        <div class="admin-sidebar__section-title">Tài chính</div>
+        <a href="/partner/revenue"
+           th:classappend="${activeMenu == 'revenue'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">💰</span> Doanh thu
+        </a>
+        <a href="/partner/settlements"
+           th:classappend="${activeMenu == 'settlements'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">🏦</span> Quyết toán
+        </a>
+        <a href="/partner/vouchers"
+           th:classappend="${activeMenu == 'vouchers'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">🎟</span> Voucher của tôi
+        </a>
+
+        <!-- ── Hỗ trợ ── -->
+        <div class="admin-sidebar__section-title">Hỗ trợ</div>
+        <a href="/partner/support"
+           th:classappend="${activeMenu == 'support'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ
+        </a>
+        <a href="/partner/profile"
+           th:classappend="${activeMenu == 'profile'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">👤</span> Hồ sơ của tôi
+        </a>
+    </nav>
+
+    <div class="admin-sidebar__footer">
+        <div class="admin-sidebar__user">
+            <div class="admin-sidebar__user-avatar">PT</div>
+            <div class="admin-sidebar__user-info">
+                <div class="admin-sidebar__user-name" th:text="${partnerName ?: 'Partner'}">Partner</div>
+                <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
+            </div>
+        </div>
+        <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
+            <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
+        </form>
+    </div>
+</aside>
+
+</body>
+</html>

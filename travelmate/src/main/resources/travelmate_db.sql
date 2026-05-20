@@ -14,6 +14,7 @@
     -- DROP theo đúng thứ tự (FK phụ thuộc)
     -- =============================================
     DROP TABLE IF EXISTS travel_posts;
+    DROP TABLE IF EXISTS travel_destinations;
     DROP TABLE IF EXISTS notifications;
     DROP TABLE IF EXISTS admin_action_logs;
     DROP TABLE IF EXISTS support_tickets;
@@ -46,6 +47,7 @@
         bank_name             VARCHAR(100)          DEFAULT NULL,
         bank_account_holder   VARCHAR(100)          DEFAULT NULL,
         bank_branch           VARCHAR(100)          DEFAULT NULL,
+        avatar_url            VARCHAR(255)          DEFAULT NULL,
         created_at            DATETIME(6),
         updated_at            DATETIME(6),
         PRIMARY KEY (id)
@@ -4142,9 +4144,12 @@
     CREATE TABLE IF NOT EXISTS travel_posts (
         id            BIGINT       NOT NULL AUTO_INCREMENT,
         title         VARCHAR(255) NOT NULL,
+        destination_name VARCHAR(100),
+        destination_slug VARCHAR(120),
         summary       TEXT,
         content       TEXT,
         thumbnail_url VARCHAR(500),
+        source_name   VARCHAR(100),
         source_url    VARCHAR(500) NOT NULL,
         category      VARCHAR(20)  NOT NULL DEFAULT 'GUIDE',
         status        VARCHAR(10)  NOT NULL DEFAULT 'VISIBLE',
@@ -4152,99 +4157,558 @@
         created_at    DATETIME(6),
         updated_at    DATETIME(6),
         PRIMARY KEY (id),
+        UNIQUE KEY uk_tp_source_url (source_url),
         INDEX idx_tp_category (category),
-        INDEX idx_tp_status   (status)
+        INDEX idx_tp_status   (status),
+        INDEX idx_tp_destination_status (destination_slug, status)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-    INSERT INTO travel_posts (title, summary, content, thumbnail_url, source_url, category, status, created_by, created_at, updated_at) VALUES
-
-    -- CAM NANG (GUIDE)
-    (
-        'Kinh nghiem du lich Da Lat tu A den Z cho nguoi lan dau',
-        'Tat tan tat nhung gi ban can biet truoc khi dat chan den thanh pho ngan hoa: thoi tiet, phuong tien, an o, diem tham quan va bi kip tiet kiem chi phi.',
-        'Da Lat o do cao 1500m tren cao nguyen Lam Vien - thien duong mat me quanh nam cua Viet Nam.\n\nGIAO THONG: Tu TPHCM co xe khach (7-8h), may bay (45 phut). Nen di thu 2-6 tranh ket xe cuoi tuan.\n\nTHOI TIET: Mua kho thang 11 den thang 4 la ly tuong nhat. Nhiet do 20-25 do ban ngay, 10-15 do ban dem - nho mang ao am.\n\nDIEM THAM QUAN NOI BAT:\n- Thung lung Tinh Yeu & Ho Xuan Huong\n- Vuon hoa thanh pho ngam hoa sac mau theo mua\n- Thap Bao Dai - kien truc Phap co dien\n- Lang Cu Lan - ban lang dan toc thieu so\n- Nui Langbiang - leo nui ngam toan canh Da Lat\n\nAM THUC: Banh mi xiu mai, banh trang nuong, ca phe trung, dau tuoi. Gia re dac trung vung cao nguyen.\n\nBI KIP: Dat phong truoc 2-3 tuan vao dip le/tet. Thue xe may 100-150k/ngay la lua chon tiet kiem nhat.',
-        'https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=600&q=80',
-        'https://dulich.tuoitre.vn/kinh-nghiem-du-lich-da-lat',
-        'GUIDE', 'VISIBLE', 'admin@travelmate.vn',
-        DATE_SUB(NOW(), INTERVAL 30 DAY), DATE_SUB(NOW(), INTERVAL 30 DAY)
-    ),
-    (
-        'Cam nang du lich Hoi An: Di dau, an gi, o dau?',
-        'Hoi An - pho co den long huyen ao ben dong Thu Bon. Huong dan chi tiet tu cach di chuyen, khung gio dep chup hinh, den nhung quan an ngon nguoi dan dia phuong hay lui toi.',
-        'Hoi An - di san van hoa the gioi UNESCO voi kien truc hoa quyen Viet-Trung-Nhat doc dao.\n\nTHOI DIEM THICH HOP: Thang 2-7 ly tuong nhat. Thang 9-12 thuong co mua va lu lut. Dem ram hang thang co Hoi Den Long rat dep.\n\nDI CHUYEN: Tu Da Nang (30km): Taxi ~350k, xe om cong nghe ~120k, xe buyt ~25k.\n\nKHAM PHA PHO CO:\n- Cau Nhat Ban (Lai Vien Kieu): Bieu tuong 500 nam tuoi\n- Hoi quan Phuc Kien: Kien truc Hoa kieu ky vi\n- Nha co Quan Thang: Nguyen ban tu the ky 17\n- Cho Hoi An: Am thuc duong pho da dang\n\nAM THUC NGON: Cao lau, Mi Quang, Banh Mi Phuong (noi tieng the gioi), Com ga Ba Buoi, Banh Vac.\n\nBI KIP: Di bo pho co luc 6-8h sang hoac 17-19h chieu de tranh nong va dong nguoi nhat.',
-        'https://images.unsplash.com/photo-1528127269322-539801943592?w=600&q=80',
-        'https://vnexpress.net/cam-nang-du-lich-hoi-an',
-        'GUIDE', 'VISIBLE', 'admin@travelmate.vn',
-        DATE_SUB(NOW(), INTERVAL 22 DAY), DATE_SUB(NOW(), INTERVAL 22 DAY)
-    ),
-    (
-        'Bi kip dat phong khach san gia tot nhat cho ky nghi le',
-        'Thoi diem dat phong, cac trang web so sanh gia, meo dung voucher, va cach chon khu vuc o de tiet kiem thoi gian di chuyen trong chuyen di cua ban.',
-        'Dat phong gia tot la ky nang co the hoc duoc - khong phai may man. Tiet kiem 20-50% chi phi ma van o noi chat luong.\n\nTHOI DIEM DAT PHONG LY TUONG:\n- Dat truoc 6-8 tuan cho mua cao diem (le, tet, he)\n- Dat truoc 2-4 tuan cho chuyen di binh thuong\n- Flash sale thuong xuat hien vao thu 3, thu 4 hang tuan\n\nCAC TRANG WEB SO SANH GIA UY TIN:\n1. Agoda - thuong co gia tot cho chau A\n2. Booking.com - nhieu lua chon, chinh sach huy linh hoat\n3. Hotels.com - tich diem doi dem mien phi\n4. Traveloka - uu dai cho khach Dong Nam A\n5. Airbnb - lua chon tot cho nhom dong, gia dinh\n\nMEO VOUCHER: Ket hop voucher ngan hang voi ma giam ung dung. Dat qua mobile app thuong giam them 5-10%.\n\nBI KIP: Hoi truc tiep khach san qua dien thoai - doi khi giam hon booking online. Chon Free Cancellation neu lich chua chac chan.',
-        'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80',
-        'https://traveloka.com/meo-dat-phong-gia-tot',
-        'GUIDE', 'VISIBLE', 'admin@travelmate.vn',
-        DATE_SUB(NOW(), INTERVAL 15 DAY), DATE_SUB(NOW(), INTERVAL 15 DAY)
-    ),
-
-    -- DIA DIEM THAM QUAN (ATTRACTION)
-    (
-        'Top 10 dia diem khong the bo qua tai Nha Trang',
-        'Tu dao Hon Tre voi Vinpearl Land huyen thoai, Thap Ba Ponagar ngan nam tuoi, den bai bien Bai Dai trong veo - 10 diem check-in cuc dep dang cho ban kham pha.',
-        'Nha Trang - thanh pho bien xanh thuoc Khanh Hoa, noi tieng bai bien dai, nuoc bien trong va nhieu diem vui choi giai tri. Trung tam du lich bien hang dau Dong Nam A.\n\nTOP 10 DIEM THAM QUAN:\n1. Vinpearl Land - cong vien giai tri lon nhat Viet Nam\n2. Thap Ba Ponagar - di tich Cham Pa 1.200 nam tuoi\n3. Bai bien Bai Dai - bai bien hoang so dep nhat\n4. Vien Hang Duong - bao tang bien doc dao\n5. Suoi Ba Ho - thac nuoc tu nhien tuyet dep\n6. Chua Long Son - tuong Phat trang khong lo\n7. Dam Tre - ho nuoc ngot giua dao\n8. Hon Mun - lang bieu san ho da sac\n9. Nha tho Nui - kien truc Phap co kinh\n10. Cho Dam - cho truyen thong san vat bien\n\nAM THUC: Nem nuong Ninh Hoa, cha ca Thu, Bun ca, Banh can, Banh uot.',
-        'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80',
-        'https://dulich.tuoitre.vn/top-10-dia-diem-nha-trang',
-        'ATTRACTION', 'VISIBLE', 'admin@travelmate.vn',
-        DATE_SUB(NOW(), INTERVAL 20 DAY), DATE_SUB(NOW(), INTERVAL 20 DAY)
-    ),
-    (
-        'Kham pha Vuon quoc gia Phong Nha - Ke Bang: Hang dong ky vi nhat hanh tinh',
-        'Son Doong - hang dong lon nhat the gioi, Hang En huyen ao, dong Phong Nha lung linh anh den. Huong dan lich trinh 3 ngay 2 dem kham pha Quang Binh day du nhat.',
-        'Phong Nha-Ke Bang - Vuon quoc gia UNESCO voi he thong hang dong phong phu nhat hanh tinh.\n\nCAC HANG DONG CHINH:\n- Son Doong: Lon nhat TG, tour 6 ngay chi 70 nguoi/dot (dat truoc 1-2 nam)\n- Hang En: Lon thu 3 TG, tour 2 ngay dep nhat mua he\n- Dong Phong Nha: Di thuyen 1500m trong hang nuoc co\n- Tien Son: Hang kho voi hinh thu da doc dao\n- Hang Toi: Leo tro, Zip line, boi nuoc ngam\n- Paradise Cave: Dep nhat Dong Nam A\n\nLICH TRINH GOI Y 3N2D:\nNgay 1: Dong Phong Nha + lang Co Viet Ho\nNgay 2: Hang Toi hoac Paradise Cave\nNgay 3: Tien Son + Hang Nuoc Nut + ve\n\nLUU Y: Dat tour truoc 2-3 thang mua he (6-8/). Mua bao hiem. Mang kem chong nang SPF 50+.',
-        'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=600&q=80',
-        'https://vietnamtourism.vn/phong-nha-ke-bang',
-        'ATTRACTION', 'VISIBLE', 'admin@travelmate.vn',
-        DATE_SUB(NOW(), INTERVAL 12 DAY), DATE_SUB(NOW(), INTERVAL 12 DAY)
-    ),
-    (
-        'Sa Pa mua lua chin: Ruong bac thang dep nhat Dong Nam A',
-        'Thang 9-10 la thoi diem vang de chiem nguong ruong bac thang Sa Pa khi lua chin vang ong. Huong dan thue xe may tu kham pha ban Cat Cat, Lao Chai, Ta Van.',
-        'Sa Pa mua lua chin thang 9-10 la mot trong nhung canh dep nhat Dong Nam A. Ruong bac thang nhuom vang ong duoi nang thu - khung canh mo uoc cua moi nhiep anh gia.\n\nTHOI DIEM CHUP ANH DEP NHAT: Cuoi thang 9 dau thang 10. Ngay dep nhat sau khi mua, bau troi quang va ruong phan anh anh nang.\n\nBAN LANG CAN THAM QUAN:\n- Ban Cat Cat: 3km tu trung tam, di bo hoac xe may\n- Ban Lao Chai & Ta Van: Nguoi H Mong va Giay sinh song\n- Ban Ta Phin: Lang nguoi Dao Do voi di san day thuoc\n- Dinh Fansipan: 3143m - noc nha Dong Duong\n\nDI CHUYEN & O: Tu Ha Noi: Tau hoa dem (Hanoi-Lao Cai) + xe buyt/taxi len Sa Pa. Homestay ban lang: 150-300k/dem, trai nghiem van hoa that su.\n\nAM THUC: Thang co nuong, Pho Sa Pa, Ruou Ngo Bac Ha, Ca hoi Sa Pa nuong.',
-        'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80',
-        'https://dulich.tuoitre.vn/sapa-mua-lua-chin',
-        'ATTRACTION', 'VISIBLE', 'admin@travelmate.vn',
-        DATE_SUB(NOW(), INTERVAL 8 DAY), DATE_SUB(NOW(), INTERVAL 8 DAY)
-    ),
-
-    -- CAN THIET CHO DU LICH (ESSENTIAL)
-    (
-        'Checklist do can mang khi di du lich bien mua he',
-        'Kem chong nang SPF 50+, ao chong nang, thuoc say song, balo chong tham nuoc - danh sach 25 vat dung thiet yeu giup chuyen di bien cua ban hoan hao tu dau den cuoi.',
-        'Chuan bi ky giup chuyen di bien hoan hao. 25 vat dung thiet yeu khong nen bo qua.\n\nBAO VE DA (quan trong nhat):\n1. Kem chong nang SPF 50+ chong nuoc (boi lai sau 2h)\n2. Ao chong nang vat lieu thoang mat\n3. Kinh mat UV400\n4. Non rong vanh\n\nTRANG PHUC: Do boi/bikini (2-3 bo), sandal hoac dep nhua, ao thun nhe cho buoi toi, quan short nhanh kho.\n\nY TE & AN TOAN: Thuoc say song (Nauzin hoac Nospa), thuoc chong di ung, kem sau cat cat, gao rua tay, thuoc giam dau ha sot.\n\nDO DUNG TIEN ICH: Balo chong nuoc, tui chong nuoc cho dien thoai, binh nuoc giu nhiet, tui dung do boi uot, kem duong am va son moi.\n\nDO GIAI TRI: May anh chong nuoc, loa Bluetooth chong nuoc, sach/kindle.\n\nCHO TRE EM (neu di kem): Phao boi, chan cat, kem chong nang chuyen dung cho be.',
-        'https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?w=600&q=80',
-        'https://thegioidulich.com/checklist-do-di-bien',
-        'ESSENTIAL', 'VISIBLE', 'admin@travelmate.vn',
-        DATE_SUB(NOW(), INTERVAL 18 DAY), DATE_SUB(NOW(), INTERVAL 18 DAY)
-    ),
-    (
-        'Huong dan mua bao hiem du lich: Loai nao phu hop voi ban?',
-        'Bao hiem hanh ly, y te, huy chuyen - so sanh cac goi bao hiem du lich pho bien hien nay, muc phi, quyen loi va cach claim bao hiem nhanh nhat khi gap su co.',
-        'Bao hiem du lich - khoan dau tu khon ngoan cho moi chuyen di dai ngay.\n\nCAC LOAI BAO HIEM CHINH:\n1. Bao hiem y te: Chi tra vien phi, phau thuat tai nuoc ngoai\n2. Bao hiem hanh ly: Den bu mat mat, bi trom\n3. Bao hiem huy chuyen: Boi thuong khi huy do bat kha khang\n4. Bao hiem toan dien: Gop ca 3 loai tren\n\nMUC PHI THAM KHAO:\n- Goi co ban (y te): 50.000-150.000 VND/ngay\n- Goi toan dien: 150.000-400.000 VND/ngay\n- Bao hiem nam (cho nguoi hay di): 2-5 trieu/nam\n\nCONG TY UY TIN: PTI, Bao Viet, PVI (trong nuoc). AXA, Allianz, AIG (quoc te).\n\nCACH CLAIM NHANH:\n1. Giu het hoa don, bien ban\n2. Chup anh bien lai vien phi\n3. Bao canh sat neu bi trom\n4. Lien he hotline 24/7 ngay khi co su co\n5. Nop ho so trong 30 ngay sau khi ve nuoc',
-        'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=600&q=80',
-        'https://baohiemxahoi.gov.vn/bao-hiem-du-lich',
-        'ESSENTIAL', 'VISIBLE', 'admin@travelmate.vn',
-        DATE_SUB(NOW(), INTERVAL 10 DAY), DATE_SUB(NOW(), INTERVAL 10 DAY)
-    ),
-    (
-        'Doi tien va thanh toan khi du lich noi dia: Meo khong bi ho',
-        'Nen mang bao nhieu tien mat? ATM o dau? App vi dien tu nao duoc chap nhan rong rai nhat? Tat ca bi kip de ban khong gap rac roi tai chinh trong chuyen di.',
-        'Quan ly tai chinh du lich khon ngoan - biet dung tien hop ly, tranh bi lua dao va gap rac roi.\n\nBAO NHIEU TIEN MAT LA DU:\n- Du lich thanh pho: 200-500k/ngay (an uong, di lai)\n- Tham quan bien/nui: 500k-1tr/ngay\n- Tong goi y: 1-2 trieu/ngay, them 30% du phong\n\nATM O DAU: Tat ca ngan hang lon co ATM tai trung tam. Agribank, VietinBank co o huyen/xa. Phi rut ATM ngan hang khac: 5.000-11.000 VND/lan.\n\nCAC APP VI DIEN TU HOT:\n1. MoMo - chap nhan rong rai nhat\n2. ZaloPay - QR toc do cao\n3. VNPay - tich hop nhieu ngan hang\n4. Grab Pay - tien cho dat xe\n5. Shopee Pay - uu dai mua sam\n\nBI KIP TRANH MAT TIEN:\n- Chia tien lam nhieu noi\n- Khong de vi o tui quan phia sau\n- Kiem tra tien tra lai khi nhan\n- Tranh doi tien tai san bay - phi rat cao',
-        'https://images.unsplash.com/photo-1580048915913-4f8f5cb481c4?w=600&q=80',
-        'https://travelmate.vn/meo-thanh-toan-du-lich',
-        'ESSENTIAL', 'VISIBLE', 'admin@travelmate.vn',
-        DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY)
-    );
+    INSERT INTO travel_posts (title, destination_name, destination_slug, summary, content, thumbnail_url, source_name, source_url, category, status, created_by, created_at, updated_at) VALUES
+    ('Cẩm nang du lịch Đà Lạt cho chuyến nghỉ dưỡng ngắn ngày', 'Đà Lạt', 'da-lat',
+     'Gợi ý tổng quan về thời tiết, di chuyển và trải nghiệm phù hợp khi khách tìm nơi lưu trú tại Đà Lạt.',
+     'Đà Lạt phù hợp với khách muốn nghỉ dưỡng trong không khí mát mẻ, kết hợp tham quan hồ, đồi thông, vườn hoa và các quán cà phê địa phương.',
+     'https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=600&q=80', 'Vietnam.travel', 'https://vietnam.travel/places-to-go/central-vietnam/dalat',
+     'GUIDE', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 30 DAY), NOW()),
+    ('8 trải nghiệm nên thử khi đến Đà Lạt', 'Đà Lạt', 'da-lat',
+     'Các hoạt động nổi bật như khám phá thiên nhiên, thưởng thức cà phê và trải nghiệm khí hậu cao nguyên.',
+     'Bài viết giúp người dùng có thêm ý tưởng hoạt động sau khi đã tìm được nơi lưu trú tại Đà Lạt.',
+     'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=600&q=80', 'Vietnam.travel', 'https://vietnam.travel/things-to-do/8-things-to-do-in-dalat',
+     'ATTRACTION', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 29 DAY), NOW()),
+    ('Cẩm nang du lịch Nha Trang cho kỳ nghỉ biển', 'Nha Trang', 'nha-trang',
+     'Thông tin tổng quan cho khách muốn nghỉ dưỡng biển, tham quan thành phố và chọn resort tại Nha Trang.',
+     'Nha Trang phù hợp với nhóm khách muốn kết hợp tắm biển, nghỉ dưỡng, ăn hải sản và tham quan các điểm văn hóa trong thành phố.',
+     'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80', 'Vietnam.travel', 'https://vietnam.travel/places-to-go/central-vietnam/nha-trang',
+     'GUIDE', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 28 DAY), NOW()),
+    ('Gợi ý trải nghiệm đảo quanh Nha Trang', 'Nha Trang', 'nha-trang',
+     'Gợi ý các hoạt động biển đảo phù hợp với khách đặt resort hoặc villa ở khu vực Nha Trang.',
+     'Khi khách chọn lưu trú tại Nha Trang, nhóm trải nghiệm đảo là nội dung dễ liên kết với nhu cầu nghỉ dưỡng biển.',
+     'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&q=80', 'Vietnam.travel', 'https://vietnam.travel/things-to-do/where-to-go-when-island-hopping-around-nha-trang',
+     'ATTRACTION', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 27 DAY), NOW()),
+    ('Cẩm nang khám phá phố cổ Hội An', 'Hội An', 'hoi-an',
+     'Tóm tắt trải nghiệm phố cổ, văn hóa địa phương, ẩm thực và các hoạt động nhẹ nhàng quanh khu lưu trú tại Hội An.',
+     'Hội An phù hợp cho khách thích phố cổ, ẩm thực địa phương, đạp xe và dạo bộ buổi tối.',
+     'https://images.unsplash.com/photo-1528127269322-539801943592?w=600&q=80', 'Vietnam.travel', 'https://vietnam.travel/places-to-go/central-vietnam/hoi-an',
+     'GUIDE', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 26 DAY), NOW()),
+    ('Cách khám phá phố cổ Hội An trọn vẹn hơn', 'Hội An', 'hoi-an',
+     'Các hoạt động tham khảo cho khách lưu trú ở Hội An như đi phố cổ, thưởng thức ẩm thực, đạp xe và ghé biển gần đó.',
+     'Bài viết này dùng cho luồng demo: khách tìm homestay Hội An, bấm Gợi ý du lịch và thấy các hoạt động có thể thực hiện trong chuyến đi.',
+     'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=600&q=80', 'Vietnam.travel', 'https://vietnam.travel/things-to-do/the-best-ways-to-explore-the-ancient-town-of-hoi-an',
+     'ATTRACTION', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 25 DAY), NOW()),
+    ('Cẩm nang du lịch Đà Nẵng cho người mới đi lần đầu', 'Đà Nẵng', 'da-nang',
+     'Thông tin tổng quan về thành phố biển, khu vực lưu trú, trải nghiệm tham quan và nghỉ dưỡng tại Đà Nẵng.',
+     'Đà Nẵng có lợi thế kết hợp biển, trung tâm thành phố và các điểm vui chơi lân cận.',
+     'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80', 'Vietnam.travel', 'https://vietnam.travel/places-to-go/central-vietnam/da-nang',
+     'GUIDE', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 24 DAY), NOW()),
+    ('Gợi ý lịch trình 3 ngày tại Đà Nẵng', 'Đà Nẵng', 'da-nang',
+     'Lịch trình tham khảo giúp khách sắp xếp thời gian giữa nghỉ dưỡng, ăn uống và tham quan khi lưu trú ở Đà Nẵng.',
+     'Nội dung này phù hợp để demo sau khi khách chọn ngày nhận và trả phòng.',
+     'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=600&q=80', 'Vietnam.travel', 'https://vietnam.travel/things-to-do/da-nang-itinerary',
+     'ESSENTIAL', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 23 DAY), NOW()),
+    ('Cẩm nang du lịch Sa Pa', 'Sa Pa', 'sa-pa',
+     'Gợi ý tổng quan về khí hậu vùng núi, ruộng bậc thang, trekking và các trải nghiệm phù hợp tại Sa Pa.',
+     'Sa Pa là điểm đến phù hợp với khách thích cảnh núi, văn hóa địa phương và lịch trình khám phá thiên nhiên.',
+     'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80', 'Vietnam.travel', 'https://vietnam.travel/places-to-go/northern-vietnam/sapa',
+     'GUIDE', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 22 DAY), NOW()),
+    ('Sa Pa cho du khách yêu du lịch bền vững', 'Sa Pa', 'sa-pa',
+     'Gợi ý trekking, homestay và trải nghiệm địa phương phù hợp với khách tìm nơi lưu trú tại Sa Pa.',
+     'Bài viết giúp người dùng có thêm ý tưởng tham quan khi tìm kiếm Sa Pa hoặc Lào Cai.',
+     'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?w=600&q=80', 'Vietnam.travel', 'https://vietnam.travel/things-to-do/sapa-itinerary-sustainable-travellers',
+     'ATTRACTION', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 21 DAY), NOW()),
+    ('Cẩm nang du lịch Phú Quốc', 'Phú Quốc', 'phu-quoc',
+     'Thông tin tổng quan cho khách muốn nghỉ dưỡng biển đảo, chọn resort và khám phá thiên nhiên tại Phú Quốc.',
+     'Phú Quốc phù hợp với khách tìm kỳ nghỉ biển, resort, ẩm thực và trải nghiệm thiên nhiên.',
+     'https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?w=600&q=80', 'Vietnam.travel', 'https://vietnam.travel/places-to-go/southern-vietnam/phu-quoc',
+     'GUIDE', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 20 DAY), NOW()),
+    ('Gợi ý lịch trình Phú Quốc 3 ngày 2 đêm', 'Phú Quốc', 'phu-quoc',
+     'Lịch trình tham khảo cho khách muốn kết hợp nghỉ dưỡng, tham quan và trải nghiệm đảo trong chuyến đi ngắn ngày.',
+     'Bài viết này phù hợp với luồng sau đặt phòng: khách đã thanh toán thành công có thể bấm xem gợi ý du lịch tại điểm đến.',
+     'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&q=80', 'Vietnam.travel', 'https://vietnam.travel/things-to-do/explore-phu-quoc-island-3-days-2-nights',
+     'ESSENTIAL', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 19 DAY), NOW()),
+    ('Cẩm nang du lịch Hà Nội cho chuyến đi đầu tiên', 'Hà Nội', 'ha-noi',
+     'Gợi ý tổng quan về phố cổ, ẩm thực, di chuyển và các khu vực phù hợp khi khách tìm nơi lưu trú tại Hà Nội.',
+     'Hà Nội phù hợp với khách muốn kết hợp tham quan văn hóa, ẩm thực đường phố và các trải nghiệm đô thị cổ.',
+     'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=600&q=80', 'Vietnam.travel', 'https://vietnam.travel/places-to-go/northern-vietnam/ha-noi',
+     'GUIDE', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 18 DAY), NOW()),
+    ('Cẩm nang du lịch Ninh Bình', 'Ninh Bình', 'ninh-binh',
+     'Tóm tắt trải nghiệm Tràng An, Tam Cốc, Hang Múa và các điểm tham quan núi đá vôi gần khu lưu trú.',
+     'Ninh Bình là điểm đến phù hợp với khách muốn nghỉ ngắn ngày, đi thuyền, leo núi nhẹ và khám phá cảnh quan tự nhiên.',
+     'https://images.unsplash.com/photo-1528127269322-539801943592?w=600&q=80', 'Vietnam.travel', 'https://vietnam.travel/places-to-go/northern-vietnam/ninh-binh',
+     'GUIDE', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 17 DAY), NOW()),
+    ('Cẩm nang du lịch Hà Giang', 'Hà Giang', 'ha-giang',
+     'Gợi ý cung đường, mùa đi đẹp và những trải nghiệm nổi bật khi khách tìm nơi lưu trú hoặc gợi ý tại Hà Giang.',
+     'Hà Giang phù hợp với khách thích cảnh núi, cung đường đèo và văn hóa bản địa.',
+     'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=600&q=80', 'Vietnam.travel', 'https://vietnam.travel/places-to-go/northern-vietnam/ha-giang',
+     'GUIDE', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 16 DAY), NOW()),
+    ('Gợi ý khám phá TP. Hồ Chí Minh', 'TP. Hồ Chí Minh', 'ho-chi-minh',
+     'Tóm tắt các trải nghiệm đô thị, ẩm thực, mua sắm và tham quan khi người dùng nhập TP.HCM, HCM, Sài Gòn hoặc Hồ Chí Minh.',
+     'TP. Hồ Chí Minh là điểm đến có nhiều cách gọi trong thực tế, vì vậy dữ liệu này dùng để demo alias search.',
+     'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=600&q=80', 'Vietnam.travel', 'https://vietnam.travel/places-to-go/southern-vietnam/ho-chi-minh-city',
+     'GUIDE', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 15 DAY), NOW()),
+    ('Cẩm nang Quảng Ninh và vịnh Hạ Long', 'Quảng Ninh', 'quang-ninh',
+     'Gợi ý tham quan Hạ Long, trải nghiệm biển đảo và lịch trình phù hợp khi khách tìm Quảng Ninh hoặc Hạ Long.',
+     'Quảng Ninh thường được người dùng tìm bằng nhiều cách như Quảng Ninh, quangninh hoặc Hạ Long.',
+     'https://images.unsplash.com/photo-1528127269322-539801943592?w=600&q=80', 'Vietnam.travel', 'https://vietnam.travel/places-to-go/northern-vietnam/ha-long',
+     'GUIDE', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 14 DAY), NOW()),
+    ('Hồ Thác Bà và gợi ý du lịch Yên Bái', 'Yên Bái', 'yen-bai',
+     'Gợi ý một điểm đến thiên nhiên tại Yên Bái, phù hợp để demo tab gợi ý khi user nhập yen bai hoặc yenbai.',
+     'Yên Bái giúp bộ dữ liệu demo không chỉ tập trung vào các thành phố quen thuộc.',
+     'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80', 'Vietnam.travel', 'https://vietnam.travel/things-to-do/thac-ba-lake-emerald-yen-bai',
+     'ATTRACTION', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 13 DAY), NOW()),
+    ('Mộc Châu - điểm đến thiên nhiên tại Sơn La', 'Sơn La', 'son-la',
+     'Gợi ý cao nguyên Mộc Châu, khí hậu mát mẻ và các trải nghiệm xanh khi khách tìm Sơn La hoặc sonla.',
+     'Sơn La được seed để hoàn thiện nhóm test alias destination và có nội dung gợi ý đúng điểm đến.',
+     'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&q=80', 'Vietnam.travel', 'https://vietnam.travel/things-to-do/moc-chau-your-one-stop-nature-escape',
+     'ATTRACTION', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 12 DAY), NOW()),
+    ('Lào Cai và hành trình lên Sa Pa', 'Lào Cai', 'lao-cai',
+     'Gợi ý cách nhìn Lào Cai như cửa ngõ đến Sa Pa, phù hợp cho các keyword lao cai, Lào Cai, Sa Pa và sapa.',
+     'Lào Cai thường gắn với hành trình đi Sa Pa, bài viết giúp user nhập Lào Cai vẫn có gợi ý liên quan.',
+     'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?w=600&q=80', 'Vietnam.travel', 'https://vietnam.travel/things-to-do/topas-ecolodge',
+     'ESSENTIAL', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 11 DAY), NOW())
+    ON DUPLICATE KEY UPDATE
+        title = VALUES(title),
+        destination_name = VALUES(destination_name),
+        destination_slug = VALUES(destination_slug),
+        summary = VALUES(summary),
+        content = VALUES(content),
+        thumbnail_url = VALUES(thumbnail_url),
+        source_name = VALUES(source_name),
+        category = VALUES(category),
+        status = VALUES(status),
+        created_by = VALUES(created_by),
+        updated_at = VALUES(updated_at);
 
     -- Kiem tra seed travel_posts:
     -- SELECT category, status, COUNT(*) FROM travel_posts GROUP BY category, status;
-    -- Ky vong: GUIDE/VISIBLE=3, ATTRACTION/VISIBLE=3, ESSENTIAL/VISIBLE=3 (tong 9)
+    -- Ky vong: toi thieu 20 bai VISIBLE, co destination_slug de loc theo dia diem.
+
+    -- =============================================
+    -- BẢNG TRAVEL_DESTINATIONS — Điểm đến yêu thích (homepage grid)
+    -- =============================================
+    CREATE TABLE IF NOT EXISTS travel_destinations (
+        id BIGINT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        slug VARCHAR(120) NOT NULL UNIQUE,
+        region ENUM('NORTH','CENTRAL','SOUTH') NOT NULL,
+        image_url VARCHAR(500) DEFAULT NULL,
+        short_description VARCHAR(255) DEFAULT NULL,
+        active TINYINT(1) NOT NULL DEFAULT 1,
+        display_order INT DEFAULT 0,
+        created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
+        INDEX idx_td_region_active_order (region, active, display_order)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+    INSERT INTO travel_destinations (name, slug, region, image_url, short_description, active, display_order) VALUES
+    ('Sa Pa',       'sa-pa',       'NORTH',   'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=600&q=80', 'Thị trấn sương mù với ruộng bậc thang và bản làng dân tộc', 1, 1),
+    ('Lào Cai',     'lao-cai',     'NORTH',   'https://images.unsplash.com/photo-1528127269322-539801943592?w=600&q=80', 'Cửa ngõ Tây Bắc với cảnh quan hùng vĩ', 1, 2),
+    ('Hà Giang',    'ha-giang',    'NORTH',   'https://images.unsplash.com/photo-1573455494060-c5595004d6c0?w=600&q=80', 'Cao nguyên đá với đèo Mã Pì Lèng huyền thoại', 1, 3),
+    ('Ninh Bình',   'ninh-binh',   'NORTH',   'https://images.unsplash.com/photo-1555921015-5532091f6026?w=600&q=80', 'Tràng An, Bái Đính — di sản thiên nhiên thế giới', 1, 4),
+    ('Hà Nội',      'ha-noi',      'NORTH',   'https://images.unsplash.com/photo-1509030450996-dd1a26613e2c?w=600&q=80', 'Thủ đô nghìn năm văn hiến với phố cổ và ẩm thực đường phố', 1, 5),
+    ('Quảng Ninh',  'quang-ninh',  'NORTH',   'https://images.unsplash.com/photo-1573455494060-c5595004d6c0?w=600&q=80', 'Vịnh Hạ Long — kỳ quan thiên nhiên thế giới', 1, 6),
+    ('Yên Bái',     'yen-bai',     'NORTH',   'https://images.unsplash.com/photo-1528127269322-539801943592?w=600&q=80', 'Mù Cang Chải — ruộng bậc thang đẹp nhất Việt Nam', 1, 7),
+    ('Sơn La',      'son-la',      'NORTH',   'https://images.unsplash.com/photo-1573455494060-c5595004d6c0?w=600&q=80', 'Mộc Châu — cao nguyên xanh với đồi chè bát ngát', 1, 8),
+    ('Đà Lạt',      'da-lat',      'CENTRAL', '/assets/images/homestay-o-da-lat.jpg', 'Thành phố ngàn hoa trên cao nguyên Lâm Viên', 1, 1),
+    ('Nha Trang',   'nha-trang',   'CENTRAL', 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=600&q=80', 'Thành phố biển nổi tiếng với resort và đảo hoang', 1, 2),
+    ('Đà Nẵng',     'da-nang',     'CENTRAL', 'https://images.unsplash.com/photo-1562790351-d273a961e0e9?w=600&q=80', 'Thành phố đáng sống với Bà Nà Hills và bãi biển Mỹ Khê', 1, 3),
+    ('Hội An',      'hoi-an',      'CENTRAL', 'https://images.unsplash.com/photo-1528127269322-539801943592?w=600&q=80', 'Phố cổ di sản UNESCO với đèn lồng và ẩm thực Trung Bộ', 1, 4),
+    ('Phú Quốc',    'phu-quoc',    'SOUTH',   'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80', 'Đảo ngọc với bãi biển hoang sơ và sunset party', 1, 1),
+    ('Hồ Chí Minh', 'ho-chi-minh', 'SOUTH',   'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=600&q=80', 'Thành phố năng động nhất Việt Nam, trung tâm kinh tế phía Nam', 1, 2)
+    ON DUPLICATE KEY UPDATE
+        name = VALUES(name),
+        region = VALUES(region),
+        image_url = VALUES(image_url),
+        short_description = VALUES(short_description),
+        active = VALUES(active),
+        display_order = VALUES(display_order);
+
+    -- =============================================
+    -- HOTEL-TYPE ACCOMMODATIONS — Bổ sung cho Nha Trang / Đà Nẵng / Hội An / Hà Nội
+    -- Mục đích: khi user search mặc định tab HOTEL, tất cả điểm đến chính đều trả kết quả.
+    -- =============================================
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at) VALUES
+    ('InterContinental Nha Trang',
+     'Khách sạn 5 sao quốc tế tọa lạc ngay trung tâm bãi biển Trần Phú, view biển toàn cảnh.',
+     '32-34 Trần Phú, Lộc Thọ', 'Nha Trang',
+     'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80',
+     5, 9.0, 1456, 'HOTEL', 'APPROVED', 4, NOW(), NOW());
+    SET @nt_hotel_id = LAST_INSERT_ID();
+
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category) VALUES
+    (@nt_hotel_id, 'ICN-STD', 'Superior City View', '1 giường King', 2, 1850000, 10,
+     'Phòng 32m² hướng thành phố, tiện nghi chuẩn 5 sao.',
+     'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400&q=70', 'STANDARD'),
+    (@nt_hotel_id, 'ICN-DLX', 'Deluxe Ocean Front', '1 giường King cỡ lớn', 2, 3200000, 6,
+     'Phòng 42m² hướng biển, ban công riêng ngắm bình minh trên vịnh Nha Trang.',
+     'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&q=70', 'DELUXE'),
+    (@nt_hotel_id, 'ICN-SUI', 'Premier Suite Ocean', '1 giường King + sofa bed', 3, 5500000, 3,
+     'Suite 65m² hướng biển, phòng khách riêng, bồn tắm jacuzzi.',
+     'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&q=70', 'SUITE');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at) VALUES
+    ('Novotel Đà Nẵng Premier',
+     'Khách sạn 4 sao hiện đại tọa lạc bên sông Hàn, cách bãi biển Mỹ Khê 5 phút.',
+     '36 Bạch Đằng, Hải Châu', 'Đà Nẵng',
+     'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80',
+     4, 8.7, 2103, 'HOTEL', 'APPROVED', 3, NOW(), NOW());
+    SET @dn_hotel_id = LAST_INSERT_ID();
+
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category) VALUES
+    (@dn_hotel_id, 'NVD-STD', 'Standard River View', '1 giường Queen', 2, 1100000, 12,
+     'Phòng 28m² hướng sông Hàn, view cầu Rồng lung linh về đêm.',
+     'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400&q=70', 'STANDARD'),
+    (@dn_hotel_id, 'NVD-DLX', 'Deluxe Premium', '1 giường King', 2, 1650000, 8,
+     'Phòng 35m², tầng cao, bao gồm bữa sáng buffet.',
+     'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&q=70', 'DELUXE'),
+    (@dn_hotel_id, 'NVD-FAM', 'Family Connecting', '2 giường Queen', 4, 2400000, 4,
+     'Hai phòng liên thông 50m², phù hợp gia đình.',
+     'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=400&q=70', 'FAMILY');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at) VALUES
+    ('La Siesta Hội An Resort & Spa',
+     'Khách sạn boutique 4 sao phong cách Đông Dương nằm sát phố cổ, cách Chùa Cầu 300m.',
+     '132 Hùng Vương, Cẩm Phô', 'Hội An',
+     'https://images.unsplash.com/photo-1528127269322-539801943592?w=800&q=80',
+     4, 8.8, 987, 'HOTEL', 'APPROVED', 3, NOW(), NOW());
+    SET @ha_hotel_id = LAST_INSERT_ID();
+
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category) VALUES
+    (@ha_hotel_id, 'LSH-STD', 'Classic Room', '1 giường Queen', 2, 950000, 8,
+     'Phòng 26m² thiết kế truyền thống, gần phố cổ.',
+     'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400&q=70', 'STANDARD'),
+    (@ha_hotel_id, 'LSH-DLX', 'Deluxe Pool Access', '1 giường King', 2, 1450000, 5,
+     'Phòng 33m² tầng trệt, lối ra hồ bơi trực tiếp.',
+     'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&q=70', 'DELUXE'),
+    (@ha_hotel_id, 'LSH-SUI', 'Heritage Suite', '1 giường King cỡ lớn', 2, 2800000, 3,
+     'Suite 55m² phong cách cổ điển, phòng khách riêng.',
+     'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&q=70', 'SUITE');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at) VALUES
+    ('Sofitel Legend Metropole Hà Nội',
+     'Khách sạn lịch sử 5 sao nằm tại trung tâm quận Hoàn Kiếm, kiến trúc Pháp cổ điển.',
+     '15 Ngô Quyền, Tràng Tiền, Hoàn Kiếm', 'Hà Nội',
+     'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=80',
+     5, 9.4, 3201, 'HOTEL', 'APPROVED', 4, NOW(), NOW());
+    SET @hn_hotel_id = LAST_INSERT_ID();
+
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category) VALUES
+    (@hn_hotel_id, 'SLM-PRE', 'Premium Room', '1 giường King', 2, 4500000, 8,
+     'Phòng 32m² khu Historical Wing, nội thất gỗ cổ điển.',
+     'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400&q=70', 'DELUXE'),
+    (@hn_hotel_id, 'SLM-GRA', 'Grand Prestige Suite', '1 giường King cỡ lớn', 2, 12000000, 3,
+     'Suite 75m² khu Opera Wing, phòng khách riêng, butler 24/7.',
+     'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&q=70', 'SUITE'),
+    (@hn_hotel_id, 'SLM-FAM', 'Family Heritage', '2 giường Queen', 4, 7800000, 2,
+     'Phòng gia đình 52m², hai phòng ngủ, view Hồ Hoàn Kiếm.',
+     'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=400&q=70', 'FAMILY');
+
+    -- Sa Pa HOTEL
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at) VALUES
+    ('Sapa Cloud Valley Hotel',
+     'Khách sạn boutique hướng thung lũng Mường Hoa, phù hợp nghỉ dưỡng và săn mây.',
+     '25 Fansipan, Thị xã Sa Pa', 'Sa Pa',
+     'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&q=80',
+     4, 8.9, 342, 'HOTEL', 'APPROVED', 3, NOW(), NOW());
+    SET @sapa_id = LAST_INSERT_ID();
+
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category) VALUES
+    (@sapa_id, 'SPC-STD', 'Cloud View Standard', '1 giường Queen', 2, 720000, 6,
+     'Phòng 24m² có cửa sổ nhìn thị trấn Sa Pa.',
+     'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400&q=70', 'STANDARD'),
+    (@sapa_id, 'SPC-DLX', 'Deluxe Valley Balcony', '1 giường King', 2, 980000, 4,
+     'Phòng 32m² có ban công nhìn thung lũng, bao gồm bữa sáng.',
+     'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&q=70', 'DELUXE');
+
+    -- Phú Quốc RESORT
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at) VALUES
+    ('Sunset Pearl Resort Phú Quốc',
+     'Resort ven biển phía tây đảo Phú Quốc, có hồ bơi ngoài trời và nhà hàng hải sản.',
+     'Bãi Trường, Dương Tơ', 'Phú Quốc',
+     'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80',
+     5, 9.2, 876, 'RESORT', 'APPROVED', 4, NOW(), NOW());
+    SET @pq_id = LAST_INSERT_ID();
+
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category) VALUES
+    (@pq_id, 'SPQ-DLX', 'Deluxe Garden Room', '1 giường King', 2, 2100000, 8,
+     'Phòng 38m² hướng vườn nhiệt đới, bao gồm bữa sáng buffet.',
+     'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=400&q=70', 'DELUXE'),
+    (@pq_id, 'SPQ-SEA', 'Ocean Sunset Suite', '1 giường King cỡ lớn', 2, 3900000, 4,
+     'Suite 58m² hướng biển, ban công riêng ngắm hoàng hôn.',
+     'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&q=70', 'SUITE');
+
+    -- =============================================
+    -- ACCOMMODATION DEMO BỔ SUNG VỪA ĐỦ THEO LOẠI HÌNH
+    -- Idempotent theo name/room_code: chạy lại không tạo trùng dữ liệu demo.
+    --   rooms               : 36+ (toi thieu cho demo search/listing)
+    -- =============================================
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Pine Hill Villa Đà Lạt',
+           'Villa riêng giữa đồi thông Đà Lạt, có bếp, sân BBQ và phòng khách rộng cho nhóm gia đình.',
+           '12 Hoàng Hoa Thám, Phường 10',
+           'Đà Lạt',
+           'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=800&q=80',
+           4, 8.9, 216, 'VILLA', 'APPROVED', 7, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Pine Hill Villa Đà Lạt');
+    SET @pine_dalat_villa_id = (SELECT id FROM accommodations WHERE name = 'Pine Hill Villa Đà Lạt' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @pine_dalat_villa_id, 'PHV-DLX', 'Deluxe Pine Villa', '2 giường Queen', 4, 2400000, 3,
+           'Căn villa 2 phòng ngủ nhìn ra đồi thông, phù hợp gia đình nhỏ.',
+           'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&q=70', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'PHV-DLX');
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @pine_dalat_villa_id, 'PHV-FAM', 'Family BBQ Villa', '3 giường Queen', 6, 3600000, 2,
+           'Căn villa sân vườn, bếp riêng và khu BBQ ngoài trời.',
+           'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=70', 'FAMILY'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'PHV-FAM');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Sunset Beach Villa Phú Quốc',
+           'Villa biển phía tây Phú Quốc, thích hợp nhóm bạn và gia đình muốn nghỉ dưỡng riêng tư.',
+           'Bãi Trường, Dương Tơ',
+           'Phú Quốc',
+           'https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=800&q=80',
+           5, 9.1, 334, 'VILLA', 'APPROVED', 7, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Sunset Beach Villa Phú Quốc');
+    SET @sunset_pq_villa_id = (SELECT id FROM accommodations WHERE name = 'Sunset Beach Villa Phú Quốc' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @sunset_pq_villa_id, 'SBV-SEA', 'Sea Breeze Villa', '2 giường King', 4, 4200000, 3,
+           'Villa hai phòng ngủ gần biển, có ban công ngắm hoàng hôn.',
+           'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=400&q=70', 'VIP'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'SBV-SEA');
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @sunset_pq_villa_id, 'SBV-POOL', 'Private Pool Villa', '3 giường King', 6, 6800000, 1,
+           'Villa hồ bơi riêng cho nhóm lớn, có bếp và phòng khách.',
+           'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&q=70', 'SUITE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'SBV-POOL');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Tam Cốc Garden Homestay',
+           'Homestay gần bến Tam Cốc, view núi đá vôi, có xe đạp miễn phí và bữa sáng địa phương.',
+           'Đội 3, Văn Lâm, Ninh Hải',
+           'Ninh Bình',
+           'https://images.unsplash.com/photo-1555921015-5532091f6026?w=800&q=80',
+           3, 8.8, 189, 'HOMESTAY', 'APPROVED', 8, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Tam Cốc Garden Homestay');
+    SET @tamcoc_hs_id = (SELECT id FROM accommodations WHERE name = 'Tam Cốc Garden Homestay' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @tamcoc_hs_id, 'TCG-STD', 'Phòng Vườn Tiêu Chuẩn', '1 giường Queen', 2, 420000, 5,
+           'Phòng riêng nhìn ra vườn, phù hợp khách đi cặp đôi.',
+           'https://images.unsplash.com/photo-1586375300773-8384e3e4916f?w=400&q=70', 'STANDARD'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'TCG-STD');
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @tamcoc_hs_id, 'TCG-FAM', 'Phòng Gia Đình Tam Cốc', '2 giường Queen', 4, 720000, 3,
+           'Phòng gia đình rộng, có ban công nhìn núi đá vôi.',
+           'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=400&q=70', 'FAMILY'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'TCG-FAM');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Sapa Valley Homestay',
+           'Homestay bản làng nhìn ra thung lũng Mường Hoa, phù hợp du khách thích trekking và trải nghiệm địa phương.',
+           'Lao Chải, Sa Pa',
+           'Sa Pa',
+           'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&q=80',
+           3, 8.7, 241, 'HOMESTAY', 'APPROVED', 8, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Sapa Valley Homestay');
+    SET @sapa_hs_id = (SELECT id FROM accommodations WHERE name = 'Sapa Valley Homestay' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @sapa_hs_id, 'SVH-STD', 'Phòng Gỗ View Núi', '1 giường đôi', 2, 380000, 6,
+           'Phòng gỗ đơn giản, có cửa sổ nhìn ruộng bậc thang.',
+           'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=400&q=70', 'STANDARD'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'SVH-STD');
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @sapa_hs_id, 'SVH-DLX', 'Deluxe Valley Room', '1 giường King', 2, 620000, 4,
+           'Phòng có ban công riêng, bao gồm bữa sáng địa phương.',
+           'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&q=70', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'SVH-DLX');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Legacy Bay Resort Hạ Long',
+           'Resort nghỉ dưỡng bên vịnh Hạ Long, phù hợp khách tìm Quảng Ninh hoặc Hạ Long.',
+           'Bãi Cháy, Hạ Long',
+           'Quảng Ninh',
+           'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&q=80',
+           5, 9.0, 512, 'RESORT', 'APPROVED', 4, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Legacy Bay Resort Hạ Long');
+    SET @halong_resort_id = (SELECT id FROM accommodations WHERE name = 'Legacy Bay Resort Hạ Long' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @halong_resort_id, 'LBR-DLX', 'Deluxe Bay View', '1 giường King', 2, 2600000, 7,
+           'Phòng hướng vịnh, ban công riêng và bữa sáng buffet.',
+           'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=400&q=70', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'LBR-DLX');
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @halong_resort_id, 'LBR-SUI', 'Heritage Bay Suite', '1 giường King cỡ lớn', 2, 4800000, 3,
+           'Suite tầng cao nhìn toàn cảnh vịnh Hạ Long, có phòng khách riêng.',
+           'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&q=70', 'SUITE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'LBR-SUI');
+
+    -- ─── BỔ SUNG ĐIỂM ĐẾN MIỀN NAM (SOUTH) — tăng từ 2 lên 5 ─────────────────
+    INSERT INTO travel_destinations (name, slug, region, image_url, short_description, active, display_order) VALUES
+    ('Vũng Tàu',  'vung-tau', 'SOUTH', 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80', 'Thành phố biển gần Sài Gòn với hải sản tươi ngon và bãi tắm sạch', 1, 3),
+    ('Cần Thơ',   'can-tho',  'SOUTH', 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=600&q=80', 'Thủ phủ miền Tây với chợ nổi Cái Răng và ẩm thực sông nước',       1, 4),
+    ('Mũi Né',    'mui-ne',   'SOUTH', 'https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?w=600&q=80', 'Làng chài biển với đồi cát bay và kite surfing nổi tiếng',          1, 5)
+    ON DUPLICATE KEY UPDATE
+        name = VALUES(name), region = VALUES(region), image_url = VALUES(image_url),
+        short_description = VALUES(short_description), active = VALUES(active), display_order = VALUES(display_order);
+
+    -- ─── HOTEL TẠI HỒ CHÍ MINH ────────────────────────────────────────────────
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'New World Sài Gòn Hotel',
+           'Khách sạn 5 sao biểu tượng tại trung tâm Quận 1, gần chợ Bến Thành và các địa điểm lịch sử.',
+           '76 Lê Lai, Bến Thành, Quận 1', 'Hồ Chí Minh',
+           'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80',
+           5, 9.1, 3421, 'HOTEL', 'APPROVED', 3, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'New World Sài Gòn Hotel');
+    SET @hcm_hotel_id = (SELECT id FROM accommodations WHERE name = 'New World Sài Gòn Hotel' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @hcm_hotel_id, 'NWS-STD', 'Superior City Room', '1 giường King', 2, 2200000, 15,
+           'Phòng 34m², view thành phố, bao gồm bữa sáng.',
+           'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400&q=70', 'STANDARD'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'NWS-STD');
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @hcm_hotel_id, 'NWS-DLX', 'Deluxe Saigon View', '1 giường King cỡ lớn', 2, 3400000, 8,
+           'Phòng 42m² góc nhìn toàn cảnh Quận 1 và sông Sài Gòn.',
+           'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&q=70', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'NWS-DLX');
+
+    -- ─── HOTEL TẠI VŨNG TÀU ───────────────────────────────────────────────────
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Pullman Vũng Tàu',
+           'Khách sạn 5 sao đẳng cấp nằm ngay bờ biển Vũng Tàu, view biển toàn cảnh.',
+           '18 Thùy Vân, Phường 8', 'Vũng Tàu',
+           'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80',
+           5, 8.9, 1876, 'HOTEL', 'APPROVED', 3, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Pullman Vũng Tàu');
+    SET @vt_hotel_id = (SELECT id FROM accommodations WHERE name = 'Pullman Vũng Tàu' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @vt_hotel_id, 'PVT-STD', 'Superior Sea View', '1 giường King', 2, 1650000, 12,
+           'Phòng 32m² hướng biển, ban công ngắm hoàng hôn Vũng Tàu.',
+           'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400&q=70', 'STANDARD'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'PVT-STD');
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @vt_hotel_id, 'PVT-DLX', 'Deluxe Pool View', '1 giường King cỡ lớn', 2, 2600000, 6,
+           'Phòng 40m² nhìn ra hồ bơi tràn bờ và biển, bao gồm bữa sáng.',
+           'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400&q=70', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'PVT-DLX');
+
+    -- ─── RESORT TẠI CẦN THƠ ───────────────────────────────────────────────────
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Azerai Cần Thơ Resort',
+           'Khu nghỉ dưỡng 5 sao bên sông Hậu, kiến trúc địa phương kết hợp hiện đại, trải nghiệm sông nước miền Tây.',
+           '1 Lê Lợi, Ninh Kiều', 'Cần Thơ',
+           'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&q=80',
+           5, 9.2, 987, 'RESORT', 'APPROVED', 4, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Azerai Cần Thơ Resort');
+    SET @cantho_id = (SELECT id FROM accommodations WHERE name = 'Azerai Cần Thơ Resort' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @cantho_id, 'AZC-DLX', 'Deluxe River View', '1 giường King', 2, 2800000, 8,
+           'Phòng 42m² hướng sông Hậu, bao gồm bữa sáng và kayak miễn phí.',
+           'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=400&q=70', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'AZC-DLX');
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @cantho_id, 'AZC-SUI', 'Pool Villa Suite', '1 giường King cỡ lớn', 2, 4500000, 4,
+           'Suite riêng với hồ bơi nhỏ, view sông tuyệt đẹp.',
+           'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&q=70', 'SUITE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'AZC-SUI');
+
+    -- ─── RESORT TẠI MŨI NÉ ────────────────────────────────────────────────────
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'TTC Resort Mũi Né',
+           'Resort biển phong cách làng chài, nằm trên bãi biển Mũi Né với hồ bơi vô cực và đồi cát gần kề.',
+           '56 Nguyễn Đình Chiểu, Hàm Tiến', 'Mũi Né',
+           'https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?w=800&q=80',
+           4, 8.6, 1234, 'RESORT', 'APPROVED', 4, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'TTC Resort Mũi Né');
+    SET @muine_id = (SELECT id FROM accommodations WHERE name = 'TTC Resort Mũi Né' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @muine_id, 'TTC-DLX', 'Deluxe Beach Bungalow', '1 giường King', 2, 1450000, 10,
+           'Phòng bungalow nhìn ra biển, có bếp nhỏ và ban công riêng.',
+           'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400&q=70', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'TTC-DLX');
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @muine_id, 'TTC-FAM', 'Family Garden Villa', '2 giường Queen', 4, 2200000, 5,
+           'Villa vườn, 2 phòng ngủ, phù hợp gia đình và nhóm bạn 4 người.',
+           'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=400&q=70', 'FAMILY'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'TTC-FAM');
+
+    -- ─── TRAVEL POSTS BỔ SUNG CHO MIỀN NAM ──────────────────────────────────
+    INSERT INTO travel_posts (title, destination_name, destination_slug, summary, content, thumbnail_url, source_name, source_url, category, status, created_by, created_at, updated_at) VALUES
+    ('Khám phá Vũng Tàu trong 2 ngày 1 đêm', 'Vũng Tàu', 'vung-tau',
+     'Gợi ý lịch trình cuối tuần đến thành phố biển gần Sài Gòn nhất, kết hợp nghỉ dưỡng và hải sản.',
+     'Vũng Tàu cách TP.HCM khoảng 2 tiếng lái xe, phù hợp chuyến đi cuối tuần. Tắm biển, thăm Hải Đăng, ăn hải sản tươi và nghỉ tại khách sạn ven biển Thùy Vân.',
+     'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80',
+     'Vietnam.travel', 'https://vietnam.travel/places-to-go/southern-vietnam/vung-tau',
+     'GUIDE', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 9 DAY), NOW()),
+    ('Trải nghiệm chợ nổi Cái Răng — Cần Thơ', 'Cần Thơ', 'can-tho',
+     'Hướng dẫn khám phá chợ nổi nổi tiếng và ẩm thực đặc trưng miền Tây sông nước.',
+     'Cần Thơ là thủ phủ miền Tây. Chợ nổi Cái Răng họp từ sáng sớm đến 8-9h. Du khách nên thuê thuyền nhỏ để có trải nghiệm chân thực và chụp ảnh đẹp.',
+     'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=600&q=80',
+     'Vietnam.travel', 'https://vietnam.travel/places-to-go/southern-vietnam/can-tho',
+     'ATTRACTION', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 8 DAY), NOW()),
+    ('Mũi Né — thiên đường kite surf và đồi cát', 'Mũi Né', 'mui-ne',
+     'Điểm đến biển nổi tiếng cho thể thao nước và kỳ nghỉ biển khác biệt.',
+     'Mũi Né nổi tiếng với đồi cát đỏ, đồi cát trắng và làn gió lý tưởng cho kitesurfing. Resort tập trung trên đường Nguyễn Đình Chiểu dài 10km ven biển.',
+     'https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?w=600&q=80',
+     'Vietnam.travel', 'https://vietnam.travel/places-to-go/south-central-coast/mui-ne',
+     'GUIDE', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 7 DAY), NOW()),
+    ('Sài Gòn về đêm — lịch trình ăn uống và khám phá', 'TP. Hồ Chí Minh', 'ho-chi-minh',
+     'Những điểm ăn ngon và vui chơi về đêm tại thành phố năng động nhất Việt Nam.',
+     'TP.HCM về đêm sống động với phố đi bộ Nguyễn Huệ, chợ Bến Thành, ẩm thực đường phố Bùi Viện và các quán cà phê sân thượng hiện đại.',
+     'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=600&q=80',
+     'Vietnam.travel', 'https://vietnam.travel/things-to-do/ho-chi-minh-city-at-night',
+     'ESSENTIAL', 'VISIBLE', 'admin@travelmate.vn', DATE_SUB(NOW(), INTERVAL 6 DAY), NOW())
+    ON DUPLICATE KEY UPDATE
+        title = VALUES(title),
+        destination_name = VALUES(destination_name),
+        destination_slug = VALUES(destination_slug),
+        summary = VALUES(summary),
+        content = VALUES(content),
+        thumbnail_url = VALUES(thumbnail_url),
+        source_name = VALUES(source_name),
+        category = VALUES(category),
+        status = VALUES(status),
+        created_by = VALUES(created_by),
+        updated_at = VALUES(updated_at);
+
+    -- =============================================
+    -- CHATBOT DEMO: PENDING_PAYMENT + CANCELLED bookings
+    -- Mục đích: khi giảng viên gõ "đặt phòng của tôi" với tài khoản user@travelmate.vn,
+    --           chatbot hiển thị đủ trạng thái ⏳ Chờ TT  và  ✗ Đã hủy.
+    -- =============================================
+
+    INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
+        check_in, check_out, adults, children, room_quantity,
+        customer_name, customer_phone, customer_email,
+        total_amount, paid_amount, remaining_amount,
+        booking_status, payment_option, payment_status,
+        note, created_at, updated_at)
+    VALUES (
+        'BK-DEMO-PENDPAY-01', 2, 1, 1,
+        DATE_ADD(CURDATE(), INTERVAL 14 DAY), DATE_ADD(CURDATE(), INTERVAL 16 DAY),
+        2, 0, 1,
+        'Nguyễn Văn An', '0912 345 678', 'user@travelmate.vn',
+        1300000, 0, 1300000,
+        'PENDING_PAYMENT', 'DEPOSIT_30', 'PENDING_PAYMENT',
+        'Khách đang chuyển đến cổng VNPAY — chờ xác nhận thanh toán.',
+        NOW(), NOW()
+    ) ON DUPLICATE KEY UPDATE updated_at = NOW();
+
+    INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
+        check_in, check_out, adults, children, room_quantity,
+        customer_name, customer_phone, customer_email,
+        total_amount, paid_amount, remaining_amount,
+        booking_status, payment_option, payment_status,
+        note, created_at, updated_at)
+    VALUES (
+        'BK-DEMO-CANCEL-01', 2, 2, 5,
+        DATE_ADD(CURDATE(), INTERVAL 7 DAY), DATE_ADD(CURDATE(), INTERVAL 9 DAY),
+        2, 0, 1,
+        'Nguyễn Văn An', '0912 345 678', 'user@travelmate.vn',
+        960000, 0, 960000,
+        'CANCELLED', 'DEPOSIT_30', 'CANCELLED',
+        'Khách hủy giao dịch trên cổng VNPAY (mã 24).',
+        DATE_SUB(NOW(), INTERVAL 15 MINUTE), DATE_SUB(NOW(), INTERVAL 15 MINUTE)
+    ) ON DUPLICATE KEY UPDATE updated_at = NOW();
+
+    -- =============================================
+    -- END OF travelmate_db.sql v18 — TravelMate Demo Data
+    -- =============================================

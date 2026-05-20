@@ -8,15 +8,9 @@ html, body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* Thu nhỏ header padding trên trang auth để tiết kiệm không gian */
-body[data-page="login"] .header,
-body[data-page="register"] .header {
-    padding: 10px 0 !important;
-}
-
 /* PAGE WRAPPER */
 .pg {
-    display: flex; height: calc(100vh - 56px);
+    display: flex; height: 100vh;
     padding: 12px; gap: 0;
 }
 
@@ -80,7 +74,7 @@ body[data-page="register"] .lp-form {
     padding: 16px 28px;
     justify-content: flex-start;
     overflow-y: auto;
-    padding-top: 60px;      /* đẩy xuống dưới header cố định (~56px) */
+    padding-top: 28px;
     padding-bottom: 20px;
     scrollbar-width: none;   /* Firefox: ẩn scrollbar */
 }

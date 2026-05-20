@@ -24,8 +24,8 @@
             background: #fff;
             border-bottom: 1px solid #e5e7eb;
             position: sticky;
-            top: 0;
-            z-index: 100;
+            top: 72px;
+            z-index: 1000;
             padding: 0;
         }
 
@@ -81,6 +81,7 @@
             cursor: pointer;
             transition: border-color 0.18s;
             min-width: 0;
+            position: relative;
         }
 
         .msb-field:hover {
@@ -162,12 +163,147 @@
             flex: 1.4;
         }
 
+        .msb-popup {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            z-index: 1600;
+            width: min(360px, calc(100vw - 32px));
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.16);
+            padding: 16px;
+            display: none;
+        }
+
+        .msb-field.open .msb-popup {
+            display: block;
+        }
+
+        .msb-popup-title {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 12px;
+        }
+
+        .msb-date-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .msb-date-item label {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #64748b;
+            margin-bottom: 5px;
+        }
+
+        .msb-date-item input {
+            width: 100%;
+            height: 40px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 9px;
+            padding: 0 10px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #0f172a;
+            background: #f8fafc;
+        }
+
+        .msb-guest-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .msb-guest-row:last-of-type {
+            border-bottom: 0;
+        }
+
+        .msb-guest-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .msb-guest-desc {
+            font-size: 0.72rem;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .msb-stepper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .msb-stepper button {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            color: #2563eb;
+            font-weight: 800;
+            font-size: 1rem;
+        }
+
+        .msb-stepper span {
+            min-width: 18px;
+            text-align: center;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .msb-popup-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .msb-popup-btn {
+            padding: 9px 14px;
+            border-radius: 9px;
+            font-size: 0.8rem;
+            font-weight: 800;
+        }
+
+        .msb-popup-btn.primary {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .msb-popup-btn.ghost {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
         /* ===== MAIN LAYOUT ===== */
         .search-page {
             display: grid;
             grid-template-columns: 260px 1fr;
             gap: 20px;
             padding: 20px 0 40px;
+        }
+
+        .search-page.travel-view {
+            grid-template-columns: 1fr;
+        }
+
+        .search-page.travel-view .filter-sidebar,
+        .search-page.travel-view .results-header,
+        .search-page.travel-view .hotel-list-area {
+            display: none;
         }
 
         /* ===== FILTER SIDEBAR ===== */
@@ -379,6 +515,12 @@
 
         /* ===== RESULTS AREA ===== */
         .results-area {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .hotel-list-area {
             display: flex;
             flex-direction: column;
             gap: 14px;
@@ -810,6 +952,23 @@
         }
 
         @media (max-width: 900px) {
+            .search-nav {
+                top: 64px;
+            }
+
+            #searchForm {
+                flex-wrap: wrap;
+            }
+
+            #searchForm .msb-field,
+            #searchForm .msb-submit {
+                flex: 1 1 100% !important;
+            }
+
+            #searchForm .msb-divider {
+                display: none;
+            }
+
             .search-page {
                 grid-template-columns: 1fr;
             }
@@ -837,73 +996,58 @@
             display: flex;
             flex-direction: column;
         }
+
+        /* ===== TRAVEL SUGGESTIONS ===== */
+        .ts-section{display:none;background:linear-gradient(135deg,#f0f7ff 0%,#fafbff 60%,#f0f4ff 100%);border:1px solid #dbeafe;border-radius:8px;padding:22px;margin:0 0 4px;scroll-margin-top:150px}
+        .search-page.travel-view .ts-section{display:block}
+        .ts-section .container{max-width:none;padding:0}
+        .ts-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px}
+        .ts-icon-badge{width:48px;height:48px;background:linear-gradient(135deg,#2563eb,#1d4ed8);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;flex-shrink:0;box-shadow:0 4px 12px rgba(37,99,235,.25)}
+        .ts-title{font-size:1.3rem;font-weight:800;color:#0f172a;line-height:1.25;margin:0}
+        .ts-subtitle{font-size:0.83rem;color:#64748b;margin:3px 0 0;font-weight:500}
+        .ts-context{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px}
+        .ts-chip{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:5px 10px;background:#fff;border:1px solid #dbeafe;border-radius:999px;color:#334155;font-size:.76rem;font-weight:700}
+        .ts-chip i{color:#2563eb;font-size:.74rem}
+        .ts-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+        .ts-view-all,.ts-back-btn{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:9px 16px;background:#fff;border:1.5px solid #dbeafe;border-radius:8px;font-size:0.83rem;font-weight:700;color:#1d4ed8;text-decoration:none;transition:all .18s;white-space:nowrap;font-family:inherit;cursor:pointer}
+        .ts-view-all:hover{background:#eff6ff;border-color:#2563eb}
+        .ts-back-btn{color:#334155}
+        .ts-back-btn:hover{background:#f8fafc;border-color:#94a3b8}
+        .ts-empty-actions{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+        .ts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+        .ts-card{background:#fff;border-radius:8px;border:1px solid #e9ecef;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;transition:box-shadow .22s,transform .22s;text-decoration:none;color:inherit}
+        .ts-card:hover{box-shadow:0 10px 32px rgba(37,99,235,.13);transform:translateY(-4px)}
+        .ts-card:focus-visible{outline:3px solid rgba(37,99,235,.25);outline-offset:3px}
+        .ts-card-img{width:100%;height:170px;overflow:hidden;background:linear-gradient(135deg,#dbeafe,#eff6ff);position:relative;flex-shrink:0}
+        .ts-card-img img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s}
+        .ts-card:hover .ts-card-img img{transform:scale(1.05)}
+        .ts-card-img-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.5rem;color:#93c5fd}
+        .ts-cat-badge{position:absolute;top:10px;left:10px;padding:4px 10px;border-radius:20px;font-size:.72rem;font-weight:700;backdrop-filter:blur(6px)}
+        .ts-cat-badge.GUIDE{background:rgba(219,234,254,.92);color:#1e40af}
+        .ts-cat-badge.ATTRACTION{background:rgba(252,231,243,.92);color:#9d174d}
+        .ts-cat-badge.ESSENTIAL{background:rgba(254,249,195,.92);color:#713f12}
+        .ts-card-body{padding:16px 18px 18px;display:flex;flex-direction:column;flex:1}
+        .ts-card-title{font-size:.93rem;font-weight:700;color:#0f172a;line-height:1.4;margin:0 0 7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+        .ts-card-summary{font-size:.81rem;color:#64748b;line-height:1.55;margin:0 0 11px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;flex:1}
+        .ts-card-meta{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+        .ts-meta-dest{display:inline-flex;align-items:center;gap:4px;font-size:.75rem;color:#2563eb;font-weight:600}
+        .ts-meta-src{display:inline-flex;align-items:center;gap:4px;font-size:.73rem;color:#94a3b8;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .ts-card-footer{margin-top:11px;padding-top:10px;border-top:1px solid #f1f5f9}
+        .ts-read-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border-radius:8px;font-size:.78rem;font-weight:700;text-decoration:none;transition:all .18s}
+        .ts-read-btn:hover{background:linear-gradient(135deg,#1d4ed8,#1e40af);transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,.3)}
+        .ts-empty{text-align:center;padding:44px 20px;background:#fff;border-radius:8px;border:1.5px dashed #cbd5e1}
+        .ts-empty i{font-size:2.5rem;color:#94a3b8;margin-bottom:12px;display:block}
+        .ts-empty-title{font-size:1rem;font-weight:700;color:#334155;margin-bottom:6px}
+        .ts-empty-sub{font-size:.85rem;color:#94a3b8;margin-bottom:18px}
+        @media(max-width:700px){.ts-section{padding:18px}.ts-grid{grid-template-columns:1fr}.ts-header{flex-direction:column}.ts-actions{width:100%;justify-content:flex-start}.ts-icon-badge{width:42px;height:42px}.ts-title{font-size:1.08rem}}
     </style>
 </head>
 
 <body>
     <script src="/assets/js/main.js"></script>
     <script src="/assets/js/user.js"></script>
-    <!-- ===== HEADER (giống trang chủ) ===== -->
-    <header class="header header-static"
-        style="background: #fff; position: relative; padding: 15px 0; border-bottom: 1px solid #e2e8f0">
-        <div class="container navbar">
-            <a href="/" class="logo">
-                <div class="logo-icon">
-                    <i class="fa-solid fa-building"></i>
-                </div>
-                <span class="logo-text">
-                    <span class="logo-blue">TRAVEL</span><span class="logo-yellow">MATE</span>
-                </span>
-            </a>
+    <div th:replace="~{fragments/user-header :: header(true, 'hotels')}"></div>
 
-            <nav class="menu">
-                <ul class="menu-list">
-                    <li><a href="/">TRANG CHỦ</a></li>
-                    <li><a href="/accommodations">GỢI Ý DU LỊCH</a></li>
-                    <li><a href="/news">TIN TỨC</a></li>
-                    <li><a href="/contact">LIÊN HỆ</a></li>
-                    <li>
-                        <a href="/my-bookings"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a>
-                    </li>
-                </ul>
-            </nav>
-
-            <!-- Chưa đăng nhập -->
-            <a href="/auth/login" class="login-btn" sec:authorize="isAnonymous()">ĐĂNG NHẬP</a>
-            <!-- Bell Notification (authenticated) -->
-            <div class="notif-wrap" id="notifWrap" sec:authorize="isAuthenticated()" style="position:relative;display:flex;align-items:center;margin-right:10px;">
-                <button class="notif-btn" id="notifBtn" type="button" aria-label="Thông báo"
-                        style="background:none;border:none;cursor:pointer;color:#0f172a;font-size:1.15rem;padding:8px 10px;border-radius:10px;position:relative;transition:background 0.15s,color 0.15s;">
-                    <i class="fa-solid fa-bell"></i>
-                    <span class="notif-badge" id="notifBadge" style="display:none;position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:0.6rem;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 4px;line-height:1;"></span>
-                </button>
-                <div class="notif-dropdown" id="notifDropdown" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:340px;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.18);z-index:9999;overflow:hidden;border:1px solid #e2e8f0;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid #f1f5f9;">
-                        <span style="font-weight:700;font-size:0.95rem;color:#0f172a;">Thông báo</span>
-                        <button type="button" id="notifReadAll" style="background:none;border:none;font-size:0.78rem;font-weight:600;color:#2563eb;cursor:pointer;font-family:inherit;padding:0;">Đọc hết</button>
-                    </div>
-                    <div style="max-height:340px;overflow-y:auto;" id="notifList">
-                        <p style="text-align:center;color:#94a3b8;font-size:0.85rem;padding:24px 16px;margin:0;">Không có thông báo</p>
-                    </div>
-                </div>
-            </div>
-            <!-- Đã đăng nhập -->
-            <div class="header-user" id="headerUser" sec:authorize="isAuthenticated()">
-                <button class="header-user-btn" id="headerUserBtn" type="button">
-                    <div class="header-avatar"><i class="fa-solid fa-user"></i></div>
-                    <span class="header-user-name" sec:authentication="principal.fullName">User</span>
-                    <i class="fa-solid fa-chevron-down header-chevron"></i>
-                </button>
-                <div class="header-user-dropdown" id="headerUserDropdown">
-                    <a href="/my-bookings" class="dropdown-item"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a>
-                    <div class="dropdown-divider"></div>
-                    <form method="post" action="/auth/logout">
-                        <button type="submit" class="dropdown-item dropdown-logout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </header>
 
     <!-- ===== SEARCH NAV BAR (sticky) ===== -->
     <div class="search-nav">
@@ -918,27 +1062,83 @@
                         <input type="text" id="msb-dest" name="keyword" placeholder="Thành phố, điểm đến..." th:value="${keyword}" />
                     </div>
                     <div class="msb-divider"></div>
-                    <div class="msb-field" style="flex: 1.2">
+                    <div class="msb-field msb-date-field" id="msbDateField" style="flex: 1.2">
                         <i class="fa-regular fa-calendar-days"></i>
                         <input type="text" id="msb-date" readonly
                             placeholder="Nhận phòng → Trả phòng"
-                            th:value="${checkIn != null and !#strings.isEmpty(checkIn) ? (checkIn + ' → ' + checkOut) : ''}" />
-                        <input type="hidden" name="checkIn" th:value="${checkIn}" />
-                        <input type="hidden" name="checkOut" th:value="${checkOut}" />
+                            th:value="${checkInDisplay != null and !#strings.isEmpty(checkInDisplay) and checkOutDisplay != null and !#strings.isEmpty(checkOutDisplay) ? (checkInDisplay + ' → ' + checkOutDisplay) : ''}" />
+                        <input type="hidden" name="checkIn" id="msbCheckIn" th:value="${checkIn}" />
+                        <input type="hidden" name="checkOut" id="msbCheckOut" th:value="${checkOut}" />
+                        <div class="msb-popup" id="msbDatePopup">
+                            <div class="msb-popup-title">Chọn ngày lưu trú</div>
+                            <div class="msb-date-grid">
+                                <div class="msb-date-item">
+                                    <label for="msbCheckInPicker">Ngày nhận phòng</label>
+                                    <input type="date" id="msbCheckInPicker" th:value="${checkIn}" />
+                                </div>
+                                <div class="msb-date-item">
+                                    <label for="msbCheckOutPicker">Ngày trả phòng</label>
+                                    <input type="date" id="msbCheckOutPicker" th:value="${checkOut}" />
+                                </div>
+                            </div>
+                            <div class="msb-popup-actions">
+                                <button type="button" class="msb-popup-btn ghost" data-msb-close>Đóng</button>
+                                <button type="button" class="msb-popup-btn primary" id="msbApplyDate">Áp dụng</button>
+                            </div>
+                        </div>
                     </div>
                     <div class="msb-divider"></div>
-                    <div class="msb-field" style="flex: 1">
+                    <div class="msb-field msb-guest-field" id="msbGuestField" style="flex: 1">
                         <i class="fa-solid fa-user"></i>
                         <input type="text" id="msb-guest" readonly
                             th:value="|${adults + children} khách, ${rooms} phòng|" />
-                        <input type="hidden" name="adults" th:value="${adults}" />
-                        <input type="hidden" name="children" th:value="${children}" />
-                        <input type="hidden" name="rooms" th:value="${rooms}" />
+                        <input type="hidden" name="adults" id="msbAdults" th:value="${adults}" />
+                        <input type="hidden" name="children" id="msbChildren" th:value="${children}" />
+                        <input type="hidden" name="rooms" id="msbRooms" th:value="${rooms}" />
+                        <div class="msb-popup" id="msbGuestPopup">
+                            <div class="msb-popup-title">Khách và phòng</div>
+                            <div class="msb-guest-row">
+                                <div>
+                                    <div class="msb-guest-title">Người lớn</div>
+                                    <div class="msb-guest-desc">Từ 18 tuổi</div>
+                                </div>
+                                <div class="msb-stepper">
+                                    <button type="button" data-msb-step="adults" data-delta="-1">-</button>
+                                    <span id="msbAdultsCount" th:text="${adults}">2</span>
+                                    <button type="button" data-msb-step="adults" data-delta="1">+</button>
+                                </div>
+                            </div>
+                            <div class="msb-guest-row">
+                                <div>
+                                    <div class="msb-guest-title">Trẻ em</div>
+                                    <div class="msb-guest-desc">Từ 0-17 tuổi</div>
+                                </div>
+                                <div class="msb-stepper">
+                                    <button type="button" data-msb-step="children" data-delta="-1">-</button>
+                                    <span id="msbChildrenCount" th:text="${children}">0</span>
+                                    <button type="button" data-msb-step="children" data-delta="1">+</button>
+                                </div>
+                            </div>
+                            <div class="msb-guest-row">
+                                <div>
+                                    <div class="msb-guest-title">Số phòng</div>
+                                    <div class="msb-guest-desc">Giữ nguyên khi xem chi tiết và đặt phòng</div>
+                                </div>
+                                <div class="msb-stepper">
+                                    <button type="button" data-msb-step="rooms" data-delta="-1">-</button>
+                                    <span id="msbRoomsCount" th:text="${rooms}">1</span>
+                                    <button type="button" data-msb-step="rooms" data-delta="1">+</button>
+                                </div>
+                            </div>
+                            <div class="msb-popup-actions">
+                                <button type="button" class="msb-popup-btn primary" data-msb-close>Xong</button>
+                            </div>
+                        </div>
                     </div>
                     <button type="submit" class="msb-submit">
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <span id="searchBtnText"
-                              th:text="${currentType == 'VILLA' ? 'Tìm Villa' : currentType == 'HOMESTAY' ? 'Tìm Homestay' : currentType == 'RESORT' ? 'Tìm Resort' : 'Tìm Hotel'}">Tìm Hotel</span>
+                            th:text="${currentType == 'VILLA' ? 'Tìm villa' : currentType == 'HOMESTAY' ? 'Tìm homestay' : currentType == 'RESORT' ? 'Tìm resort' : 'Tìm khách sạn'}">Tìm khách sạn</span>
                     </button>
                     </form>
                 </div>
@@ -946,7 +1146,7 @@
             <!-- Sub-nav tabs: loại hình lưu trú -->
                 <div class="snav-tabs">
                     <button class="snav-tab" th:classappend="${currentType == 'HOTEL' || currentType == null} ? ' active' : ''" data-type="HOTEL" onclick="switchType('HOTEL')">
-                        <i class="fa-solid fa-hotel"></i> Hotel
+                        <i class="fa-solid fa-hotel"></i> Khách sạn
                     </button>
                     <button class="snav-tab" th:classappend="${currentType == 'VILLA'} ? ' active' : ''" data-type="VILLA" onclick="switchType('VILLA')">
                         <i class="fa-solid fa-mountain"></i> Villa
@@ -957,8 +1157,20 @@
                     <button class="snav-tab" th:classappend="${currentType == 'RESORT'} ? ' active' : ''" data-type="RESORT" onclick="switchType('RESORT')">
                         <i class="fa-solid fa-umbrella-beach"></i> Resort
                     </button>
-                    <a href="/travel" class="snav-tab" style="text-decoration:none">
-                        <i class="fa-solid fa-map-location-dot"></i> Địa điểm gần đây
+                    <a th:if="${showTravelSuggestSection}"
+                       href="#travelSuggestSection"
+                       id="travelSuggestTab"
+                       class="snav-tab"
+                       aria-controls="travelSuggestSection"
+                       aria-expanded="false"
+                       style="text-decoration:none">
+                        <i class="fa-solid fa-map-location-dot"></i> Gợi ý du lịch tại điểm đến
+                    </a>
+                    <a th:unless="${showTravelSuggestSection}"
+                       th:href="@{/travel}"
+                       class="snav-tab"
+                       style="text-decoration:none">
+                        <i class="fa-solid fa-map-location-dot"></i> Gợi ý du lịch
                     </a>
                 </div>
         </div>
@@ -978,7 +1190,7 @@
                         <div class="filter-chips">
                             <a th:href="@{/accommodations(type='HOTEL',keyword=${keyword},checkIn=${checkIn},checkOut=${checkOut},adults=${adults},children=${children},rooms=${rooms})}"
                                class="filter-chip" th:classappend="${currentType == 'HOTEL' or currentType == null} ? ' active' : ''"
-                               style="text-decoration:none">Hotel</a>
+                               style="text-decoration:none">Khách sạn</a>
                             <a th:href="@{/accommodations(type='RESORT',keyword=${keyword},checkIn=${checkIn},checkOut=${checkOut},adults=${adults},children=${children},rooms=${rooms})}"
                                class="filter-chip" th:classappend="${currentType == 'RESORT'} ? ' active' : ''"
                                style="text-decoration:none">Resort</a>
@@ -1059,21 +1271,9 @@
                         <div id="star-body">
                             <div class="star-list">
                                 <label class="star-item">
-                                    <input type="checkbox" class="star-cb" value="1" />
+                                    <input type="checkbox" class="star-cb" value="5" />
                                     <div class="stars-display">
-                                        <i class="fa-solid fa-star"></i>
-                                    </div>
-                                </label>
-                                <label class="star-item">
-                                    <input type="checkbox" class="star-cb" value="2" />
-                                    <div class="stars-display">
-                                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                                    </div>
-                                </label>
-                                <label class="star-item">
-                                    <input type="checkbox" class="star-cb" value="3" />
-                                    <div class="stars-display">
-                                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
                                     </div>
                                 </label>
                                 <label class="star-item">
@@ -1083,9 +1283,21 @@
                                     </div>
                                 </label>
                                 <label class="star-item">
-                                    <input type="checkbox" class="star-cb" value="5" />
+                                    <input type="checkbox" class="star-cb" value="3" />
                                     <div class="stars-display">
-                                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                                    </div>
+                                </label>
+                                <label class="star-item">
+                                    <input type="checkbox" class="star-cb" value="2" />
+                                    <div class="stars-display">
+                                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                                    </div>
+                                </label>
+                                <label class="star-item">
+                                    <input type="checkbox" class="star-cb" value="1" />
+                                    <div class="stars-display">
+                                        <i class="fa-solid fa-star"></i>
                                     </div>
                                 </label>
                             </div>
@@ -1099,7 +1311,7 @@
                     <div class="results-header">
                         <div>
                             <div class="results-title">
-                                <span th:if="${keyword != null and !keyword.isEmpty()}" th:text="${keyword}">Đà Lạt</span>
+                                <span th:if="${keyword != null and !keyword.isEmpty()}" th:text="${keywordDisplay != null and !keywordDisplay.isEmpty() ? keywordDisplay : keyword}">Đà Lạt</span>
                                 <span th:if="${keyword == null or keyword.isEmpty()}">Tất cả</span>
                                 <span th:text="'– ' + ${totalResults} + ' ' + (${currentType == 'VILLA'} ? 'villa' : (${currentType == 'HOMESTAY'} ? 'homestay' : (${currentType == 'RESORT'} ? 'resort' : 'khách sạn'))) + ' được tìm thấy'">– 0 nơi lưu trú</span>
                             </div>
@@ -1115,19 +1327,20 @@
                         </div>
                     </div>
 
-                    <!-- Empty state khi không có kết quả -->
-                    <div th:if="${#lists.isEmpty(hotels)}" style="text-align:center;padding:60px 20px;">
-                        <i th:class="'fa-solid fa-' + (${currentType == 'VILLA'} ? 'mountain' : (${currentType == 'HOMESTAY'} ? 'house-chimney' : (${currentType == 'RESORT'} ? 'umbrella-beach' : 'hotel')))"
-                           style="font-size:3rem;color:#cbd5e1;margin-bottom:16px;display:block"></i>
-                        <h3 style="color:#475569;margin-bottom:8px"
-                            th:text="'Không tìm thấy ' + (${currentType == 'VILLA'} ? 'villa' : (${currentType == 'HOMESTAY'} ? 'homestay' : (${currentType == 'RESORT'} ? 'resort' : 'khách sạn'))) + ' nào'">Không tìm thấy kết quả</h3>
-                        <p style="color:#94a3b8;font-size:0.9rem">Hãy thử tìm kiếm với từ khóa khác hoặc
-                            <a href="/accommodations" style="color:#2563eb">xem tất cả</a>
-                        </p>
-                    </div>
+                    <div class="hotel-list-area" id="hotelListArea">
+                        <!-- Empty state khi không có kết quả -->
+                        <div th:if="${#lists.isEmpty(hotels)}" style="text-align:center;padding:60px 20px;">
+                            <i th:class="'fa-solid fa-' + (${currentType == 'VILLA'} ? 'mountain' : (${currentType == 'HOMESTAY'} ? 'house-chimney' : (${currentType == 'RESORT'} ? 'umbrella-beach' : 'hotel')))"
+                               style="font-size:3rem;color:#cbd5e1;margin-bottom:16px;display:block"></i>
+                            <h3 style="color:#475569;margin-bottom:8px"
+                                th:text="'Không tìm thấy ' + (${currentType == 'VILLA'} ? 'villa' : (${currentType == 'HOMESTAY'} ? 'homestay' : (${currentType == 'RESORT'} ? 'resort' : 'khách sạn'))) + ' nào'">Không tìm thấy kết quả</h3>
+                            <p style="color:#94a3b8;font-size:0.9rem">Hãy thử tìm kiếm với từ khóa khác hoặc
+                                <a href="/accommodations" style="color:#2563eb">xem tất cả</a>
+                            </p>
+                        </div>
 
-                    <!-- ─── Hotel Cards — Dynamic loop từ DB ─── -->
-                    <div class="hotel-card-list" th:each="hotel : ${hotels}"
+                        <!-- ─── Hotel Cards — Dynamic loop từ DB ─── -->
+                        <div class="hotel-card-list" th:each="hotel : ${hotels}"
                          th:with="accAvail=${accAvailMap != null ? accAvailMap[hotel.id] : null},
                                   accStatus=${accAvail != null ? accAvail['status'] : 'UNKNOWN'},
                                   isVilla=${hotel.propertyType?.name() == 'VILLA'}"
@@ -1186,7 +1399,7 @@
                                         <span th:text="${hotel.propertyType.name() == 'VILLA' ? 'Villa' :
                                                         hotel.propertyType.name() == 'HOMESTAY' ? 'Homestay' :
                                                         hotel.propertyType.name() == 'RESORT' ? 'Resort' :
-                                                        'Hotel'}">Hotel</span>
+                                                        'Khách sạn'}">Khách sạn</span>
                                     </span>
                                     <div class="hcl-stars">
                                         <!-- Hiển thị sao theo starRating -->
@@ -1292,6 +1505,105 @@
                             </div>
                         </div>
                     </div>
+                    </div>
+
+                    <!-- ===== GỢI Ý DU LỊCH THEO ĐIỂM ĐẾN ===== -->
+                    <div th:if="${showTravelSuggestSection}" class="ts-section" id="travelSuggestSection">
+                        <div class="container">
+                            <div class="ts-header">
+                                <div style="display:flex;align-items:center;gap:14px;">
+                                    <div class="ts-icon-badge"><i class="fa-solid fa-map-location-dot"></i></div>
+                                    <div>
+                                        <h2 class="ts-title">
+                                            <span th:if="${travelDestLabel != null and !travelDestLabel.isEmpty()}" th:text="${'Gợi ý du lịch tại ' + travelDestLabel}">Gợi ý du lịch</span>
+                                            <span th:unless="${travelDestLabel != null and !travelDestLabel.isEmpty()}">Gợi ý du lịch</span>
+                                        </h2>
+                                        <p class="ts-subtitle">Cẩm nang, lịch trình và trải nghiệm nổi bật theo điểm đến đang tìm</p>
+                                        <div class="ts-context">
+                                            <span class="ts-chip" th:if="${travelDestLabel != null and !travelDestLabel.isEmpty()}">
+                                                <i class="fa-solid fa-location-dot"></i>
+                                                <span th:text="${travelDestLabel}">Đà Lạt</span>
+                                            </span>
+                                            <span class="ts-chip" th:if="${checkIn != null and !#strings.isEmpty(checkIn) and checkOut != null and !#strings.isEmpty(checkOut)}">
+                                                <i class="fa-regular fa-calendar-days"></i>
+                                                <span th:text="${checkInDisplay + ' → ' + checkOutDisplay}">18/05/2026 → 20/05/2026</span>
+                                            </span>
+                                            <span class="ts-chip">
+                                                <i class="fa-solid fa-user-group"></i>
+                                                <span th:text="|${adults + children} khách · ${rooms} phòng|">2 khách · 1 phòng</span>
+                                            </span>
+                                            <span class="ts-chip" th:if="${hasTravelPosts}">
+                                                <i class="fa-regular fa-newspaper"></i>
+                                                <span th:text="|${#lists.size(travelPosts)} bài viết|">2 bài viết</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="ts-actions">
+                                    <button type="button" class="ts-back-btn" onclick="showStayResultsFromSuggestion()">
+                                        <i class="fa-solid fa-list"></i>
+                                        <span th:text="${currentType == 'VILLA' ? 'Danh sách Villa' : (currentType == 'HOMESTAY' ? 'Danh sách Homestay' : (currentType == 'RESORT' ? 'Danh sách Resort' : 'Danh sách khách sạn'))}">Danh sách khách sạn</span>
+                                    </button>
+                                    <a th:href="@{/travel(destination=${travelDestSlug},checkIn=${checkIn},checkOut=${checkOut},adults=${adults},children=${children},rooms=${rooms})}" class="ts-view-all">
+                                        <i class="fa-solid fa-external-link-alt"></i> Xem tất cả
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Có bài gợi ý -->
+                            <div th:unless="${#lists.isEmpty(travelPosts)}" class="ts-grid">
+                                <div class="ts-card"
+                                     th:each="tp : ${travelPosts}"
+                                     th:attr="data-src=${tp.sourceUrl}"
+                                     role="link"
+                                     tabindex="0"
+                                     onclick="openTravelPostSource(this)"
+                                     onkeydown="openTravelPostSourceFromKey(event,this)">
+                                    <div class="ts-card-img">
+                                        <img th:if="${tp.thumbnailUrl != null and !#strings.isEmpty(tp.thumbnailUrl)}"
+                                             th:src="${tp.thumbnailUrl}" alt="" loading="lazy"
+                                             onerror="this.onerror=null;this.parentElement.innerHTML='<div class=ts-card-img-ph><i class=fa-solid fa-map-location-dot></i></div>'" />
+                                        <div th:unless="${tp.thumbnailUrl != null and !#strings.isEmpty(tp.thumbnailUrl)}" class="ts-card-img-ph">
+                                            <i class="fa-solid fa-map-location-dot"></i>
+                                        </div>
+                                        <span class="ts-cat-badge" th:classappend="${tp.category.name()}" th:text="${tp.category.displayName}">Cẩm nang</span>
+                                    </div>
+                                    <div class="ts-card-body">
+                                        <div class="ts-card-title" th:text="${tp.title}">Tiêu đề bài viết</div>
+                                        <div class="ts-card-summary" th:text="${tp.summary}">Mô tả ngắn</div>
+                                        <div class="ts-card-meta">
+                                            <span class="ts-meta-dest"><i class="fa-solid fa-location-dot"></i>
+                                                <span th:text="${tp.destination}">Đà Lạt</span></span>
+                                            <span class="ts-meta-src"><i class="fa-solid fa-link"></i>
+                                                <span th:text="${tp.sourceName != null ? tp.sourceName : 'Nguồn tham khảo'}">Vietnam.travel</span></span>
+                                        </div>
+                                        <div class="ts-card-footer">
+                                            <a th:href="${tp.sourceUrl}" target="_blank" rel="noopener noreferrer" class="ts-read-btn"
+                                               onclick="event.stopPropagation()">
+                                                <i class="fa-solid fa-external-link-alt"></i> Đọc thêm
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Không có bài (empty state) -->
+                            <div th:if="${#lists.isEmpty(travelPosts)}" class="ts-empty">
+                                <i class="fa-regular fa-map"></i>
+                                <div class="ts-empty-title" th:text="${travelDestLabel != null and !travelDestLabel.isEmpty() ? 'Chưa có gợi ý du lịch cho ' + travelDestLabel : 'Chưa có gợi ý du lịch cho điểm đến này'}">Chưa có gợi ý du lịch cho điểm đến này</div>
+                                <div class="ts-empty-sub">Danh sách nơi lưu trú vẫn được giữ nguyên theo bộ lọc hiện tại.</div>
+                                <div class="ts-empty-actions">
+                                    <button type="button" class="ts-back-btn" onclick="showStayResultsFromSuggestion()">
+                                        <i class="fa-solid fa-list"></i>
+                                        <span th:text="${currentType == 'VILLA' ? 'Xem lại Villa' : (currentType == 'HOMESTAY' ? 'Xem lại Homestay' : (currentType == 'RESORT' ? 'Xem lại Resort' : 'Xem lại khách sạn'))}">Xem lại khách sạn</span>
+                                    </button>
+                                    <a th:href="@{/travel(destination=${travelDestSlug},checkIn=${checkIn},checkOut=${checkOut},adults=${adults},children=${children},rooms=${rooms})}" class="ts-view-all">
+                                        <i class="fa-solid fa-map-location-dot"></i> Trang gợi ý du lịch
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                 </section>
             </div>
@@ -1299,6 +1611,136 @@
     </main>
 
     <script>
+        /* ── Mini search: date picker + guest/room picker ── */
+        (function () {
+            const dateField = document.getElementById('msbDateField');
+            const guestField = document.getElementById('msbGuestField');
+            const dateDisplay = document.getElementById('msb-date');
+            const guestDisplay = document.getElementById('msb-guest');
+            const checkInHidden = document.getElementById('msbCheckIn');
+            const checkOutHidden = document.getElementById('msbCheckOut');
+            const checkInPicker = document.getElementById('msbCheckInPicker');
+            const checkOutPicker = document.getElementById('msbCheckOutPicker');
+            const adultsHidden = document.getElementById('msbAdults');
+            const childrenHidden = document.getElementById('msbChildren');
+            const roomsHidden = document.getElementById('msbRooms');
+
+            if (!dateField || !guestField) return;
+
+            const today = new Date().toISOString().slice(0, 10);
+            [checkInPicker, checkOutPicker].forEach(input => {
+                if (input) input.min = today;
+            });
+
+            const closePickers = () => {
+                dateField.classList.remove('open');
+                guestField.classList.remove('open');
+            };
+
+            const openPicker = (field) => {
+                const isOpen = field.classList.contains('open');
+                closePickers();
+                if (!isOpen) field.classList.add('open');
+            };
+
+            const formatDate = (value) => {
+                if (!value || value.length !== 10) return '';
+                return value.slice(8, 10) + '/' + value.slice(5, 7) + '/' + value.slice(0, 4);
+            };
+
+            const setNextDay = () => {
+                if (!checkInPicker?.value) return;
+                const next = new Date(checkInPicker.value);
+                next.setDate(next.getDate() + 1);
+                const nextValue = next.toISOString().slice(0, 10);
+                if (!checkOutPicker.value || checkOutPicker.value <= checkInPicker.value) {
+                    checkOutPicker.value = nextValue;
+                }
+                checkOutPicker.min = nextValue;
+            };
+
+            const applyDate = () => {
+                if (checkInPicker.value) setNextDay();
+                checkInHidden.value = checkInPicker.value || '';
+                checkOutHidden.value = checkOutPicker.value || '';
+                dateDisplay.value = checkInHidden.value && checkOutHidden.value
+                    ? formatDate(checkInHidden.value) + ' → ' + formatDate(checkOutHidden.value)
+                    : '';
+                dateField.classList.remove('open');
+            };
+
+            const state = {
+                adults: Math.max(1, parseInt(adultsHidden.value || '2') || 2),
+                children: Math.max(0, parseInt(childrenHidden.value || '0') || 0),
+                rooms: Math.max(1, parseInt(roomsHidden.value || '1') || 1)
+            };
+
+            const updateGuest = () => {
+                adultsHidden.value = state.adults;
+                childrenHidden.value = state.children;
+                roomsHidden.value = state.rooms;
+                document.getElementById('msbAdultsCount').textContent = state.adults;
+                document.getElementById('msbChildrenCount').textContent = state.children;
+                document.getElementById('msbRoomsCount').textContent = state.rooms;
+                guestDisplay.value = (state.adults + state.children) + ' khách, ' + state.rooms + ' phòng';
+            };
+
+            dateField.addEventListener('click', (event) => {
+                event.stopPropagation();
+                openPicker(dateField);
+            });
+
+            guestField.addEventListener('click', (event) => {
+                event.stopPropagation();
+                openPicker(guestField);
+            });
+
+            document.getElementById('msbApplyDate')?.addEventListener('click', (event) => {
+                event.stopPropagation();
+                applyDate();
+            });
+
+            checkInPicker?.addEventListener('change', setNextDay);
+
+            document.querySelectorAll('[data-msb-step]').forEach(btn => {
+                btn.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    const key = btn.dataset.msbStep;
+                    const delta = parseInt(btn.dataset.delta || '0') || 0;
+                    const max = key === 'children' ? 10 : 20;
+                    const min = key === 'children' ? 0 : 1;
+                    state[key] = Math.max(min, Math.min(max, state[key] + delta));
+                    updateGuest();
+                });
+            });
+
+            document.querySelectorAll('[data-msb-close]').forEach(btn => {
+                btn.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    closePickers();
+                });
+            });
+
+            document.querySelectorAll('.msb-popup').forEach(popup => {
+                popup.addEventListener('click', (event) => event.stopPropagation());
+            });
+
+            document.addEventListener('click', closePickers);
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') closePickers();
+            });
+
+            document.getElementById('searchForm')?.addEventListener('submit', () => {
+                if (checkInPicker?.value || checkOutPicker?.value) {
+                    applyDate();
+                }
+                updateGuest();
+            });
+
+            if (checkInPicker?.value) setNextDay();
+            updateGuest();
+        })();
+
         /* ── Price range slider ── */
         const rangeMin = document.getElementById("range-min");
         const rangeMax = document.getElementById("range-max");
@@ -1344,8 +1786,8 @@
 
             // Update result count
             const countEl = document.querySelector('.results-title span:last-child');
-            if (countEl && countEl.textContent.includes('nơi lưu trú')) {
-                countEl.textContent = '– ' + visibleCount + ' nơi lưu trú được tìm thấy';
+            if (countEl && countEl.textContent.includes('được tìm thấy')) {
+                countEl.textContent = countEl.textContent.replace(/^–\s*\d+/, '– ' + visibleCount);
             }
         }
 
@@ -1412,7 +1854,8 @@
 
         /* ── Sort cards ── */
         function sortCards(mode) {
-            const container = document.querySelector('.results-area');
+            const container = document.getElementById('hotelListArea');
+            if (!container) return;
             const cards = [...container.querySelectorAll('.hotel-card-list')];
             cards.sort((a, b) => {
                 const pa = parseFloat(a.dataset.price || 0);
@@ -1428,33 +1871,100 @@
         }
 
         /* ── Switch type tab → cập nhật hidden input + submit lại form ── */
-        const typeLabels = { HOTEL: 'Tìm Hotel', VILLA: 'Tìm Villa', HOMESTAY: 'Tìm Homestay', RESORT: 'Tìm Resort' };
+        const typeLabels = { HOTEL: 'Tìm khách sạn', VILLA: 'Tìm villa', HOMESTAY: 'Tìm homestay', RESORT: 'Tìm resort' };
 
         function switchType(type) {
+            const searchPage = document.querySelector('.search-page');
+            const travelTab = document.getElementById('travelSuggestTab');
+            if (searchPage) searchPage.classList.remove('travel-view');
+            if (travelTab) {
+                travelTab.classList.remove('active');
+                travelTab.setAttribute('aria-expanded', 'false');
+            }
             document.getElementById('snavHiddenType').value = type;
             const btnText = document.getElementById('searchBtnText');
-            if (btnText) btnText.textContent = typeLabels[type] || 'Tìm Hotel';
+            if (btnText) btnText.textContent = typeLabels[type] || 'Tìm khách sạn';
             document.querySelectorAll('.snav-tab').forEach(tab => {
                 tab.classList.toggle('active', tab.dataset.type === type);
             });
             document.getElementById('searchForm').submit();
         }
 
-        /* ── Notification bell toggle ── */
+        /* ── Search sub-nav: tách view lưu trú và view gợi ý du lịch ── */
         document.addEventListener('DOMContentLoaded', function() {
-            const notifBtn  = document.getElementById('notifBtn');
-            const notifDrop = document.getElementById('notifDropdown');
-            if (notifBtn && notifDrop) {
-                notifBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    notifDrop.style.display = notifDrop.style.display === 'block' ? 'none' : 'block';
+            const searchPage = document.querySelector('.search-page');
+            const travelTab = document.getElementById('travelSuggestTab');
+            const stayTabs = document.querySelectorAll('.snav-tab[data-type]');
+            const travelSection = document.getElementById('travelSuggestSection');
+
+            if (!searchPage || !travelTab || !travelSection) return;
+
+            function showTravelSuggestions(shouldScroll) {
+                searchPage.classList.add('travel-view');
+                document.querySelectorAll('.snav-tab').forEach(tab => tab.classList.remove('active'));
+                travelTab.classList.add('active');
+                travelTab.setAttribute('aria-expanded', 'true');
+
+                if (window.location.hash !== '#travelSuggestSection') {
+                    history.replaceState(null, '', '#travelSuggestSection');
+                }
+
+                if (shouldScroll) {
+                    const top = searchPage.getBoundingClientRect().top + window.pageYOffset - 140;
+                    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+                }
+            }
+
+            function showStayResults() {
+                searchPage.classList.remove('travel-view');
+                travelTab.classList.remove('active');
+                travelTab.setAttribute('aria-expanded', 'false');
+                stayTabs.forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.type === document.getElementById('snavHiddenType')?.value);
                 });
-                document.addEventListener('click', function() { notifDrop.style.display = 'none'; });
-                notifDrop.addEventListener('click', function(e) { e.stopPropagation(); });
+                if (window.location.hash === '#travelSuggestSection') {
+                    history.replaceState(null, '', window.location.pathname + window.location.search);
+                }
+            }
+
+            window.showStayResultsFromSuggestion = function() {
+                showStayResults();
+                const top = searchPage.getBoundingClientRect().top + window.pageYOffset - 140;
+                window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+            };
+
+            travelTab.addEventListener('click', function(event) {
+                event.preventDefault();
+                showTravelSuggestions(true);
+            });
+
+            stayTabs.forEach(tab => {
+                tab.addEventListener('click', showStayResults);
+            });
+
+            if (window.location.hash === '#travelSuggestSection') {
+                showTravelSuggestions(false);
             }
         });
 
+        /* ── Travel Suggestions: mở nguồn thật ở tab mới ── */
+        function openTravelPostSource(el) {
+            const url = el && el.dataset ? el.dataset.src : '';
+            if (url) {
+                window.open(url, '_blank', 'noopener,noreferrer');
+            }
+        }
+
+        function openTravelPostSourceFromKey(event, el) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openTravelPostSource(el);
+            }
+        }
+
     </script>
+
+    <div th:replace="~{fragments/user-footer :: footer}"></div>
 </body>
 
 </html>

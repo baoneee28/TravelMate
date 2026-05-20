@@ -114,6 +114,9 @@ public class User {
     @Column(name = "bank_branch", length = 100)
     private String bankBranch;
 
+    @Column(name = "avatar_url", length = 255)
+    private String avatarUrl;
+
 
     /**
      * Thời gian tạo tài khoản — tự động gán khi INSERT.

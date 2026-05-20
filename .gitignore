@@ -1,0 +1,8 @@
+.antigravity/
+.claude/
+.vscode/
+*.log
+travelmate/logs/
+ShowSchema.class
+ShowSchema.java
+spring-boot.log

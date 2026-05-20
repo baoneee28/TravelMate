@@ -37,68 +37,7 @@
 <body>
 <div class="admin-wrapper">
     <!-- SIDEBAR -->
-    <aside class="admin-sidebar">
-        <div class="admin-sidebar__header">
-            <a href="/partner/dashboard" class="sidebar-logo">
-                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                <div>
-                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
-                    <span class="admin-sidebar__badge">PARTNER CENTER</span>
-                </div>
-            </a>
-        </div>
-        <nav class="admin-sidebar__nav">
-            <div class="admin-sidebar__section-title">Tổng quan</div>
-            <a href="/partner/dashboard" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">📊</span> Dashboard
-            </a>
-            <div class="admin-sidebar__section-title">Quản lý lưu trú</div>
-            <a href="/partner/accommodations" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">🏨</span> Nơi lưu trú của tôi
-            </a>
-            <a href="/partner/accommodations/new" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">＋</span> Đăng ký mới
-            </a>
-            <a href="/partner/amenities" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">🏷</span> Tiện nghi phòng
-                </a>
-            <a href="/partner/bookings" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">📋</span> Đơn đặt phòng
-            </a>
-            <a href="/partner/room-status" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏠</span> Tình trạng phòng hôm nay</a>
-            <a href="/partner/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Kiểm tra lịch trống</a>
-            <a href="/partner/direct-booking" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">➕</span> Booking trực tiếp</a>
-            <a href="/partner/reviews" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">⭐</span> Đánh giá của khách
-            </a>
-            <div class="admin-sidebar__section-title">Tài chính</div>
-            <a href="/partner/revenue" class="admin-sidebar__link active">
-                <span class="admin-sidebar__link-icon">💰</span> Doanh thu
-            </a>
-            <a href="/partner/settlements" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">🏦</span> Quyết toán
-            </a>
-            <a href="/partner/vouchers" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">🎟</span> Voucher của tôi
-            </a>
-            <div class="admin-sidebar__section-title">Hỗ trợ</div>
-            <a href="/partner/support" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">🆘</span> Trung tâm hỗ trợ
-            </a>
-                <a href="/partner/profile" class="admin-sidebar__link">
-                    <span class="admin-sidebar__link-icon">👤</span> Hồ sơ của tôi
-                </a>
-        </nav>
-        <div class="admin-sidebar__footer">
-            <div class="admin-sidebar__user">
-                <div class="admin-sidebar__user-avatar">PT</div>
-                <div class="admin-sidebar__user-info">
-                    <div class="admin-sidebar__user-name" th:text="${partnerName} ?: 'Partner'">Partner</div>
-                    <div class="admin-sidebar__user-role">Đối tác lưu trú</div>
-                </div>
-            </div>
-        </div>
-    </aside>
+    <aside th:replace="~{fragments/partner-sidebar :: sidebar('revenue', ${partnerName})}"></aside>
     <div class="admin-sidebar-overlay"></div>
 
     <div class="admin-main">
@@ -106,7 +45,7 @@
             <div style="display:flex;align-items:center;gap:var(--space-4)">
                 <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
                 <h1 class="admin-topbar__title">💰 Doanh Thu Của Tôi</h1>
-                <span style="font-size:12px;color:#6b7280;background:#f3f4f6;padding:3px 10px;border-radius:20px;">📡 Dữ liệu thật từ MySQL</span>
+                <span style="font-size:12px;color:#6b7280;background:#f3f4f6;padding:3px 10px;border-radius:20px;">📡 Dữ liệu hệ thống</span>
             </div>
             <div class="admin-topbar__actions">
                 <form th:action="@{/auth/logout}" method="post" style="display:inline;">                    <button type="submit" class="btn btn--ghost btn--sm">🚪 Đăng xuất</button>
@@ -128,8 +67,8 @@
             <div class="info-box">
                 📌 Doanh thu chỉ được tính từ các booking <strong>ONLINE qua TravelMate</strong> có payment
                 <strong>APPROVED</strong> (thanh toán đủ) hoặc <strong>DEPOSIT_FORFEITED</strong> (giữ cọc do khách không đến).
-                Booking trực tiếp (DIRECT) và chặn phòng (MANUAL_BLOCK) không tính vào doanh thu TravelMate.
-                Chiết khấu được tính theo <strong>rate hiệu lực</strong>: ưu tiên rate riêng của từng phòng, nếu không có dùng rate mặc định theo loại lưu trú.
+                Booking trực tiếp (DIRECT) và <span th:text="${blockUnitLabel ?: 'chặn phòng'}">chặn phòng</span> (MANUAL_BLOCK) không tính vào doanh thu TravelMate.
+                Chiết khấu được tính theo <strong>rate hiệu lực</strong>: ưu tiên rate riêng của từng <span th:text="${unitLabel ?: 'phòng'}">phòng</span>, nếu không có dùng rate mặc định theo loại lưu trú.
                 <div class="formula-box">
                     Số tiền bạn nhận = Tiền TravelMate thu online − Commission nền tảng − Voucher partner chịu
                 </div>
@@ -159,7 +98,7 @@
                     <div class="prev-kpi-card__sub">Voucher bạn tự tạo — bạn chịu chi phí</div>
                 </div>
                 <div class="prev-kpi-card">
-                    <div class="prev-kpi-card__label">Dự kiến nhận từ TravelMate</div>
+                    <div class="prev-kpi-card__label">Số tiền đối tác nhận về</div>
                     <div class="prev-kpi-card__value" style="color:#16a34a;"
                          th:text="${#numbers.formatDecimal(summary.totalPayout,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
                     <div class="prev-kpi-card__sub" th:text="${summary.totalBookings} + ' booking online'">0 booking</div>
@@ -191,15 +130,15 @@
                             <tr>
                                 <th>#</th>
                                 <th>Mã Booking</th>
-                                <th>Phòng</th>
-                                <th>Loại phòng</th>
-                                <th>TT Thanh toán</th>
-                                <th>Tiền TM thu online (đ)</th>
-                                <th>Rate CK</th>
-                                <th>Nguồn CK</th>
-                                <th>CK (đ)</th>
-                                <th>Voucher trừ</th>
-                                <th>Bạn nhận (đ)</th>
+                                <th th:text="${unitLabelCap ?: 'Phòng'}">Phòng</th>
+                                <th th:text="${'Loại ' + (unitLabel ?: 'phòng')}">Loại phòng</th>
+                                <th>Trạng thái thanh toán</th>
+                                <th>TravelMate đã thu (đ)</th>
+                                <th>Tỷ lệ hoa hồng</th>
+                                <th>Nguồn rate</th>
+                                <th>Hoa hồng (đ)</th>
+                                <th>Voucher đối tác chịu</th>
+                                <th>Đối tác nhận (đ)</th>
                                 <th>Thời gian</th>
                             </tr>
                         </thead>
@@ -229,7 +168,7 @@
                                 <td>
                                     <span th:if="${item.commissionSource == 'ROOM_OVERRIDE'}"
                                           style="background:#fef3c7;color:#b45309;padding:2px 6px;border-radius:8px;font-size:11px;font-weight:600;white-space:nowrap;">
-                                        🔧 Theo phòng
+                                        🔧 <span th:text="${'Theo ' + (unitLabel ?: 'phòng')}">Theo phòng</span>
                                     </span>
                                     <span th:if="${item.commissionSource != 'ROOM_OVERRIDE'}"
                                           style="background:#f0f9ff;color:#0369a1;padding:2px 6px;border-radius:8px;font-size:11px;font-weight:600;white-space:nowrap;">

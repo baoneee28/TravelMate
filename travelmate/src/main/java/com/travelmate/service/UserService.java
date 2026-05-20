@@ -32,7 +32,7 @@ public class UserService {
      * Khóa tài khoản người dùng. Không cho phép khóa Admin.
      */
     public User lockUser(Long id) {
-        User user = userRepository.findById(id)
+        User user = userRepository.findById(java.util.Objects.requireNonNull(id))
                 .orElseThrow(() -> new IllegalArgumentException("Người dùng không tồn tại!"));
         if (user.getRole() == User.Role.ADMIN)
             throw new IllegalArgumentException("Không thể khóa tài khoản Admin!");
@@ -44,7 +44,7 @@ public class UserService {
      * Mở khóa tài khoản người dùng.
      */
     public User unlockUser(Long id) {
-        User user = userRepository.findById(id)
+        User user = userRepository.findById(java.util.Objects.requireNonNull(id))
                 .orElseThrow(() -> new IllegalArgumentException("Người dùng không tồn tại!"));
         user.setStatus("ACTIVE");
         return userRepository.save(user);

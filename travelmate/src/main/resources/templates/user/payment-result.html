@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${isSuccess} ? 'Thanh toán thành công – TravelMate' : 'Thanh toán thất bại – TravelMate'">Kết quả thanh toán – TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <style>
+        body { background: #f1f5f9; }
+        .pr-wrapper {
+            min-height: calc(100vh - 160px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 20px 80px;
+        }
+        .pr-card {
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.06);
+            max-width: 520px;
+            width: 100%;
+            text-align: center;
+            overflow: hidden;
+            animation: fadeUp .5s ease-out;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── Success variant ─── */
+        .pr-card--success .pr-header {
+            background: linear-gradient(135deg, #059669, #10b981, #34d399);
+            padding: 44px 32px 36px;
+        }
+        .pr-card--success .pr-icon {
+            width: 88px; height: 88px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.2);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 18px;
+            animation: popIn .4s ease-out .15s both;
+        }
+        @keyframes popIn {
+            from { transform: scale(0); }
+            50%  { transform: scale(1.15); }
+            to   { transform: scale(1); }
+        }
+        .pr-card--success .pr-icon i {
+            font-size: 48px; color: #fff;
+        }
+        .pr-card--success .pr-title {
+            color: #fff;
+            font-size: 24px;
+            font-weight: 800;
+            margin: 0 0 6px;
+        }
+        .pr-card--success .pr-subtitle {
+            color: rgba(255,255,255,.85);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* ─── Failure variant ─── */
+        .pr-card--fail .pr-header {
+            background: linear-gradient(135deg, #dc2626, #ef4444, #f87171);
+            padding: 44px 32px 36px;
+        }
+        .pr-card--fail .pr-icon {
+            width: 88px; height: 88px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.2);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 18px;
+            animation: popIn .4s ease-out .15s both;
+        }
+        .pr-card--fail .pr-icon i {
+            font-size: 48px; color: #fff;
+        }
+        .pr-card--fail .pr-title {
+            color: #fff;
+            font-size: 24px;
+            font-weight: 800;
+            margin: 0 0 6px;
+        }
+        .pr-card--fail .pr-subtitle {
+            color: rgba(255,255,255,.85);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* ─── Body ─── */
+        .pr-body {
+            padding: 28px 32px 36px;
+        }
+        .pr-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .pr-info-item { text-align: left; }
+        .pr-info-item--full { grid-column: 1 / -1; }
+        .pr-info-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: #9ca3af;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .pr-info-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .pr-amount {
+            font-size: 28px;
+            font-weight: 800;
+            color: #059669;
+            margin: 0 0 4px;
+        }
+        .pr-card--fail .pr-amount { color: #dc2626; }
+        .pr-divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 20px 0;
+        }
+        .pr-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .pr-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all .2s ease;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+        }
+        .pr-btn--primary {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(37,99,235,.3);
+        }
+        .pr-btn--primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37,99,235,.4);
+            color: #fff;
+        }
+        .pr-btn--ghost {
+            background: #f1f5f9;
+            color: #334155;
+        }
+        .pr-btn--ghost:hover {
+            background: #e2e8f0;
+            color: #334155;
+        }
+        .pr-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .pr-badge--deposit { background: #dbeafe; color: #1e40af; }
+        .pr-badge--full    { background: #d1fae5; color: #065f46; }
+        .pr-badge--error   { background: #fee2e2; color: #991b1b; }
+        .pr-note {
+            margin-top: 16px;
+            padding: 14px 18px;
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 10px;
+            font-size: 13px;
+            color: #0369a1;
+            line-height: 1.6;
+            text-align: left;
+        }
+        .pr-card--fail .pr-note {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #991b1b;
+        }
+        @media (max-width: 480px) {
+            .pr-info-grid { grid-template-columns: 1fr; }
+            .pr-body { padding: 20px 20px 28px; }
+            .pr-card--success .pr-header,
+            .pr-card--fail .pr-header { padding: 32px 20px 28px; }
+        }
+    </style>
+</head>
+<body>
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/user.js"></script>
+    <div th:replace="~{fragments/user-header :: header(true, 'bookings')}"></div>
+
+    <div class="pr-wrapper">
+
+        <!-- ══════════ SUCCESS CARD ══════════ -->
+        <div th:if="${isSuccess}" class="pr-card pr-card--success">
+            <div class="pr-header">
+                <div class="pr-icon">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <h1 class="pr-title">Thanh toán thành công!</h1>
+                <p class="pr-subtitle" th:text="${message}">Đơn đặt phòng của bạn đang chờ TravelMate xác nhận.</p>
+            </div>
+
+            <div class="pr-body">
+                <div class="pr-info-grid">
+                    <div class="pr-info-item" th:if="${bookingCode != null}">
+                        <div class="pr-info-label">Mã đặt phòng</div>
+                        <div class="pr-info-value" style="font-family:monospace;color:#2563eb;" th:text="${bookingCode}">BK-XXXXX</div>
+                    </div>
+                    <div class="pr-info-item" th:if="${txnRef != null}">
+                        <div class="pr-info-label">Mã giao dịch</div>
+                        <div class="pr-info-value" style="font-family:monospace;" th:text="${txnRef}">TM-XXXXX</div>
+                    </div>
+                    <div class="pr-info-item pr-info-item--full" th:if="${amount != null}">
+                        <div class="pr-info-label">Số tiền thanh toán</div>
+                        <div class="pr-amount" th:text="${amount}">0đ</div>
+                    </div>
+                    <div class="pr-info-item" th:if="${paymentType != null}">
+                        <div class="pr-info-label">Hình thức</div>
+                        <div class="pr-info-value">
+                            <span th:if="${paymentType == 'DEPOSIT_30'}" class="pr-badge pr-badge--deposit"><i class="fa-solid fa-wallet"></i> Cọc 30%</span>
+                            <span th:if="${paymentType != 'DEPOSIT_30'}" class="pr-badge pr-badge--full"><i class="fa-solid fa-wallet"></i> Thanh toán 100%</span>
+                        </div>
+                    </div>
+                    <div class="pr-info-item" th:if="${accName != null}">
+                        <div class="pr-info-label">Nơi lưu trú</div>
+                        <div class="pr-info-value" th:text="${accName}">—</div>
+                    </div>
+                    <div class="pr-info-item" th:if="${checkInFormatted != null and !#strings.isEmpty(checkInFormatted)}">
+                        <div class="pr-info-label">Nhận phòng</div>
+                        <div class="pr-info-value" th:text="${checkInFormatted}">19/05/2026</div>
+                    </div>
+                    <div class="pr-info-item" th:if="${checkOutFormatted != null and !#strings.isEmpty(checkOutFormatted)}">
+                        <div class="pr-info-label">Trả phòng</div>
+                        <div class="pr-info-value" th:text="${checkOutFormatted}">20/05/2026</div>
+                    </div>
+                </div>
+
+                <div class="pr-note">
+                    <i class="fa-solid fa-lightbulb" style="margin-right:6px;"></i>
+                    <strong>Bước tiếp theo:</strong> TravelMate sẽ kiểm tra và xác nhận thanh toán của bạn trong vòng vài phút.
+                    Sau khi xác nhận, đơn sẽ được chuyển đến đối tác để giữ phòng. Bạn có thể theo dõi trạng thái tại trang <strong>Đặt phòng của tôi</strong>.
+                </div>
+
+                <div class="pr-note" th:if="${travelDestinationLabel != null and !#strings.isEmpty(travelDestinationLabel)}">
+                    <i class="fa-solid fa-map-location-dot" style="margin-right:6px;"></i>
+                    Bạn đã đặt phòng tại <strong th:text="${travelDestinationLabel}">Đà Lạt</strong>.
+                    Xem thêm cẩm nang, lịch trình và địa điểm tham quan cho chuyến đi của bạn.
+                </div>
+
+                <div class="pr-divider"></div>
+
+                <div class="pr-actions">
+                    <a href="/my-bookings?tab=PENDING_ADMIN_APPROVAL" class="pr-btn pr-btn--primary">
+                        <i class="fa-solid fa-clipboard-list"></i> Xem đơn đặt phòng
+                    </a>
+                    <a th:if="${travelDestinationLabel != null and !#strings.isEmpty(travelDestinationLabel)}"
+                       th:href="@{/travel(destination=${travelDestinationLabel},checkIn=${checkIn},checkOut=${checkOut},adults=${adults},children=${children},rooms=${rooms})}"
+                       class="pr-btn pr-btn--ghost">
+                        <i class="fa-solid fa-map-location-dot"></i> Xem gợi ý du lịch
+                    </a>
+                    <a href="/" class="pr-btn pr-btn--ghost">
+                        <i class="fa-solid fa-house"></i> Về trang chủ
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════ FAILURE CARD ══════════ -->
+        <div th:if="${!isSuccess}" class="pr-card pr-card--fail">
+            <div class="pr-header">
+                <div class="pr-icon">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                </div>
+                <h1 class="pr-title">Thanh toán không thành công</h1>
+                <p class="pr-subtitle" th:text="${message}">Giao dịch VNPAY không thể hoàn tất.</p>
+            </div>
+
+            <div class="pr-body">
+                <div class="pr-info-grid">
+                    <div class="pr-info-item" th:if="${txnRef != null}">
+                        <div class="pr-info-label">Mã giao dịch</div>
+                        <div class="pr-info-value" style="font-family:monospace;" th:text="${txnRef}">TM-XXXXX</div>
+                    </div>
+                    <div class="pr-info-item" th:if="${errorCode != null}">
+                        <div class="pr-info-label">Mã lỗi VNPAY</div>
+                        <div class="pr-info-value">
+                            <span class="pr-badge pr-badge--error" th:text="'Mã: ' + ${errorCode}">Mã: XX</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pr-note">
+                    <i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i>
+                    <strong>Đơn đặt phòng đã bị hủy</strong> và phòng đã được mở lại cho người khác.
+                    Nếu tài khoản của bạn đã bị trừ tiền nhưng giao dịch thất bại, VNPAY sẽ tự động hoàn tiền trong 1–3 ngày làm việc.
+                    Nếu cần hỗ trợ, vui lòng liên hệ TravelMate qua trang <strong>Hỗ trợ</strong>.
+                </div>
+
+                <div class="pr-divider"></div>
+
+                <div class="pr-actions">
+                    <a href="/my-bookings" class="pr-btn pr-btn--primary">
+                        <i class="fa-solid fa-clipboard-list"></i> Xem đơn đặt phòng
+                    </a>
+                    <a href="/contact" class="pr-btn pr-btn--ghost">
+                        <i class="fa-solid fa-headset"></i> Liên hệ hỗ trợ
+                    </a>
+                    <a href="/" class="pr-btn pr-btn--ghost">
+                        <i class="fa-solid fa-house"></i> Về trang chủ
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div th:replace="~{fragments/user-footer :: footer}"></div>
+</body>
+</html>

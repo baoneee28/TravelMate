@@ -10,6 +10,7 @@ import com.travelmate.entity.enums.RoomCategory;
 import com.travelmate.repository.AccommodationRepository;
 import com.travelmate.repository.AmenityRepository;
 import com.travelmate.repository.RoomRepository;
+import com.travelmate.util.DestinationAliasUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +45,16 @@ public class AccommodationService {
         this.amenityRepository = amenityRepository;
     }
 
+    private static boolean ownerIsActive(Accommodation accommodation) {
+        return accommodation.getOwner() == null || "ACTIVE".equals(accommodation.getOwner().getStatus());
+    }
+
+    private static boolean matchesKeyword(Accommodation accommodation, String keyword) {
+        return DestinationAliasUtil.matchesTextOrDestination(accommodation.getName(), keyword)
+                || DestinationAliasUtil.matchesTextOrDestination(accommodation.getCity(), keyword)
+                || DestinationAliasUtil.matchesTextOrDestination(accommodation.getAddress(), keyword);
+    }
+
     // ─── AMENITIES ────────────────────────────────────────────────────────────
 
     /** Lấy tất cả tiện nghi, nhóm theo category để render checkbox trên form */
@@ -76,21 +87,7 @@ public class AccommodationService {
      * @return danh sách hotel đã APPROVED
      */
     public List<Accommodation> searchHotels(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return accommodationRepository.findByPropertyTypeAndApprovalStatus(
-                    PropertyType.HOTEL, ApprovalStatus.APPROVED)
-                    .stream()
-                    .filter(a -> a.getOwner() == null || "ACTIVE".equals(a.getOwner().getStatus()))
-                    .collect(java.util.stream.Collectors.toList());
-        }
-        String trimmed = keyword.trim();
-        return accommodationRepository
-                .findByPropertyTypeAndApprovalStatusAndNameContainingIgnoreCaseOrPropertyTypeAndApprovalStatusAndCityContainingIgnoreCase(
-                        PropertyType.HOTEL, ApprovalStatus.APPROVED, trimmed,
-                        PropertyType.HOTEL, ApprovalStatus.APPROVED, trimmed)
-                .stream()
-                .filter(a -> a.getOwner() == null || "ACTIVE".equals(a.getOwner().getStatus()))
-                .collect(java.util.stream.Collectors.toList());
+        return searchByType(PropertyType.HOTEL, keyword);
     }
 
     /**
@@ -134,20 +131,19 @@ public class AccommodationService {
      * Tìm kiếm nơi lưu trú đã duyệt THEO LOẠI HÌNH.
      */
     public List<Accommodation> searchByType(PropertyType type, String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return accommodationRepository.findByPropertyTypeAndApprovalStatus(
-                    type, ApprovalStatus.APPROVED)
-                    .stream()
-                    .filter(a -> a.getOwner() == null || "ACTIVE".equals(a.getOwner().getStatus()))
-                    .collect(java.util.stream.Collectors.toList());
-        }
-        String trimmed = keyword.trim();
-        return accommodationRepository
-                .findByPropertyTypeAndApprovalStatusAndNameContainingIgnoreCaseOrPropertyTypeAndApprovalStatusAndCityContainingIgnoreCase(
-                        type, ApprovalStatus.APPROVED, trimmed,
-                        type, ApprovalStatus.APPROVED, trimmed)
+        List<Accommodation> approvedActive = accommodationRepository
+                .findByPropertyTypeAndApprovalStatus(type, ApprovalStatus.APPROVED)
                 .stream()
-                .filter(a -> a.getOwner() == null || "ACTIVE".equals(a.getOwner().getStatus()))
+                .filter(AccommodationService::ownerIsActive)
+                .collect(java.util.stream.Collectors.toList());
+
+        String normalizedKeyword = DestinationAliasUtil.normalizeText(keyword);
+        if (normalizedKeyword.isBlank()) {
+            return approvedActive;
+        }
+
+        return approvedActive.stream()
+                .filter(a -> matchesKeyword(a, keyword))
                 .collect(java.util.stream.Collectors.toList());
     }
 

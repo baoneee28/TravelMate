@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hồ sơ của tôi – TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <style>
+        body { background: #f1f5f9; color: #334155; }
+        .pf-main { max-width: 640px; margin: 48px auto; padding: 0 20px 100px; }
+        .pf-header { margin-bottom: 28px; }
+        .pf-header h1 { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+        .pf-header p  { font-size: 0.9rem; color: #64748b; }
+
+        .pf-card {
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            padding: 32px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .pf-avatar {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 2rem; color: #fff;
+        }
+
+        .pf-name-display {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .pf-name-display h2 { font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+        .pf-name-display span { font-size: 0.85rem; color: #64748b; }
+
+        .pf-divider { height: 1px; background: #f1f5f9; margin: 20px 0; }
+
+        .pf-form-group { margin-bottom: 20px; }
+        .pf-label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 7px;
+        }
+        .pf-label i { margin-right: 6px; color: #94a3b8; }
+        .pf-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-family: "Montserrat", sans-serif;
+            color: #0f172a;
+            background: #fff;
+            outline: none;
+            transition: border-color 0.18s, box-shadow 0.18s;
+            box-sizing: border-box;
+        }
+        .pf-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .pf-input[readonly] {
+            background: #f8fafc;
+            color: #64748b;
+            cursor: not-allowed;
+            border-color: #e2e8f0;
+        }
+        .pf-input-hint { font-size: 0.75rem; color: #94a3b8; margin-top: 5px; }
+
+        .pf-alert-success {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 10px;
+            padding: 14px 18px;
+            color: #059669;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .pf-submit-row { display: flex; gap: 12px; justify-content: flex-end; margin-top: 28px; padding-top: 20px; border-top: 1px solid #f1f5f9; }
+        .pf-btn-primary {
+            padding: 12px 28px;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.25);
+        }
+        .pf-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(37,99,235,0.35); }
+        .pf-btn-ghost {
+            padding: 12px 22px;
+            background: #f1f5f9;
+            color: #475569;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.15s;
+        }
+        .pf-btn-ghost:hover { background: #e2e8f0; }
+
+        .pf-info-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f8fafc;
+        }
+        .pf-info-row:last-child { border-bottom: none; }
+        .pf-info-icon { width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; display: flex; align-items: center; justify-content: center; color: #2563eb; font-size: 0.85rem; flex-shrink: 0; }
+        .pf-info-label { font-size: 0.75rem; color: #94a3b8; font-weight: 600; margin-bottom: 2px; }
+        .pf-info-value { font-size: 0.875rem; color: #0f172a; font-weight: 600; }
+
+        /* Avatar upload */
+        .pf-avatar-wrap { position: relative; width: 80px; margin: 0 auto 20px; cursor: pointer; }
+        .pf-avatar-wrap:hover .pf-avatar-overlay { opacity: 1; }
+        .pf-avatar img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #e2e8f0; }
+        .pf-avatar-overlay {
+            position: absolute; inset: 0; border-radius: 50%;
+            background: rgba(0,0,0,0.45);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.2s;
+            color: #fff; font-size: 0.7rem; font-weight: 700; gap: 3px;
+        }
+        .pf-avatar-overlay i { font-size: 1rem; }
+        .pf-avatar-hint { font-size: 0.72rem; color: #94a3b8; text-align: center; margin-top: -12px; margin-bottom: 16px; }
+        .pf-alert-error {
+            background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px;
+            padding: 14px 18px; color: #dc2626; font-size: 0.9rem; font-weight: 600;
+            display: flex; align-items: center; gap: 10px; margin-bottom: 24px;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/user.js"></script>
+    <div th:replace="~{fragments/user-header :: header(true, 'profile')}"></div>
+
+    <main class="pf-main">
+        <div class="pf-header">
+            <h1><i class="fa-solid fa-user-gear" style="color:#2563eb;margin-right:8px;"></i>Hồ sơ của tôi</h1>
+            <p>Quản lý thông tin cá nhân và tùy chỉnh tài khoản TravelMate của bạn.</p>
+        </div>
+
+        <!-- Success / error messages -->
+        <div class="pf-alert-success" th:if="${profileSuccess}">
+            <i class="fa-solid fa-circle-check"></i>
+            Cập nhật hồ sơ thành công!
+        </div>
+        <div class="pf-alert-error" th:if="${profileError}">
+            <i class="fa-solid fa-circle-xmark"></i>
+            <span th:text="${profileError}">Lỗi</span>
+        </div>
+
+        <div class="pf-card">
+            <!-- Avatar + tên hiển thị -->
+            <div class="pf-avatar-wrap" onclick="document.getElementById('avatarFileInput').click()">
+                <div class="pf-avatar" id="avatarPreviewWrap">
+                    <img th:if="${user.avatarUrl != null}"
+                         th:src="${user.avatarUrl}"
+                         id="avatarPreview" alt="Avatar" />
+                    <i th:unless="${user.avatarUrl != null}" class="fa-solid fa-user" id="avatarIcon"></i>
+                </div>
+                <div class="pf-avatar-overlay">
+                    <i class="fa-solid fa-camera"></i>
+                    <span>Đổi ảnh</span>
+                </div>
+            </div>
+            <p class="pf-avatar-hint">Nhấn vào ảnh để thay đổi (JPG, PNG, WEBP, tối đa 10MB)</p>
+
+            <div class="pf-name-display">
+                <h2 th:text="${user.name}">Tên người dùng</h2>
+                <span th:text="${user.email}">email@example.com</span>
+            </div>
+
+            <div class="pf-divider"></div>
+
+            <!-- Form cập nhật -->
+            <form method="post" th:action="@{/profile}" enctype="multipart/form-data">
+                <!-- Hidden file input -->
+                <input type="file" id="avatarFileInput" name="avatarFile"
+                       accept="image/jpeg,image/png,image/webp,image/gif,image/bmp"
+                       style="display:none;" />
+                <div class="pf-form-group">
+                    <label class="pf-label" for="fullName">
+                        <i class="fa-solid fa-user"></i> Họ và tên
+                    </label>
+                    <input type="text" id="fullName" name="fullName" class="pf-input"
+                           th:value="${user.name}"
+                           placeholder="Nhập họ và tên đầy đủ" required maxlength="100" />
+                </div>
+
+                <div class="pf-form-group">
+                    <label class="pf-label" for="emailDisplay">
+                        <i class="fa-solid fa-envelope"></i> Email đăng nhập
+                    </label>
+                    <input type="email" id="emailDisplay" class="pf-input" readonly
+                           th:value="${user.email}" />
+                    <p class="pf-input-hint">Email đăng nhập không thể thay đổi.</p>
+                </div>
+
+                <div class="pf-form-group">
+                    <label class="pf-label" for="phone">
+                        <i class="fa-solid fa-phone"></i> Số điện thoại
+                    </label>
+                    <input type="tel" id="phone" name="phone" class="pf-input"
+                           th:value="${user.phone != null ? user.phone : ''}"
+                           placeholder="VD: 0901234567" maxlength="20" />
+                </div>
+
+                <div class="pf-form-group">
+                    <label class="pf-label" for="createdAt">
+                        <i class="fa-solid fa-calendar-plus"></i> Ngày tham gia
+                    </label>
+                    <input type="text" id="createdAt" class="pf-input" readonly
+                           th:value="${#temporals.format(user.createdAt, 'dd/MM/yyyy')}" />
+                </div>
+
+                <div class="pf-submit-row">
+                    <a href="/" class="pf-btn-ghost">
+                        <i class="fa-solid fa-house"></i> Trang chủ
+                    </a>
+                    <button type="submit" class="pf-btn-primary">
+                        <i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/user-footer :: footer}"></div>
+    <script>
+        document.getElementById('avatarFileInput').addEventListener('change', function () {
+            const file = this.files[0];
+            if (!file) return;
+            const wrap = document.getElementById('avatarPreviewWrap');
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                wrap.innerHTML = '<img id="avatarPreview" src="' + e.target.result + '" alt="Avatar" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid #e2e8f0;" />';
+            };
+            reader.readAsDataURL(file);
+            document.querySelector('.pf-avatar-hint').textContent = '✓ Đã chọn: ' + file.name;
+            document.querySelector('.pf-avatar-hint').style.color = '#16a34a';
+        });
+    </script>
+</body>
+
+</html>

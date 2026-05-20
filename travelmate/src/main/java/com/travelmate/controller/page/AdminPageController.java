@@ -9,6 +9,7 @@ import com.travelmate.entity.enums.ApprovalStatus;
 import com.travelmate.entity.enums.BookingSource;
 import com.travelmate.entity.enums.BookingStatus;
 import com.travelmate.entity.enums.DiscountType;
+import com.travelmate.entity.enums.PaymentStatus;
 import com.travelmate.repository.AdminActionLogRepository;
 import com.travelmate.repository.PaymentRepository;
 import com.travelmate.repository.UserRepository;
@@ -26,7 +27,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
@@ -129,16 +129,39 @@ public class AdminPageController {
     /** GET /admin/bookings — danh sách tất cả booking với thống kê. */
     @GetMapping("/bookings")
     public String bookings(Model model) {
-        List<Booking> bookings = bookingService.getAllBookingsForAdmin();
+        List<Booking> bookings;
+        try {
+            bookings = bookingService.getAllBookingsForAdmin();
+        } catch (Exception e) {
+            model.addAttribute("bookings", java.util.Collections.emptyList());
+            model.addAttribute("errorMessage", "❌ Lỗi khi tải danh sách đặt phòng: " + e.getMessage());
+            model.addAttribute("totalCount", 0L);
+            model.addAttribute("pendingCount", 0L);
+            model.addAttribute("pendingPaymentCount", 0L);
+            model.addAttribute("confirmedCount", 0L);
+            model.addAttribute("completedCount", 0L);
+            model.addAttribute("noShowCount", 0L);
+            model.addAttribute("checkedInCount", 0L);
+            model.addAttribute("cancelledCount", 0L);
+            model.addAttribute("refundPendingCount", 0L);
+            model.addAttribute("refundedCount", 0L);
+            model.addAttribute("directCount", 0L);
+            model.addAttribute("blockCount", 0L);
+            return "admin/bookings";
+        }
         model.addAttribute("bookings", bookings);
-        model.addAttribute("totalCount",     (long) bookings.size());
-        model.addAttribute("pendingCount",   bookings.stream().filter(b -> b.getBookingStatus() == BookingStatus.PENDING_ADMIN_APPROVAL).count());
-        model.addAttribute("confirmedCount", bookings.stream().filter(b -> b.getBookingStatus() == BookingStatus.CONFIRMED).count());
-        model.addAttribute("completedCount", bookings.stream().filter(b -> b.getBookingStatus() == BookingStatus.COMPLETED).count());
-        model.addAttribute("noShowCount",    bookings.stream().filter(b -> b.getBookingStatus() == BookingStatus.NO_SHOW).count());
-        model.addAttribute("checkedInCount", bookings.stream().filter(b -> b.getBookingStatus() == BookingStatus.CHECKED_IN).count());
-        model.addAttribute("directCount",    bookings.stream().filter(b -> b.getBookingSource() == BookingSource.DIRECT).count());
-        model.addAttribute("blockCount",     bookings.stream().filter(b -> b.getBookingSource() == BookingSource.MANUAL_BLOCK).count());
+        model.addAttribute("totalCount",          (long) bookings.size());
+        model.addAttribute("pendingPaymentCount", bookings.stream().filter(b -> b.getBookingStatus() == BookingStatus.PENDING_PAYMENT).count());
+        model.addAttribute("pendingCount",        bookings.stream().filter(b -> b.getBookingStatus() == BookingStatus.PENDING_ADMIN_APPROVAL).count());
+        model.addAttribute("confirmedCount",      bookings.stream().filter(b -> b.getBookingStatus() == BookingStatus.CONFIRMED).count());
+        model.addAttribute("checkedInCount",      bookings.stream().filter(b -> b.getBookingStatus() == BookingStatus.CHECKED_IN).count());
+        model.addAttribute("completedCount",      bookings.stream().filter(b -> b.getBookingStatus() == BookingStatus.COMPLETED).count());
+        model.addAttribute("noShowCount",         bookings.stream().filter(b -> b.getBookingStatus() == BookingStatus.NO_SHOW).count());
+        model.addAttribute("cancelledCount",      bookings.stream().filter(b -> b.getBookingStatus() == BookingStatus.CANCELLED).count());
+        model.addAttribute("refundPendingCount",  bookings.stream().filter(b -> b.getPaymentStatus() == PaymentStatus.REFUND_PENDING).count());
+        model.addAttribute("refundedCount",       bookings.stream().filter(b -> b.getPaymentStatus() == PaymentStatus.REFUNDED).count());
+        model.addAttribute("directCount",         bookings.stream().filter(b -> b.getBookingSource() == BookingSource.DIRECT).count());
+        model.addAttribute("blockCount",          bookings.stream().filter(b -> b.getBookingSource() == BookingSource.MANUAL_BLOCK).count());
         return "admin/bookings";
     }
 
@@ -181,8 +204,8 @@ public class AdminPageController {
         try {
             Booking b = bookingService.approveBookingByAdmin(id);
             logAction(auth, "APPROVE_BOOKING", "BOOKING", id,
-                    "Duyệt booking " + b.getBookingCode(), null);
-            ra.addFlashAttribute("successMessage", "Đã duyệt đơn đặt phòng thành công!");
+                    "Xác nhận thanh toán booking " + b.getBookingCode(), null);
+            ra.addFlashAttribute("successMessage", "✅ Đã xác nhận thanh toán booking. Đơn đã chuyển sang Partner để xác nhận giữ phòng.");
         } catch (RuntimeException e) {
             ra.addFlashAttribute("errorMessage", e.getMessage());
         }
@@ -196,8 +219,8 @@ public class AdminPageController {
         try {
             Booking b = bookingService.rejectBookingByAdmin(id, rejectReason);
             logAction(auth, "REJECT_BOOKING", "BOOKING", id,
-                    "Từ chối booking " + b.getBookingCode(), rejectReason);
-            ra.addFlashAttribute("successMessage", "Đã từ chối đơn đặt phòng!");
+                    "Từ chối xác nhận thanh toán booking " + b.getBookingCode(), rejectReason);
+            ra.addFlashAttribute("successMessage", "Đã từ chối xác nhận thanh toán. Booking đã bị hủy và quota phòng đã được mở lại.");
         } catch (RuntimeException e) {
             ra.addFlashAttribute("errorMessage", e.getMessage());
         }
@@ -513,19 +536,19 @@ public class AdminPageController {
         }
     }
 
-    /** POST /admin/settlements/generate-weekly — Tạo settlement cho tất cả partner trong tuần trước */
-    @PostMapping("/settlements/generate-weekly")
-    public String generateWeeklySettlements(Authentication auth, RedirectAttributes ra) {
+    /** POST /admin/settlements/generate-monthly — Tạo settlement cho tất cả partner trong tháng trước */
+    @PostMapping("/settlements/generate-monthly")
+    public String generateMonthlySettlements(Authentication auth, RedirectAttributes ra) {
         try {
-            List<PartnerSettlement> created = settlementService.generateWeeklySettlements();
+            List<PartnerSettlement> created = settlementService.generateMonthlySettlements();
             if (created.isEmpty()) {
                 ra.addFlashAttribute("successMessage",
-                        "ℹ️ Không có partner nào có doanh thu trong tuần trước, hoặc settlement đã được tạo rồi.");
+                        "ℹ️ Không có partner nào có doanh thu đủ điều kiện quyết toán trong tháng trước, hoặc settlement đã được tạo rồi.");
             } else {
                 logAction(auth, "GENERATE_SETTLEMENT", "SETTLEMENT", null,
-                        "Generate weekly settlement: tạo " + created.size() + " settlement mới", null);
+                        "Generate monthly settlement: tạo " + created.size() + " settlement mới cho tháng trước", null);
                 ra.addFlashAttribute("successMessage",
-                        "✅ Đã tạo " + created.size() + " settlement mới cho tuần trước!");
+                        "✅ Đã tạo " + created.size() + " settlement mới cho tháng trước!");
             }
         } catch (Exception e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());

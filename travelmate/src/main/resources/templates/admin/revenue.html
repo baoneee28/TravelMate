@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quản lý Doanh Thu – Admin TravelMate</title>
-    <meta name="description" content="Trang quản lý doanh thu admin TravelMate – chiết khấu partner, dữ liệu thật từ MySQL." />
+    <meta name="description" content="Trang quản lý doanh thu admin TravelMate – chiết khấu partner, Dữ liệu hệ thống." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&subset=vietnamese&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/assets/css/base.css" />
@@ -72,6 +72,7 @@
             <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
             <a href="/admin/rooms"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
             <a href="/admin/reviews"        class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
+            <a href="/admin/travel-posts" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗺️</span> Bài viết du lịch</a>
             <a href="/admin/users"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
             <div class="admin-sidebar__section-title">Tài chính</div>
             <a href="/admin/revenue"     class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
@@ -103,7 +104,7 @@
             <div style="display: flex; align-items: center; gap: var(--space-4)">
                 <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
                 <h1 class="admin-topbar__title">💰 Quản Lý Doanh Thu</h1>
-                <span style="font-size:12px;color:#6b7280;background:#f3f4f6;padding:3px 10px;border-radius:20px;">📡 Dữ liệu thật từ MySQL</span>
+                <span style="font-size:12px;color:#6b7280;background:#f3f4f6;padding:3px 10px;border-radius:20px;">📡 Dữ liệu hệ thống</span>
             </div>
             <div class="admin-topbar__actions">
                 <a href="/" target="_blank" class="btn btn--ghost btn--sm">🌐 Xem trang user</a>
@@ -121,14 +122,14 @@
                 <div class="policy-banner__icon"><i class="fa-solid fa-circle-info"></i></div>
                 <div class="policy-banner__text">
                     <strong>Quy tắc tài chính TravelMate — Commission chỉ tính trên thanh toán online:</strong>
-                    TravelMate thu tiền của khách qua cổng thanh toán online (VNPay Demo). Phần 70% còn lại (với cọc 30%) do khách trả trực tiếp tại cơ sở — <strong>không đi qua hệ thống, không tính commission</strong>.
+                    TravelMate thu tiền của khách qua cổng thanh toán online (VNPAY). Phần 70% còn lại (với cọc 30%) do khách trả trực tiếp tại cơ sở — <strong>không đi qua hệ thống, không tính commission</strong>.
                     <br/>
                     <strong>Cơ sở tính commission:</strong>
                     <span style="background:rgba(255,255,255,.2);padding:1px 6px;border-radius:6px;">Thanh toán 100%</span> → Commission trên toàn bộ tiền thu online;
                     <span style="background:rgba(255,255,255,.2);padding:1px 6px;border-radius:6px;">Cọc 30%</span> → Commission chỉ trên 30% cọc đã thu qua hệ thống;
                     <span style="background:rgba(255,255,255,.2);padding:1px 6px;border-radius:6px;">No-show</span> → Commission trên 30% cọc bị giữ lại.
                     <br/>
-                    <strong>Quyết toán Partner:</strong> Tiền chờ QT = Tiền thu online − Commission − Voucher partner chịu. Thanh toán vào <strong>Thứ Ba hàng tuần</strong>. Booking DIRECT/MANUAL_BLOCK không có commission vì không qua TravelMate.
+                    <strong>Quyết toán Partner:</strong> Tiền chờ QT = Tiền thu online − Commission − Voucher partner chịu. Thanh toán vào <strong>đầu tháng sau</strong>. Booking DIRECT/MANUAL_BLOCK không có commission vì không qua TravelMate.
                 </div>
             </div>
 
@@ -190,7 +191,7 @@
                         <div class="rev-kpi-card__label">Số tiền chờ quyết toán cho Partner</div>
                         <div class="rev-kpi-card__value"
                              th:text="${#numbers.formatDecimal(summary.totalPayout, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</div>
-                        <div class="rev-kpi-card__sub">= Tiền TM thu − Commission − Voucher partner chịu (Phần 70% offline không tính)</div>
+                        <div class="rev-kpi-card__sub">= Tiền TravelMate thu − Hoa hồng nền tảng − Voucher partner chịu (Phần 70% offline không tính)</div>
                     </div>
                 </div>
                 <div class="rev-kpi-card rev-kpi-card--bookings">
@@ -206,10 +207,10 @@
 
             <!-- Action: Tạo Settlement -->
             <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
-                <form th:action="@{/admin/settlements/generate-weekly}" method="post">
+                <form th:action="@{/admin/settlements/generate-monthly}" method="post">
                     <button type="submit" class="btn btn--primary btn--sm"
-                            onclick="return confirm('Tạo settlement cho tuần trước? Những partner đã có settlement sẽ bị bỏ qua.')">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Weekly Settlement
+                            onclick="return confirm('Tạo settlement cho tháng trước? Chỉ booking COMPLETED hoặc NO_SHOW mới được tính. Partner đã có settlement sẽ bị bỏ qua.')">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Tạo quyết toán tháng trước
                     </button>
                 </form>
                 <a href="/admin/settlements" class="btn btn--ghost btn--sm" style="margin-left:8px;">
@@ -237,13 +238,13 @@
                                 <th>Cơ sở lưu trú</th>
                                 <th>Loại hình</th>
                                 <th>Hạng phòng</th>
-                                <th>Trạng thái TT</th>
-                                <th>Tiền khách TT qua TravelMate (đ)</th>
-                                <th>Cơ sở tính Commission (đ)</th>
-                                <th>Tỷ lệ Commission</th>
-                                <th>Rate áp dụng từ</th>
-                                <th>Commission TravelMate (đ)</th>
-                                <th>Tiền chờ QT cho Partner (đ)</th>
+                                <th>Trạng thái thanh toán</th>
+                                <th>TravelMate đã thu (đ)</th>
+                                <th>Cơ sở tính hoa hồng (đ)</th>
+                                <th>Tỷ lệ hoa hồng</th>
+                                <th>Nguồn rate</th>
+                                <th>Hoa hồng nền tảng (đ)</th>
+                                <th>Số tiền chờ quyết toán (đ)</th>
                                 <th>Voucher</th>
                                 <th>Thời gian giao dịch</th>
                             </tr>

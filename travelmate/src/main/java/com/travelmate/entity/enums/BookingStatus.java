@@ -1,21 +1,24 @@
 package com.travelmate.entity.enums;
 
 /**
- * BookingStatus — Trạng thái đơn đặt phòng.
+ * BookingStatus — Trạng thái vòng đời đơn đặt phòng.
  *
- * Luồng chính:
- *   User đặt phòng   → PENDING_ADMIN_APPROVAL
- *   Admin duyệt      → CONFIRMED
- *   Admin no-show    → NO_SHOW (cọc 30%, khách mất cọc)
- *                   hoặc CHECKED_IN (100%, hệ thống xử lý check-in)
- *   User hủy         → CANCELLED
- *   Hoàn tất         → COMPLETED
+ * Luồng chuẩn (VNPAY):
+ *   User tạo yêu cầu   → PENDING_PAYMENT
+ *   VNPAY thành công    → PENDING_ADMIN_APPROVAL
+ *   Admin xác nhận      → CONFIRMED
+ *   Partner check-in    → CHECKED_IN
+ *   Partner check-out   → COMPLETED
+ *
+ *   User hủy/VNPAY lỗi  → CANCELLED
+ *   Cọc 30% no-show     → NO_SHOW
  */
 public enum BookingStatus {
-    PENDING_ADMIN_APPROVAL,  // Chờ admin duyệt (mặc định khi user vừa đặt)
-    CONFIRMED,               // Admin đã duyệt, xác nhận đặt phòng
-    CHECKED_IN,              // Khách đã check-in (hoặc 100% + no-show → vẫn xử lý check-in)
-    NO_SHOW,                 // Khách cọc 30% không đến → mất cọc
-    CANCELLED,               // Đã hủy (user hoặc admin hủy)
-    COMPLETED                // Đã hoàn tất (sau khi checkout)
+    PENDING_PAYMENT,         // User đang chuyển đến cổng thanh toán VNPAY (phòng đã giữ tạm)
+    PENDING_ADMIN_APPROVAL,  // VNPAY đã xác nhận thanh toán, chờ TravelMate xác nhận
+    CONFIRMED,               // Admin đã xác nhận, chuyển cho partner giữ phòng
+    CHECKED_IN,              // Khách đã nhận phòng
+    NO_SHOW,                 // Khách cọc 30% không đến — mất cọc
+    CANCELLED,               // Đã hủy (VNPAY lỗi / user hủy / admin từ chối / quá hạn)
+    COMPLETED                // Hoàn tất sau khi check-out
 }

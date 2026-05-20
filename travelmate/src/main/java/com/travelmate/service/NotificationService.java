@@ -28,7 +28,7 @@ public class NotificationService {
     @Transactional
     public void markAsRead(Long notificationId, User user) {
         notificationRepository.findById(notificationId).ifPresent(n -> {
-            if (Objects.equals(n.getUser().getId(), user.getId())) {
+            if (Objects.equals(n.getUser().getId(), java.util.Objects.requireNonNull(user.getId()))) {
                 n.setIsRead(true);
                 notificationRepository.save(n);
             }
@@ -61,8 +61,28 @@ public class NotificationService {
         n.setType(Notification.Type.BOOKING_CONFIRMED);
         n.setTitle("Đặt phòng của bạn đã được xác nhận");
         n.setMessage("Booking " + bookingCode + " tại " + accommodation.getName()
-                + " đã được xác nhận. Chúc bạn có chuyến đi vui vẻ!");
-        n.setTargetUrl("/my-bookings");
+                + " đã được TravelMate xác nhận. Chúc bạn có chuyến đi vui vẻ!");
+        n.setTargetUrl("/my-bookings?tab=CONFIRMED");
+        n.setIsRead(false);
+        return notificationRepository.save(n);
+    }
+
+    /**
+     * Notification sau khi VNPAY thu tiền thành công — booking chuyển PENDING_ADMIN_APPROVAL.
+     * Khác với createBookingConfirmed: đây là bước "TravelMate đã nhận tiền, chờ xác nhận",
+     * KHÔNG phải "đặt phòng đã được xác nhận".
+     */
+    @Transactional
+    public Notification createPaymentReceived(User user, String bookingCode,
+                                              Accommodation accommodation, String paymentOptionLabel) {
+        Notification n = new Notification();
+        n.setUser(user);
+        n.setType(Notification.Type.BOOKING_CONFIRMED);
+        n.setTitle("TravelMate đã nhận " + paymentOptionLabel + " cho booking " + bookingCode);
+        n.setMessage("TravelMate đã ghi nhận khoản " + paymentOptionLabel
+                + " của bạn cho đặt phòng tại " + accommodation.getName()
+                + ". Đơn đang chờ TravelMate xác nhận trước khi chuyển cho đối tác giữ phòng.");
+        n.setTargetUrl("/my-bookings?tab=PENDING_ADMIN_APPROVAL");
         n.setIsRead(false);
         return notificationRepository.save(n);
     }

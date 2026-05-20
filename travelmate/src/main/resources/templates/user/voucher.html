@@ -34,66 +34,10 @@
     </style>
 </head>
 <body>
-    <!-- SIDEBAR -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    <aside class="sidebar-menu" id="sidebarMenu">
-        <div class="sidebar-header">
-            <div class="sidebar-logo">
-                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                <span class="s-logo-text">TRAVEL<span>MATE</span></span>
-            </div>
-            <button class="sidebar-close-btn" id="sidebarCloseBtn"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <nav class="sidebar-nav">
-            <div class="sidebar-nav-label">Chức năng</div>
-            <a href="/accommodations"><span class="s-icon"><i class="fa-solid fa-bed"></i></span>Đặt phòng</a>
-            <a href="/travel"><span class="s-icon"><i class="fa-solid fa-map-location-dot"></i></span>Gợi ý du lịch</a>
-            <a href="/news"><span class="s-icon"><i class="fa-solid fa-newspaper"></i></span>Tin tức</a>
-            <a href="/contact"><span class="s-icon"><i class="fa-solid fa-headset"></i></span>Liên hệ</a>
-            <a href="/vouchers" class="active-sidebar"><span class="s-icon"><i class="fa-solid fa-ticket"></i></span>Kho voucher</a>
-        </nav>
-        <div class="sidebar-divider"></div>
-        <div class="sidebar-auth" id="sidebarAuth"></div>
-    </aside>
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/user.js"></script>
+    <div th:replace="~{fragments/user-header :: header(true, 'voucher')}"></div>
 
-    <!-- HEADER -->
-    <header class="header travel-header header-static" id="header">
-        <div class="container navbar">
-            <div class="logo-wrapper">
-                <a href="/" class="logo">
-                    <div class="logo-icon"><i class="fa-solid fa-building"></i></div>
-                    <span class="logo-text"><span class="logo-blue">TRAVEL</span><span class="logo-yellow">MATE</span></span>
-                </a>
-                <button class="hamburger-btn" id="hamburgerBtn">
-                    <span class="bar"></span><span class="bar"></span><span class="bar"></span>
-                </button>
-            </div>
-            <nav class="menu">
-                <ul class="menu-list">
-                    <li><a href="/">TRANG CHỦ</a></li>
-                    <li><a href="/travel">GỢI Ý DU LỊCH</a></li>
-                    <li><a href="/news">TIN TỨC</a></li>
-                    <li><a href="/contact">LIÊN HỆ</a></li>
-                    <li><a href="/my-bookings" class="my-booking"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a></li>
-                </ul>
-            </nav>
-            <a href="/auth/login" class="login-btn" sec:authorize="isAnonymous()">ĐĂNG NHẬP</a>
-            <div class="header-user" id="headerUser" sec:authorize="isAuthenticated()">
-                <button class="header-user-btn" id="headerUserBtn" type="button">
-                    <div class="header-avatar"><i class="fa-solid fa-user"></i></div>
-                    <span class="header-user-name" sec:authentication="principal.fullName">User</span>
-                    <i class="fa-solid fa-chevron-down header-chevron"></i>
-                </button>
-                <div class="header-user-dropdown" id="headerUserDropdown">
-                    <a href="/my-bookings" class="dropdown-item"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a>
-                    <div class="dropdown-divider"></div>
-                    <form method="post" action="/auth/logout">
-                        <button type="submit" class="dropdown-item dropdown-logout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </header>
 
     <!-- HERO -->
     <section class="travel-hero">
@@ -193,15 +137,7 @@
     </section>
 
     <!-- FOOTER -->
-    <footer class="footer">
-        <div class="container footer-content">
-            <div class="logo">
-                <div class="logo-icon bg-sky"><i class="fa-solid fa-building"></i></div>
-                <span class="logo-text text-white">TRAVEL<span class="logo-yellow">MATE</span></span>
-            </div>
-            <p>&copy; 2024 TravelMate. Đồ án Cơ sở lập trình Web.</p>
-        </div>
-    </footer>
+
 
     <script>
         // Header scroll
@@ -233,5 +169,12 @@
             });
         }
     </script>
+
+    <div th:replace="~{fragments/user-footer :: footer}"></div>
 </body>
 </html>
+
+
+
+
+

@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="floatingActions">
+
+<style>
+/* ── Chat panel ───────────────────────────────────────── */
+.ai-chat-panel {
+    position: fixed;
+    bottom: 96px;
+    right: 24px;
+    width: 380px;
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 140px);
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.18);
+    display: none;
+    flex-direction: column;
+    z-index: 100010;
+    overflow: hidden;
+    animation: acp-in .28s ease;
+}
+@keyframes acp-in {
+    from { opacity:0; transform:translateY(18px) scale(.96); }
+    to   { opacity:1; transform:translateY(0)     scale(1);  }
+}
+.acp-header {
+    background: linear-gradient(135deg,#0f4c81 0%,#1a6fc4 100%);
+    color:#fff;
+    padding:14px 18px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-shrink:0;
+}
+.acp-hd-left  { display:flex; align-items:center; gap:11px; }
+.acp-avatar   {
+    width:40px; height:40px; border-radius:50%;
+    background:rgba(255,255,255,.2);
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+}
+.acp-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+.acp-name   { font-weight:700; font-size:.92rem; }
+.acp-status {
+    font-size:.72rem; opacity:.85;
+    display:flex; align-items:center; gap:5px; margin-top:2px;
+}
+.acp-dot    { width:7px; height:7px; background:#4ade80; border-radius:50%; }
+.acp-close  {
+    background:rgba(255,255,255,.15); border:none; color:#fff;
+    width:30px; height:30px; border-radius:50%; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .2s; font-size:.85rem;
+}
+.acp-close:hover { background:rgba(255,255,255,.3); }
+
+/* messages */
+.acp-messages {
+    flex:1; overflow-y:auto; padding:14px 14px 8px;
+    display:flex; flex-direction:column; gap:10px;
+    background:#f8fafc; min-height:0;
+}
+.acp-messages::-webkit-scrollbar { width:4px; }
+.acp-messages::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:2px; }
+
+.msg-row        { display:flex; align-items:flex-end; gap:7px; }
+.msg-row.bot    { flex-direction:row; }
+.msg-row.user   { flex-direction:row-reverse; }
+.msg-bot-av     {
+    width:26px; height:26px; border-radius:50%; flex-shrink:0; overflow:hidden;
+    background:linear-gradient(135deg,#0f4c81,#1a6fc4);
+    display:flex; align-items:center; justify-content:center;
+}
+.msg-bot-av img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+.msg-bubble     {
+    max-width:82%; padding:9px 13px; border-radius:18px;
+    font-size:.845rem; line-height:1.55;
+}
+.msg-bubble.bot {
+    background:#fff; border-bottom-left-radius:4px;
+    box-shadow:0 1px 4px rgba(0,0,0,.08); color:#1e293b;
+}
+.msg-bubble.user {
+    background:linear-gradient(135deg,#0f4c81,#1a6fc4);
+    color:#fff; border-bottom-right-radius:4px;
+}
+/* typing dots */
+.acp-typing     { display:flex; gap:4px; align-items:center; padding:4px 2px; }
+.acp-typing span {
+    width:7px; height:7px; background:#94a3b8; border-radius:50%;
+    animation:t-bounce 1.2s infinite ease-in-out;
+}
+.acp-typing span:nth-child(2) { animation-delay:.2s; }
+.acp-typing span:nth-child(3) { animation-delay:.4s; }
+@keyframes t-bounce {
+    0%,60%,100% { transform:translateY(0); }
+    30%         { transform:translateY(-6px); }
+}
+
+/* bot bubble inner styles */
+.msg-bubble.bot p  { margin:0 0 5px; }
+.msg-bubble.bot p:last-child { margin-bottom:0; }
+.msg-bubble.bot ul, .msg-bubble.bot ol { padding-left:16px; margin:5px 0; }
+.msg-bubble.bot li { margin-bottom:3px; }
+.bot-link          { color:#1a6fc4; font-weight:600; text-decoration:none; }
+.bot-link:hover    { text-decoration:underline; }
+
+/* destination chips */
+.bot-dest-grid  { display:flex; flex-wrap:wrap; gap:5px; margin:7px 0; }
+.bot-dest-chip  {
+    background:#eff6ff; color:#1d4ed8; padding:3px 9px;
+    border-radius:999px; font-size:.78rem; font-weight:500;
+    border:1px solid #bfdbfe;
+    text-decoration:none;
+}
+
+/* hotel cards */
+.bot-hotel-results > p { margin:0 0 6px; }
+.bot-hotel-card {
+    display:flex; gap:9px; background:#f1f5f9; border-radius:11px;
+    overflow:hidden; margin:6px 0; border:1px solid #e2e8f0;
+}
+.bot-hotel-img    { width:70px; height:70px; object-fit:cover; flex-shrink:0; }
+.bot-hotel-img-ph {
+    width:70px; height:70px; background:#e2e8f0; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    color:#94a3b8; font-size:1.4rem;
+}
+.bot-hotel-info   { padding:8px 8px 8px 0; display:flex; flex-direction:column; gap:2px; }
+.bot-hotel-name   { font-weight:700; font-size:.78rem; color:#1e293b; margin:0; }
+.bot-hotel-city   { font-size:.73rem; color:#64748b; margin:0; }
+.bot-hotel-price  { font-size:.73rem; color:#0f4c81; margin:0; }
+.bot-hotel-rating { font-size:.73rem; color:#f59e0b; margin:0; }
+.bot-hotel-btn    {
+    display:inline-block; margin-top:4px;
+    background:#0f4c81; color:#fff; padding:3px 10px;
+    border-radius:999px; font-size:.72rem; font-weight:600;
+    text-decoration:none; width:fit-content;
+}
+.bot-see-all {
+    display:block; text-align:center; background:#eff6ff; color:#1d4ed8;
+    padding:7px; border-radius:9px; font-size:.78rem; font-weight:600;
+    text-decoration:none; margin-top:6px; border:1px solid #bfdbfe;
+}
+.bot-see-all:hover { background:#dbeafe; }
+
+/* travel post cards */
+.bot-post-card  {
+    display:flex; gap:9px; background:#f1f5f9; border-radius:11px;
+    overflow:hidden; margin:6px 0; border:1px solid #e2e8f0;
+}
+.bot-post-img    { width:70px; height:70px; object-fit:cover; flex-shrink:0; }
+.bot-post-body   { padding:7px 8px 7px 0; display:flex; flex-direction:column; gap:3px; }
+.bot-post-title  { font-weight:700; font-size:.78rem; color:#1e293b; margin:0; }
+.bot-post-summary{ font-size:.73rem; color:#64748b; margin:0; }
+
+/* quick replies */
+.acp-qr {
+    padding:7px 12px; display:flex; flex-wrap:wrap; gap:5px;
+    background:#f8fafc; border-top:1px solid #e2e8f0; flex-shrink:0;
+}
+.qr-chip {
+    background:#fff; border:1.5px solid #bfdbfe; color:#1d4ed8;
+    padding:5px 11px; border-radius:999px; font-size:.76rem; font-weight:600;
+    cursor:pointer; transition:all .15s; white-space:nowrap; line-height:1;
+}
+.qr-chip:hover { background:#dbeafe; border-color:#3b82f6; }
+
+/* input row */
+.acp-input {
+    display:flex; align-items:center; gap:7px;
+    padding:10px 14px; background:#fff; border-top:1px solid #e2e8f0; flex-shrink:0;
+}
+#aiChatInput {
+    flex:1; border:1.5px solid #e2e8f0; border-radius:999px;
+    padding:8px 15px; font-size:.845rem; outline:none; color:#1e293b;
+    background:#f8fafc; transition:border-color .2s; font-family:inherit;
+}
+#aiChatInput:focus { border-color:#1a6fc4; background:#fff; }
+#aiChatSend {
+    width:36px; height:36px;
+    background:linear-gradient(135deg,#0f4c81,#1a6fc4);
+    border:none; border-radius:50%; color:#fff; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; transition:transform .15s; font-size:.78rem;
+}
+#aiChatSend:hover  { transform:scale(1.1); }
+#aiChatSend:active { transform:scale(.93); }
+#aiChatSend:focus  { outline:none; box-shadow:none; }
+
+/* booking cards */
+.bot-booking-card {
+    background:#f1f5f9; border:1px solid #e2e8f0; border-radius:11px;
+    padding:10px 12px; margin:6px 0;
+    display:flex; flex-direction:column; gap:4px;
+}
+.bot-bk-row {
+    display:flex; align-items:center; justify-content:space-between; gap:6px;
+}
+.bot-bk-code {
+    font-weight:700; font-size:.78rem; color:#1e293b; font-family:monospace;
+}
+.bot-bk-hotel { font-size:.78rem; color:#334155; margin:0; font-weight:600; }
+.bot-bk-dates { font-size:.73rem; color:#64748b; margin:0; }
+.bot-bk-amount{ font-size:.73rem; color:#0f4c81; margin:0; }
+
+/* voucher list */
+.bot-voucher-list { display:flex; flex-direction:column; gap:6px; margin:8px 0; }
+.bot-voucher-item {
+    display:flex; flex-direction:column; gap:2px;
+    background:#fefce8; border:1.5px dashed #fbbf24;
+    border-radius:9px; padding:8px 11px;
+}
+.bot-v-code    { font-weight:800; font-size:.82rem; color:#b45309; letter-spacing:.06em; }
+.bot-v-name    { font-size:.75rem; color:#78350f; font-weight:600; }
+.bot-v-discount{ font-size:.78rem; color:#1e293b; font-weight:600; }
+.bot-v-expire  { font-size:.72rem; color:#64748b; }
+
+/* chat button active state */
+.ai-chat-btn.open { box-shadow:0 0 0 4px rgba(26,111,196,.35); }
+
+/* notification badge trên nút chat */
+.ai-notify-badge {
+    position:absolute; top:-6px; right:-6px;
+    min-width:20px; height:20px;
+    background:#ef4444; color:#fff;
+    border-radius:999px; font-size:.62rem; font-weight:800;
+    display:flex; align-items:center; justify-content:center;
+    border:2.5px solid #fff; padding:0 5px;
+    opacity:0; transform:scale(.5);
+    transition:opacity .3s, transform .35s cubic-bezier(.34,1.56,.64,1);
+    pointer-events:none; z-index:10;
+}
+.ai-notify-badge.show { opacity:1; transform:scale(1); }
+
+/* timestamp inline trong bubble */
+.msg-time-inline { font-size:.61rem; margin-top:4px; text-align:right; }
+.user-time  { color:rgba(255,255,255,.65); }
+.bot-time   { color:#94a3b8; }
+
+/* budget travel plan cards */
+.bot-budget-box {
+    background:#f0f9ff; border:1.5px solid #bae6fd;
+    border-radius:10px; padding:9px 12px; margin-bottom:8px;
+}
+.bot-budget-box p { margin:0 0 3px; font-size:.78rem; color:#0c4a6e; }
+.bot-budget-box p:last-child { margin-bottom:0; }
+.bot-budget-note {
+    font-size:.75rem; color:#475569; margin:5px 0 3px;
+    padding:5px 9px; background:#f1f5f9; border-radius:7px;
+}
+
+.bot-action-row {
+    display:grid;
+    grid-template-columns:1fr;
+    gap:6px;
+    margin-top:8px;
+}
+.bot-action-btn {
+    display:block;
+    text-align:center;
+    background:#0f4c81;
+    color:#fff;
+    padding:8px 10px;
+    border-radius:9px;
+    font-size:.78rem;
+    font-weight:700;
+    text-decoration:none;
+}
+.bot-action-btn.secondary {
+    background:#eff6ff;
+    color:#1d4ed8;
+    border:1px solid #bfdbfe;
+}
+.bot-action-btn.ghost {
+    background:#fff7ed;
+    color:#c2410c;
+    border:1px solid #fed7aa;
+}
+
+/* hide scroll-to-top when chatbot is open */
+body.chatbot-open .scroll-top-btn {
+    opacity:0 !important;
+    visibility:hidden !important;
+    pointer-events:none !important;
+}
+
+body.chatbot-open .ai-chat-widget {
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+}
+
+@media (max-width: 520px) {
+    .ai-chat-panel {
+        right: 12px;
+        bottom: 84px;
+        width: calc(100vw - 24px);
+        max-height: calc(100vh - 110px);
+        border-radius: 18px;
+    }
+}
+</style>
+
+<!-- ── CHAT PANEL ── -->
+<div class="ai-chat-panel" id="aiChatPanel">
+    <div class="acp-header">
+        <div class="acp-hd-left">
+            <div class="acp-avatar">
+                <img src="/assets/images/iconChatB.png" alt="TravelBot"/>
+            </div>
+            <div>
+                <div class="acp-name">TravelBot</div>
+                <div class="acp-status"><span class="acp-dot"></span> Luôn trực tuyến</div>
+            </div>
+        </div>
+        <button class="acp-close" id="aiChatClose" aria-label="Đóng"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="acp-messages" id="aiChatMessages"></div>
+    <div class="acp-qr"       id="aiChatQR"></div>
+    <div class="acp-input">
+        <input type="text" id="aiChatInput" placeholder="Nhập tin nhắn..." autocomplete="off"/>
+        <button id="aiChatSend" aria-label="Gửi"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+
+<!-- ── FLOATING BUTTON ── -->
+<div class="ai-chat-widget">
+    <button class="ai-chat-btn" id="aiChatBtn" aria-label="Mở trợ lý AI">
+        <span class="ai-ring ring-1"></span>
+        <span class="ai-ring ring-2"></span>
+        <span class="ai-ring ring-3"></span>
+        <span class="ai-chat-core">
+            <img src="/assets/images/iconChatB.png" alt="AI Chat" class="ai-chat-image"/>
+        </span>
+        <span class="ai-notify-badge" id="aiNotifyBadge">1</span>
+    </button>
+</div>
+
+<!-- ── SCROLL TO TOP ── -->
+<button id="scrollTopBtn" class="scroll-top-btn" aria-label="Lên đầu trang">
+    <span class="double-arrow-up">
+        <span class="chevron chevron-1"></span>
+        <span class="chevron chevron-2"></span>
+    </span>
+</button>
+
+<script>
+(function () {
+    var panel   = document.getElementById('aiChatPanel');
+    var btn     = document.getElementById('aiChatBtn');
+    var closeEl = document.getElementById('aiChatClose');
+    var msgs    = document.getElementById('aiChatMessages');
+    var qrEl    = document.getElementById('aiChatQR');
+    var inputEl = document.getElementById('aiChatInput');
+    var sendEl  = document.getElementById('aiChatSend');
+    var scrollBtn = document.getElementById('scrollTopBtn');
+    var badge   = document.getElementById('aiNotifyBadge');
+
+    var isOpen   = false;
+    var greeted  = false;
+    var typingEl = null;
+
+    // badge hiện sau 3 giây nếu chưa mở chat
+    setTimeout(function() {
+        if (!isOpen && badge) badge.classList.add('show');
+    }, 3000);
+
+    // ── helpers ───────────────────────────────────────────
+    function getTime() {
+        var d = new Date();
+        return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    }
+
+    // ── open / close ──────────────────────────────────────
+    function open() {
+        panel.style.display = 'flex';
+        isOpen = true;
+        btn.classList.add('open');
+        document.body.classList.add('chatbot-open');
+        if (badge) badge.classList.remove('show');
+        if (scrollBtn) scrollBtn.classList.remove('show');
+        if (!greeted) { greeted = true; fetchBot(''); }
+        else scrollBottom();
+    }
+    function close() {
+        panel.style.display = 'none';
+        isOpen = false;
+        btn.classList.remove('open');
+        document.body.classList.remove('chatbot-open');
+        if (scrollBtn && window.scrollY > 400) scrollBtn.classList.add('show');
+    }
+    btn    && btn.addEventListener('click',    function(){ isOpen ? close() : open(); });
+    closeEl && closeEl.addEventListener('click', close);
+
+    // ── scroll ────────────────────────────────────────────
+    function scrollBottom() {
+        msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    // ── add messages ──────────────────────────────────────
+    function addUser(text) {
+        var row = document.createElement('div');
+        row.className = 'msg-row user';
+        var b = document.createElement('div');
+        b.className = 'msg-bubble user';
+        b.textContent = text;
+        var t = document.createElement('div');
+        t.className = 'msg-time-inline user-time';
+        t.textContent = getTime();
+        b.appendChild(t);
+        row.appendChild(b);
+        msgs.appendChild(row);
+        scrollBottom();
+    }
+
+    function addBot(html, qrs) {
+        var row = document.createElement('div');
+        row.className = 'msg-row bot';
+        var av = document.createElement('div');
+        av.className = 'msg-bot-av';
+        av.innerHTML = '<img src="/assets/images/iconChatB.png" alt=""/>';
+        var b = document.createElement('div');
+        b.className = 'msg-bubble bot';
+        b.innerHTML = html + '<div class="msg-time-inline bot-time">' + getTime() + '</div>';
+        row.appendChild(av);
+        row.appendChild(b);
+        msgs.appendChild(row);
+        scrollBottom();
+
+        qrEl.innerHTML = '';
+        if (qrs && qrs.length) {
+            qrs.forEach(function(t) {
+                var c = document.createElement('button');
+                c.className = 'qr-chip';
+                c.textContent = t;
+                c.addEventListener('click', function(){ sendMsg(t); });
+                qrEl.appendChild(c);
+            });
+        }
+    }
+
+    // ── typing indicator ──────────────────────────────────
+    function showTyping() {
+        typingEl = document.createElement('div');
+        typingEl.className = 'msg-row bot';
+        typingEl.innerHTML =
+            '<div class="msg-bot-av"><img src="/assets/images/iconChatB.png" alt=""/></div>' +
+            '<div class="msg-bubble bot"><div class="acp-typing">' +
+            '<span></span><span></span><span></span></div></div>';
+        msgs.appendChild(typingEl);
+        scrollBottom();
+    }
+    function hideTyping() {
+        if (typingEl && typingEl.parentNode) { typingEl.parentNode.removeChild(typingEl); }
+        typingEl = null;
+    }
+
+    // ── fetch bot response ────────────────────────────────
+    var isFetching = false;
+
+    function setInputBusy(busy) {
+        isFetching = busy;
+        if (inputEl) inputEl.disabled = busy;
+        if (sendEl)  { sendEl.disabled = busy; sendEl.style.opacity = busy ? '.5' : '1'; }
+    }
+
+    function fetchBot(message) {
+        if (isFetching) return;
+        setInputBusy(true);
+        showTyping();
+        fetch('/api/chatbot/message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: message })
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+            hideTyping();
+            setInputBusy(false);
+            setTimeout(function(){ addBot(d.reply, d.quickReplies); }, 120);
+        })
+        .catch(function(){
+            hideTyping();
+            setInputBusy(false);
+            addBot('<p>😔 Hiện trợ lý TravelMate chưa phản hồi được. Vui lòng thử lại sau.</p>',
+                   ['Thử lại', 'Liên hệ hỗ trợ']);
+        });
+    }
+
+    // ── send ──────────────────────────────────────────────
+    function sendMsg(override) {
+        var text = (override !== undefined ? String(override) : inputEl.value).trim();
+        if (!text) return;
+        if (override === undefined) inputEl.value = '';
+        addUser(text);
+        qrEl.innerHTML = '';
+        fetchBot(text);
+    }
+
+    sendEl  && sendEl.addEventListener('click',  function(){ sendMsg(); });
+    inputEl && inputEl.addEventListener('keypress', function(e){
+        if (e.key === 'Enter') sendMsg();
+    });
+
+
+})();
+</script>
+
+</th:block>
+</body>
+</html>

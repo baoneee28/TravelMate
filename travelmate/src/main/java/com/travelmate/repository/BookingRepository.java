@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -29,6 +30,23 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     /** Lấy tất cả booking, mới nhất trước — dùng cho admin. */
     List<Booking> findAllByOrderByCreatedAtDesc();
+
+    /**
+     * Lấy tất cả booking cho trang admin với JOIN FETCH đầy đủ.
+     * Dùng thay cho findAllByOrderByCreatedAtDesc() để:
+     *   1. Tránh LazyInitializationException khi render template
+     *   2. Tránh N+1 queries (1 booking = 1 query user + 1 query accommodation + 1 query room)
+     *   3. Tránh NullPointerException khi template truy cập b.accommodation.name, b.room.roomName
+     */
+    @Query("""
+        SELECT b FROM Booking b
+        JOIN FETCH b.user
+        LEFT JOIN FETCH b.accommodation a
+        LEFT JOIN FETCH a.owner
+        LEFT JOIN FETCH b.room
+        ORDER BY b.createdAt DESC
+    """)
+    List<Booking> findAllForAdminPage();
 
     /** Đếm booking theo trạng thái — dùng cho admin dashboard */
     long countByBookingStatus(BookingStatus status);
@@ -116,4 +134,13 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                  @Param("checkIn") LocalDate checkIn,
                                  @Param("checkOut") LocalDate checkOut,
                                  @Param("statuses") List<BookingStatus> statuses);
+
+    /**
+     * Tìm tất cả booking PENDING_PAYMENT có expireAt đã qua.
+     * Dùng bởi BookingExpiryScheduler để tự động hủy booking quá hạn thanh toán.
+     */
+    @Query("SELECT b FROM Booking b WHERE b.bookingStatus = :status AND b.expireAt < :now")
+    List<Booking> findExpiredPendingPaymentBookings(
+            @Param("status") BookingStatus status,
+            @Param("now") LocalDateTime now);
 }

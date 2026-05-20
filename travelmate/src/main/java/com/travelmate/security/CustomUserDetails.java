@@ -56,6 +56,10 @@ public class CustomUserDetails implements UserDetails {
         return user.getPhone();
     }
 
+    public String getAvatarUrl() {
+        return user.getAvatarUrl();
+    }
+
     // ===== Implement UserDetails interface =====
 
     @Override

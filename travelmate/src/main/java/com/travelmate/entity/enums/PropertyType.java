@@ -1,10 +1,8 @@
 package com.travelmate.entity.enums;
 
 /**
- * PropertyType — Loại hình lưu trú.
- *
- * Hiện tại chỉ dùng HOTEL cho task đặt phòng khách sạn.
- * Các loại khác (VILLA, HOMESTAY, RESORT) sẽ dùng khi mở rộng sau.
+ * PropertyType — Loại hình lưu trú. Quy định tỷ lệ hoa hồng mặc định:
+ * HOTEL=15%, VILLA=12%, HOMESTAY=10%, RESORT=18%.
  */
 public enum PropertyType {
     HOTEL,      // Khách sạn

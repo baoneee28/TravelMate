@@ -32,6 +32,8 @@
         .bk-input:focus { border-color: #2563eb; }
         .bk-input[readonly] { background: #f1f5f9; color: #64748b; cursor: not-allowed; }
         .bk-row { display: flex; gap: 20px; }
+        .voucher-remove-btn { width:26px;height:26px;border:none;border-radius:8px;background:#fee2e2;color:#dc2626;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;transition:background 0.15s; }
+        .voucher-remove-btn:hover { background:#fecaca; }
         .bk-col { flex: 1; }
         .bk-note { font-size: 0.8125rem; color: #64748b; margin-top: 6px; }
         .bk-summary-title { font-size: 1rem; font-weight: 700; color: #0f172a; padding-bottom: 16px; border-bottom: 1px solid #e2e8f0; margin-bottom: 16px; }
@@ -83,59 +85,10 @@
 </head>
 
 <body>
-    <!-- ===== HEADER ===== -->
-    <header class="header header-static"
-        style="background: #fff; position: relative; padding: 15px 0; border-bottom: 1px solid #e2e8f0">
-        <div class="container navbar">
-            <div class="logo">
-                <div class="logo-icon bg-sky"><i class="fa-solid fa-building"></i></div>
-                <span class="logo-text text-white">TRAVEL<span class="logo-yellow">MATE</span></span>
-            </div>
-            <nav class="menu">
-                <ul class="menu-list">
-                    <li><a href="/">TRANG CHỦ</a></li>
-                    <li><a href="/accommodations">GỢI Ý DU LỊCH</a></li>
-                    <li><a href="/news">TIN TỨC</a></li>
-                    <li><a href="/contact">LIÊN HỆ</a></li>
-                    <li><a href="/my-bookings"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a></li>
-                </ul>
-            </nav>
-            <!-- Chưa đăng nhập -->
-            <a href="/auth/login" class="login-btn" sec:authorize="isAnonymous()">ĐĂNG NHẬP</a>
-            <!-- Bell Notification (authenticated) -->
-            <div class="notif-wrap" id="notifWrap" sec:authorize="isAuthenticated()" style="position:relative;display:flex;align-items:center;margin-right:10px;">
-                <button class="notif-btn" id="notifBtn" type="button" aria-label="Thông báo"
-                        style="background:none;border:none;cursor:pointer;color:#0f172a;font-size:1.15rem;padding:8px 10px;border-radius:10px;position:relative;transition:background 0.15s,color 0.15s;">
-                    <i class="fa-solid fa-bell"></i>
-                    <span id="notifBadge" style="display:none;position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:0.6rem;font-weight:700;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px;line-height:1;"></span>
-                </button>
-                <div id="notifDropdown" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:340px;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.18);z-index:9999;overflow:hidden;border:1px solid #e2e8f0;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid #f1f5f9;">
-                        <span style="font-weight:700;font-size:0.95rem;color:#0f172a;">Thông báo</span>
-                        <button type="button" style="background:none;border:none;font-size:0.78rem;font-weight:600;color:#2563eb;cursor:pointer;font-family:inherit;padding:0;">Đọc hết</button>
-                    </div>
-                    <div style="max-height:340px;overflow-y:auto;">
-                        <p style="text-align:center;color:#94a3b8;font-size:0.85rem;padding:24px 16px;margin:0;">Không có thông báo</p>
-                    </div>
-                </div>
-            </div>
-            <!-- Đã đăng nhập -->
-            <div class="header-user" id="headerUser" sec:authorize="isAuthenticated()">
-                <button class="header-user-btn" id="headerUserBtn" type="button">
-                    <div class="header-avatar"><i class="fa-solid fa-user"></i></div>
-                    <span class="header-user-name" sec:authentication="principal.fullName">User</span>
-                    <i class="fa-solid fa-chevron-down header-chevron"></i>
-                </button>
-                <div class="header-user-dropdown" id="headerUserDropdown">
-                    <a href="/my-bookings" class="dropdown-item"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a>
-                    <div class="dropdown-divider"></div>
-                    <form method="post" action="/auth/logout">
-                        <button type="submit" class="dropdown-item dropdown-logout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </header>
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/user.js"></script>
+    <div th:replace="~{fragments/user-header :: header(true, 'bookings')}"></div>
+
 
     <main class="bk-main" th:with="isVilla=${hotel.propertyType?.name() == 'VILLA'}">
         <!-- LEFT SIDE -->
@@ -285,14 +238,14 @@
                             <i class="fa-solid fa-circle-check" style="color:#16a34a;margin-top:2px;flex-shrink:0;"></i>
                             <div style="font-size:0.8125rem;color:#14532d;">
                                 <strong>Trường hợp 1: Admin chưa duyệt (Chờ xét duyệt)</strong><br/>
-                                Bạn có thể <strong>hủy ngay</strong> và hệ thống sẽ <strong>hoàn tiền demo</strong> toàn bộ 100% vào tài khoản trong vòng 1–3 ngày làm việc.
+                                Bạn có thể <strong>hủy ngay</strong> và hệ thống sẽ <strong>hoàn tiền toàn bộ 100%</strong> vào tài khoản trong vòng 1–3 ngày làm việc.
                             </div>
                         </div>
                         <div style="display:flex;gap:10px;padding:10px 14px;background:#fef9c3;border-radius:8px;border:1px solid #fde047;">
                             <i class="fa-solid fa-headset" style="color:#b45309;margin-top:2px;flex-shrink:0;"></i>
                             <div style="font-size:0.8125rem;color:#713f12;">
-                                <strong>Trường hợp 2: Admin đã duyệt (Đã xác nhận)</strong><br/>
-                                Sau khi admin duyệt, bạn <strong>không thể tự hủy</strong>. Vui lòng <a href="/contact" style="color:#b45309;font-weight:700;">liên hệ hỗ trợ</a> để được xử lý theo từng trường hợp cụ thể.
+                                <strong>Trường hợp 2: TravelMate đã xác nhận (Đã xác nhận)</strong><br/>
+                                Sau khi TravelMate xác nhận, bạn <strong>không thể tự hủy</strong>. Vui lòng <a href="/contact" style="color:#b45309;font-weight:700;">liên hệ hỗ trợ</a> để được xử lý theo từng trường hợp cụ thể.
                             </div>
                         </div>
                     </div>
@@ -309,8 +262,8 @@
                         <div style="display:flex;gap:10px;margin-bottom:10px;padding:10px 14px;background:#dcfce7;border-radius:8px;border:1px solid #86efac;">
                             <i class="fa-solid fa-circle-check" style="color:#16a34a;margin-top:2px;flex-shrink:0;"></i>
                             <div style="font-size:0.8125rem;color:#14532d;">
-                                <strong>Khi hủy trước khi admin duyệt:</strong><br/>
-                                Hoàn lại toàn bộ tiền cọc 30% (demo) — không mất phí.
+                                <strong>Khi hủy trước khi TravelMate xác nhận:</strong><br/>
+                                Hoàn lại toàn bộ tiền cọc 30% — không mất phí.
                             </div>
                         </div>
                         <div style="display:flex;gap:10px;margin-bottom:10px;padding:10px 14px;background:#fef2f2;border-radius:8px;border:1px solid #fca5a5;">
@@ -365,21 +318,21 @@
                 <div style="margin-top: 24px"></div>
 
                 <div class="bk-price-row">
-                    <span th:text="(${isVilla} ? 'Giá căn' : 'Giá phòng') + ' (' + ${rooms} + (${isVilla} ? ' căn × ' : ' phòng × ') + ${numberOfNights} + ' đêm)'">Giá phòng</span>
+                    <span th:text="${(isVilla ? 'Giá căn' : 'Giá phòng') + ' (' + rooms + (isVilla ? ' căn × ' : ' phòng × ') + numberOfNights + ' đêm)'}">Giá phòng</span>
                     <span id="base-price-display" th:text="${#numbers.formatDecimal(totalAmount, 0, 'POINT', 0, 'COMMA')} + ' VND'">0 VND</span>
                 </div>
 
                 <!-- Discount row — hidden until voucher applied -->
                 <div class="bk-price-row" id="discount-row"
-                     style="display:none;color:#16a34a;font-weight:700;background:#f0fdf4;padding:8px 10px;border-radius:8px;margin-top:-4px;">
-                    <span style="display:flex;align-items:center;gap:6px;">
-                        <i class="fa-solid fa-tag" style="font-size:0.75rem;"></i>
-                        Giảm giá (<span id="discount-code" style="font-weight:800;letter-spacing:0.5px;"></span>)
+                     style="display:none;color:#16a34a;font-weight:700;background:#f0fdf4;padding:8px 10px;border-radius:8px;margin-top:-4px;flex-wrap:nowrap;align-items:center;">
+                    <span style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;">
+                        <i class="fa-solid fa-tag" style="font-size:0.75rem;flex-shrink:0;"></i>
+                        <span style="overflow:hidden;text-overflow:ellipsis;">Giảm giá (<span id="discount-code" style="font-weight:800;letter-spacing:0.5px;"></span>)</span>
                         <button type="button" onclick="removeVoucher()"
                                 title="Bỏ voucher"
-                                style="background:#fee2e2;border:none;color:#dc2626;cursor:pointer;font-size:0.7rem;border-radius:4px;padding:1px 6px;font-weight:700;font-family:inherit;">✕ Bỏ</button>
+                                class="voucher-remove-btn" style="flex-shrink:0;"><i class="fa-solid fa-xmark"></i></button>
                     </span>
-                    <span id="discount-amount" style="color:#16a34a;white-space:nowrap;">-0 VND</span>
+                    <span id="discount-amount" style="color:#16a34a;white-space:nowrap;flex-shrink:0;margin-left:8px;">-0 VND</span>
                 </div>
 
                 <div class="bk-price-total"
@@ -434,23 +387,30 @@
         </div>
     </main>
 
-    <!-- ===== QR PAYMENT MODAL (Demo VNPay) ===== -->
+    <!-- ===== VNPAY SANDBOX — Cổng Thanh Toán Online ===== -->
     <div class="modal-overlay" id="qrModal">
         <div class="modal-box">
             <button class="modal-close" onclick="document.getElementById('qrModal').classList.remove('open')">✕</button>
 
-            <p class="modal-title" th:text="${isVilla ? 'Xác nhận thanh toán đặt căn' : 'Xác nhận thanh toán đặt phòng'}">Xác nhận thanh toán đặt phòng</p>
+            <p class="modal-title">Xác nhận chuyển sang cổng thanh toán VNPAY</p>
 
-            <div style="margin-bottom: 20px">
-                <i class="fa-solid fa-circle-check" style="font-size: 3rem; color: #22c55e;"></i>
-                <p style="margin-top: 12px; font-size: 0.9rem; color: #334155; font-weight: 600;">Thanh toán demo VNPay</p>
-                <p style="font-size: 0.8rem; color: #64748b;">Đây là hệ thống demo — không cần chuyển tiền thật</p>
+            <div style="margin-bottom: 16px">
+                <img src="https://sandbox.vnpayment.vn/images/vnpay-logo.png"
+                     onerror="this.style.display='none'"
+                     style="height:36px;margin-bottom:8px;" alt="VNPAY">
+                <p style="margin-top: 8px; font-size: 0.85rem; color: #334155; font-weight: 600;">
+                    Thanh toán qua cổng VNPAY
+                </p>
+                <p style="font-size: 0.78rem; color: #64748b;">
+                    Bạn sẽ được chuyển sang cổng thanh toán VNPAY để hoàn tất giao dịch.
+                    Phòng sẽ được giữ tạm <strong>15 phút</strong>.
+                </p>
             </div>
 
             <div class="modal-bank-info">
                 <div class="modal-bank-row">
-                    <span class="lbl">PHƯƠNG THỨC:</span>
-                    <span class="val">VNPay Demo</span>
+                    <span class="lbl">CỔNG THANH TOÁN:</span>
+                    <span class="val" style="color:#0064c8;font-weight:700;">VNPAY</span>
                 </div>
                 <div class="modal-bank-row">
                     <span class="lbl" th:text="${hotel.propertyType?.name() == 'VILLA' ? 'VILLA:' : hotel.propertyType?.name() == 'HOMESTAY' ? 'HOMESTAY:' : hotel.propertyType?.name() == 'RESORT' ? 'RESORT:' : 'KHÁCH SẠN:'}">KHÁCH SẠN:</span>
@@ -483,15 +443,20 @@
                 </div>
             </div>
 
-            <div class="modal-note">
-                Nhấn "Xác nhận thanh toán" để hoàn tất đặt phòng. Đơn sẽ chờ Admin duyệt.
+            <div class="modal-note" style="background:#e8f4fd;border-left:3px solid #2563eb;color:#1e3a5f;">
+                Sau khi xác nhận, bạn sẽ được chuyển sang cổng thanh toán VNPAY.
+                Hoàn tất thanh toán để đơn được gửi cho TravelMate xác nhận.
             </div>
 
             <div class="modal-btns">
                 <button class="btn-cancel-modal" onclick="document.getElementById('qrModal').classList.remove('open')">
                     ✕ HỦY BỎ
                 </button>
-                <button class="btn-confirm-modal" id="btnConfirmModal" onclick="submitBooking()">✔ XÁC NHẬN THANH TOÁN</button>
+                <button class="btn-confirm-modal" id="btnConfirmModal" onclick="submitBooking()"
+                        style="background:linear-gradient(135deg,#0064c8,#003d99);">
+                    <i class="fa-solid fa-lock" style="margin-right:6px;"></i>
+                    THANH TOÁN QUA VNPAY
+                </button>
             </div>
         </div>
     </div>
@@ -796,19 +761,13 @@
                 if (e.key === 'Enter') { e.preventDefault(); applyVoucher(); }
             });
 
-            // Notification bell toggle
-            const notifBtn = document.getElementById('notifBtn');
-            const notifDrop = document.getElementById('notifDropdown');
-            if (notifBtn && notifDrop) {
-                notifBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    notifDrop.style.display = notifDrop.style.display === 'block' ? 'none' : 'block';
-                });
-                document.addEventListener('click', function() { notifDrop.style.display = 'none'; });
-                notifDrop.addEventListener('click', function(e) { e.stopPropagation(); });
-            }
         });
     </script>
+
+    <div th:replace="~{fragments/user-footer :: footer}"></div>
 </body>
 
 </html>
+
+
+

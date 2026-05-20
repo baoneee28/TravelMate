@@ -16,6 +16,38 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ── Shared User Sidebar ──────────────────────
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+  const sidebarMenu = document.getElementById('sidebarMenu');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+
+  if (hamburgerBtn && sidebarMenu && sidebarOverlay) {
+    const openSidebar = () => {
+      sidebarMenu.classList.add('active');
+      sidebarOverlay.classList.add('active');
+      hamburgerBtn.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+    };
+
+    const closeSidebar = () => {
+      sidebarMenu.classList.remove('active');
+      sidebarOverlay.classList.remove('active');
+      hamburgerBtn.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    };
+
+    hamburgerBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      openSidebar();
+    });
+    sidebarCloseBtn?.addEventListener('click', closeSidebar);
+    sidebarOverlay.addEventListener('click', closeSidebar);
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeSidebar();
+    });
+  }
+
   // ── User Dropdown Menu ───────────────────────
   const userMenuTriggers = document.querySelectorAll('.user-menu__trigger');
 
@@ -156,6 +188,11 @@ const scrollBtn = document.getElementById("scrollTopBtn");
 
 if (scrollBtn) {
     window.addEventListener("scroll", () => {
+        if (document.body.classList.contains("chatbot-open")) {
+            scrollBtn.classList.remove("show");
+            return;
+        }
+
         if (window.scrollY > 400) {
             scrollBtn.classList.add("show");
         } else {
@@ -193,6 +230,120 @@ if (scrollBtn) {
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') headerUser.classList.remove('open');
     });
+  }
+
+  // ── Notification Bell ────────────────────────
+  const notifBtn = document.getElementById('notifBtn');
+  const notifWrap = document.getElementById('notifWrap');
+  const notifDropdown = document.getElementById('notifDropdown');
+  const notifBadge = document.getElementById('notifBadge');
+  const notifList = document.getElementById('notifList');
+  const notifReadAll = document.getElementById('notifReadAll');
+
+  if (notifBtn && notifWrap && notifDropdown && notifBadge && notifList) {
+    let notifOpen = false;
+    let notifLoaded = false;
+    const icons = {
+      REVIEW_REMINDER:       { cls: 'notif-icon-review', icon: 'fa-star' },
+      BOOKING_CONFIRMED:     { cls: 'notif-icon-confirm', icon: 'fa-circle-check' },
+      BOOKING_CHECKIN_READY: { cls: 'notif-icon-checkin', icon: 'fa-bed' },
+      SYSTEM:                { cls: 'notif-icon-system', icon: 'fa-bell' }
+    };
+
+    const escapeHtml = (value) => String(value ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+
+    const updateBadge = () => {
+      fetch('/api/notifications/count')
+        .then(response => response.json())
+        .then(data => {
+          const count = data.count || 0;
+          if (count > 0) {
+            notifBadge.textContent = count > 99 ? '99+' : count;
+            notifBadge.style.display = 'flex';
+          } else {
+            notifBadge.style.display = 'none';
+          }
+        })
+        .catch(() => {});
+    };
+
+    const renderNotifications = (items) => {
+      if (!items || items.length === 0) {
+        notifList.innerHTML = '<p class="notif-empty">Không có thông báo</p>';
+        return;
+      }
+
+      notifList.innerHTML = items.map(item => {
+        const icon = icons[item.type] || icons.SYSTEM;
+        return `<a class="notif-item ${item.isRead ? '' : 'unread'}" href="${escapeHtml(item.targetUrl || '/my-bookings')}" data-id="${item.id}" data-read="${item.isRead}">
+          <div class="notif-item-icon ${icon.cls}"><i class="fa-solid ${icon.icon}"></i></div>
+          <div class="notif-item-body">
+            <div class="notif-item-title">${escapeHtml(item.title)}</div>
+            <div class="notif-item-msg">${escapeHtml(item.message)}</div>
+            <div class="notif-item-time">${escapeHtml(item.createdAt)}</div>
+          </div>
+        </a>`;
+      }).join('');
+
+      notifList.querySelectorAll('.notif-item').forEach(item => {
+        item.addEventListener('click', function () {
+          if (this.dataset.read === 'false') {
+            fetch('/api/notifications/' + this.dataset.id + '/read', { method: 'POST' })
+              .then(() => {
+                this.classList.remove('unread');
+                this.dataset.read = 'true';
+                updateBadge();
+              })
+              .catch(() => {});
+          }
+        });
+      });
+    };
+
+    const loadNotifications = () => {
+      notifList.innerHTML = '<p class="notif-empty">Đang tải...</p>';
+      fetch('/api/notifications')
+        .then(response => response.json())
+        .then(renderNotifications)
+        .catch(() => {
+          notifList.innerHTML = '<p class="notif-empty">Không thể tải thông báo</p>';
+        });
+    };
+
+    notifBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      notifOpen = !notifOpen;
+      notifDropdown.style.display = notifOpen ? 'block' : 'none';
+      if (notifOpen && !notifLoaded) {
+        loadNotifications();
+        notifLoaded = true;
+      }
+    });
+
+    notifReadAll?.addEventListener('click', (event) => {
+      event.stopPropagation();
+      fetch('/api/notifications/read-all', { method: 'POST' })
+        .then(() => {
+          notifBadge.style.display = 'none';
+          notifLoaded = false;
+          loadNotifications();
+        })
+        .catch(() => {});
+    });
+
+    document.addEventListener('click', (event) => {
+      if (notifOpen && !notifWrap.contains(event.target)) {
+        notifOpen = false;
+        notifDropdown.style.display = 'none';
+      }
+    });
+
+    updateBadge();
   }
 });
 

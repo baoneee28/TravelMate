@@ -1,5 +1,6 @@
 package com.travelmate.service;
 
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -9,51 +10,54 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
-/**
- * FileStorageService - Lưu file ảnh upload từ partner vào thư mục static.
- * Trả về URL tương đối dùng trong <img src="">.
- */
 @Service
 public class FileStorageService {
 
-    // Thư mục lưu ảnh, tương đối với classpath static resources
-    private static final String UPLOAD_DIR = "src/main/resources/static/uploads/accommodations/";
-
     /**
-     * Lưu file ảnh thumbnail và trả về URL dùng trong HTML.
-     * @param file MultipartFile từ form upload
-     * @return URL dạng /uploads/accommodations/xxx.jpg
-     * @throws IOException nếu lưu file thất bại
+     * Resolve thư mục upload dựa trên đường dẫn tuyệt đối của classpath static,
+     * tránh lỗi khi working directory là Tomcat temp dir (VS Code extension).
      */
-    public String storeThumbnail(MultipartFile file) throws IOException {
-        if (file == null || file.isEmpty()) {
-            return null;
-        }
+    private Path resolveUploadDir(String subDir) throws IOException {
+        Path staticDir = Paths.get(new ClassPathResource("static").getFile().getAbsolutePath());
+        Path dir = staticDir.resolve("uploads").resolve(subDir);
+        Files.createDirectories(dir);
+        return dir;
+    }
 
-        // Tạo tên file duy nhất để tránh trùng lặp
-        String originalName = file.getOriginalFilename();
-        String extension = "";
+    private String extractExtension(String originalName) {
         if (originalName != null && originalName.contains(".")) {
-            extension = originalName.substring(originalName.lastIndexOf(".")).toLowerCase();
+            return originalName.substring(originalName.lastIndexOf(".")).toLowerCase();
         }
+        return "";
+    }
 
-        // Chỉ cho phép ảnh
+    private void validateImageExtension(String extension) {
         if (!extension.matches("\\.(jpg|jpeg|png|webp|gif|bmp)")) {
             throw new IllegalArgumentException("Chỉ chấp nhận file ảnh (JPG, PNG, WEBP)!");
         }
+    }
 
-        String fileName = UUID.randomUUID().toString() + extension;
-        Path uploadPath = Paths.get(UPLOAD_DIR);
+    public String storeThumbnail(MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) return null;
 
-        // Tạo thư mục nếu chưa có
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
+        String extension = extractExtension(file.getOriginalFilename());
+        validateImageExtension(extension);
 
-        Path filePath = uploadPath.resolve(fileName);
-        file.transferTo(filePath.toFile());
-
-        // Trả về URL tương đối để dùng trong HTML
+        String fileName = UUID.randomUUID() + extension;
+        Path uploadDir = resolveUploadDir("accommodations");
+        file.transferTo(java.util.Objects.requireNonNull(uploadDir.resolve(fileName).toFile()));
         return "/uploads/accommodations/" + fileName;
+    }
+
+    public String storeAvatar(MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) return null;
+
+        String extension = extractExtension(file.getOriginalFilename());
+        validateImageExtension(extension);
+
+        String fileName = UUID.randomUUID() + extension;
+        Path uploadDir = resolveUploadDir("avatars");
+        file.transferTo(java.util.Objects.requireNonNull(uploadDir.resolve(fileName).toFile()));
+        return "/uploads/avatars/" + fileName;
     }
 }

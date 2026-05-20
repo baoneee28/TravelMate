@@ -65,6 +65,7 @@
             <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
             <a href="/admin/rooms"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
             <a href="/admin/reviews"        class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
+            <a href="/admin/travel-posts" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗺️</span> Bài viết du lịch</a>
             <a href="/admin/users"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
             <div class="admin-sidebar__section-title">Tài chính</div>
             <a href="/admin/revenue"     class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
@@ -128,7 +129,7 @@
                         <button type="submit"
                                 style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer;"
                                 onclick="return confirm('Xác nhận đã chuyển tiền cho partner này?')">
-                            <i class="fa-solid fa-check"></i> Đánh dấu Đã TT
+                            <i class="fa-solid fa-check"></i> Xác nhận đã chuyển khoản
                         </button>
                     </form>
                 </div>
@@ -189,7 +190,7 @@
                 <div class="info-card">
                     <div class="info-card__title">💰 Tổng kết tài chính</div>
                     <div class="info-row">
-                        <span class="info-row__label">Tổng doanh thu (Gross)</span>
+                        <span class="info-row__label">TravelMate đã thu (Gross)</span>
                         <span class="info-row__value amount-positive"
                               th:text="${#numbers.formatDecimal(settlement.grossAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
                     </div>
@@ -204,15 +205,15 @@
                               th:text="'−' + ${#numbers.formatDecimal(settlement.voucherDeductionAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
                     </div>
                     <div class="info-row" style="border-top:2px solid #bbf7d0;margin-top:4px;padding-top:10px;">
-                        <span class="info-row__label" style="font-weight:700;">Payout cho Partner</span>
+                        <span class="info-row__label" style="font-weight:700;">Chuyển khoản cho Partner</span>
                         <span class="info-row__value amount-payout"
                               th:text="${#numbers.formatDecimal(settlement.payoutAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
                     </div>
                     <div class="info-row" style="margin-top:8px;">
                         <span class="info-row__label">Trạng thái</span>
                         <span class="info-row__value">
-                            <span class="badge-st-pending" th:if="${settlement.settlementStatus.name() == 'PENDING'}">⏳ Chờ TT</span>
-                            <span class="badge-st-paid"    th:if="${settlement.settlementStatus.name() == 'PAID'}">✅ Đã TT</span>
+                            <span class="badge-st-pending" th:if="${settlement.settlementStatus.name() == 'PENDING'}">⏳ Chờ chuyển khoản</span>
+                            <span class="badge-st-paid"    th:if="${settlement.settlementStatus.name() == 'PAID'}">✅ Đã chuyển khoản</span>
                         </span>
                     </div>
                     <div class="info-row" th:if="${settlement.settlementDate != null}">
@@ -252,13 +253,13 @@
                                 <th>Phòng</th>
                                 <th>Check-in</th>
                                 <th>Check-out</th>
-                                <th>Gross (đ)</th>
-                                <th>CK rate</th>
-                                <th>CK (đ)</th>
+                                <th>TM đã thu (đ)</th>
+                                <th>Tỷ lệ HH</th>
+                                <th>Hoa hồng (đ)</th>
                                 <th>Voucher</th>
-                                <th>V. deduct (đ)</th>
-                                <th>Payout (đ)</th>
-                                <th>Trạng thái TT</th>
+                                <th>Voucher trừ (đ)</th>
+                                <th>Đối tác nhận (đ)</th>
+                                <th>Trạng thái thanh toán</th>
                             </tr>
                         </thead>
                         <tbody>

@@ -19,7 +19,13 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     /** Tìm payment theo booking */
     Optional<Payment> findByBooking(Booking booking);
 
-    /** Lấy tất cả payment theo trạng thái — dùng tính doanh thu demo */
+    /**
+     * Tìm payment theo mã tham chiếu VNPAY (vnp_TxnRef).
+     * Dùng trong IPN / Return URL để tra cứu giao dịch.
+     */
+    Optional<Payment> findByVnpTxnRef(String vnpTxnRef);
+
+    /** Lấy tất cả payment theo trạng thái */
     List<Payment> findByPaymentStatus(PaymentStatus paymentStatus);
 
     /** Lấy payment theo nhiều trạng thái — APPROVED + DEPOSIT_FORFEITED = doanh thu thật */
@@ -28,7 +34,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     /**
      * Lấy payment của accommodation thuộc về 1 partner (owner).
      * Dùng cho Revenue và Settlement của Partner.
-     * Spring Data JPA tự sinh: JOIN booking JOIN accommodation WHERE accommodation.owner = :owner
      */
     List<Payment> findByBookingAccommodationOwnerAndPaymentStatusIn(
             User owner, List<PaymentStatus> statuses);

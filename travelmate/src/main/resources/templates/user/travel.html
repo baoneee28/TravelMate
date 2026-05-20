@@ -70,6 +70,18 @@
         .tp-submit-btn:hover{background:#1d4ed8}
         .tp-submit-btn:disabled{background:#93c5fd;cursor:not-allowed}
         .tp-empty{text-align:center;color:#94a3b8;padding:40px 20px;font-size:0.9rem}
+        .tp-destination-panel{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:22px;margin:8px 0 24px;box-shadow:0 8px 24px rgba(15,23,42,.05)}
+        .tp-destination-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+        .tp-destination-title{margin:0;font-size:1.35rem;font-weight:800;color:#0f172a;line-height:1.35}
+        .tp-destination-desc{margin:6px 0 0;color:#64748b;font-size:.9rem;line-height:1.6;max-width:720px}
+        .tp-back-hotels{display:inline-flex;align-items:center;gap:8px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:10px 16px;border-radius:12px;font-weight:800;font-size:.86rem;text-decoration:none;white-space:nowrap}
+        .tp-back-hotels:hover{background:#dbeafe}
+        .tp-empty-state{border:1.5px dashed #cbd5e1;background:#f8fafc;border-radius:16px;padding:34px 20px;text-align:center;color:#64748b}
+        .tp-empty-state i{font-size:2rem;color:#94a3b8;margin-bottom:10px}
+        .tp-source-line{display:flex;align-items:center;gap:6px;color:#64748b;font-size:.75rem;font-weight:600;min-width:0}
+        .tp-source-line span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .pdm-hotels-btn{display:inline-flex;align-items:center;gap:8px;background:#f8fafc;color:#1e40af;border:1.5px solid #dbeafe;padding:10px 18px;border-radius:12px;font-weight:700;font-size:.88rem;text-decoration:none}
+        .pdm-hotels-btn:hover{background:#eff6ff}
         /* ===== NOTIFICATION BELL ===== */
         .notif-wrap{position:relative;display:flex;align-items:center;margin-right:10px}
         .notif-btn{background:none;border:none;cursor:pointer;color:#fff;font-size:1.2rem;padding:6px 8px;border-radius:8px;position:relative;transition:background 0.15s}
@@ -94,102 +106,10 @@
 </head>
 
 <body>
-    <!-- ===== SIDEBAR OVERLAY ===== -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/user.js"></script>
+    <div th:replace="~{fragments/user-header :: header(true, 'travel')}"></div>
 
-    <!-- ===== SIDEBAR MENU ===== -->
-    <aside class="sidebar-menu" id="sidebarMenu" role="dialog" aria-label="Menu điều hướng">
-        <div class="sidebar-header">
-            <div class="sidebar-logo">
-                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                <span class="s-logo-text">TRAVEL<span>MATE</span></span>
-            </div>
-            <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Đóng menu">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <nav class="sidebar-nav">
-            <div class="sidebar-nav-label">Chức năng</div>
-            <a href="/accommodations" id="sb-hotels"><span class="s-icon"><i class="fa-solid fa-bed"></i></span>Đặt phòng</a>
-            <a href="/travel" id="sb-travel" class="active-sidebar"><span class="s-icon"><i class="fa-solid fa-map-location-dot"></i></span>Gợi ý du lịch</a>
-            <a href="/news" id="sb-news"><span class="s-icon"><i class="fa-solid fa-newspaper"></i></span>Tin tức</a>
-            <a href="/contact" id="sb-contact"><span class="s-icon"><i class="fa-solid fa-headset"></i></span>Liên hệ</a>
-            <a href="/vouchers" id="sb-voucher"><span class="s-icon"><i class="fa-solid fa-ticket"></i></span>Kho voucher</a>
-        </nav>
-        <div class="sidebar-divider"></div>
-        <div class="sidebar-auth">
-            <a href="/auth/login" class="btn-login-side" sec:authorize="isAnonymous()">
-                <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
-            </a>
-            <a href="/auth/register" class="btn-register-side" sec:authorize="isAnonymous()">
-                <i class="fa-solid fa-user-plus"></i> Đăng ký
-            </a>
-            <div sec:authorize="isAuthenticated()" style="display:flex;flex-direction:column;gap:8px;">
-                <a href="/my-bookings" class="btn-login-side">
-                    <i class="fa-solid fa-bed"></i> Đặt phòng của tôi
-                </a>
-                <form method="post" action="/auth/logout">
-                    <button type="submit" class="btn-logout-side" style="width:100%;text-align:left;">
-                        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
-                    </button>
-                </form>
-            </div>
-        </div>
-    </aside>
-
-    <!-- ===== HEADER ===== -->
-    <header class="header travel-header header-static" id="header">
-        <div class="container navbar">
-            <div class="logo-wrapper">
-                <a href="/" class="logo">
-                    <div class="logo-icon"><i class="fa-solid fa-building"></i></div>
-                    <span class="logo-text"><span class="logo-blue">TRAVEL</span><span class="logo-yellow">MATE</span></span>
-                </a>
-                <button class="hamburger-btn" id="hamburgerBtn" aria-label="Mở menu" aria-expanded="false">
-                    <span class="bar"></span><span class="bar"></span><span class="bar"></span>
-                </button>
-            </div>
-            <nav class="menu">
-                <ul class="menu-list">
-                    <li><a href="/">TRANG CHỦ</a></li>
-                    <li><a href="/travel" class="active-menu">GỢI Ý DU LỊCH</a></li>
-                    <li><a href="/news">TIN TỨC</a></li>
-                    <li><a href="/contact">LIÊN HỆ</a></li>
-                    <li><a href="/my-bookings" sec:authorize="isAuthenticated()"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a></li>
-                </ul>
-            </nav>
-            <a href="/auth/login" class="login-btn" sec:authorize="isAnonymous()">ĐĂNG NHẬP</a>
-            <!-- Bell Notification -->
-            <div class="notif-wrap" id="notifWrap" sec:authorize="isAuthenticated()">
-                <button class="notif-btn" id="notifBtn" type="button" aria-label="Thông báo">
-                    <i class="fa-solid fa-bell"></i>
-                    <span class="notif-badge" id="notifBadge" style="display:none;"></span>
-                </button>
-                <div class="notif-dropdown" id="notifDropdown" style="display:none;">
-                    <div class="notif-head">
-                        <span class="notif-head-title">Thông báo</span>
-                        <button type="button" class="notif-read-all" id="notifReadAll">Đọc hết</button>
-                    </div>
-                    <div class="notif-list" id="notifList"><p class="notif-empty">Không có thông báo</p></div>
-                </div>
-            </div>
-            <!-- User dropdown -->
-            <div class="header-user" id="headerUser" sec:authorize="isAuthenticated()">
-                <button class="header-user-btn" id="headerUserBtn" type="button">
-                    <div class="header-avatar"><i class="fa-solid fa-user"></i></div>
-                    <span class="header-user-name" sec:authentication="principal.fullName">User</span>
-                    <i class="fa-solid fa-chevron-down header-chevron"></i>
-                </button>
-                <div class="header-user-dropdown" id="headerUserDropdown">
-                    <a href="/my-bookings" class="dropdown-item"><i class="fa-solid fa-bed"></i> Đặt phòng của tôi</a>
-                    <div class="dropdown-divider"></div>
-                    <form method="post" action="/auth/logout">
-                        <button type="submit" class="dropdown-item dropdown-logout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </header>
 
     <!-- ===== HERO ===== -->
     <section class="travel-hero">
@@ -205,18 +125,19 @@
                 <i class="fa-solid fa-location-dot"></i>
                 <select id="travelLocation">
                     <option value="">Chọn một địa điểm</option>
-                    <option value="Đà Nẵng">Đà Nẵng</option>
-                    <option value="Hội An">Hội An</option>
+                    <option value="Đà Nẵng" th:selected="${destinationLabel == 'Đà Nẵng'}">Đà Nẵng</option>
+                    <option value="Hội An" th:selected="${destinationLabel == 'Hội An'}">Hội An</option>
                     <option value="Hà Nội">Hà Nội</option>
-                    <option value="Đà Lạt">Đà Lạt</option>
-                    <option value="Nha Trang">Nha Trang</option>
-                    <option value="Phú Quốc">Phú Quốc</option>
+                    <option value="Đà Lạt" th:selected="${destinationLabel == 'Đà Lạt'}">Đà Lạt</option>
+                    <option value="Nha Trang" th:selected="${destinationLabel == 'Nha Trang'}">Nha Trang</option>
+                    <option value="Sa Pa" th:selected="${destinationLabel == 'Sa Pa'}">Sa Pa</option>
+                    <option value="Phú Quốc" th:selected="${destinationLabel == 'Phú Quốc'}">Phú Quốc</option>
                 </select>
                 <i class="fa-solid fa-chevron-down"></i>
             </div>
             <div class="travel-keyword-input">
                 <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="travelKeyword" placeholder="Tìm kiếm địa điểm, hoạt động hoặc kinh nghiệm du lịch" />
+                <input type="text" id="travelKeyword" placeholder="Tìm kiếm địa điểm, hoạt động hoặc kinh nghiệm du lịch" th:value="${destinationMode ? destinationLabel : ''}" />
             </div>
             <button class="travel-search-btn" id="travelSearchBtn">Tìm kiếm</button>
         </div>
@@ -224,7 +145,7 @@
     </section>
 
     <!-- ===== THANH FEATURE NAV ===== -->
-    <section class="travel-feature-nav-section">
+    <section class="travel-feature-nav-section" th:unless="${destinationMode}">
         <div class="container">
             <div class="travel-feature-nav">
                 <a href="#" class="travel-feature-item active" data-tab="cam-nang">
@@ -257,8 +178,77 @@
                 </a>
             </div>
 
+            <!-- ─── GỢI Ý THEO ĐIỂM ĐẾN ─── -->
+            <div th:if="${destinationMode}" class="tp-destination-panel">
+                <div class="tp-destination-head">
+                    <div>
+                        <h2 class="tp-destination-title">
+                            <i class="fa-solid fa-map-location-dot" style="color:#2563eb;margin-right:8px;"></i>
+                            <span th:text="${'Gợi ý du lịch tại ' + destinationLabel}">Gợi ý du lịch tại Đà Lạt</span>
+                        </h2>
+                        <p class="tp-destination-desc">
+                            Các bài viết, cẩm nang và trải nghiệm liên quan đến điểm đến bạn đang tìm nơi lưu trú. Nội dung được quản lý bởi Admin và có đường dẫn nguồn tham khảo thật.
+                        </p>
+                    </div>
+                    <a class="tp-back-hotels"
+                       th:href="@{/accommodations(type='HOTEL',keyword=${destinationLabel},checkIn=${checkIn},checkOut=${checkOut},adults=${adults},children=${children},rooms=${rooms})}">
+                        <i class="fa-solid fa-bed"></i>
+                        <span th:text="${'Xem nơi lưu trú tại ' + destinationLabel}">Xem nơi lưu trú tại Đà Lạt</span>
+                    </a>
+                </div>
+
+                <div th:if="${#lists.isEmpty(destinationPosts)}" class="tp-empty-state">
+                    <i class="fa-regular fa-map"></i>
+                    <div style="font-size:1rem;font-weight:800;color:#334155;margin-bottom:6px;">Chưa có gợi ý du lịch cho điểm đến này</div>
+                    <div style="font-size:.88rem;margin-bottom:16px;">Bạn vẫn có thể quay lại danh sách nơi lưu trú để tiếp tục đặt phòng.</div>
+                    <a class="tp-back-hotels"
+                       th:href="@{/accommodations(type='HOTEL',keyword=${destinationLabel},checkIn=${checkIn},checkOut=${checkOut},adults=${adults},children=${children},rooms=${rooms})}">
+                        <i class="fa-solid fa-arrow-left"></i> Quay lại nơi lưu trú
+                    </a>
+                </div>
+
+                <div th:unless="${#lists.isEmpty(destinationPosts)}" class="news-grid">
+                    <div class="news-grid-card tp-post-card"
+                         th:each="p : ${destinationPosts}"
+                         th:data-id="${p.id}"
+                         th:data-title="${p.title}"
+                         th:data-destination="${p.destination}"
+                         th:data-source-name="${p.sourceName}"
+                         th:data-summary="${p.summary}"
+                         th:data-content="${p.content}"
+                         th:data-thumb="${p.thumbnailUrl}"
+                         th:data-src="${p.sourceUrl}"
+                         th:data-cat="${p.category.name()}"
+                         onclick="openPostDetail(this)">
+                        <div class="grid-card-img">
+                            <img th:if="${p.thumbnailUrl != null and !#strings.isEmpty(p.thumbnailUrl)}"
+                                 th:src="${p.thumbnailUrl}" alt="" loading="lazy" />
+                            <div th:unless="${p.thumbnailUrl != null and !#strings.isEmpty(p.thumbnailUrl)}"
+                                 style="background:#f1f5f9;display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:2rem;">
+                                <i class="fa-solid fa-map-location-dot"></i>
+                            </div>
+                        </div>
+                        <div class="grid-card-body">
+                            <span class="grid-card-tag" th:text="${p.category.displayName}">Cẩm nang</span>
+                            <h3 th:text="${p.title}">Tiêu đề</h3>
+                            <p th:text="${p.summary}">Mô tả ngắn</p>
+                            <div class="grid-card-meta">
+                                <span class="tp-source-line">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    <span th:text="${p.destination}">Đà Lạt</span>
+                                </span>
+                                <span class="tp-source-line">
+                                    <i class="fa-solid fa-link"></i>
+                                    <span th:text="${p.sourceName != null ? p.sourceName : 'Nguồn tham khảo'}">Vietnam.travel</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- ─── CẨM NANG ─── -->
-            <div class="travel-tab-content active" id="tab-cam-nang">
+            <div class="travel-tab-content active" id="tab-cam-nang" th:unless="${destinationMode}">
                 <div class="news-more-header">
                     <h2><i class="fa-solid fa-book-open"></i> Cẩm nang du lịch</h2>
                 </div>
@@ -270,6 +260,8 @@
                         <div class="news-grid-card tp-post-card"
                              th:data-id="${p.id}"
                              th:data-title="${p.title}"
+                             th:data-destination="${p.destination}"
+                             th:data-source-name="${p.sourceName}"
                              th:data-summary="${p.summary}"
                              th:data-content="${p.content}"
                              th:data-thumb="${p.thumbnailUrl}"
@@ -310,7 +302,7 @@
             </div>
 
             <!-- ─── ĐỊA ĐIỂM THAM QUAN ─── -->
-            <div class="travel-tab-content" id="tab-dia-diem" style="display:none;">
+            <div class="travel-tab-content" id="tab-dia-diem" style="display:none;" th:unless="${destinationMode}">
                 <div class="news-more-header">
                     <h2><i class="fa-solid fa-map-location-dot"></i> Địa điểm tham quan</h2>
                 </div>
@@ -322,6 +314,8 @@
                         <div class="news-grid-card tp-post-card"
                              th:data-id="${p.id}"
                              th:data-title="${p.title}"
+                             th:data-destination="${p.destination}"
+                             th:data-source-name="${p.sourceName}"
                              th:data-summary="${p.summary}"
                              th:data-content="${p.content}"
                              th:data-thumb="${p.thumbnailUrl}"
@@ -362,7 +356,7 @@
             </div>
 
             <!-- ─── CẦN THIẾT CHO DU LỊCH ─── -->
-            <div class="travel-tab-content" id="tab-can-thiet" style="display:none;">
+            <div class="travel-tab-content" id="tab-can-thiet" style="display:none;" th:unless="${destinationMode}">
                 <div class="news-more-header">
                     <h2><i class="fa-solid fa-suitcase-rolling"></i> Cần thiết cho du lịch</h2>
                 </div>
@@ -374,6 +368,8 @@
                         <div class="news-grid-card tp-post-card"
                              th:data-id="${p.id}"
                              th:data-title="${p.title}"
+                             th:data-destination="${p.destination}"
+                             th:data-source-name="${p.sourceName}"
                              th:data-summary="${p.summary}"
                              th:data-content="${p.content}"
                              th:data-thumb="${p.thumbnailUrl}"
@@ -431,12 +427,20 @@
           <div class="pdm-content" id="pdmContent" style="display:none"></div>
           <div class="pdm-divider"></div>
           <div class="pdm-actions">
-            <a id="pdmReadBtn" href="#" target="_blank" class="pdm-read-btn"><i class="fa-solid fa-external-link-alt"></i> Xem bai viet goc</a>
-            <button class="pdm-close-btn" onclick="closePostDetail()"><i class="fa-solid fa-xmark"></i> Dong</button>
+            <a id="pdmHotelsBtn" href="/accommodations" class="pdm-hotels-btn" style="display:none"><i class="fa-solid fa-bed"></i> Xem nơi lưu trú</a>
+            <a id="pdmReadBtn" href="#" target="_blank" rel="noopener" class="pdm-read-btn"><i class="fa-solid fa-external-link-alt"></i> Xem bài viết gốc</a>
+            <button class="pdm-close-btn" onclick="closePostDetail()"><i class="fa-solid fa-xmark"></i> Đóng</button>
           </div>
         </div>
       </div>
     </div>
+    <div id="travelSearchState"
+         th:data-checkin="${checkIn}"
+         th:data-checkout="${checkOut}"
+         th:data-adults="${adults}"
+         th:data-children="${children}"
+         th:data-rooms="${rooms}"
+         style="display:none"></div>
     <!-- ===== ADMIN MODAL THÊM BÀI VIẾT ===== -->
     <div th:if="${isAdmin}" id="tpModalBackdrop" class="tp-modal-backdrop" style="display:none;"></div>
     <div th:if="${isAdmin}" id="tpModal" class="tp-modal-box" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:8001;">
@@ -451,7 +455,15 @@
                     <input type="text" id="tpTitle" placeholder="Nhập tiêu đề..." required />
                 </div>
                 <div class="tp-form-group">
-                    <label>Đường dẫn (URL) *</label>
+                    <label>Điểm đến *</label>
+                    <input type="text" id="tpDestination" placeholder="Ví dụ: Đà Lạt, Nha Trang..." th:value="${destinationMode ? destinationLabel : ''}" required />
+                </div>
+                <div class="tp-form-group">
+                    <label>Nguồn tham khảo</label>
+                    <input type="text" id="tpSourceName" placeholder="Vietnam.travel" />
+                </div>
+                <div class="tp-form-group">
+                    <label>Đường dẫn nguồn (URL) *</label>
                     <input type="url" id="tpUrl" placeholder="https://..." required />
                 </div>
                 <div class="tp-form-group">
@@ -482,15 +494,7 @@
     </div>
 
     <!-- ===== FOOTER ===== -->
-    <footer class="footer">
-        <div class="container footer-content">
-            <div class="logo">
-                <div class="logo-icon bg-sky"><i class="fa-solid fa-building"></i></div>
-                <span class="logo-text text-white">TRAVEL<span class="logo-yellow">MATE</span></span>
-            </div>
-            <p>&copy; 2024 TravelMate. Đồ án Cơ sở lập trình Web.</p>
-        </div>
-    </footer>
+
 
     <!-- ===== JAVASCRIPT ===== -->
     <script>
@@ -498,6 +502,54 @@
         window.addEventListener('scroll', () => {
             document.getElementById('header').classList.toggle('scrolled', window.scrollY > 40);
         });
+
+        function getTravelState() {
+            const el = document.getElementById('travelSearchState');
+            return {
+                checkIn: el?.dataset.checkin || '',
+                checkOut: el?.dataset.checkout || '',
+                adults: el?.dataset.adults || '2',
+                children: el?.dataset.children || '0',
+                rooms: el?.dataset.rooms || '1'
+            };
+        }
+
+        function buildTravelUrl(destination) {
+            const params = new URLSearchParams();
+            if (destination) params.set('destination', destination);
+            const state = getTravelState();
+            Object.entries(state).forEach(([key, value]) => {
+                if (value !== null && value !== undefined && value !== '') params.set(key, value);
+            });
+            return '/travel' + (params.toString() ? '?' + params.toString() : '');
+        }
+
+        function buildAccommodationUrl(destination) {
+            const params = new URLSearchParams();
+            params.set('type', 'HOTEL');
+            if (destination) params.set('keyword', destination);
+            const state = getTravelState();
+            Object.entries(state).forEach(([key, value]) => {
+                if (value !== null && value !== undefined && value !== '') params.set(key, value);
+            });
+            return '/accommodations?' + params.toString();
+        }
+
+        (function () {
+            const btn = document.getElementById('travelSearchBtn');
+            const select = document.getElementById('travelLocation');
+            const input = document.getElementById('travelKeyword');
+            if (!btn || !input) return;
+            function submitTravelSearch() {
+                const destination = (input.value.trim() || (select ? select.value.trim() : ''));
+                if (destination) window.location.href = buildTravelUrl(destination);
+            }
+            btn.addEventListener('click', submitTravelSearch);
+            input.addEventListener('keydown', e => { if (e.key === 'Enter') submitTravelSearch(); });
+            if (select) select.addEventListener('change', () => {
+                if (select.value) input.value = select.value;
+            });
+        })();
 
         // ===== TAB SWITCHING =====
         (function () {
@@ -531,37 +583,8 @@
             document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
         })();
 
-        // ===== NOTIFICATION BELL =====
-        (function () {
-            const btn = document.getElementById('notifBtn');
-            const wrap = document.getElementById('notifWrap');
-            const dropdown = document.getElementById('notifDropdown');
-            const badge = document.getElementById('notifBadge');
-            const list = document.getElementById('notifList');
-            const readAll = document.getElementById('notifReadAll');
-            if (!btn) return;
-            let open = false, loaded = false;
-            const ICONS = { REVIEW_REMINDER:{cls:'',icon:'fa-star'}, BOOKING_CONFIRMED:{cls:'',icon:'fa-circle-check'}, BOOKING_CHECKIN_READY:{cls:'',icon:'fa-bed'}, SYSTEM:{cls:'',icon:'fa-bell'} };
-            function updateBadge() {
-                fetch('/api/notifications/count').then(r=>r.json()).then(d=>{
-                    const c=d.count||0; if(c>0){badge.textContent=c>99?'99+':c;badge.style.display='flex';}else{badge.style.display='none';}
-                }).catch(()=>{});
-            }
-            function renderList(items) {
-                if(!items||items.length===0){list.innerHTML='<p class="notif-empty">Không có thông báo</p>';return;}
-                list.innerHTML=items.map(n=>`<a class="notif-item ${n.isRead?'':'unread'}" href="${n.targetUrl}" data-id="${n.id}" data-read="${n.isRead}"><div class="notif-item-icon"><i class="fa-solid ${(ICONS[n.type]||ICONS.SYSTEM).icon}"></i></div><div class="notif-item-body"><div class="notif-item-title">${n.title}</div><div class="notif-item-time">${n.createdAt}</div></div></a>`).join('');
-                list.querySelectorAll('.notif-item').forEach(el=>{ el.addEventListener('click',function(){if(this.dataset.read==='false'){fetch('/api/notifications/'+this.dataset.id+'/read',{method:'POST'}).then(()=>{this.classList.remove('unread');this.dataset.read='true';updateBadge();}).catch(()=>{});}});});
-            }
-            function loadNotifications() { list.innerHTML='<p class="notif-empty">Đang tải...</p>'; fetch('/api/notifications').then(r=>r.json()).then(renderList).catch(()=>{list.innerHTML='<p class="notif-empty">Không thể tải</p>';}); }
-            btn.addEventListener('click',function(e){e.stopPropagation();open=!open;dropdown.style.display=open?'block':'none';if(open&&!loaded){loadNotifications();loaded=true;}});
-            if (readAll) readAll.addEventListener('click',function(e){e.stopPropagation();fetch('/api/notifications/read-all',{method:'POST'}).then(()=>{badge.style.display='none';loaded=false;loadNotifications();}).catch(()=>{});});
-            document.addEventListener('click',function(e){if(open&&!wrap.contains(e.target)){open=false;dropdown.style.display='none';}});
-            updateBadge();
-        })();
-
-
         // ===== POST DETAIL MODAL =====
-        const CAT_LABELS = {GUIDE:'Cam nang du lich',ATTRACTION:'Dia diem tham quan',ESSENTIAL:'Can thiet cho du lich'};
+        const CAT_LABELS = {GUIDE:'Cẩm nang du lịch',ATTRACTION:'Địa điểm tham quan',ESSENTIAL:'Cần thiết cho du lịch'};
         const CAT_ICONS  = {GUIDE:'fa-book-open',ATTRACTION:'fa-map-location-dot',ESSENTIAL:'fa-suitcase-rolling'};
         const CAT_PH_BG  = {GUIDE:'linear-gradient(135deg,#dbeafe,#eff6ff)',ATTRACTION:'linear-gradient(135deg,#fce7f3,#fdf2f8)',ESSENTIAL:'linear-gradient(135deg,#fef9c3,#fffbeb)'};
         const CAT_PH_COL = {GUIDE:'#2563eb',ATTRACTION:'#ec4899',ESSENTIAL:'#f59e0b'};
@@ -572,6 +595,8 @@
             const content = el.dataset.content || '';
             const thumb   = el.dataset.thumb   || '';
             const src     = el.dataset.src     || '#';
+            const destination = el.dataset.destination || '';
+            const sourceName = el.dataset.sourceName || 'Nguồn tham khảo';
             const cat     = el.dataset.cat     || 'GUIDE';
 
             const heroImg = document.getElementById('pdmHeroImg');
@@ -589,6 +614,18 @@
             catEl.innerHTML = `<i class="fa-solid ${CAT_ICONS[cat]||'fa-newspaper'}"></i> ${CAT_LABELS[cat]||cat}`;
 
             document.getElementById('pdmTitle').textContent = title;
+            const metaEl = document.getElementById('pdmMeta');
+            metaEl.innerHTML = '';
+            if (destination) {
+                const destSpan = document.createElement('span');
+                destSpan.innerHTML = '<i class="fa-solid fa-location-dot"></i> ';
+                destSpan.appendChild(document.createTextNode(destination));
+                metaEl.appendChild(destSpan);
+            }
+            const srcSpan = document.createElement('span');
+            srcSpan.innerHTML = '<i class="fa-solid fa-link"></i> ';
+            srcSpan.appendChild(document.createTextNode(sourceName));
+            metaEl.appendChild(srcSpan);
 
             const sumEl = document.getElementById('pdmSummary');
             if (summary) { sumEl.textContent = summary; sumEl.style.display = 'block'; }
@@ -603,6 +640,15 @@
                 contEl.style.display = 'none'; divEl.style.display = 'none';
             }
             document.getElementById('pdmReadBtn').href = src;
+            const hotelsBtn = document.getElementById('pdmHotelsBtn');
+            if (destination) {
+                hotelsBtn.href = buildAccommodationUrl(destination);
+                hotelsBtn.innerHTML = '<i class="fa-solid fa-bed"></i> ';
+                hotelsBtn.appendChild(document.createTextNode('Xem nơi lưu trú tại ' + destination));
+                hotelsBtn.style.display = 'inline-flex';
+            } else {
+                hotelsBtn.style.display = 'none';
+            }
             const overlay = document.getElementById('pdmOverlay');
             overlay.classList.add('show');
             document.body.style.overflow = 'hidden';
@@ -639,19 +685,21 @@
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
                 const title      = document.getElementById('tpTitle').value.trim();
+                const destination = document.getElementById('tpDestination').value.trim();
+                const sourceName = document.getElementById('tpSourceName').value.trim() || 'Vietnam.travel';
                 const sourceUrl  = document.getElementById('tpUrl').value.trim();
                 const summary    = document.getElementById('tpSummary').value.trim();
                 const thumbUrl   = document.getElementById('tpThumb').value.trim();
                 const category   = document.getElementById('tpCategory').value;
 
-                if (!title || !sourceUrl) { msgEl.textContent='Vui lòng điền tiêu đề và URL.'; msgEl.style.display='block'; return; }
+                if (!title || !destination || !sourceUrl) { msgEl.textContent='Vui lòng điền tiêu đề, điểm đến và URL nguồn.'; msgEl.style.display='block'; return; }
                 msgEl.style.display='none';
                 submitBtn.disabled=true; submitBtn.textContent='Đang lưu...';
 
                 fetch('/api/travel-posts', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title, sourceUrl, summary, thumbnailUrl: thumbUrl, category })
+                    body: JSON.stringify({ title, destination, sourceName, sourceUrl, summary, thumbnailUrl: thumbUrl, category })
                 })
                 .then(r => r.json())
                 .then(data => {
@@ -669,10 +717,18 @@
                 if (!grid) return;
                 const emptyEl = grid.querySelector('.tp-empty');
                 if (emptyEl) emptyEl.remove();
-                const card = document.createElement('a');
-                card.href = post.sourceUrl;
-                card.target = '_blank';
-                card.className = 'news-grid-card';
+                const card = document.createElement('div');
+                card.className = 'news-grid-card tp-post-card';
+                card.dataset.id = post.id;
+                card.dataset.title = post.title || '';
+                card.dataset.destination = post.destination || '';
+                card.dataset.sourceName = post.sourceName || '';
+                card.dataset.summary = post.summary || '';
+                card.dataset.content = post.content || '';
+                card.dataset.thumb = post.thumbnailUrl || '';
+                card.dataset.src = post.sourceUrl || '';
+                card.dataset.cat = post.category || 'GUIDE';
+                card.onclick = function () { openPostDetail(this); };
                 card.style.animation = 'newsCardFadeIn 0.4s ease forwards';
                 const hasThumb = post.thumbnailUrl && post.thumbnailUrl.trim() !== '';
                 card.innerHTML = `
@@ -685,7 +741,7 @@
                         <h3>${post.title}</h3>
                         <p>${post.summary||''}</p>
                         <div class="grid-card-meta">
-                            <span><i class="fa-regular fa-clock"></i> Vừa thêm</span>
+                            <span><i class="fa-solid fa-location-dot"></i> ${post.destination||''}</span>
                             <div class="tp-card-actions" onclick="event.preventDefault()">
                                 <button type="button" class="tp-card-btn toggle" data-id="${post.id}" title="Ẩn bài viết"><i class="fa-solid fa-eye"></i></button>
                                 <button type="button" class="tp-card-btn del"    data-id="${post.id}" title="Xóa bài viết"><i class="fa-solid fa-trash"></i></button>
@@ -728,5 +784,13 @@
             }
         });
     </script>
+
+    <div th:replace="~{fragments/user-footer :: footer}"></div>
 </body>
 </html>
+
+
+
+
+
+
