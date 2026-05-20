@@ -1,0 +1,132 @@
+@startuml TravelMate_Activity_Deposit30_FullPayment
+!theme plain
+skinparam activityBackgroundColor #E8F4FD
+skinparam activityBorderColor #2980B9
+skinparam activityDiamondBackgroundColor #FFF3CD
+skinparam activityDiamondBorderColor #E67E22
+skinparam arrowColor #2C3E50
+
+title TravelMate — Activity Diagram: Vòng Đời Booking (DEPOSIT_30 & FULL_PAYMENT)
+
+|User|
+start
+
+:Tìm kiếm & chọn phòng;
+:Điền thông tin đặt phòng\n(check-in, check-out, số người, số phòng);
+:Chọn mã voucher (tuỳ chọn);
+
+|BookingService|
+:Validate ngày, số phòng, voucher;
+
+if (Dữ liệu hợp lệ?) then (Hợp lệ)
+    :Tính tổng tiền\n(pricePerNight × nights × qty - discount);
+else (Không hợp lệ)
+    |User|
+    :Hiển thị lỗi → User sửa lại;
+    stop
+endif
+
+|User|
+:Chọn hình thức thanh toán;
+
+if (Chọn hình thức?) then (DEPOSIT_30)
+
+    |BookingService|
+    :paidAmount = floor(total × 30%)\nremainingAmount = total × 70%;
+    :Tạo Booking (PENDING_PAYMENT)\nTạo Payment (amount = 30%);
+
+    |User|
+    :Thanh toán 30% qua VNPAY;
+
+    |VnpayService|
+    :VNPAY xác nhận thành công;
+    :Booking → PENDING_ADMIN_APPROVAL\nPayment → PENDING_ADMIN_APPROVAL;
+
+    |Admin|
+    :Xem danh sách booking chờ duyệt;
+    if (Admin quyết định?) then (Duyệt)
+        :Booking → CONFIRMED\nPayment → APPROVED\npartner_status → PENDING_PARTNER_CONFIRMATION;
+
+        |Partner|
+        :Nhận notification\n"Có booking mới cần xác nhận";
+        if (Partner xác nhận?) then (Xác nhận)
+            :partner_status → PARTNER_CONFIRMED;
+        else (Từ chối)
+            :partner_status → PARTNER_CANCELLED\n(Admin xử lý tiếp);
+        endif
+
+        |Partner|
+        :Ngày check-in đến → Partner check-in khách;
+        :Booking → CHECKED_IN;
+
+        fork
+            :Khách xác nhận thu 70% tại cơ sở;
+            :remainingPaymentStatus → PAID_AT_PROPERTY;
+        fork again
+            :Booking → COMPLETED (check-out);
+        end fork
+
+        :Đưa vào quyết toán tháng\n(ONLINE + COMPLETED + APPROVED\n→ settlement);
+
+    else (Từ chối)
+        |Admin|
+        :Booking → CANCELLED\nPayment → REJECTED\nMở lại phòng;
+    endif
+
+    ' No-show path cho DEPOSIT_30
+    |Admin|
+    note right: Nếu khách không đến check-in
+    if (Khách không đến?) then (No-Show DEPOSIT_30)
+        :Booking → NO_SHOW\nPayment → DEPOSIT_FORFEITED\nMở lại phòng;
+        note right: Cọc 30% bị giữ lại\nÐưa vào settlement
+        :Đưa vào quyết toán tháng\n(ONLINE + NO_SHOW + DEPOSIT_FORFEITED);
+    endif
+
+else (FULL_PAYMENT)
+
+    |BookingService|
+    :paidAmount = totalAmount (100%)\nremainingAmount = 0;
+    :Tạo Booking (PENDING_PAYMENT)\nTạo Payment (amount = 100%);
+
+    |User|
+    :Thanh toán 100% qua VNPAY;
+
+    |VnpayService|
+    :VNPAY xác nhận thành công;
+    :Booking → PENDING_ADMIN_APPROVAL\nPayment → PENDING_ADMIN_APPROVAL;
+
+    |Admin|
+    :Xem và duyệt booking;
+    if (Admin quyết định?) then (Duyệt)
+        :Booking → CONFIRMED\nPayment → APPROVED\npartner_status → PENDING_PARTNER_CONFIRMATION;
+
+        |Partner|
+        :Xác nhận giữ phòng;
+        :partner_status → PARTNER_CONFIRMED;
+
+        :Ngày check-in → check-in khách;
+        :Booking → CHECKED_IN;
+
+        ' No-show FULL_PAYMENT
+        if (Khách không đến?) then (No-Show FULL_PAYMENT)
+            :Booking → CHECKED_IN\n(xử lý theo chính sách đã trả đủ)\nPhòng KHÔNG mở lại;
+        else (Khách đến)
+            :Booking → COMPLETED (check-out);
+            :Đưa vào quyết toán tháng;
+        endif
+
+    else (Từ chối)
+        |Admin|
+        :Booking → CANCELLED\nPayment → REJECTED\nMở lại phòng;
+    endif
+
+endif
+
+|Admin|
+:Tạo quyết toán tháng;
+:Tính gross, commission, voucher_deduction\ncho từng partner;
+:PartnerSettlement (PENDING) → Admin xem xét → PAID;
+
+stop
+
+@enduml

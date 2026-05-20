@@ -1,0 +1,332 @@
+@startuml TravelMate_Class_Diagram
+!theme plain
+skinparam classBackgroundColor #F0F8FF
+skinparam classBorderColor #2980B9
+skinparam arrowColor #2C3E50
+skinparam packageBackgroundColor #FAFAFA
+
+title TravelMate — Class Diagram (Entity Layer)
+
+' ─── ENUMS ───────────────────────────────────────────────────────────────────
+enum BookingStatus {
+    PENDING_PAYMENT
+    PENDING_ADMIN_APPROVAL
+    CONFIRMED
+    CHECKED_IN
+    COMPLETED
+    NO_SHOW
+    CANCELLED
+}
+
+enum PaymentStatus {
+    PENDING_PAYMENT
+    PENDING_ADMIN_APPROVAL
+    APPROVED
+    REJECTED
+    FAILED
+    CANCELLED
+    EXPIRED
+    DEPOSIT_FORFEITED
+    REFUND_PENDING
+    REFUNDED
+    NOT_REQUIRED
+}
+
+enum PaymentOption {
+    FULL_PAYMENT
+    DEPOSIT_30
+}
+
+enum BookingSource {
+    ONLINE
+    DIRECT
+    MANUAL_BLOCK
+}
+
+enum DiscountType {
+    PERCENT
+    FIXED_AMOUNT
+}
+
+enum VoucherScope {
+    USER_GLOBAL
+    PARTNER_ACCOMMODATION
+    PARTNER_ROOM
+}
+
+enum VoucherCostBearer {
+    ADMIN
+    PARTNER
+}
+
+enum SettlementStatus {
+    PENDING
+    PAID
+    CANCELLED
+}
+
+enum PropertyType {
+    HOTEL
+    VILLA
+    HOMESTAY
+    RESORT
+}
+
+enum ApprovalStatus {
+    PENDING
+    APPROVED
+    REJECTED
+}
+
+' ─── ENTITIES ─────────────────────────────────────────────────────────────────
+
+class User {
+    - id: Long
+    - email: String
+    - password: String
+    - fullName: String
+    - phone: String
+    - role: String
+    - status: String
+    - partnerPropertyType: String
+    - bankAccountNumber: String
+    - bankName: String
+    - bankAccountHolder: String
+    - avatarUrl: String
+    - createdAt: LocalDateTime
+}
+
+class Accommodation {
+    - id: Long
+    - name: String
+    - description: String
+    - address: String
+    - city: String
+    - thumbnailUrl: String
+    - starRating: Integer
+    - rating: Double
+    - reviewCount: Integer
+    - propertyType: PropertyType
+    - approvalStatus: ApprovalStatus
+    - owner: User
+    - createdAt: LocalDateTime
+}
+
+class Room {
+    - id: Long
+    - roomCode: String
+    - roomName: String
+    - bedType: String
+    - capacity: Integer
+    - pricePerNight: BigDecimal
+    - availableQuantity: Integer
+    - description: String
+    - imageUrl: String
+    - roomCategory: RoomCategory
+    - commissionRateOverride: BigDecimal
+    - approvalStatus: ApprovalStatus
+    - accommodation: Accommodation
+}
+
+class Amenity {
+    - id: Long
+    - name: String
+    - icon: String
+    - category: String
+}
+
+class Booking {
+    - id: Long
+    - bookingCode: String
+    - user: User
+    - accommodation: Accommodation
+    - room: Room
+    - checkIn: LocalDate
+    - checkOut: LocalDate
+    - adults: Integer
+    - children: Integer
+    - roomQuantity: Integer
+    - customerName: String
+    - customerPhone: String
+    - customerEmail: String
+    - totalAmount: BigDecimal
+    - paymentOption: PaymentOption
+    - paidAmount: BigDecimal
+    - remainingAmount: BigDecimal
+    - bookingStatus: BookingStatus
+    - paymentStatus: PaymentStatus
+    - partnerStatus: PartnerBookingStatus
+    - voucherCode: String
+    - discountAmount: BigDecimal
+    - voucherCostBearer: String
+    - totalBeforeDiscount: BigDecimal
+    - bookingSource: BookingSource
+    - blockReason: String
+    - createdAt: LocalDateTime
+}
+
+class Payment {
+    - id: Long
+    - booking: Booking
+    - paymentMethod: PaymentMethod
+    - paymentOption: PaymentOption
+    - amount: BigDecimal
+    - transactionCode: String
+    - paymentStatus: PaymentStatus
+    - paidAt: LocalDateTime
+    - approvedAt: LocalDateTime
+    - vnpTxnRef: String
+    - vnpTransactionNo: String
+    - vnpBankCode: String
+    - vnpResponseCode: String
+}
+
+class Voucher {
+    - id: Long
+    - code: String
+    - name: String
+    - discountType: DiscountType
+    - discountValue: BigDecimal
+    - maxDiscountAmount: BigDecimal
+    - minOrderAmount: BigDecimal
+    - startDate: LocalDate
+    - endDate: LocalDate
+    - active: Boolean
+    - voucherScope: VoucherScope
+    - costBearer: VoucherCostBearer
+    - owner: User
+    - accommodation: Accommodation
+    - room: Room
+    + isCurrentlyValid(): boolean
+}
+
+class Review {
+    - id: Long
+    - user: User
+    - accommodation: Accommodation
+    - booking: Booking
+    - rating: Integer
+    - comment: String
+    - isHidden: Boolean
+    - createdAt: LocalDateTime
+}
+
+class PartnerSettlement {
+    - id: Long
+    - partner: User
+    - periodStart: LocalDate
+    - periodEnd: LocalDate
+    - grossAmount: BigDecimal
+    - commissionAmount: BigDecimal
+    - voucherDeductionAmount: BigDecimal
+    - payoutAmount: BigDecimal
+    - settlementStatus: SettlementStatus
+    - settlementDate: LocalDateTime
+    - note: String
+}
+
+class SupportTicket {
+    - id: Long
+    - requesterRole: String
+    - partner: User
+    - user: User
+    - requesterName: String
+    - requesterEmail: String
+    - category: String
+    - subject: String
+    - priority: String
+    - description: String
+    - status: String
+    - adminResponse: String
+}
+
+class TravelDestination {
+    - id: Long
+    - name: String
+    - slug: String
+    - description: String
+    - thumbnailUrl: String
+    - featured: Boolean
+}
+
+class TravelPost {
+    - id: Long
+    - title: String
+    - content: String
+    - thumbnailUrl: String
+    - destination: TravelDestination
+    - status: Status
+    - createdAt: LocalDateTime
+}
+
+class AdminActionLog {
+    - id: Long
+    - admin: User
+    - actionType: String
+    - targetType: String
+    - targetId: Long
+    - note: String
+    - createdAt: LocalDateTime
+}
+
+class Notification {
+    - id: Long
+    - user: User
+    - booking: Booking
+    - message: String
+    - type: String
+    - read: Boolean
+    - createdAt: LocalDateTime
+}
+
+' ─── RELATIONSHIPS ────────────────────────────────────────────────────────────
+
+' Ownership
+User "1" --o "0..*" Accommodation : owns >
+Accommodation "1" --o "0..*" Room : contains >
+
+' Room amenities (N-N)
+Room "0..*" -- "0..*" Amenity : has >
+
+' Booking relationships
+Booking "0..*" --> "1" User : placed by >
+Booking "0..*" --> "1" Accommodation : at >
+Booking "0..*" --> "1" Room : reserves >
+Booking "1" --o "0..1" Payment : paid via >
+Booking "1" --o "0..1" Review : reviewed by >
+
+' Voucher relationships
+Voucher "0..*" --> "0..1" User : owned by >
+Voucher "0..*" --> "0..1" Accommodation : for >
+Voucher "0..*" --> "0..1" Room : for >
+
+' Settlement
+PartnerSettlement "0..*" --> "1" User : for partner >
+
+' Support
+SupportTicket "0..*" --> "0..1" User : from partner >
+SupportTicket "0..*" --> "0..1" User : from user >
+
+' Travel
+TravelPost "0..*" --> "1" TravelDestination : belongs to >
+
+' Notifications
+Notification "0..*" --> "1" User : sent to >
+Notification "0..*" --> "0..1" Booking : about >
+
+' Enum usage
+Booking ..> BookingStatus
+Booking ..> PaymentStatus
+Booking ..> PaymentOption
+Booking ..> BookingSource
+Payment ..> PaymentStatus
+Payment ..> PaymentOption
+Voucher ..> DiscountType
+Voucher ..> VoucherScope
+Voucher ..> VoucherCostBearer
+PartnerSettlement ..> SettlementStatus
+Accommodation ..> PropertyType
+Accommodation ..> ApprovalStatus
+Room ..> ApprovalStatus
+
+@enduml

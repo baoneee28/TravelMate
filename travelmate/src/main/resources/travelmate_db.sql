@@ -1,8 +1,38 @@
-    -- =============================================
-    -- TravelMate Database - Script khởi tạo
-    -- Phiên bản: đồ án cơ sở — demo booking flow
-    -- Cập nhật: thêm owner_id cho partner ownership
-    -- =============================================
+-- =======================================================================
+-- TRAVELMATE DEMO SEED — FILE CHÍNH ĐỂ DEMO & BẢO VỆ ĐỒ ÁN
+-- =======================================================================
+-- Sử dụng FILE NÀY khi import DB cho demo, không dùng file export cũ.
+-- Last verified: 2026-05-20
+--
+-- Nội dung bao gồm:
+--   • Users       : 1 ADMIN, 3 USER, 4 PARTNER (đủ loại HOTEL/VILLA/HOMESTAY/RESORT)
+--   • Accommodations: 11 cơ sở APPROVED + 2 PENDING/REJECTED (demo flow duyệt)
+--   • Rooms       : 30 phòng với commission_rate_override đa dạng
+--   • Amenities   : tiện nghi mẫu
+--   • Bookings    : 28+ booking bao gồm đủ trạng thái demo
+--                   (PENDING_ADMIN_APPROVAL, CONFIRMED, CHECKED_IN, COMPLETED,
+--                    NO_SHOW, CANCELLED — với cả DEPOSIT_30 và FULL_PAYMENT)
+--   • Payments    : APPROVED, DEPOSIT_FORFEITED, PENDING_ADMIN_APPROVAL
+--   • Vouchers    : 5 voucher (USER_GLOBAL/PARTNER_ACCOMMODATION/PARTNER_ROOM)
+--   • Settlements : settlement PAID demo cho 4 partner + 1 PENDING tháng hiện tại
+--   • Reviews     : 2 đánh giá sau booking COMPLETED
+--   • Support Tickets: 10 tickets demo đa loại
+--   • Travel Data : Destinations + Posts
+--
+-- DEMO ACCOUNTS:
+--   ADMIN  : admin@travelmate.vn   / admin123
+--   USER   : user@travelmate.vn    / user123
+--   USER2  : user2@travelmate.vn   / user123
+--   USER3  : user3@travelmate.vn   / user123
+--   PARTNER: partner@travelmate.vn / partner123  (HOTEL — Đà Lạt)
+--   PARTNER2: partner2@travelmate.vn / partner123 (RESORT — Nha Trang/Đà Nẵng)
+--   PARTNER3: partner3@travelmate.vn / partner123 (VILLA)
+--   PARTNER4: partner4@travelmate.vn / partner123 (HOMESTAY)
+--
+-- CÁCH IMPORT:
+--   mysql -u root -p < travelmate_db.sql
+--   hoặc: DBeaver / MySQL Workbench → Run SQL Script → chọn file này
+-- =======================================================================
 
     CREATE DATABASE IF NOT EXISTS travelmate_db
         DEFAULT CHARACTER SET utf8mb4
@@ -237,7 +267,7 @@
 
 
     -- =============================================
-    -- 7. BẢNG PARTNER_SETTLEMENTS — Quyết toán tuần cho Partner
+    -- 7. BẢNG PARTNER_SETTLEMENTS — Quyết toán tháng cho Partner
     -- =============================================
     CREATE TABLE partner_settlements (
         id                       BIGINT        NOT NULL AUTO_INCREMENT,
@@ -253,7 +283,7 @@
         note                     VARCHAR(500),
         created_at               DATETIME(6),
         PRIMARY KEY (id),
-        -- UNIQUE: Mỗi partner chỉ có 1 settlement duy nhất cho 1 kỳ tuần
+        -- UNIQUE: Mỗi partner chỉ có 1 settlement duy nhất cho 1 kỳ tháng
         UNIQUE KEY uk_settlement_partner_period (partner_id, period_start, period_end),
         CONSTRAINT fk_settlements_partner FOREIGN KEY (partner_id) REFERENCES users (id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -335,10 +365,10 @@
 
     -- ── PARTNER tickets ──────────────────────────────────────────────────────
     -- partner1 — HOTEL (Sunrise Sapa Lodge, id=3)
-    ('PARTNER', 3, NULL, NULL, NULL, NULL, 'Thanh toán & Quyết toán', 'Quyết toán tuần 3 bị sai số tiền', 'Cao',
-    'Chào Admin, tôi kiểm tra lại quyết toán tuần 3 thì thấy số tiền payout là 1.224.000đ nhưng theo tính toán của tôi thì phải cao hơn. Booking BK-LATA-DLX-0002 có total 2.040.000đ, commission 15% = 306.000đ, voucher deduction 510.000đ, payout đúng = 1.224.000đ. Thực ra đúng rồi, tôi nhầm. Xin lỗi và cảm ơn đã hỗ trợ!',
+    ('PARTNER', 3, NULL, NULL, NULL, NULL, 'Thanh toán & Quyết toán', 'Quyết toán tháng 03/2026 bị sai số tiền', 'Cao',
+    'Chào Admin, tôi kiểm tra lại quyết toán tháng 03/2026 thì thấy số tiền payout là 1.224.000đ nhưng theo tính toán của tôi thì phải cao hơn. Booking BK-LATA-DLX-0002 có total 2.040.000đ, commission 15% = 306.000đ, voucher deduction 510.000đ, payout đúng = 1.224.000đ. Thực ra đúng rồi, tôi nhầm. Xin lỗi và cảm ơn đã hỗ trợ!',
     'RESPONDED',
-    'Chào bạn, tôi đã kiểm tra lại và xác nhận con số quyết toán tuần 3 là chính xác: gross 2.040.000đ - commission 15% (306.000đ) - voucher LATA20 do partner chịu (510.000đ) = payout 1.224.000đ. Rất vui vì bạn đã tự kiểm tra được! Nếu có thắc mắc gì thêm hãy liên hệ.',
+    'Chào bạn, tôi đã kiểm tra lại và xác nhận con số quyết toán tháng 03/2026 là chính xác: gross 2.040.000đ - commission 15% (306.000đ) - voucher LATA20 do partner chịu (510.000đ) = payout 1.224.000đ. Rất vui vì bạn đã tự kiểm tra được! Nếu có thắc mắc gì thêm hãy liên hệ.',
     DATE_SUB(NOW(), INTERVAL 8 DAY), DATE_SUB(NOW(), INTERVAL 7 DAY)),
 
     ('PARTNER', 3, NULL, NULL, NULL, NULL, 'Đơn đặt phòng', 'Khách không đến nhưng không thể đánh dấu No-Show', 'Trung bình',
@@ -348,7 +378,7 @@
     DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 4 DAY)),
 
     ('PARTNER', 3, NULL, NULL, NULL, NULL, 'Kỹ thuật', 'Trang doanh thu không hiển thị biểu đồ', 'Thấp',
-    'Khi tôi vào /partner/revenue, trang tải bình thường nhưng phần biểu đồ doanh thu theo tuần bị trống. Trình duyệt Chrome v124. Xin hỗ trợ.',
+    'Khi tôi vào /partner/revenue, trang tải bình thường nhưng phần biểu đồ doanh thu bị trống. Trình duyệt Chrome v124. Xin hỗ trợ.',
     'OPEN', NULL,
     DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY)),
 
@@ -359,8 +389,8 @@
     'Chào bạn, hiện tại chức năng thay đổi thumbnail cần Admin hỗ trợ. Tôi đã cập nhật ảnh thumbnail mới cho Vinpearl Resort của bạn. Trong phiên bản tới, Partner sẽ tự chỉnh sửa được trực tiếp từ trang Nơi lưu trú của tôi.',
     DATE_SUB(NOW(), INTERVAL 15 DAY), DATE_SUB(NOW(), INTERVAL 12 DAY)),
 
-    ('PARTNER', 4, NULL, NULL, NULL, NULL, 'Thanh toán & Quyết toán', 'Chưa nhận được thanh toán tuần 2', 'Cao',
-    'Quyết toán tuần 2 (Apr 13-19) có payout 4.592.000đ, trạng thái đã PAID nhưng tài khoản Vietcombank của tôi chưa nhận được tiền. Số TK: 9876543210, chủ TK: TRAN THI B. Đã chờ 3 ngày rồi.',
+    ('PARTNER', 4, NULL, NULL, NULL, NULL, 'Thanh toán & Quyết toán', 'Chưa nhận được thanh toán tháng 04/2026', 'Cao',
+    'Quyết toán tháng 04/2026 có payout 4.592.000đ, trạng thái đã PAID nhưng tài khoản Vietcombank của tôi chưa nhận được tiền. Số TK: 9876543210, chủ TK: TRAN THI B. Đã chờ 3 ngày rồi.',
     'RESPONDED',
     'Chào bạn, tôi đã kiểm tra lại. Giao dịch chuyển khoản 4.592.000đ đã được xử lý ngày hôm qua, thường mất 1-2 ngày làm việc để tiền về tài khoản. Nếu sau 48h nữa vẫn chưa nhận được, vui lòng liên hệ lại với mã giao dịch để tôi xác nhận với bộ phận tài chính.',
     DATE_SUB(NOW(), INTERVAL 4 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY)),
@@ -383,10 +413,10 @@
     'OPEN', NULL,
     DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY)),
 
-    ('PARTNER', 8, NULL, NULL, NULL, NULL, 'Thanh toán & Quyết toán', 'Hỏi về lịch quyết toán hàng tuần', 'Thấp',
-    'Tôi muốn hỏi TravelMate thanh toán quyết toán cho partner vào ngày nào trong tuần? Và số tiền tối thiểu để được thanh toán là bao nhiêu?',
+    ('PARTNER', 8, NULL, NULL, NULL, NULL, 'Thanh toán & Quyết toán', 'Hỏi về lịch quyết toán hàng tháng', 'Thấp',
+    'Tôi muốn hỏi TravelMate thanh toán quyết toán cho partner vào ngày nào trong tháng? Và số tiền tối thiểu để được thanh toán là bao nhiêu?',
     'CLOSED',
-    'Chào bạn! TravelMate thực hiện quyết toán vào mỗi Thứ Ba hàng tuần cho kỳ tuần trước (T2-CN). Không có số tiền tối thiểu — dù chỉ 1 booking đã hoàn tất cũng sẽ được thanh toán. Tiền chuyển về tài khoản đăng ký trong mục Hồ sơ trong vòng 1-2 ngày làm việc.',
+    'Chào bạn! TravelMate thực hiện quyết toán vào đầu mỗi tháng cho doanh thu tháng trước. Không có số tiền tối thiểu — dù chỉ 1 booking đã hoàn tất cũng sẽ được thanh toán. Tiền chuyển về tài khoản đăng ký trong mục Hồ sơ trong vòng 1-2 ngày làm việc.',
     DATE_SUB(NOW(), INTERVAL 20 DAY), DATE_SUB(NOW(), INTERVAL 18 DAY)),
 
     -- ── USER/GUEST demo tickets ───────────────────────────────────────────────
@@ -1068,7 +1098,7 @@
     -- Admin Chi tiết booking → /admin/bookings/{id}
     --   → Phần "Admin Override" (collapsible) ở CONFIRMED/CHECKED_IN
     --   → Chỉ dùng khi partner không thao tác được
-    -- Admin → /admin/settlements → "Tạo quyết toán tuần trước" → generate-weekly
+    -- Admin → /admin/settlements → "Tạo quyết toán tháng trước" → generate-monthly
 
     -- =============================================
     -- DEMO AVAILABILITY DATA — Booking cho khoảng +10 → +14 ngày
@@ -1435,8 +1465,24 @@
         'FIXED_AMOUNT', 50000, NULL, 600000,
         CURDATE(), DATE_ADD(CURDATE(), INTERVAL 45 DAY), 1, 'PARTNER_ROOM', 'PARTNER', 8, 20, NOW());
 
+    -- Voucher đã hết hạn — dùng để demo TC-VOU-02 (voucher expired)
+    INSERT INTO vouchers (code, name, description, discount_type, discount_value,
+        max_discount_amount, min_order_amount, start_date, end_date,
+        active, voucher_scope, cost_bearer, owner_id, created_at) VALUES
+    ('EXPIRED2024', 'Khuyến mãi Tết 2024 (Hết hạn)', 'Voucher giảm 5% đã hết hạn — chỉ dùng demo filter.',
+        'PERCENT', 5.00, 100000, 100000,
+        DATE_SUB(CURDATE(), INTERVAL 120 DAY), DATE_SUB(CURDATE(), INTERVAL 60 DAY), 0, 'USER_GLOBAL', 'ADMIN', NULL, DATE_SUB(NOW(), INTERVAL 120 DAY));
+
+    -- Voucher inactive — dùng để demo toggle active/inactive trên admin
+    INSERT INTO vouchers (code, name, description, discount_type, discount_value,
+        max_discount_amount, min_order_amount, start_date, end_date,
+        active, voucher_scope, cost_bearer, owner_id, created_at) VALUES
+    ('INACTIVE01', 'Flash Sale 30K (Tạm ngưng)', 'Voucher giảm 30.000đ tạm ngưng — admin có thể bật lại.',
+        'FIXED_AMOUNT', 30000, NULL, 200000,
+        CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), 0, 'USER_GLOBAL', 'ADMIN', NULL, NOW());
+
     -- =============================================
-    -- SEED DATA — PARTNER SETTLEMENTS (Tuần 1 hiện tại — PENDING)
+    -- SEED DATA — PARTNER SETTLEMENTS (Tháng hiện tại — PENDING)
     -- partner1 HOTEL: booking #4 LATA-DLX (1.700.000)
     -- partner2 RESORT: booking #9 VNT-SUI (13.500.000)
     -- partner3 VILLA: booking #11 ANM-GDN pending (chưa hoàn tất)
@@ -1447,7 +1493,7 @@
         gross_amount, commission_amount, voucher_deduction_amount, payout_amount,
         settlement_status, settlement_date, note, created_at)
     VALUES
-    -- partner1 (HOTEL): booking #7 LATA-FAM hoàn tất trong tuần 1, gross=3.600.000, comm15%=540.000, payout=3.060.000
+    -- partner1 (HOTEL): booking #7 LATA-FAM hoàn tất trong tháng này, gross=3.600.000, comm15%=540.000, payout=3.060.000
     (3,
     DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+5) DAY),
     DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())-1) DAY),
@@ -1493,11 +1539,11 @@
     -- =============================================
     -- SEED DATA BỔ SUNG — Lịch sử đặt phòng (Bookings 15–22)
     -- Mục đích: dữ liệu phong phú cho Revenue/Settlement demo
-    -- Trải đều 5 tuần để biểu đồ revenue có đủ điểm dữ liệu
+    -- Trải đều nhiều tháng để biểu đồ revenue có đủ điểm dữ liệu
     -- =============================================
 
     -- ─── Booking 15: COMPLETED — LATA Hotel LATA-STD, voucher SUMMER10 (ADMIN) ───
-    -- Kỳ 2 tuần trước (Apr 13–19). User được giảm 10%, admin chịu chi phí.
+    -- Kỳ tháng 04/2026. User được giảm 10%, admin chịu chi phí.
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
@@ -1522,7 +1568,7 @@
         DATE_SUB(NOW(), INTERVAL 17 DAY), 'LATA-STD 2 đêm với SUMMER10 — hoàn tất');
 
     -- ─── Booking 16: COMPLETED — Vinpearl VNT-DLX (partner2), không voucher ───
-    -- Kỳ 2 tuần trước (Apr 13–19).
+    -- Kỳ tháng 04/2026.
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
@@ -1545,7 +1591,7 @@
         DATE_SUB(NOW(), INTERVAL 16 DAY), 'VNT-DLX 2 đêm — hoàn tất');
 
     -- ─── Booking 17: COMPLETED — LATA Hotel LATA-DLX, voucher LATA20 (PARTNER) ───
-    -- Kỳ 3 tuần trước (Apr 6–12). Partner chịu chi phí voucher → trừ vào settlement.
+    -- Kỳ tháng 03/2026. Partner chịu chi phí voucher → trừ vào settlement.
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
@@ -1570,7 +1616,7 @@
         DATE_SUB(NOW(), INTERVAL 24 DAY), 'LATA-DLX 3 đêm với LATA20 — hoàn tất');
 
     -- ─── Booking 18: COMPLETED — Mộc Nhiên Homestay MND-STD (partner2), không voucher ───
-    -- Kỳ 3 tuần trước (Apr 6–12).
+    -- Kỳ tháng 03/2026.
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
@@ -1593,7 +1639,7 @@
         DATE_SUB(NOW(), INTERVAL 24 DAY), 'MND-STD 2 đêm — hoàn tất');
 
     -- ─── Booking 19: COMPLETED — Furama FDN-DLX (partner1), không voucher ───
-    -- Kỳ 4 tuần trước (Mar 30–Apr 5).
+    -- Kỳ tháng 03/2026.
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
@@ -1616,7 +1662,7 @@
         DATE_SUB(NOW(), INTERVAL 31 DAY), 'FDN-DLX 2 đêm — hoàn tất');
 
     -- ─── Booking 20: COMPLETED — Vinpearl VNT-DLX (partner2), voucher VNT100K (PARTNER) ───
-    -- Kỳ 4 tuần trước (Mar 30–Apr 5). Partner chịu chi phí voucher 100K.
+    -- Kỳ tháng 03/2026. Partner chịu chi phí voucher 100K.
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
@@ -1641,7 +1687,7 @@
         DATE_SUB(NOW(), INTERVAL 30 DAY), 'VNT-DLX 2 đêm với VNT100K — hoàn tất');
 
     -- ─── Booking 21: COMPLETED — TM Grand TMG-DLX (partner1), không voucher ───
-    -- Kỳ 5 tuần trước (Mar 23–29).
+    -- Kỳ tháng 03/2026.
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
@@ -1664,7 +1710,7 @@
         DATE_SUB(NOW(), INTERVAL 38 DAY), 'TMG-DLX 2 đêm — hoàn tất');
 
     -- ─── Booking 22: COMPLETED — Anam Villa ANM-GDN (partner2), không voucher ───
-    -- Kỳ 5 tuần trước (Mar 23–29).
+    -- Kỳ tháng 03/2026.
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
@@ -1753,16 +1799,16 @@
     UPDATE accommodations SET rating = 10.0, review_count = 1 WHERE id = 9;
 
     -- =============================================
-    -- SEED DATA BỔ SUNG — PARTNER SETTLEMENTS (4 tuần lịch sử)
+    -- SEED DATA BỔ SUNG — PARTNER SETTLEMENTS (lịch sử theo tháng)
     -- Công thức: payout = gross - commission - voucher_deduction
     -- Tỷ lệ commission: HOTEL 15% | VILLA 12% | HOMESTAY 10% | RESORT 18%
     -- =============================================
 
-    -- ─── Tuần n=2 (Apr 13–19) — PAID ─────────────────────────────
+    -- ─── Tháng 04/2026 — PAID ─────────────────────────────
     -- partner1 (HOTEL): booking #15 LATA-STD+SUMMER10, payment=1.170.000, comm15%=175.500, voucher_deduction=0(ADMIN), payout=994.500
     -- partner2 (RESORT): booking #16 VNT-DLX, payment=5.600.000, comm18%=1.008.000, payout=4.592.000
-    -- partner3 (VILLA): không có booking COMPLETED tuần này
-    -- partner4 (HOMESTAY): không có booking COMPLETED tuần này
+    -- partner3 (VILLA): không có booking COMPLETED tháng này
+    -- partner4 (HOMESTAY): không có booking COMPLETED tháng này
     INSERT INTO partner_settlements
         (partner_id, period_start, period_end,
         gross_amount, commission_amount, voucher_deduction_amount, payout_amount,
@@ -1773,20 +1819,20 @@
     DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+6) DAY),
     1170000, 175500, 0, 994500,
     'PAID', DATE_SUB(NOW(), INTERVAL 3 DAY),
-    'Tuần 2: LATA Hotel 1 booking — voucher SUMMER10 do Admin chịu, không trừ partner.',
+    'Tháng 04/2026: LATA Hotel 1 booking — voucher SUMMER10 do Admin chịu, không trừ partner.',
     DATE_SUB(NOW(), INTERVAL 3 DAY)),
     (4,
     DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+12) DAY),
     DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+6) DAY),
     5600000, 1008000, 0, 4592000,
     'PAID', DATE_SUB(NOW(), INTERVAL 3 DAY),
-    'Tuần 2: Vinpearl Resort 1 booking — không có voucher.',
+    'Tháng 04/2026: Vinpearl Resort 1 booking — không có voucher.',
     DATE_SUB(NOW(), INTERVAL 3 DAY));
 
-    -- ─── Tuần n=3 (Apr 6–12) — PAID ──────────────────────────────
+    -- ─── Tháng 03/2026 — PAID ──────────────────────────────
     -- partner1 (HOTEL): booking #17 LATA-DLX+LATA20, payment=2.040.000, comm15%=306.000, voucher_deduction=510.000(PARTNER), payout=1.224.000
-    -- partner2 (RESORT): không có booking tuần này
-    -- partner3 (VILLA): không có booking tuần này
+    -- partner2 (RESORT): không có booking tháng này
+    -- partner3 (VILLA): không có booking tháng này
     -- partner4 (HOMESTAY): booking #18 MND-STD, payment=780.000, comm10%=78.000, payout=702.000
     INSERT INTO partner_settlements
         (partner_id, period_start, period_end,
@@ -1798,17 +1844,17 @@
     DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+13) DAY),
     2040000, 306000, 510000, 1224000,
     'PAID', DATE_SUB(NOW(), INTERVAL 10 DAY),
-    'Tuần 3: LATA Hotel 1 booking — voucher LATA20 do Partner chịu, trừ 510.000đ.',
+    'Tháng 03/2026: LATA Hotel 1 booking — voucher LATA20 do Partner chịu, trừ 510.000đ.',
     DATE_SUB(NOW(), INTERVAL 10 DAY)),
     (8,
     DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+19) DAY),
     DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+13) DAY),
     780000, 78000, 0, 702000,
     'PAID', DATE_SUB(NOW(), INTERVAL 10 DAY),
-    'Tuần 3: Mộc Nhiên Garden Homestay 1 booking — không có voucher.',
+    'Tháng 03/2026: Mộc Nhiên Garden Homestay 1 booking — không có voucher.',
     DATE_SUB(NOW(), INTERVAL 10 DAY));
 
-    -- ─── Tuần n=4 (Mar 30–Apr 5) — PAID ──────────────────────────
+    -- ─── Tháng 03/2026 (khác kỳ) — PAID ────────────────────────
     -- partner2 (RESORT): booking #19 FDN-DLX, payment=4.800.000, comm18%=864.000, payout=3.936.000
     --                    booking #20 VNT-DLX+VNT100K, payment=5.500.000, comm18%=990.000, voucher_deduction=100.000(PARTNER), payout=4.410.000
     -- partner2 gộp 2 bookings: gross=10.300.000, comm=1.854.000, deduction=100.000, payout=8.346.000
@@ -1822,10 +1868,10 @@
     DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+20) DAY),
     10300000, 1854000, 100000, 8346000,
     'PAID', DATE_SUB(NOW(), INTERVAL 17 DAY),
-    'Tuần 4: Furama Resort + Vinpearl Resort 2 bookings — voucher VNT100K do Partner chịu, trừ 100.000đ.',
+    'Tháng 03/2026: Furama Resort + Vinpearl Resort 2 bookings — voucher VNT100K do Partner chịu, trừ 100.000đ.',
     DATE_SUB(NOW(), INTERVAL 17 DAY));
 
-    -- ─── Tuần n=5 (Mar 23–29) — PAID ─────────────────────────────
+    -- ─── Tháng 03/2026 (khác kỳ) — PAID ─────────────────────────
     -- partner1 (HOTEL): booking #21 TMG-DLX, payment=2.400.000, comm15%=360.000, payout=2.040.000
     -- partner3 (VILLA): booking #22 ANM-GDN, payment=7.000.000, comm12%=840.000, payout=6.160.000
     INSERT INTO partner_settlements
@@ -1838,14 +1884,14 @@
     DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+27) DAY),
     2400000, 360000, 0, 2040000,
     'PAID', DATE_SUB(NOW(), INTERVAL 24 DAY),
-    'Tuần 5: TM Grand Hotel 1 booking — không có voucher.',
+    'Tháng 03/2026: TM Grand Hotel 1 booking — không có voucher.',
     DATE_SUB(NOW(), INTERVAL 24 DAY)),
     (7,
     DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+33) DAY),
     DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+27) DAY),
     7000000, 840000, 0, 6160000,
     'PAID', DATE_SUB(NOW(), INTERVAL 24 DAY),
-    'Tuần 5: The Anam Villa 1 booking — không có voucher.',
+    'Tháng 03/2026: The Anam Villa 1 booking — không có voucher.',
     DATE_SUB(NOW(), INTERVAL 24 DAY));
 
     -- =============================================
@@ -2034,16 +2080,16 @@
     UPDATE accommodations SET rating = 10.0, review_count = 2 WHERE id = 6;
 
     -- =============================================
-    -- SETTLEMENTS BỔ SUNG — Tuần 6–11, đúng partner_id theo loại lưu trú
+    -- SETTLEMENTS BỔ SUNG — Tháng 02–03/2026, đúng partner_id theo loại lưu trú
     -- HOTEL 15% | VILLA 12% | HOMESTAY 10% | RESORT 18%
     -- partner1 (id=3)=HOTEL | partner2 (id=4)=RESORT
     -- partner3 (id=7)=VILLA | partner4 (id=8)=HOMESTAY
     -- =============================================
 
-    -- ─── Tuần n=6 (Mar 16–22) — PAID ─────────────────────────────
+    -- ─── Tháng 03/2026 (bổ sung) — PAID ───────────────────────────
     -- partner1 (HOTEL): booking #23 TLP-STD (user2), payment=960.000, comm15%=144.000, payout=816.000
     -- partner1 (HOTEL): booking #24 TLP-SUP (user), payment=1.240.000, comm15%=186.000, payout=1.054.000
-    -- Gộp 2 bookings Hotel tuần này: gross=2.200.000, comm=330.000, payout=1.870.000
+    -- Gộp 2 bookings Hotel tháng này: gross=2.200.000, comm=330.000, payout=1.870.000
     INSERT INTO partner_settlements
         (partner_id, period_start, period_end,
         gross_amount, commission_amount, voucher_deduction_amount, payout_amount,
@@ -2054,10 +2100,10 @@
     DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+34) DAY),
     2200000, 330000, 0, 1870000,
     'PAID', DATE_SUB(NOW(), INTERVAL 31 DAY),
-    'Tuần 6: Tulip Hotel 2 bookings (TLP-STD + TLP-SUP) — không có voucher.',
+    'Tháng 03/2026: Tulip Hotel 2 bookings (TLP-STD + TLP-SUP) — không có voucher.',
     DATE_SUB(NOW(), INTERVAL 31 DAY));
 
-    -- ─── Tuần n=7 (Mar 9–15) — PAID ──────────────────────────────
+    -- ─── Tháng 03/2026 (bổ sung) — PAID ────────────────────────────
     -- partner3 (VILLA): booking #25 BNH-BNG (user3), payment=4.400.000, comm12%=528.000, payout=3.872.000
     -- partner3 (VILLA): booking #26 BNH-TWN (user2), payment=3.200.000, comm12%=384.000, payout=2.816.000
     -- Gộp 2 bookings Villa: gross=7.600.000, comm=912.000, payout=6.688.000
@@ -2071,10 +2117,10 @@
     DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+41) DAY),
     7600000, 912000, 0, 6688000,
     'PAID', DATE_SUB(NOW(), INTERVAL 38 DAY),
-    'Tuần 7: Ba Na Hills Forest Villa 2 bookings — không có voucher.',
+    'Tháng 03/2026: Ba Na Hills Forest Villa 2 bookings — không có voucher.',
     DATE_SUB(NOW(), INTERVAL 38 DAY));
 
-    -- ─── Tuần n=8 (Mar 2–8) — PAID ────────────────────────────────
+    -- ─── Tháng 02/2026 — PAID ────────────────────────────────
     -- partner4 (HOMESTAY): booking #27 HLR-STD, payment=640.000, comm10%=64.000, payout=576.000
     -- partner4 (HOMESTAY): booking #28 HLR-DLX, payment=960.000, comm10%=96.000, payout=864.000
     -- Gộp 2 bookings Homestay: gross=1.600.000, comm=160.000, payout=1.440.000
@@ -2088,14 +2134,14 @@
     DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+48) DAY),
     1600000, 160000, 0, 1440000,
     'PAID', DATE_SUB(NOW(), INTERVAL 45 DAY),
-    'Tuần 8: Hoa Lư Riverside Homestay 2 bookings (HLR-STD + HLR-DLX) — không có voucher.',
+    'Tháng 02/2026: Hoa Lư Riverside Homestay 2 bookings (HLR-STD + HLR-DLX) — không có voucher.',
     DATE_SUB(NOW(), INTERVAL 45 DAY));
 
-    -- ─── Tuần n=9 (Feb 23–Mar 1) — PAID ──────────────────────────
-    -- partner1 (HOTEL): không có booking tuần này
-    -- partner2 (RESORT): không có booking tuần này
-    -- Thêm pending tuần hiện tại cho tất cả 4 partner để demo "Chờ thanh toán"
-    -- ─── Tuần n=1 (tuần hiện tại) — PENDING cho 4 partner ─────────
+    -- ─── Tháng 02/2026 — PAID ──────────────────────────
+    -- partner1 (HOTEL): không có booking tháng này
+    -- partner2 (RESORT): không có booking tháng này
+    -- Thêm pending tháng hiện tại cho tất cả 4 partner để demo "Chờ thanh toán"
+    -- ─── Tháng hiện tại — PENDING cho 4 partner ─────────
     -- Quy tắc: commission chỉ tính trên tiền thu online (payment.amount), không dùng booking.totalAmount.
     INSERT INTO partner_settlements
         (partner_id, period_start, period_end,
@@ -2112,7 +2158,7 @@
     DATE_SUB(CURDATE(), INTERVAL 7 DAY), CURDATE(),
     6938000, 1189200, 0, 5748800,
     'PENDING', NULL,
-    'Tuần hiện tại: LATA-DLX 1.700.000 (comm15%=255.000) + TMG-PRE 4.950.000 (comm18% override=891.000) + No-show TLP-STD cọc 288.000 (comm15%=43.200). Admin chuyển khoản Thứ Ba tới.',
+    'Tháng hiện tại: LATA-DLX 1.700.000 (comm15%=255.000) + TMG-PRE 4.950.000 (comm18% override=891.000) + No-show TLP-STD cọc 288.000 (comm15%=43.200). Admin chuyển khoản đầu tháng tới.',
     NOW()),
     -- partner2 RESORT (acc8 Vinpearl, acc9 Furama):
     --   booking #8  VNT-DLX  DEPOSIT_30 cọc online 2.520.000 → comm 18%=453.600
@@ -2122,7 +2168,7 @@
     DATE_SUB(CURDATE(), INTERVAL 7 DAY), CURDATE(),
     3960000, 712800, 0, 3247200,
     'PENDING', NULL,
-    'Tuần hiện tại: Vinpearl VNT-DLX cọc 30% online 2.520.000 (comm18%=453.600) + No-show Furama FDN-DLX cọc 1.440.000 (comm18%=259.200). Admin chuyển khoản Thứ Ba tới.',
+    'Tháng hiện tại: Vinpearl VNT-DLX cọc 30% online 2.520.000 (comm18%=453.600) + No-show Furama FDN-DLX cọc 1.440.000 (comm18%=259.200). Admin chuyển khoản đầu tháng tới.',
     NOW()),
     -- partner3 VILLA (acc4 Anam, acc5 Ba Na Hills):
     --   booking #14 BNH-BNG  FULL_PAYMENT 6.600.000 → comm 12%=792.000
@@ -2132,7 +2178,7 @@
     DATE_SUB(CURDATE(), INTERVAL 7 DAY), CURDATE(),
     17100000, 2052000, 0, 15048000,
     'PENDING', NULL,
-    'Tuần hiện tại: Ba Na Hills BNH-BNG 6.600.000 (comm12%=792.000) + Anam Garden ANM-GDN-0003 10.500.000 (comm12%=1.260.000). Admin chuyển khoản Thứ Ba tới.',
+    'Tháng hiện tại: Ba Na Hills BNH-BNG 6.600.000 (comm12%=792.000) + Anam Garden ANM-GDN-0003 10.500.000 (comm12%=1.260.000). Admin chuyển khoản đầu tháng tới.',
     NOW()),
     -- partner4 HOMESTAY (acc6 Hoa Lư, acc7 Mộc Nhiên):
     --   booking #13 HLR-DLX     FULL_PAYMENT 960.000   → comm 10%=96.000
@@ -2142,7 +2188,7 @@
     DATE_SUB(CURDATE(), INTERVAL 7 DAY), CURDATE(),
     2120000, 235200, 0, 1884800,
     'PENDING', NULL,
-    'Tuần hiện tại: Hoa Lư HLR-DLX 960.000 (comm10%=96.000) + Mộc Nhiên MND-ATT-0002 1.160.000 (comm12% override=139.200). Admin chuyển khoản Thứ Ba tới.',
+    'Tháng hiện tại: Hoa Lư HLR-DLX 960.000 (comm10%=96.000) + Mộc Nhiên MND-ATT-0002 1.160.000 (comm12% override=139.200). Admin chuyển khoản đầu tháng tới.',
     NOW());
 
     -- =============================================
@@ -2172,7 +2218,7 @@
     -- Kiểm tra settlement có voucher_deduction > 0:
     -- SELECT partner_id, period_start, voucher_deduction_amount, payout_amount
     --   FROM partner_settlements WHERE voucher_deduction_amount > 0 ORDER BY id;
-    -- Kỳ vọng: partner1 tuần 3 (510K), partner2 tuần 4 (100K)
+    -- Kỳ vọng: partner1 tháng 03 (510K), partner2 tháng 03 (100K)
 
     -- =============================================
     -- SEED DATA BỔ SUNG — DIRECT BOOKING & MANUAL_BLOCK
@@ -2660,7 +2706,7 @@
     -- SETTLEMENTS BỔ SUNG — Partner3 và Partner4 thêm lịch sử
     -- =============================================
 
-    -- Tuần n=2 (Apr 13-19) — partner3 VILLA: booking #29 ANM-BCH gross=17.400.000 comm15%(override)=2.610.000 payout=14.790.000
+    -- Tháng 04/2026 — partner3 VILLA: booking #29 ANM-BCH gross=17.400.000 comm15%(override)=2.610.000 payout=14.790.000
     INSERT INTO partner_settlements
         (partner_id, period_start, period_end,
         gross_amount, commission_amount, voucher_deduction_amount, payout_amount,
@@ -2671,10 +2717,10 @@
     DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+6) DAY),
     17400000, 2610000, 0, 14790000,
     'PAID', DATE_SUB(NOW(), INTERVAL 5 DAY),
-    'Tuần 2: The Anam Beachfront Pool Villa 3 đêm — không voucher.',
+    'Tháng 04/2026: The Anam Beachfront Pool Villa 3 đêm — không voucher.',
     DATE_SUB(NOW(), INTERVAL 5 DAY));
 
-    -- Tuần n=3 (Apr 6-12) — partner3 VILLA: booking #30 BNH-SUI với voucher ANAM15 (partner chịu)
+    -- Tháng 03/2026 — partner3 VILLA: booking #30 BNH-SUI với voucher ANAM15 (partner chịu)
     -- gross=7.600.000, comm16%(override)=1.216.000, voucher_deduction=1.050.000, payout=5.334.000
     INSERT INTO partner_settlements
         (partner_id, period_start, period_end,
@@ -2686,10 +2732,10 @@
     DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+13) DAY),
     7600000, 1216000, 1050000, 5334000,
     'PAID', DATE_SUB(NOW(), INTERVAL 12 DAY),
-    'Tuần 3: Ba Na Hills Treetop Suite — voucher ANAM15 do Partner chịu, trừ 1.050.000đ.',
+    'Tháng 03/2026: Ba Na Hills Treetop Suite — voucher ANAM15 do Partner chịu, trừ 1.050.000đ.',
     DATE_SUB(NOW(), INTERVAL 12 DAY));
 
-    -- Tuần n=2 — partner4 HOMESTAY: booking #31 HLR-FAM gross=1.500.000 comm8%(override)=120.000 payout=1.380.000
+    -- Tháng 04/2026 — partner4 HOMESTAY: booking #31 HLR-FAM gross=1.500.000 comm8%(override)=120.000 payout=1.380.000
     INSERT INTO partner_settlements
         (partner_id, period_start, period_end,
         gross_amount, commission_amount, voucher_deduction_amount, payout_amount,
@@ -2700,10 +2746,10 @@
     DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+6) DAY),
     1500000, 120000, 0, 1380000,
     'PAID', DATE_SUB(NOW(), INTERVAL 5 DAY),
-    'Tuần 2: Hoa Lư Family Room 2 đêm — không voucher.',
+    'Tháng 04/2026: Hoa Lư Family Room 2 đêm — không voucher.',
     DATE_SUB(NOW(), INTERVAL 5 DAY));
 
-    -- Tuần n=4 — partner4 HOMESTAY: booking #32 MND-FAM với HOALUU50K (partner chịu)
+    -- Tháng 03/2026 — partner4 HOMESTAY: booking #32 MND-FAM với HOALUU50K (partner chịu)
     -- gross=1.760.000, comm10%=176.000, voucher_deduction=50.000, payout=1.534.000
     INSERT INTO partner_settlements
         (partner_id, period_start, period_end,
@@ -2715,10 +2761,10 @@
     DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+20) DAY),
     1760000, 176000, 50000, 1534000,
     'PAID', DATE_SUB(NOW(), INTERVAL 19 DAY),
-    'Tuần 4: Mộc Nhiên Family Room — voucher HOALUU50K do Partner chịu, trừ 50.000đ.',
+    'Tháng 03/2026: Mộc Nhiên Family Room — voucher HOALUU50K do Partner chịu, trừ 50.000đ.',
     DATE_SUB(NOW(), INTERVAL 19 DAY));
 
-    -- NOTE: Các settlement PENDING tuần hiện tại đã được gộp vào block phía trên (line ~1731)
+    -- NOTE: Các settlement PENDING tháng hiện tại đã được gộp vào block phía trên (line ~1731)
     -- Không insert lại ở đây để tránh lỗi Duplicate Entry (UNIQUE KEY uk_settlement_partner_period)
 
     -- =============================================
@@ -3125,15 +3171,15 @@
     ('admin@travelmate.vn', 'TOGGLE_VOUCHER',   'VOUCHER', NULL, 'Bật lại voucher SUMMER10 — gia hạn thêm 1 tháng theo yêu cầu Marketing',                     'Voucher được gia hạn đến 30/06/2026 theo kế hoạch hè 2.',       DATE_SUB(NOW(), INTERVAL 2  DAY)),
 
     -- ── SETTLEMENT actions ────────────────────────────────────────────────────────
-    ('admin@travelmate.vn', 'GENERATE_SETTLEMENT', 'SETTLEMENT', NULL, 'Tạo quyết toán tuần (Apr 13–19): partner HOTEL 994.500đ, RESORT 4.592.000đ',           'Tự động tính từ bookings COMPLETED trong kỳ.',                  DATE_SUB(NOW(), INTERVAL 17 DAY)),
-    ('admin@travelmate.vn', 'MARK_SETTLEMENT_PAID','SETTLEMENT', NULL, 'Thanh toán quyết toán tuần (Apr 13–19) cho partner HOTEL (Sunrise Sapa Lodge): 994.500đ','Chuyển khoản MB Bank 0123456789, tham chiếu STL-HOTEL-W2.',     DATE_SUB(NOW(), INTERVAL 17 DAY)),
-    ('admin@travelmate.vn', 'MARK_SETTLEMENT_PAID','SETTLEMENT', NULL, 'Thanh toán quyết toán tuần (Apr 13–19) cho partner RESORT (Blue Ocean): 4.592.000đ',   'Chuyển khoản Vietcombank 9876543210, tham chiếu STL-RESORT-W2.', DATE_SUB(NOW(), INTERVAL 17 DAY)),
-    ('admin@travelmate.vn', 'GENERATE_SETTLEMENT', 'SETTLEMENT', NULL, 'Tạo quyết toán tuần hiện tại: 4 partner, tổng payout 30.497.000đ',                     'PENDING — Admin sẽ chuyển khoản vào thứ Ba tuần tới.',           NOW()),
+    ('admin@travelmate.vn', 'GENERATE_SETTLEMENT', 'SETTLEMENT', NULL, 'Tạo quyết toán tháng 04/2026: partner HOTEL 994.500đ, RESORT 4.592.000đ',           'Tự động tính từ bookings COMPLETED trong kỳ.',                  DATE_SUB(NOW(), INTERVAL 17 DAY)),
+    ('admin@travelmate.vn', 'MARK_SETTLEMENT_PAID','SETTLEMENT', NULL, 'Thanh toán quyết toán tháng 04/2026 cho partner HOTEL (Sunrise Sapa Lodge): 994.500đ','Chuyển khoản MB Bank 0123456789, tham chiếu STL-HOTEL-M04.',     DATE_SUB(NOW(), INTERVAL 17 DAY)),
+    ('admin@travelmate.vn', 'MARK_SETTLEMENT_PAID','SETTLEMENT', NULL, 'Thanh toán quyết toán tháng 04/2026 cho partner RESORT (Blue Ocean): 4.592.000đ',   'Chuyển khoản Vietcombank 9876543210, tham chiếu STL-RESORT-M04.', DATE_SUB(NOW(), INTERVAL 17 DAY)),
+    ('admin@travelmate.vn', 'GENERATE_SETTLEMENT', 'SETTLEMENT', NULL, 'Tạo quyết toán tháng hiện tại: 4 partner, tổng payout 30.497.000đ',                     'PENDING — Admin sẽ chuyển khoản đầu tháng tới.',                   NOW()),
 
     -- ── SUPPORT_TICKET actions ────────────────────────────────────────────────────
-    ('admin@travelmate.vn', 'RESPOND_TICKET',   'TICKET',  1,  'Trả lời ticket #1 — partner@travelmate.vn: "Quyết toán tuần 3 bị sai số tiền"',               'Xác nhận con số đúng, giải thích công thức gross - comm - deduction.', DATE_SUB(NOW(), INTERVAL 7 DAY)),
+    ('admin@travelmate.vn', 'RESPOND_TICKET',   'TICKET',  1,  'Trả lời ticket #1 — partner@travelmate.vn: "Quyết toán tháng 03/2026 bị sai số tiền"',               'Xác nhận con số đúng, giải thích công thức gross - comm - deduction.', DATE_SUB(NOW(), INTERVAL 7 DAY)),
     ('admin@travelmate.vn', 'RESPOND_TICKET',   'TICKET',  2,  'Trả lời ticket #2 — partner@travelmate.vn: "Không thể đánh dấu No-Show"',                     'Đánh dấu BK-TLP-STD-0001 là NO_SHOW thay partner, giải thích quy trình.', DATE_SUB(NOW(), INTERVAL 4 DAY)),
-    ('admin@travelmate.vn', 'CLOSE_TICKET',     'TICKET',  1,  'Đóng ticket #1 — Đã giải quyết xong vấn đề quyết toán tuần 3',                               NULL,                                                           DATE_SUB(NOW(), INTERVAL 6 DAY)),
+    ('admin@travelmate.vn', 'CLOSE_TICKET',     'TICKET',  1,  'Đóng ticket #1 — Đã giải quyết xong vấn đề quyết toán tháng 03/2026',                               NULL,                                                           DATE_SUB(NOW(), INTERVAL 6 DAY)),
     ('admin@travelmate.vn', 'RESPOND_TICKET',   'TICKET',  5,  'Trả lời ticket #5 — user@travelmate.vn: "Không nhận được email xác nhận đặt phòng"',          'Đã kiểm tra log email, resend thủ công. Hướng dẫn check spam.', DATE_SUB(NOW(), INTERVAL 3 DAY));
 
     -- ── ADMIN ACTION LOGS BỔ SUNG — Booking, Listing, Settlement cho partner3 & partner4 ──
@@ -3191,13 +3237,13 @@
     ('admin@travelmate.vn', 'APPROVE_REVIEW', 'REVIEW', 10, 'Duyệt đánh giá #10 — Trần Thị Mai cho Vinpearl Resort & Spa (4★)', NULL, DATE_SUB(NOW(), INTERVAL 26 DAY)),
 
     -- Quyết toán thêm cho partner3 & partner4 (log GENERATE + PAID)
-    ('admin@travelmate.vn', 'GENERATE_SETTLEMENT', 'SETTLEMENT', NULL, 'Tạo quyết toán tuần (Mar 9–15): partner VILLA (Ba Na) 6.688.000đ', 'Tự động từ 2 bookings Ba Na Hills BNH-BNG & BNH-TWN COMPLETED.', DATE_SUB(NOW(), INTERVAL 38 DAY)),
-    ('admin@travelmate.vn', 'MARK_SETTLEMENT_PAID', 'SETTLEMENT', NULL, 'Thanh toán quyết toán tuần (Mar 9–15) cho partner3 VILLA (Bùi Thị Lan Anh): 6.688.000đ', 'Chuyển khoản Techcombank 1234567890, tham chiếu STL-VILLA-W7.', DATE_SUB(NOW(), INTERVAL 37 DAY)),
-    ('admin@travelmate.vn', 'GENERATE_SETTLEMENT', 'SETTLEMENT', NULL, 'Tạo quyết toán tuần (Mar 2–8): partner HOMESTAY (Hoa Lư) 1.440.000đ', 'Tự động từ 2 bookings HLR-STD & HLR-DLX COMPLETED.', DATE_SUB(NOW(), INTERVAL 45 DAY)),
-    ('admin@travelmate.vn', 'MARK_SETTLEMENT_PAID', 'SETTLEMENT', NULL, 'Thanh toán quyết toán tuần (Mar 2–8) cho partner4 HOMESTAY (Trần Văn Cường): 1.440.000đ', 'Chuyển khoản VPBank 0987654321, tham chiếu STL-HOMESTAY-W8.', DATE_SUB(NOW(), INTERVAL 44 DAY)),
-    ('admin@travelmate.vn', 'GENERATE_SETTLEMENT', 'SETTLEMENT', NULL, 'Tạo quyết toán tuần (Apr 13–19): partner VILLA (Anam) 14.790.000đ, partner HOMESTAY (Hoa Lư) 1.380.000đ', 'Tự động tính từ bookings COMPLETED trong kỳ.', DATE_SUB(NOW(), INTERVAL 5 DAY)),
-    ('admin@travelmate.vn', 'MARK_SETTLEMENT_PAID', 'SETTLEMENT', NULL, 'Thanh toán quyết toán tuần (Apr 13–19) cho partner3 VILLA (Bùi Thị Lan Anh): 14.790.000đ', 'Chuyển khoản Techcombank 1234567890, tham chiếu STL-VILLA-W2-2026.', DATE_SUB(NOW(), INTERVAL 4 DAY)),
-    ('admin@travelmate.vn', 'MARK_SETTLEMENT_PAID', 'SETTLEMENT', NULL, 'Thanh toán quyết toán tuần (Apr 13–19) cho partner4 HOMESTAY (Trần Văn Cường): 1.380.000đ', 'Chuyển khoản VPBank 0987654321, tham chiếu STL-HOMESTAY-W2-2026.', DATE_SUB(NOW(), INTERVAL 4 DAY)),
+    ('admin@travelmate.vn', 'GENERATE_SETTLEMENT', 'SETTLEMENT', NULL, 'Tạo quyết toán tháng 03/2026: partner VILLA (Ba Na) 6.688.000đ', 'Tự động từ 2 bookings Ba Na Hills BNH-BNG & BNH-TWN COMPLETED.', DATE_SUB(NOW(), INTERVAL 38 DAY)),
+    ('admin@travelmate.vn', 'MARK_SETTLEMENT_PAID', 'SETTLEMENT', NULL, 'Thanh toán quyết toán tháng 03/2026 cho partner3 VILLA (Bùi Thị Lan Anh): 6.688.000đ', 'Chuyển khoản Techcombank 1234567890, tham chiếu STL-VILLA-M03.', DATE_SUB(NOW(), INTERVAL 37 DAY)),
+    ('admin@travelmate.vn', 'GENERATE_SETTLEMENT', 'SETTLEMENT', NULL, 'Tạo quyết toán tháng 02/2026: partner HOMESTAY (Hoa Lư) 1.440.000đ', 'Tự động từ 2 bookings HLR-STD & HLR-DLX COMPLETED.', DATE_SUB(NOW(), INTERVAL 45 DAY)),
+    ('admin@travelmate.vn', 'MARK_SETTLEMENT_PAID', 'SETTLEMENT', NULL, 'Thanh toán quyết toán tháng 02/2026 cho partner4 HOMESTAY (Trần Văn Cường): 1.440.000đ', 'Chuyển khoản VPBank 0987654321, tham chiếu STL-HOMESTAY-M02.', DATE_SUB(NOW(), INTERVAL 44 DAY)),
+    ('admin@travelmate.vn', 'GENERATE_SETTLEMENT', 'SETTLEMENT', NULL, 'Tạo quyết toán tháng 04/2026: partner VILLA (Anam) 14.790.000đ, partner HOMESTAY (Hoa Lư) 1.380.000đ', 'Tự động tính từ bookings COMPLETED trong kỳ.', DATE_SUB(NOW(), INTERVAL 5 DAY)),
+    ('admin@travelmate.vn', 'MARK_SETTLEMENT_PAID', 'SETTLEMENT', NULL, 'Thanh toán quyết toán tháng 04/2026 cho partner3 VILLA (Bùi Thị Lan Anh): 14.790.000đ', 'Chuyển khoản Techcombank 1234567890, tham chiếu STL-VILLA-M04-2026.', DATE_SUB(NOW(), INTERVAL 4 DAY)),
+    ('admin@travelmate.vn', 'MARK_SETTLEMENT_PAID', 'SETTLEMENT', NULL, 'Thanh toán quyết toán tháng 04/2026 cho partner4 HOMESTAY (Trần Văn Cường): 1.380.000đ', 'Chuyển khoản VPBank 0987654321, tham chiếu STL-HOMESTAY-M04-2026.', DATE_SUB(NOW(), INTERVAL 4 DAY)),
 
     -- Thêm ticket support & phản hồi cho partner3, partner4
     ('admin@travelmate.vn', 'RESPOND_TICKET', 'TICKET', 3, 'Trả lời ticket #3 — partner3@travelmate.vn: "Voucher ANAM15 bị tính sai phần trăm"', 'Xác nhận: ANAM15 giảm 15% trên tổng đơn, tối đa 1.200.000đ. Settlement đã tính đúng.', DATE_SUB(NOW(), INTERVAL 11 DAY)),

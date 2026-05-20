@@ -1,0 +1,140 @@
+@startuml TravelMate_Sequence_Booking_Payment
+!theme plain
+skinparam sequenceArrowThickness 2
+skinparam sequenceParticipantBorderColor #2980B9
+skinparam sequenceParticipantBackgroundColor #E8F4FD
+skinparam noteBorderColor #E67E22
+skinparam noteBackgroundColor #FFF3CD
+
+title TravelMate — Sequence Diagram: Đặt Phòng & Thanh Toán VNPAY
+
+' ─── PARTICIPANTS ─────────────────────────────────────────────────────────────
+actor "User" as User
+participant "Browser\n(Thymeleaf)" as Browser
+participant "BookingController" as BookingCtrl
+participant "BookingService" as BookingSvc
+participant "VoucherService" as VoucherSvc
+participant "PaymentController" as PayCtrl
+participant "VnpayService" as VnpaySvc
+participant "BookingRepository\n/ PaymentRepository\n/ RoomRepository" as Repos
+database "MySQL DB" as DB
+participant "VNPAY\nSandbox" as VNPAY
+
+' ─── FLOW ─────────────────────────────────────────────────────────────────────
+
+== 1. User chọn phòng và điền form đặt phòng ==
+
+User -> Browser : Vào trang chi tiết phòng\nnhấn "Đặt phòng"
+Browser -> BookingCtrl : GET /booking/room/{roomId}
+BookingCtrl -> DB : Load Room + Accommodation
+DB --> BookingCtrl : Room entity
+BookingCtrl --> Browser : booking-form.html\n(form điền thông tin)
+
+User -> Browser : Điền: check-in, check-out, số người,\npaymentOption, voucherCode
+Browser -> BookingCtrl : POST /booking/create\n{roomId, checkIn, checkOut, adults, children,\n roomQuantity, paymentOption, voucherCode}
+
+== 2. Validate & Tính tiền ==
+
+BookingCtrl -> BookingSvc : createBooking(user, room, ...)
+
+BookingSvc -> BookingSvc : validateDates(checkIn, checkOut)
+note right : checkOut > checkIn\ncheckIn >= today
+
+BookingSvc -> Repos : sumOverlappingQty(roomId, checkIn, checkOut)
+Repos -> DB : SELECT SUM(room_quantity)\nFROM bookings WHERE...\n(PESSIMISTIC_WRITE lock)
+DB --> Repos : overlappingQty
+Repos --> BookingSvc : overlappingQty
+
+alt overlappingQty + roomQuantity > room.availableQty
+    BookingSvc --> BookingCtrl : RuntimeException("Phòng không đủ")
+    BookingCtrl --> Browser : Thông báo lỗi
+else Còn đủ phòng
+    BookingSvc -> BookingSvc : calculateTotalAmount(room, nights, qty)\n= pricePerNight × nights × qty
+    BookingSvc -> BookingSvc : totalBeforeDiscount = totalAmount
+end
+
+== 3. Validate & Apply Voucher (nếu có) ==
+
+opt voucherCode != null
+    BookingSvc -> VoucherSvc : validateVoucher(code, totalAmount, room)
+    VoucherSvc -> Repos : findByCode(code)
+    Repos -> DB : SELECT * FROM vouchers WHERE code=?
+    DB --> VoucherSvc : Voucher entity
+
+    alt Voucher không hợp lệ (hết hạn / không đủ điều kiện)
+        VoucherSvc --> BookingSvc : RuntimeException(...)
+        BookingSvc --> BookingCtrl : error
+        BookingCtrl --> Browser : Thông báo lỗi voucher
+    else Voucher hợp lệ
+        VoucherSvc --> BookingSvc : Voucher
+        BookingSvc -> VoucherSvc : calculateDiscount(voucher, totalAmount)
+        note right : PERCENT: amount × rate / 100\nFIXED: fixedAmount\nCap: maxDiscountAmount\nGuard: result >= 5.000đ
+        VoucherSvc --> BookingSvc : discountAmount
+        BookingSvc -> BookingSvc : totalAmount = totalBeforeDiscount - discountAmount
+    end
+end
+
+== 4. Tạo Booking & Payment ==
+
+BookingSvc -> BookingSvc : calculatePaidAmount(totalAmount, paymentOption)
+note right : DEPOSIT_30: floor(total × 0.3)\nFULL_PAYMENT: total
+
+BookingSvc -> BookingSvc : generateBookingCode(room)\n= "BK-" + roomCode + "-XXXX"
+
+BookingSvc -> Repos : save(Booking)\n{status=PENDING_PAYMENT, paymentStatus=PENDING_PAYMENT}
+Repos -> DB : INSERT INTO bookings ...
+DB --> Repos : Booking (with id)
+
+BookingSvc -> Repos : save(Payment)\n{status=PENDING_PAYMENT, amount=paidAmount}
+Repos -> DB : INSERT INTO payments ...
+
+BookingSvc -> Repos : room.availableQty -= roomQuantity\nsave(room)
+Repos -> DB : UPDATE rooms SET available_quantity=...
+
+BookingSvc --> BookingCtrl : Booking entity
+
+BookingCtrl --> Browser : redirect /payment/vnpay/create/{bookingId}
+
+== 5. Tạo URL VNPAY & Redirect ==
+
+Browser -> PayCtrl : GET /payment/vnpay/create/{bookingId}
+PayCtrl -> VnpaySvc : buildPaymentUrl(booking, paidAmount)
+VnpaySvc -> VnpaySvc : Tạo vnp_TxnRef, vnp_Amount (×100)\nHMAC-SHA512 signature
+VnpaySvc --> PayCtrl : VNPAY URL
+PayCtrl --> Browser : redirect → VNPAY Sandbox URL
+
+== 6. User thanh toán trên VNPAY ==
+
+User -> VNPAY : Nhập thông tin thẻ test\nvà xác nhận thanh toán
+VNPAY -> VNPAY : Xử lý giao dịch
+
+== 7. VNPAY Return URL (kết quả về browser) ==
+
+VNPAY -> Browser : redirect\n/payment/vnpay-return?vnp_ResponseCode=00&...
+Browser -> PayCtrl : GET /payment/vnpay-return\n{vnp_ResponseCode, vnp_TxnRef, vnp_SecureHash, ...}
+
+PayCtrl -> VnpaySvc : verifySignature(params, hashSecret)
+VnpaySvc --> PayCtrl : valid = true
+
+alt vnp_ResponseCode == "00" (Thành công)
+    PayCtrl -> Repos : findPaymentByTxnRef(vnp_TxnRef)
+    Repos -> DB : SELECT * FROM payments WHERE vnp_txn_ref=?
+    DB --> PayCtrl : Payment entity
+
+    PayCtrl -> Repos : Update Payment\n{status=PENDING_ADMIN_APPROVAL,\n vnpTransactionNo=..., paidAt=now()}
+    PayCtrl -> Repos : Update Booking\n{status=PENDING_ADMIN_APPROVAL,\n paymentStatus=PENDING_ADMIN_APPROVAL}
+    Repos -> DB : UPDATE payments, UPDATE bookings
+
+    PayCtrl --> Browser : payment-result.html\n(Thành công — chờ admin duyệt)
+else vnp_ResponseCode != "00" (Hủy / Lỗi)
+    PayCtrl -> Repos : Update Booking → CANCELLED\nUpdate Payment → FAILED/CANCELLED
+    PayCtrl -> Repos : room.availableQty += roomQuantity
+    Repos -> DB : UPDATE bookings, payments, rooms
+    PayCtrl --> Browser : payment-result.html (Thất bại)
+end
+
+== 8. Admin duyệt booking ==
+
+note over User, DB : Sau khi Admin login và vào /admin/bookings\nduyệt booking → CONFIRMED\npartner nhận notification
+
+@enduml

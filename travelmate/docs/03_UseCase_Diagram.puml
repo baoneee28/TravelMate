@@ -1,0 +1,119 @@
+@startuml TravelMate_UseCase_Diagram
+!theme plain
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+    BackgroundColor #E8F4FD
+    BorderColor #2980B9
+    ArrowColor #2C3E50
+}
+
+title TravelMate — Use Case Diagram
+
+' ─── ACTORS ──────────────────────────────────────────────────────────────────
+actor "Guest\n(Khách vãng lai)" as Guest
+actor "User\n(Khách hàng)" as User
+actor "Partner\n(Đối tác)" as Partner
+actor "Admin\n(Quản trị viên)" as Admin
+actor "VNPAY\n(Cổng thanh toán)" as VNPAY <<external>>
+
+' Kế thừa actor
+Guest <|-- User
+User <|-- Partner
+User <|-- Admin
+
+' ─── USE CASES ───────────────────────────────────────────────────────────────
+
+rectangle "TravelMate System" {
+
+    package "Tìm Kiếm & Nội Dung" {
+        usecase "Tìm kiếm chỗ lưu trú" as UC_Search
+        usecase "Xem chi tiết phòng" as UC_ViewRoom
+        usecase "Xem bài gợi ý du lịch" as UC_TravelPost
+        usecase "Chatbot tư vấn" as UC_Chatbot
+        usecase "Xem voucher khả dụng" as UC_ViewVoucher
+    }
+
+    package "Đặt Phòng & Thanh Toán" {
+        usecase "Đăng ký / Đăng nhập" as UC_Auth
+        usecase "Đặt phòng" as UC_Book
+        usecase "Thanh toán VNPAY\n(Cọc 30% / 100%)" as UC_Pay
+        usecase "Áp mã voucher" as UC_ApplyVoucher
+        usecase "Xem lịch sử đặt phòng" as UC_MyBookings
+        usecase "Đánh giá sau lưu trú" as UC_Review
+        usecase "Hủy đặt phòng" as UC_Cancel
+    }
+
+    package "Quản Lý Admin" {
+        usecase "Duyệt / Từ chối booking" as UC_ApproveBooking
+        usecase "Duyệt cơ sở lưu trú" as UC_ApproveAccom
+        usecase "Đánh dấu No-Show" as UC_NoShow
+        usecase "Tạo quyết toán tháng" as UC_Settlement
+        usecase "Quản lý voucher toàn hệ thống" as UC_AdminVoucher
+        usecase "Xem báo cáo doanh thu" as UC_Revenue
+        usecase "Quản lý người dùng" as UC_ManageUsers
+        usecase "Xử lý yêu cầu hỗ trợ" as UC_Support
+        usecase "Quản lý bài viết du lịch" as UC_ManagePosts
+    }
+
+    package "Quản Lý Partner" {
+        usecase "Quản lý cơ sở lưu trú" as UC_ManageAccom
+        usecase "Quản lý phòng" as UC_ManageRoom
+        usecase "Xác nhận booking" as UC_ConfirmBooking
+        usecase "Check-in khách" as UC_CheckIn
+        usecase "Check-out khách" as UC_CheckOut
+        usecase "Tạo voucher cho cơ sở/phòng" as UC_PartnerVoucher
+        usecase "Xem doanh thu & quyết toán" as UC_PartnerRevenue
+        usecase "Gửi yêu cầu hỗ trợ" as UC_SubmitTicket
+    }
+
+}
+
+' ─── ASSOCIATIONS ────────────────────────────────────────────────────────────
+
+' Guest
+Guest --> UC_Search
+Guest --> UC_ViewRoom
+Guest --> UC_TravelPost
+Guest --> UC_Chatbot
+Guest --> UC_Auth
+
+' User (kế thừa Guest)
+User --> UC_Book
+User --> UC_Pay
+User --> UC_ApplyVoucher
+User --> UC_MyBookings
+User --> UC_Review
+User --> UC_Cancel
+User --> UC_ViewVoucher
+
+' Partner (kế thừa User)
+Partner --> UC_ManageAccom
+Partner --> UC_ManageRoom
+Partner --> UC_ConfirmBooking
+Partner --> UC_CheckIn
+Partner --> UC_CheckOut
+Partner --> UC_PartnerVoucher
+Partner --> UC_PartnerRevenue
+Partner --> UC_SubmitTicket
+
+' Admin
+Admin --> UC_ApproveBooking
+Admin --> UC_ApproveAccom
+Admin --> UC_NoShow
+Admin --> UC_Settlement
+Admin --> UC_AdminVoucher
+Admin --> UC_Revenue
+Admin --> UC_ManageUsers
+Admin --> UC_Support
+Admin --> UC_ManagePosts
+
+' External system
+UC_Pay --> VNPAY : <<uses>>
+
+' Include relationships
+UC_Book ..> UC_ApplyVoucher : <<include>>
+UC_Book ..> UC_Pay : <<include>>
+UC_ApproveBooking ..> UC_NoShow : <<extend>>
+
+@enduml

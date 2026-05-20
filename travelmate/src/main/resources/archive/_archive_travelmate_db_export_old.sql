@@ -1,5 +1,6 @@
-﻿-- TravelMate DB Export (full data dump)
--- Import: mysql -u root -p < travelmate_db_export.sql
+﻿-- ⚠️  FILE NÀY LÀ ARCHIVE CŨ — KHÔNG DÙNG ĐỂ DEMO
+-- File demo chính: src/main/resources/travelmate_db.sql
+-- Archived: 2026-05-20
 CREATE DATABASE IF NOT EXISTS travelmate_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE travelmate_db;
 
