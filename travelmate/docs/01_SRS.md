@@ -151,7 +151,7 @@ User/Browser ──► TravelMate Web App (Spring Boot / Thymeleaf)
 - Chỉ tính booking ONLINE + NO_SHOW + DEPOSIT_FORFEITED
 
 **UC-18: Xem báo cáo doanh thu**
-- Biểu đồ doanh thu theo tuần (5 tuần gần nhất)
+- Tổng quan doanh thu, commission và số tiền chờ quyết toán
 - Phân tích theo loại accommodation
 
 **UC-19: Quản lý người dùng**
@@ -186,7 +186,7 @@ User/Browser ──► TravelMate Web App (Spring Boot / Thymeleaf)
 - Voucher cho phòng cụ thể (PARTNER_ROOM)
 
 **UC-27: Xem doanh thu và quyết toán**
-- Doanh thu theo tuần, tháng
+- Doanh thu vận hành theo khoảng thời gian và theo tháng
 - Lịch sử quyết toán
 
 ---

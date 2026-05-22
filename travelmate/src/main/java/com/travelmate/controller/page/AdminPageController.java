@@ -10,6 +10,7 @@ import com.travelmate.entity.enums.BookingSource;
 import com.travelmate.entity.enums.BookingStatus;
 import com.travelmate.entity.enums.DiscountType;
 import com.travelmate.entity.enums.PaymentStatus;
+import com.travelmate.entity.enums.PartnerWithdrawalStatus;
 import com.travelmate.repository.AdminActionLogRepository;
 import com.travelmate.repository.PaymentRepository;
 import com.travelmate.repository.UserRepository;
@@ -17,6 +18,9 @@ import com.travelmate.service.*;
 import com.travelmate.entity.TravelPost;
 import com.travelmate.service.CommissionService;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -46,6 +50,11 @@ public class AdminPageController {
     private final AvailabilityService availabilityService;
     private final CommissionService commissionService;
     private final TravelPostService travelPostService;
+    private final PartnerWalletService partnerWalletService;
+    private final ExcelExportService excelExportService;
+
+    private static final MediaType XLSX_MEDIA_TYPE = MediaType.parseMediaType(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
     public AdminPageController(BookingService bookingService,
                                AccommodationService accommodationService,
@@ -60,7 +69,9 @@ public class AdminPageController {
                                PaymentRepository paymentRepository,
                                AvailabilityService availabilityService,
                                CommissionService commissionService,
-                               TravelPostService travelPostService) {
+                               TravelPostService travelPostService,
+                               PartnerWalletService partnerWalletService,
+                               ExcelExportService excelExportService) {
         this.bookingService = bookingService;
         this.accommodationService = accommodationService;
         this.reviewService = reviewService;
@@ -75,6 +86,8 @@ public class AdminPageController {
         this.availabilityService = availabilityService;
         this.commissionService = commissionService;
         this.travelPostService = travelPostService;
+        this.partnerWalletService = partnerWalletService;
+        this.excelExportService = excelExportService;
     }
 
     /** Helper: ghi audit log */
@@ -82,6 +95,14 @@ public class AdminPageController {
                            Long targetId, String description, String note) {
         String email = auth != null ? auth.getName() : "admin";
         actionLogRepository.save(new AdminActionLog(email, actionType, targetType, targetId, description, note));
+    }
+
+    private User getCurrentAdmin(Authentication auth) {
+        if (auth == null || auth.getName() == null) {
+            throw new IllegalArgumentException("Không xác định được tài khoản admin!");
+        }
+        return userRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tài khoản admin!"));
     }
 
     @GetMapping("/dashboard")
@@ -122,6 +143,7 @@ public class AdminPageController {
 
         // Thống kê review
         model.addAttribute("totalReviews", reviewService.countAllReviews());
+        model.addAttribute("pendingWithdrawals", partnerWalletService.countPendingWithdrawals());
 
         return "admin/dashboard";
     }
@@ -536,6 +558,24 @@ public class AdminPageController {
         }
     }
 
+    /** GET /admin/settlements/{id}/export-excel — Xuất file đối soát settlement */
+    @GetMapping("/settlements/{id}/export-excel")
+    public ResponseEntity<byte[]> exportSettlementExcel(@PathVariable Long id) {
+        try {
+            PartnerSettlement settlement = settlementService.findById(id);
+            List<SettlementDetailItemDto> breakdown = settlementService.getBreakdownForSettlement(settlement);
+            byte[] bytes = excelExportService.exportSettlementDetail(settlement, breakdown);
+
+            return ResponseEntity.ok()
+                    .contentType(XLSX_MEDIA_TYPE)
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"settlement-" + id + ".xlsx\"")
+                    .body(bytes);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     /** POST /admin/settlements/generate-monthly — Tạo settlement cho tất cả partner trong tháng trước */
     @PostMapping("/settlements/generate-monthly")
     public String generateMonthlySettlements(Authentication auth, RedirectAttributes ra) {
@@ -567,10 +607,11 @@ public class AdminPageController {
         try {
             // Tổng hợp ghi chú từ các trường nhập
             String combinedNote = buildSettlementNote(note, transactionCode, transferDate);
-            PartnerSettlement s = settlementService.markSettlementPaid(id, combinedNote);
+            User admin = getCurrentAdmin(auth);
+            PartnerSettlement s = settlementService.markSettlementPaid(id, combinedNote, admin);
             logAction(auth, "MARK_SETTLEMENT_PAID", "SETTLEMENT", id,
                     "Thanh toán quyết toán #" + id + " cho partner: " + s.getPartner().getName(), combinedNote);
-            ra.addFlashAttribute("successMessage", "✅ Đã đánh dấu đã thanh toán cho settlement #" + id + "!");
+            ra.addFlashAttribute("successMessage", "✅ Đã thanh toán settlement #" + id + " và cộng tiền vào ví Partner!");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
         }
@@ -592,6 +633,79 @@ public class AdminPageController {
             sb.append(note.trim());
         }
         return sb.isEmpty() ? "Admin đã chuyển khoản." : sb.toString();
+    }
+
+    // ─── Partner Withdrawals ─────────────────────────────────────────────────
+
+    @GetMapping("/withdrawals")
+    public String withdrawals(Model model) {
+        List<PartnerWithdrawalRequest> withdrawals = partnerWalletService.getAllWithdrawalsForAdmin();
+        long pendingCount = withdrawals.stream()
+                .filter(w -> w.getWithdrawalStatus() == PartnerWithdrawalStatus.PENDING).count();
+        long paidCount = withdrawals.stream()
+                .filter(w -> w.getWithdrawalStatus() == PartnerWithdrawalStatus.PAID).count();
+        long rejectedCount = withdrawals.stream()
+                .filter(w -> w.getWithdrawalStatus() == PartnerWithdrawalStatus.REJECTED).count();
+        BigDecimal pendingAmount = withdrawals.stream()
+                .filter(w -> w.getWithdrawalStatus() == PartnerWithdrawalStatus.PENDING)
+                .map(w -> w.getAmount() != null ? w.getAmount() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        model.addAttribute("withdrawals", withdrawals);
+        model.addAttribute("pendingCount", pendingCount);
+        model.addAttribute("paidCount", paidCount);
+        model.addAttribute("rejectedCount", rejectedCount);
+        model.addAttribute("pendingAmount", pendingAmount);
+        return "admin/withdrawals";
+    }
+
+    /** GET /admin/withdrawals/export-excel — Xuất danh sách yêu cầu rút tiền */
+    @GetMapping("/withdrawals/export-excel")
+    public ResponseEntity<byte[]> exportWithdrawalsExcel() {
+        List<PartnerWithdrawalRequest> withdrawals = partnerWalletService.getAllWithdrawalsForAdmin();
+        byte[] bytes = excelExportService.exportWithdrawals(withdrawals);
+
+        return ResponseEntity.ok()
+                .contentType(XLSX_MEDIA_TYPE)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"partner-withdrawals.xlsx\"")
+                .body(bytes);
+    }
+
+    @PostMapping("/withdrawals/{id}/mark-paid")
+    public String markWithdrawalPaid(@PathVariable Long id,
+                                     @RequestParam(required = false) String adminNote,
+                                     Authentication auth,
+                                     RedirectAttributes ra) {
+        try {
+            User admin = getCurrentAdmin(auth);
+            PartnerWithdrawalRequest request = partnerWalletService.markWithdrawalPaid(id, admin, adminNote);
+            logAction(auth, "MARK_WITHDRAWAL_PAID", "WITHDRAWAL", id,
+                    "Xác nhận đã chuyển khoản yêu cầu rút " + request.getRequestCode(), adminNote);
+            ra.addFlashAttribute("successMessage",
+                    "✅ Đã xác nhận chuyển khoản cho yêu cầu " + request.getRequestCode() + "!");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
+        }
+        return "redirect:/admin/withdrawals";
+    }
+
+    @PostMapping("/withdrawals/{id}/reject")
+    public String rejectWithdrawal(@PathVariable Long id,
+                                   @RequestParam(required = false) String adminNote,
+                                   Authentication auth,
+                                   RedirectAttributes ra) {
+        try {
+            User admin = getCurrentAdmin(auth);
+            PartnerWithdrawalRequest request = partnerWalletService.rejectWithdrawal(id, admin, adminNote);
+            logAction(auth, "REJECT_WITHDRAWAL", "WITHDRAWAL", id,
+                    "Từ chối yêu cầu rút " + request.getRequestCode(), adminNote);
+            ra.addFlashAttribute("successMessage",
+                    "✅ Đã từ chối yêu cầu " + request.getRequestCode() + " và hoàn tiền về ví Partner!");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
+        }
+        return "redirect:/admin/withdrawals";
     }
 
     // ─── Travel Posts Management ──────────────────────────────────────────────

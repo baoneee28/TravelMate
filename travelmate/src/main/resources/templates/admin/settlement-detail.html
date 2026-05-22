@@ -70,6 +70,7 @@
             <div class="admin-sidebar__section-title">Tài chính</div>
             <a href="/admin/revenue"     class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
             <a href="/admin/settlements" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
+            <a href="/admin/withdrawals" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👛</span> Yêu cầu rút tiền</a>
             <a href="/admin/vouchers"    class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
             <div class="admin-sidebar__section-title">Hỗ trợ</div>
             <a href="/admin/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
@@ -99,6 +100,10 @@
                 <h1 class="admin-topbar__title">🔍 Chi Tiết Settlement</h1>
             </div>
             <div class="admin-topbar__actions">
+                <a th:href="@{/admin/settlements/{id}/export-excel(id=${settlement.id})}"
+                   class="btn btn--primary btn--sm">
+                    <i class="fa-solid fa-file-excel"></i> Xuất Excel
+                </a>
                 <a href="/admin/settlements" class="btn btn--ghost btn--sm">
                     <i class="fa-solid fa-arrow-left"></i> Quay lại
                 </a>
@@ -116,6 +121,10 @@
                         <span th:text="${#temporals.format(settlement.periodStart,'dd/MM/yyyy')}">01/01</span>
                         –
                         <span th:text="${#temporals.format(settlement.periodEnd,'dd/MM/yyyy')}">07/01</span>
+                        <span th:if="${settlement.scheduledPayoutDate != null}">
+                            · Chi trả dự kiến:
+                            <strong style="color:#1d4ed8;" th:text="${#temporals.format(settlement.scheduledPayoutDate,'dd/MM/yyyy')}">10/05/2026</strong>
+                        </span>
                     </p>
                 </div>
                 <div style="display:flex;align-items:center;gap:10px;">
@@ -129,7 +138,7 @@
                         <button type="submit"
                                 style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer;"
                                 onclick="return confirm('Xác nhận đã chuyển tiền cho partner này?')">
-                            <i class="fa-solid fa-check"></i> Xác nhận đã chuyển khoản
+                            <i class="fa-solid fa-check"></i> Xác nhận và cộng ví
                         </button>
                     </form>
                 </div>
@@ -220,6 +229,11 @@
                         <span class="info-row__label">Ngày thanh toán</span>
                         <span class="info-row__value"
                               th:text="${#temporals.format(settlement.settlementDate,'dd/MM/yyyy HH:mm')}">—</span>
+                    </div>
+                    <div class="info-row" th:if="${settlement.scheduledPayoutDate != null}">
+                        <span class="info-row__label">Ngày chi trả dự kiến</span>
+                        <span class="info-row__value" style="color:#1d4ed8;"
+                              th:text="${#temporals.format(settlement.scheduledPayoutDate,'dd/MM/yyyy')}">—</span>
                     </div>
                     <div class="info-row" th:if="${settlement.note != null}">
                         <span class="info-row__label">Ghi chú</span>

@@ -9,7 +9,7 @@
   activeMenu values:
     dashboard | accommodations | accommodations-new | amenities
     bookings  | room-status    | direct-booking     | availability
-    reviews   | revenue        | settlements        | vouchers
+    reviews   | revenue        | settlements        | wallet | vouchers
     support   | profile
 -->
 <aside th:fragment="sidebar(activeMenu, partnerName)" class="admin-sidebar">
@@ -87,6 +87,11 @@
            th:classappend="${activeMenu == 'settlements'} ? ' active' : ''"
            class="admin-sidebar__link">
             <span class="admin-sidebar__link-icon">🏦</span> Quyết toán
+        </a>
+        <a href="/partner/wallet"
+           th:classappend="${activeMenu == 'wallet'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">👛</span> Ví quyết toán
         </a>
         <a href="/partner/vouchers"
            th:classappend="${activeMenu == 'vouchers'} ? ' active' : ''"

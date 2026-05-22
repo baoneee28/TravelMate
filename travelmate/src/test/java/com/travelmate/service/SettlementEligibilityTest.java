@@ -36,13 +36,14 @@ class SettlementEligibilityTest {
     @Mock private PaymentRepository paymentRepository;
     @Mock private UserRepository userRepository;
     @Mock private CommissionService commissionService;
+    @Mock private PartnerWalletService partnerWalletService;
 
     private SettlementService settlementService;
 
     @BeforeEach
     void setUp() {
         settlementService = new SettlementService(
-                settlementRepository, paymentRepository, userRepository, commissionService
+                settlementRepository, paymentRepository, userRepository, commissionService, partnerWalletService
         );
     }
 

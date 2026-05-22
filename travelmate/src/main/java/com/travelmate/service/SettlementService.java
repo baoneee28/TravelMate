@@ -15,6 +15,7 @@ import com.travelmate.entity.enums.VoucherCostBearer;
 import com.travelmate.repository.PartnerSettlementRepository;
 import com.travelmate.repository.PaymentRepository;
 import com.travelmate.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,6 +58,10 @@ public class SettlementService {
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
     private final CommissionService commissionService;
+    private final PartnerWalletService partnerWalletService;
+
+    @Value("${travelmate.demo-mode:true}")
+    private boolean demoMode;
 
     private static final List<PaymentStatus> REVENUE_STATUSES =
             List.of(PaymentStatus.APPROVED, PaymentStatus.DEPOSIT_FORFEITED);
@@ -64,11 +69,13 @@ public class SettlementService {
     public SettlementService(PartnerSettlementRepository settlementRepository,
                              PaymentRepository paymentRepository,
                              UserRepository userRepository,
-                             CommissionService commissionService) {
+                             CommissionService commissionService,
+                             PartnerWalletService partnerWalletService) {
         this.settlementRepository = settlementRepository;
         this.paymentRepository = paymentRepository;
         this.userRepository = userRepository;
         this.commissionService = commissionService;
+        this.partnerWalletService = partnerWalletService;
     }
 
     // ─── GENERATE ─────────────────────────────────────────────────────────────
@@ -83,8 +90,10 @@ public class SettlementService {
     public List<PartnerSettlement> generateMonthlySettlements() {
         // Xác định kỳ quyết toán: ngày 01 → cuối tháng trước
         YearMonth lastMonth = YearMonth.now().minusMonths(1);
+        YearMonth currentMonth = YearMonth.now();
         LocalDate periodStart = lastMonth.atDay(1);
         LocalDate periodEnd   = lastMonth.atEndOfMonth();
+        LocalDate scheduledPayoutDate = currentMonth.atDay(10);
 
         // Lấy tất cả payment APPROVED/DEPOSIT_FORFEITED
         List<Payment> allPayments = paymentRepository.findByPaymentStatusIn(REVENUE_STATUSES);
@@ -155,6 +164,7 @@ public class SettlementService {
             settlement.setCommissionAmount(commission);
             settlement.setVoucherDeductionAmount(voucherDeduct);
             settlement.setPayoutAmount(payout);
+            settlement.setScheduledPayoutDate(scheduledPayoutDate);
             settlement.setSettlementStatus(SettlementStatus.PENDING);
 
             created.add(settlementRepository.save(settlement));
@@ -232,11 +242,26 @@ public class SettlementService {
      */
     @Transactional
     public PartnerSettlement markSettlementPaid(Long id, String note) {
+        return markSettlementPaid(id, note, null);
+    }
+
+    @Transactional
+    public PartnerSettlement markSettlementPaid(Long id, String note, User admin) {
         PartnerSettlement settlement = settlementRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Settlement không tồn tại!"));
 
         if (settlement.getSettlementStatus() == SettlementStatus.PAID) {
             throw new IllegalArgumentException("Settlement này đã được thanh toán trước đó!");
+        }
+        if (settlement.getSettlementStatus() == SettlementStatus.CANCELLED) {
+            throw new IllegalArgumentException("Settlement đã bị hủy, không thể thanh toán!");
+        }
+
+        LocalDate scheduledDate = settlement.getScheduledPayoutDate();
+        if (scheduledDate != null && LocalDate.now().isBefore(scheduledDate) && !demoMode) {
+            throw new IllegalArgumentException("Chưa đến ngày chi trả dự kiến "
+                    + scheduledDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                    + ". Có thể bật travelmate.demo-mode=true để demo trước ngày chi trả.");
         }
 
         settlement.setSettlementStatus(SettlementStatus.PAID);
@@ -245,7 +270,9 @@ public class SettlementService {
             settlement.setNote(note);
         }
 
-        return settlementRepository.save(settlement);
+        PartnerSettlement saved = settlementRepository.save(settlement);
+        partnerWalletService.creditSettlement(saved, admin);
+        return saved;
     }
 
     // ─── QUERY ────────────────────────────────────────────────────────────────

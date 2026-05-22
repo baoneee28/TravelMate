@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yêu cầu rút tiền – Admin TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        .withdraw-kpi-grid { display:grid; grid-template-columns:repeat(4,minmax(170px,1fr)); gap:14px; margin-bottom:20px; }
+        .withdraw-kpi {
+            background:#fff;
+            border:1px solid #e5e7eb;
+            border-radius:12px;
+            padding:16px;
+            box-shadow:0 1px 4px rgba(15,23,42,.05);
+        }
+        .withdraw-kpi__label { color:#64748b; font-size:12px; font-weight:700; }
+        .withdraw-kpi__value { color:#0f172a; font-size:22px; font-weight:800; margin-top:5px; }
+        .withdraw-info {
+            background:#eff6ff;
+            border:1px solid #bfdbfe;
+            border-radius:12px;
+            padding:14px 16px;
+            margin-bottom:18px;
+            color:#1e3a8a;
+            font-size:13px;
+            line-height:1.7;
+        }
+        .withdraw-table-wrap { overflow-x:auto; }
+        .withdraw-table { width:100%; min-width:1120px; border-collapse:collapse; font-size:13px; }
+        .withdraw-table th {
+            background:#f8fafc;
+            color:#475569;
+            text-align:left;
+            padding:11px 12px;
+            border-bottom:1px solid #e2e8f0;
+            font-weight:800;
+            white-space:nowrap;
+        }
+        .withdraw-table td { padding:12px; border-bottom:1px solid #f1f5f9; vertical-align:top; }
+        .withdraw-table tr:hover td { background:#f8fafc; }
+        .withdraw-status { display:inline-flex; align-items:center; border-radius:999px; padding:4px 9px; font-size:11px; font-weight:800; white-space:nowrap; }
+        .withdraw-status--pending { background:#fef3c7; color:#92400e; }
+        .withdraw-status--paid { background:#dcfce7; color:#166534; }
+        .withdraw-status--rejected { background:#fee2e2; color:#991b1b; }
+        .withdraw-action-grid { display:grid; grid-template-columns:1fr; gap:8px; min-width:220px; }
+        .withdraw-action-grid input {
+            width:100%;
+            box-sizing:border-box;
+            border:1.5px solid #e2e8f0;
+            border-radius:9px;
+            padding:8px 10px;
+            font-size:12px;
+        }
+        .withdraw-action-buttons { display:flex; gap:6px; flex-wrap:wrap; }
+        .withdraw-action-buttons button { border:none; border-radius:8px; padding:7px 10px; font-size:12px; font-weight:800; cursor:pointer; }
+        .btn-paid { background:#16a34a; color:#fff; }
+        .btn-reject { background:#dc2626; color:#fff; }
+        .empty-withdraw { text-align:center; padding:42px 18px; color:#64748b; }
+        @media(max-width:960px){ .withdraw-kpi-grid { grid-template-columns:repeat(2,1fr); } }
+        @media(max-width:560px){ .withdraw-kpi-grid { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+<div class="admin-wrapper">
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar__header">
+            <a href="/admin/dashboard" class="sidebar-logo">
+                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+                <div>
+                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                    <span class="admin-sidebar__badge">ADMIN PANEL</span>
+                </div>
+            </a>
+        </div>
+        <nav class="admin-sidebar__nav">
+            <div class="admin-sidebar__section-title">Tổng quan</div>
+            <a href="/admin/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
+            <div class="admin-sidebar__section-title">Quản lý đặt phòng</div>
+            <a href="/admin/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt phòng</a>
+            <a href="/admin/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng</a>
+            <div class="admin-sidebar__section-title">Quản lý nội dung</div>
+            <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
+            <a href="/admin/rooms" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
+            <a href="/admin/reviews" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
+            <a href="/admin/travel-posts" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗺️</span> Bài viết du lịch</a>
+            <a href="/admin/users" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
+            <div class="admin-sidebar__section-title">Tài chính</div>
+            <a href="/admin/revenue" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
+            <a href="/admin/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
+            <a href="/admin/withdrawals" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">👛</span> Yêu cầu rút tiền</a>
+            <a href="/admin/vouchers" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
+            <div class="admin-sidebar__section-title">Hỗ trợ</div>
+            <a href="/admin/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
+            <div class="admin-sidebar__section-title">Hệ thống</div>
+            <a href="/admin/audit-log" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📜</span> Nhật ký thao tác</a>
+            <a href="/" class="admin-sidebar__link" target="_blank"><span class="admin-sidebar__link-icon">🌐</span> Xem trang User</a>
+        </nav>
+        <div class="admin-sidebar__footer">
+            <div class="admin-sidebar__user">
+                <div class="admin-sidebar__user-avatar">AD</div>
+                <div class="admin-sidebar__user-info">
+                    <div class="admin-sidebar__user-name" sec:authentication="name">Admin</div>
+                    <div class="admin-sidebar__user-role">Quản trị viên</div>
+                </div>
+            </div>
+            <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
+                <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">Đăng xuất</button>
+            </form>
+        </div>
+    </aside>
+    <div class="admin-sidebar-overlay"></div>
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div style="display:flex;align-items:center;gap:var(--space-4)">
+                <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                <h1 class="admin-topbar__title"><i class="fa-solid fa-money-bill-transfer"></i> Yêu cầu rút tiền Partner</h1>
+            </div>
+            <div class="admin-topbar__actions">
+                <a href="/admin/withdrawals/export-excel" class="btn btn--primary btn--sm">
+                    <i class="fa-solid fa-file-excel"></i> Xuất Excel
+                </a>
+                <a href="/admin/settlements" class="btn btn--ghost btn--sm">
+                    <i class="fa-solid fa-file-invoice-dollar"></i> Quyết toán
+                </a>
+            </div>
+        </header>
+
+        <main class="admin-content">
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+
+            <div class="withdraw-info">
+                <strong>Luồng xử lý:</strong> Partner gửi yêu cầu rút tiền từ ví nội bộ, hệ thống tạm giữ số tiền khỏi số dư khả dụng.
+                Admin chuyển khoản ngoài hệ thống theo thông tin ngân hàng snapshot, sau đó bấm xác nhận hoặc từ chối để hoàn tiền về ví.
+            </div>
+
+            <div class="withdraw-kpi-grid">
+                <div class="withdraw-kpi">
+                    <div class="withdraw-kpi__label">Tổng yêu cầu</div>
+                    <div class="withdraw-kpi__value" th:text="${#lists.size(withdrawals)}">0</div>
+                </div>
+                <div class="withdraw-kpi">
+                    <div class="withdraw-kpi__label">Đang chờ xử lý</div>
+                    <div class="withdraw-kpi__value" style="color:#b45309;" th:text="${pendingCount}">0</div>
+                </div>
+                <div class="withdraw-kpi">
+                    <div class="withdraw-kpi__label">Số tiền đang chờ</div>
+                    <div class="withdraw-kpi__value" style="color:#1d4ed8;" th:text="${#numbers.formatDecimal(pendingAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
+                </div>
+                <div class="withdraw-kpi">
+                    <div class="withdraw-kpi__label">Đã xử lý</div>
+                    <div class="withdraw-kpi__value">
+                        <span style="color:#16a34a;" th:text="${paidCount}">0</span>
+                        <span style="color:#94a3b8;font-size:16px;">/</span>
+                        <span style="color:#dc2626;" th:text="${rejectedCount}">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <section class="admin-section">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+                    <h2 style="font-size:16px;font-weight:800;margin:0;"><i class="fa-solid fa-list-check"></i> Danh sách yêu cầu rút</h2>
+                    <span style="font-size:12px;color:#64748b;">Thông tin tài khoản là snapshot tại thời điểm Partner gửi yêu cầu.</span>
+                </div>
+
+                <div th:if="${#lists.isEmpty(withdrawals)}" class="empty-withdraw">
+                    <i class="fa-solid fa-inbox" style="font-size:38px;opacity:.25;margin-bottom:8px;"></i>
+                    <div>Chưa có yêu cầu rút tiền nào.</div>
+                </div>
+
+                <div th:if="${!#lists.isEmpty(withdrawals)}" class="withdraw-table-wrap">
+                    <table class="withdraw-table">
+                        <thead>
+                            <tr>
+                                <th>Mã yêu cầu</th>
+                                <th>Partner</th>
+                                <th>Số tiền</th>
+                                <th>Ngân hàng nhận</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày yêu cầu</th>
+                                <th>Ngày xử lý</th>
+                                <th>Ghi chú Admin</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="w : ${withdrawals}">
+                                <td>
+                                    <div style="font-family:monospace;font-weight:800;color:#0f172a;" th:text="${w.requestCode}">WD</div>
+                                    <div style="font-size:11px;color:#64748b;" th:text="'#' + ${w.id}">#1</div>
+                                </td>
+                                <td>
+                                    <div style="font-weight:800;" th:text="${w.partner.name}">Partner</div>
+                                    <div style="font-size:12px;color:#64748b;" th:text="${w.partner.email}">email</div>
+                                </td>
+                                <td style="font-size:15px;font-weight:800;color:#dc2626;white-space:nowrap;"
+                                    th:text="${#numbers.formatDecimal(w.amount,0,'COMMA',0,'POINT')} + 'đ'">0đ</td>
+                                <td>
+                                    <div style="font-weight:800;color:#0f172a;" th:text="${w.bankName}">Bank</div>
+                                    <div style="font-size:12px;color:#475569;">
+                                        <span th:text="${w.maskedBankAccountNumber}">****1234</span>
+                                        <span> - </span>
+                                        <span th:text="${w.bankAccountHolder}">Holder</span>
+                                    </div>
+                                    <div style="font-size:12px;color:#64748b;" th:if="${w.bankBranch != null}" th:text="${w.bankBranch}">Branch</div>
+                                </td>
+                                <td>
+                                    <span class="withdraw-status"
+                                          th:classappend="${w.withdrawalStatus.name() == 'PENDING'} ? ' withdraw-status--pending' : (${w.withdrawalStatus.name() == 'PAID'} ? ' withdraw-status--paid' : ' withdraw-status--rejected')"
+                                          th:text="${w.withdrawalStatus.displayName}">Status</span>
+                                </td>
+                                <td style="white-space:nowrap;color:#64748b;"
+                                    th:text="${w.requestedAt != null ? #temporals.format(w.requestedAt,'dd/MM/yyyy HH:mm') : '—'}">—</td>
+                                <td style="white-space:nowrap;color:#64748b;"
+                                    th:text="${w.processedAt != null ? #temporals.format(w.processedAt,'dd/MM/yyyy HH:mm') : '—'}">—</td>
+                                <td style="max-width:220px;color:#475569;" th:text="${w.adminNote != null ? w.adminNote : '—'}">—</td>
+                                <td>
+                                    <div th:if="${w.withdrawalStatus.name() == 'PENDING'}" class="withdraw-action-grid">
+                                        <form th:action="@{/admin/withdrawals/{id}/mark-paid(id=${w.id})}" method="post"
+                                              onsubmit="return confirm('Xác nhận đã chuyển khoản cho Partner?')">
+                                            <input name="adminNote" type="text" placeholder="Mã giao dịch / ghi chú" />
+                                            <div class="withdraw-action-buttons" style="margin-top:6px;">
+                                                <button type="submit" class="btn-paid"><i class="fa-solid fa-check"></i> Đã chuyển</button>
+                                            </div>
+                                        </form>
+                                        <form th:action="@{/admin/withdrawals/{id}/reject(id=${w.id})}" method="post"
+                                              onsubmit="return confirm('Từ chối yêu cầu này và hoàn tiền về ví Partner?')">
+                                            <input name="adminNote" type="text" placeholder="Lý do từ chối" />
+                                            <div class="withdraw-action-buttons" style="margin-top:6px;">
+                                                <button type="submit" class="btn-reject"><i class="fa-solid fa-xmark"></i> Từ chối</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <span th:if="${w.withdrawalStatus.name() != 'PENDING'}" style="color:#64748b;font-size:12px;font-weight:700;">Đã xử lý</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/admin.js"></script>
+</body>
+</html>

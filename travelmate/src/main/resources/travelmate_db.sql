@@ -2,20 +2,22 @@
 -- TRAVELMATE DEMO SEED — FILE CHÍNH ĐỂ DEMO & BẢO VỆ ĐỒ ÁN
 -- =======================================================================
 -- Sử dụng FILE NÀY khi import DB cho demo, không dùng file export cũ.
--- Last verified: 2026-05-20
+-- Last verified: 2026-05-22
 --
 -- Nội dung bao gồm:
---   • Users       : 1 ADMIN, 3 USER, 4 PARTNER (đủ loại HOTEL/VILLA/HOMESTAY/RESORT)
---   • Accommodations: 11 cơ sở APPROVED + 2 PENDING/REJECTED (demo flow duyệt)
---   • Rooms       : 30 phòng với commission_rate_override đa dạng
+--   • Users       : 1 ADMIN, 4 USER, 6 PARTNER (đủ loại HOTEL/VILLA/HOMESTAY/RESORT + seed ví)
+--   • Accommodations: cơ sở APPROVED + PENDING/REJECTED, có riêng khách sạn seed ví
+--   • Rooms       : phòng đa dạng với commission_rate_override và phòng seed settlement
 --   • Amenities   : tiện nghi mẫu
---   • Bookings    : 28+ booking bao gồm đủ trạng thái demo
+--   • Bookings    : 32+ booking bao gồm đủ trạng thái demo
 --                   (PENDING_ADMIN_APPROVAL, CONFIRMED, CHECKED_IN, COMPLETED,
 --                    NO_SHOW, CANCELLED — với cả DEPOSIT_30 và FULL_PAYMENT)
 --   • Payments    : APPROVED, DEPOSIT_FORFEITED, PENDING_ADMIN_APPROVAL
 --   • Vouchers    : 5 voucher (USER_GLOBAL/PARTNER_ACCOMMODATION/PARTNER_ROOM)
---   • Settlements : settlement PAID demo cho 4 partner + 1 PENDING tháng hiện tại
---   • Reviews     : 2 đánh giá sau booking COMPLETED
+--   • Settlements : settlement PAID/PENDING theo tháng + seed để Admin generate settlement mới
+--   • Partner Wallets: ví quyết toán nội bộ, lịch sử tiền vào/ra, yêu cầu rút tiền demo
+--                     (đủ dữ liệu cho màn hình ví và export Excel withdrawal)
+--   • Reviews     : 16 đánh giá sau booking COMPLETED
 --   • Support Tickets: 10 tickets demo đa loại
 --   • Travel Data : Destinations + Posts
 --
@@ -28,6 +30,9 @@
 --   PARTNER2: partner2@travelmate.vn / partner123 (RESORT — Nha Trang/Đà Nẵng)
 --   PARTNER3: partner3@travelmate.vn / partner123 (VILLA)
 --   PARTNER4: partner4@travelmate.vn / partner123 (HOMESTAY)
+--   SEED USER: seeduser_wallet@travelmate.vn / user123
+--   SEED PARTNER: seedpartner_wallet@travelmate.vn / partner123 (đủ bank info + ví/rút tiền)
+--   SEED PARTNER NO BANK: seedpartner_nobank@travelmate.vn / partner123 (có tiền nhưng thiếu bank info)
 --
 -- CÁCH IMPORT:
 --   mysql -u root -p < travelmate_db.sql
@@ -49,6 +54,9 @@
     DROP TABLE IF EXISTS admin_action_logs;
     DROP TABLE IF EXISTS support_tickets;
     DROP TABLE IF EXISTS reviews;
+    DROP TABLE IF EXISTS partner_wallet_transactions;
+    DROP TABLE IF EXISTS partner_withdrawal_requests;
+    DROP TABLE IF EXISTS partner_wallets;
     DROP TABLE IF EXISTS partner_settlements;
     DROP TABLE IF EXISTS payments;
     DROP TABLE IF EXISTS bookings;
@@ -278,6 +286,7 @@
         commission_amount        DECIMAL(15,0) DEFAULT 0,
         voucher_deduction_amount DECIMAL(15,0) DEFAULT 0,
         payout_amount            DECIMAL(15,0) DEFAULT 0,
+        scheduled_payout_date     DATE,
         settlement_status        VARCHAR(20)   DEFAULT 'PENDING',
         settlement_date          DATETIME(6),
         note                     VARCHAR(500),
@@ -286,6 +295,70 @@
         -- UNIQUE: Mỗi partner chỉ có 1 settlement duy nhất cho 1 kỳ tháng
         UNIQUE KEY uk_settlement_partner_period (partner_id, period_start, period_end),
         CONSTRAINT fk_settlements_partner FOREIGN KEY (partner_id) REFERENCES users (id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+    -- =============================================
+    -- 7a. BẢNG PARTNER_WALLETS — Ví quyết toán nội bộ của Partner
+    -- =============================================
+    CREATE TABLE partner_wallets (
+        id                         BIGINT        NOT NULL AUTO_INCREMENT,
+        partner_id                 BIGINT        NOT NULL UNIQUE,
+        available_balance          DECIMAL(15,0) DEFAULT 0,
+        pending_withdrawal_amount  DECIMAL(15,0) DEFAULT 0,
+        total_earned_amount        DECIMAL(15,0) DEFAULT 0,
+        total_withdrawn_amount     DECIMAL(15,0) DEFAULT 0,
+        updated_at                 DATETIME(6),
+        PRIMARY KEY (id),
+        CONSTRAINT fk_wallet_partner FOREIGN KEY (partner_id) REFERENCES users (id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+    -- =============================================
+    -- 7b. BẢNG PARTNER_WITHDRAWAL_REQUESTS — Partner yêu cầu rút tiền
+    -- =============================================
+    CREATE TABLE partner_withdrawal_requests (
+        id                    BIGINT        NOT NULL AUTO_INCREMENT,
+        partner_id            BIGINT        NOT NULL,
+        request_code          VARCHAR(50)   NOT NULL UNIQUE,
+        amount                DECIMAL(15,0) DEFAULT 0,
+        bank_name             VARCHAR(100),
+        bank_account_number   VARCHAR(30),
+        bank_account_holder   VARCHAR(100),
+        bank_branch           VARCHAR(100),
+        withdrawal_status     VARCHAR(20)   DEFAULT 'PENDING',
+        requested_at          DATETIME(6),
+        processed_at          DATETIME(6),
+        processed_by_admin_id BIGINT        NULL,
+        admin_note            VARCHAR(500),
+        PRIMARY KEY (id),
+        CONSTRAINT fk_withdraw_partner FOREIGN KEY (partner_id) REFERENCES users (id),
+        CONSTRAINT fk_withdraw_admin   FOREIGN KEY (processed_by_admin_id) REFERENCES users (id),
+        INDEX idx_withdraw_partner_status (partner_id, withdrawal_status)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+    -- =============================================
+    -- 7c. BẢNG PARTNER_WALLET_TRANSACTIONS — Lịch sử tiền vào/ra ví
+    -- =============================================
+    CREATE TABLE partner_wallet_transactions (
+        id                    BIGINT        NOT NULL AUTO_INCREMENT,
+        partner_id            BIGINT        NOT NULL,
+        settlement_id         BIGINT        NULL,
+        withdrawal_request_id BIGINT        NULL,
+        transaction_code      VARCHAR(50)   NOT NULL UNIQUE,
+        transaction_type      VARCHAR(40)   NOT NULL,
+        direction             VARCHAR(20)   NOT NULL,
+        amount                DECIMAL(15,0) DEFAULT 0,
+        balance_before        DECIMAL(15,0) DEFAULT 0,
+        balance_after         DECIMAL(15,0) DEFAULT 0,
+        description           VARCHAR(500),
+        created_at            DATETIME(6),
+        created_by_admin_id   BIGINT        NULL,
+        PRIMARY KEY (id),
+        CONSTRAINT fk_wallet_tx_partner    FOREIGN KEY (partner_id) REFERENCES users (id),
+        CONSTRAINT fk_wallet_tx_settlement FOREIGN KEY (settlement_id) REFERENCES partner_settlements (id),
+        CONSTRAINT fk_wallet_tx_withdrawal FOREIGN KEY (withdrawal_request_id) REFERENCES partner_withdrawal_requests (id),
+        CONSTRAINT fk_wallet_tx_admin      FOREIGN KEY (created_by_admin_id) REFERENCES users (id),
+        UNIQUE KEY uk_wallet_tx_settlement_credit (settlement_id, transaction_type),
+        INDEX idx_wallet_tx_partner_created (partner_id, created_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
@@ -1481,46 +1554,9 @@
         'FIXED_AMOUNT', 30000, NULL, 200000,
         CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), 0, 'USER_GLOBAL', 'ADMIN', NULL, NOW());
 
-    -- =============================================
-    -- SEED DATA — PARTNER SETTLEMENTS (Tháng hiện tại — PENDING)
-    -- partner1 HOTEL: booking #4 LATA-DLX (1.700.000)
-    -- partner2 RESORT: booking #9 VNT-SUI (13.500.000)
-    -- partner3 VILLA: booking #11 ANM-GDN pending (chưa hoàn tất)
-    -- partner4 HOMESTAY: booking #10 MND-ATT (1.740.000)
-    -- =============================================
-    INSERT INTO partner_settlements
-        (partner_id, period_start, period_end,
-        gross_amount, commission_amount, voucher_deduction_amount, payout_amount,
-        settlement_status, settlement_date, note, created_at)
-    VALUES
-    -- partner1 (HOTEL): booking #7 LATA-FAM hoàn tất trong tháng này, gross=3.600.000, comm15%=540.000, payout=3.060.000
-    (3,
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+5) DAY),
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())-1) DAY),
-    3600000, 540000, 0, 3060000,
-    'PAID', DATE_SUB(NOW(), INTERVAL 2 DAY),
-    'Admin đã thanh toán cho partner Sunrise Sapa Lodge (HOTEL). Booking LATA-FAM hoàn tất.', DATE_SUB(NOW(), INTERVAL 2 DAY)),
-    -- partner2 (RESORT): booking #9 VNT-SUI xác nhận, gross=13.500.000, comm18%=2.430.000, payout=11.070.000
-    (4,
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+5) DAY),
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())-1) DAY),
-    13500000, 2430000, 0, 11070000,
-    'PAID', DATE_SUB(NOW(), INTERVAL 2 DAY),
-    'Admin đã thanh toán cho partner Blue Ocean Resort (RESORT). Booking VNT-SUI hoàn tất.', DATE_SUB(NOW(), INTERVAL 2 DAY)),
-    -- partner3 (VILLA): booking #22 ANM-GDN hoàn tất, gross=7.000.000, comm12%=840.000, payout=6.160.000
-    (7,
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+5) DAY),
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())-1) DAY),
-    7000000, 840000, 0, 6160000,
-    'PAID', DATE_SUB(NOW(), INTERVAL 2 DAY),
-    'Admin đã thanh toán cho partner Green Hills Villa (VILLA). Booking ANM-GDN hoàn tất.', DATE_SUB(NOW(), INTERVAL 2 DAY)),
-    -- partner4 (HOMESTAY): booking #10 MND-ATT hoàn tất, gross=1.740.000, comm10%=174.000, payout=1.566.000
-    (8,
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+5) DAY),
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())-1) DAY),
-    1740000, 174000, 0, 1566000,
-    'PAID', DATE_SUB(NOW(), INTERVAL 2 DAY),
-    'Admin đã thanh toán cho partner Mekong Homestay (HOMESTAY). Booking MND-ATT hoàn tất.', DATE_SUB(NOW(), INTERVAL 2 DAY));
+    -- Partner settlements được seed ở block monthly phía dưới để mỗi partner chỉ có 1 kỳ/tháng.
+    -- Các booking hoàn tất trong tháng 05/2026 được gộp vào settlement PENDING tháng 05,
+    -- không tạo PAID theo kỳ 7 ngày để tránh mâu thuẫn nghiệp vụ quyết toán tháng.
 
     -- =============================================
     -- KIỂM TRA SAU KHI CHẠY SQL
@@ -1534,7 +1570,7 @@
     -- SELECT COUNT(*) FROM rooms;              -- kỳ vọng: 30
     -- SELECT COUNT(*) FROM accommodations;     -- kỳ vọng: 11 (+ 2 PENDING/REJECTED = 13 total)
     -- SELECT COUNT(*) FROM vouchers;           -- kỳ vọng: 5
-    -- SELECT COUNT(*) FROM partner_settlements;-- kỳ vọng: 2
+    -- SELECT COUNT(*) FROM partner_settlements;-- seed ở block monthly phía dưới
 
     -- =============================================
     -- SEED DATA BỔ SUNG — Lịch sử đặt phòng (Bookings 15–22)
@@ -1799,100 +1835,89 @@
     UPDATE accommodations SET rating = 10.0, review_count = 1 WHERE id = 9;
 
     -- =============================================
-    -- SEED DATA BỔ SUNG — PARTNER SETTLEMENTS (lịch sử theo tháng)
+    -- SEED DATA — PARTNER SETTLEMENTS THEO THÁNG
+    -- Mỗi partner chỉ có 1 settlement cho 1 tháng.
+    -- period_start = ngày 01, period_end = ngày cuối tháng.
+    -- scheduled_payout_date = ngày 10 của tháng sau kỳ quyết toán.
     -- Công thức: payout = gross - commission - voucher_deduction
-    -- Tỷ lệ commission: HOTEL 15% | VILLA 12% | HOMESTAY 10% | RESORT 18%
     -- =============================================
-
-    -- ─── Tháng 04/2026 — PAID ─────────────────────────────
-    -- partner1 (HOTEL): booking #15 LATA-STD+SUMMER10, payment=1.170.000, comm15%=175.500, voucher_deduction=0(ADMIN), payout=994.500
-    -- partner2 (RESORT): booking #16 VNT-DLX, payment=5.600.000, comm18%=1.008.000, payout=4.592.000
-    -- partner3 (VILLA): không có booking COMPLETED tháng này
-    -- partner4 (HOMESTAY): không có booking COMPLETED tháng này
     INSERT INTO partner_settlements
         (partner_id, period_start, period_end,
         gross_amount, commission_amount, voucher_deduction_amount, payout_amount,
-        settlement_status, settlement_date, note, created_at)
+        scheduled_payout_date, settlement_status, settlement_date, note, created_at)
     VALUES
-    (3,
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+12) DAY),
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+6) DAY),
-    1170000, 175500, 0, 994500,
-    'PAID', DATE_SUB(NOW(), INTERVAL 3 DAY),
-    'Tháng 04/2026: LATA Hotel 1 booking — voucher SUMMER10 do Admin chịu, không trừ partner.',
-    DATE_SUB(NOW(), INTERVAL 3 DAY)),
-    (4,
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+12) DAY),
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+6) DAY),
-    5600000, 1008000, 0, 4592000,
-    'PAID', DATE_SUB(NOW(), INTERVAL 3 DAY),
-    'Tháng 04/2026: Vinpearl Resort 1 booking — không có voucher.',
-    DATE_SUB(NOW(), INTERVAL 3 DAY));
+    -- Tháng 02/2026 — PAID
+    (8, '2026-02-01', '2026-02-28',
+    1600000, 160000, 0, 1440000,
+    '2026-03-10', 'PAID', '2026-03-10 09:00:00',
+    'Tháng 02/2026: Hoa Lư Riverside Homestay 2 booking (HLR-STD + HLR-DLX), không có voucher.',
+    '2026-02-28 18:00:00'),
 
-    -- ─── Tháng 03/2026 — PAID ──────────────────────────────
-    -- partner1 (HOTEL): booking #17 LATA-DLX+LATA20, payment=2.040.000, comm15%=306.000, voucher_deduction=510.000(PARTNER), payout=1.224.000
-    -- partner2 (RESORT): không có booking tháng này
-    -- partner3 (VILLA): không có booking tháng này
-    -- partner4 (HOMESTAY): booking #18 MND-STD, payment=780.000, comm10%=78.000, payout=702.000
-    INSERT INTO partner_settlements
-        (partner_id, period_start, period_end,
-        gross_amount, commission_amount, voucher_deduction_amount, payout_amount,
-        settlement_status, settlement_date, note, created_at)
-    VALUES
-    (3,
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+19) DAY),
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+13) DAY),
-    2040000, 306000, 510000, 1224000,
-    'PAID', DATE_SUB(NOW(), INTERVAL 10 DAY),
-    'Tháng 03/2026: LATA Hotel 1 booking — voucher LATA20 do Partner chịu, trừ 510.000đ.',
-    DATE_SUB(NOW(), INTERVAL 10 DAY)),
-    (8,
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+19) DAY),
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+13) DAY),
-    780000, 78000, 0, 702000,
-    'PAID', DATE_SUB(NOW(), INTERVAL 10 DAY),
-    'Tháng 03/2026: Mộc Nhiên Garden Homestay 1 booking — không có voucher.',
-    DATE_SUB(NOW(), INTERVAL 10 DAY));
-
-    -- ─── Tháng 03/2026 (khác kỳ) — PAID ────────────────────────
-    -- partner2 (RESORT): booking #19 FDN-DLX, payment=4.800.000, comm18%=864.000, payout=3.936.000
-    --                    booking #20 VNT-DLX+VNT100K, payment=5.500.000, comm18%=990.000, voucher_deduction=100.000(PARTNER), payout=4.410.000
-    -- partner2 gộp 2 bookings: gross=10.300.000, comm=1.854.000, deduction=100.000, payout=8.346.000
-    INSERT INTO partner_settlements
-        (partner_id, period_start, period_end,
-        gross_amount, commission_amount, voucher_deduction_amount, payout_amount,
-        settlement_status, settlement_date, note, created_at)
-    VALUES
-    (4,
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+26) DAY),
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+20) DAY),
+    -- Tháng 03/2026 — PAID, đã gộp các dòng seed 7 ngày cũ theo partner
+    (3, '2026-03-01', '2026-03-31',
+    6640000, 996000, 510000, 5134000,
+    '2026-04-10', 'PAID', '2026-04-10 09:00:00',
+    'Tháng 03/2026: LATA-DLX + TM Grand + Tulip; voucher LATA20 do Partner chịu 510.000đ.',
+    '2026-03-31 18:00:00'),
+    (4, '2026-03-01', '2026-03-31',
     10300000, 1854000, 100000, 8346000,
-    'PAID', DATE_SUB(NOW(), INTERVAL 17 DAY),
-    'Tháng 03/2026: Furama Resort + Vinpearl Resort 2 bookings — voucher VNT100K do Partner chịu, trừ 100.000đ.',
-    DATE_SUB(NOW(), INTERVAL 17 DAY));
+    '2026-04-10', 'PAID', '2026-04-10 09:05:00',
+    'Tháng 03/2026: Furama Resort + Vinpearl Resort; voucher VNT100K do Partner chịu 100.000đ.',
+    '2026-03-31 18:05:00'),
+    (7, '2026-03-01', '2026-03-31',
+    22200000, 2968000, 1050000, 18182000,
+    '2026-04-10', 'PAID', '2026-04-10 09:10:00',
+    'Tháng 03/2026: The Anam Villa + Ba Na Hills Villa; voucher ANAM15 do Partner chịu 1.050.000đ.',
+    '2026-03-31 18:10:00'),
+    (8, '2026-03-01', '2026-03-31',
+    2540000, 254000, 50000, 2236000,
+    '2026-04-10', 'PAID', '2026-04-10 09:15:00',
+    'Tháng 03/2026: Mộc Nhiên Homestay; voucher HOALUU50K do Partner chịu 50.000đ.',
+    '2026-03-31 18:15:00'),
 
-    -- ─── Tháng 03/2026 (khác kỳ) — PAID ─────────────────────────
-    -- partner1 (HOTEL): booking #21 TMG-DLX, payment=2.400.000, comm15%=360.000, payout=2.040.000
-    -- partner3 (VILLA): booking #22 ANM-GDN, payment=7.000.000, comm12%=840.000, payout=6.160.000
-    INSERT INTO partner_settlements
-        (partner_id, period_start, period_end,
-        gross_amount, commission_amount, voucher_deduction_amount, payout_amount,
-        settlement_status, settlement_date, note, created_at)
-    VALUES
-    (3,
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+33) DAY),
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+27) DAY),
-    2400000, 360000, 0, 2040000,
-    'PAID', DATE_SUB(NOW(), INTERVAL 24 DAY),
-    'Tháng 03/2026: TM Grand Hotel 1 booking — không có voucher.',
-    DATE_SUB(NOW(), INTERVAL 24 DAY)),
-    (7,
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+33) DAY),
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+27) DAY),
-    7000000, 840000, 0, 6160000,
-    'PAID', DATE_SUB(NOW(), INTERVAL 24 DAY),
-    'Tháng 03/2026: The Anam Villa 1 booking — không có voucher.',
-    DATE_SUB(NOW(), INTERVAL 24 DAY));
+    -- Tháng 04/2026 — PAID
+    (3, '2026-04-01', '2026-04-30',
+    1170000, 175500, 0, 994500,
+    '2026-05-10', 'PAID', '2026-05-10 09:00:00',
+    'Tháng 04/2026: LATA Hotel 1 booking, voucher SUMMER10 do Admin chịu.',
+    '2026-04-30 18:00:00'),
+    (4, '2026-04-01', '2026-04-30',
+    5600000, 1008000, 0, 4592000,
+    '2026-05-10', 'PAID', '2026-05-10 09:05:00',
+    'Tháng 04/2026: Vinpearl Resort 1 booking, không có voucher.',
+    '2026-04-30 18:05:00'),
+    (7, '2026-04-01', '2026-04-30',
+    17400000, 2610000, 0, 14790000,
+    '2026-05-10', 'PAID', '2026-05-10 09:10:00',
+    'Tháng 04/2026: The Anam Beachfront Pool Villa 3 đêm, không có voucher.',
+    '2026-04-30 18:10:00'),
+    (8, '2026-04-01', '2026-04-30',
+    1500000, 120000, 0, 1380000,
+    '2026-05-10', 'PAID', '2026-05-10 09:15:00',
+    'Tháng 04/2026: Hoa Lư Family Room 2 đêm, không có voucher.',
+    '2026-04-30 18:15:00'),
+
+    -- Tháng 05/2026 — PENDING, chờ chi trả dự kiến 10/06/2026
+    (3, '2026-05-01', '2026-05-31',
+    10538000, 1729200, 0, 8808800,
+    '2026-06-10', 'PENDING', NULL,
+    'Tháng 05/2026 đang chờ: LATA-FAM + LATA-DLX + TMG-PRE + no-show TLP-STD, gộp đúng kỳ tháng.',
+    '2026-05-31 18:00:00'),
+    (4, '2026-05-01', '2026-05-31',
+    17460000, 3142800, 0, 14317200,
+    '2026-06-10', 'PENDING', NULL,
+    'Tháng 05/2026 đang chờ: VNT-SUI + VNT-DLX cọc online + no-show Furama, gộp đúng kỳ tháng.',
+    '2026-05-31 18:05:00'),
+    (7, '2026-05-01', '2026-05-31',
+    24100000, 2892000, 0, 21208000,
+    '2026-06-10', 'PENDING', NULL,
+    'Tháng 05/2026 đang chờ: ANM-GDN + Ba Na Hills BNH-BNG + Anam Garden, gộp đúng kỳ tháng.',
+    '2026-05-31 18:10:00'),
+    (8, '2026-05-01', '2026-05-31',
+    3860000, 409200, 0, 3450800,
+    '2026-06-10', 'PENDING', NULL,
+    'Tháng 05/2026 đang chờ: MND-ATT + HLR-DLX + MND-ATT-0002, gộp đúng kỳ tháng.',
+    '2026-05-31 18:15:00');
 
     -- =============================================
     -- SEED DATA BỔ SUNG — BOOKINGS ACC2, ACC5, ACC6
@@ -2079,117 +2104,8 @@
     -- acc6 Hoa Lư Homestay: 2 reviews (27=5★, 28=5★) → avg 5.0 × 2 = 10.0
     UPDATE accommodations SET rating = 10.0, review_count = 2 WHERE id = 6;
 
-    -- =============================================
-    -- SETTLEMENTS BỔ SUNG — Tháng 02–03/2026, đúng partner_id theo loại lưu trú
-    -- HOTEL 15% | VILLA 12% | HOMESTAY 10% | RESORT 18%
-    -- partner1 (id=3)=HOTEL | partner2 (id=4)=RESORT
-    -- partner3 (id=7)=VILLA | partner4 (id=8)=HOMESTAY
-    -- =============================================
-
-    -- ─── Tháng 03/2026 (bổ sung) — PAID ───────────────────────────
-    -- partner1 (HOTEL): booking #23 TLP-STD (user2), payment=960.000, comm15%=144.000, payout=816.000
-    -- partner1 (HOTEL): booking #24 TLP-SUP (user), payment=1.240.000, comm15%=186.000, payout=1.054.000
-    -- Gộp 2 bookings Hotel tháng này: gross=2.200.000, comm=330.000, payout=1.870.000
-    INSERT INTO partner_settlements
-        (partner_id, period_start, period_end,
-        gross_amount, commission_amount, voucher_deduction_amount, payout_amount,
-        settlement_status, settlement_date, note, created_at)
-    VALUES
-    (3,
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+40) DAY),
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+34) DAY),
-    2200000, 330000, 0, 1870000,
-    'PAID', DATE_SUB(NOW(), INTERVAL 31 DAY),
-    'Tháng 03/2026: Tulip Hotel 2 bookings (TLP-STD + TLP-SUP) — không có voucher.',
-    DATE_SUB(NOW(), INTERVAL 31 DAY));
-
-    -- ─── Tháng 03/2026 (bổ sung) — PAID ────────────────────────────
-    -- partner3 (VILLA): booking #25 BNH-BNG (user3), payment=4.400.000, comm12%=528.000, payout=3.872.000
-    -- partner3 (VILLA): booking #26 BNH-TWN (user2), payment=3.200.000, comm12%=384.000, payout=2.816.000
-    -- Gộp 2 bookings Villa: gross=7.600.000, comm=912.000, payout=6.688.000
-    INSERT INTO partner_settlements
-        (partner_id, period_start, period_end,
-        gross_amount, commission_amount, voucher_deduction_amount, payout_amount,
-        settlement_status, settlement_date, note, created_at)
-    VALUES
-    (7,
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+47) DAY),
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+41) DAY),
-    7600000, 912000, 0, 6688000,
-    'PAID', DATE_SUB(NOW(), INTERVAL 38 DAY),
-    'Tháng 03/2026: Ba Na Hills Forest Villa 2 bookings — không có voucher.',
-    DATE_SUB(NOW(), INTERVAL 38 DAY));
-
-    -- ─── Tháng 02/2026 — PAID ────────────────────────────────
-    -- partner4 (HOMESTAY): booking #27 HLR-STD, payment=640.000, comm10%=64.000, payout=576.000
-    -- partner4 (HOMESTAY): booking #28 HLR-DLX, payment=960.000, comm10%=96.000, payout=864.000
-    -- Gộp 2 bookings Homestay: gross=1.600.000, comm=160.000, payout=1.440.000
-    INSERT INTO partner_settlements
-        (partner_id, period_start, period_end,
-        gross_amount, commission_amount, voucher_deduction_amount, payout_amount,
-        settlement_status, settlement_date, note, created_at)
-    VALUES
-    (8,
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+54) DAY),
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+48) DAY),
-    1600000, 160000, 0, 1440000,
-    'PAID', DATE_SUB(NOW(), INTERVAL 45 DAY),
-    'Tháng 02/2026: Hoa Lư Riverside Homestay 2 bookings (HLR-STD + HLR-DLX) — không có voucher.',
-    DATE_SUB(NOW(), INTERVAL 45 DAY));
-
-    -- ─── Tháng 02/2026 — PAID ──────────────────────────
-    -- partner1 (HOTEL): không có booking tháng này
-    -- partner2 (RESORT): không có booking tháng này
-    -- Thêm pending tháng hiện tại cho tất cả 4 partner để demo "Chờ thanh toán"
-    -- ─── Tháng hiện tại — PENDING cho 4 partner ─────────
-    -- Quy tắc: commission chỉ tính trên tiền thu online (payment.amount), không dùng booking.totalAmount.
-    INSERT INTO partner_settlements
-        (partner_id, period_start, period_end,
-        gross_amount, commission_amount, voucher_deduction_amount, payout_amount,
-        settlement_status, settlement_date, note, created_at)
-    VALUES
-    -- partner1 HOTEL (acc1 LATA, acc2 Tulip, acc3 TM Grand):
-    --   booking #4 LATA-DLX  FULL_PAYMENT 1.700.000 → comm 15%=255.000
-    --   booking #6 TMG-PRE   FULL_PAYMENT 4.950.000 → comm 18% (room override)=891.000
-    --   no-show  #5 TLP-STD  DEPOSIT_30   cọc 288.000 → comm 15%=43.200
-    -- Ghi chú: booking #12 FDN-DLX thuộc acc9 Furama (partner2), KHÔNG thuộc partner1.
-    -- Gross=6.938.000  Commission=1.189.200  Payout=5.748.800
-    (3,
-    DATE_SUB(CURDATE(), INTERVAL 7 DAY), CURDATE(),
-    6938000, 1189200, 0, 5748800,
-    'PENDING', NULL,
-    'Tháng hiện tại: LATA-DLX 1.700.000 (comm15%=255.000) + TMG-PRE 4.950.000 (comm18% override=891.000) + No-show TLP-STD cọc 288.000 (comm15%=43.200). Admin chuyển khoản đầu tháng tới.',
-    NOW()),
-    -- partner2 RESORT (acc8 Vinpearl, acc9 Furama):
-    --   booking #8  VNT-DLX  DEPOSIT_30 cọc online 2.520.000 → comm 18%=453.600
-    --   no-show #12 FDN-DLX  DEPOSIT_30 cọc  1.440.000 → comm 18%=259.200
-    -- Gross=3.960.000  Commission=712.800  Payout=3.247.200
-    (4,
-    DATE_SUB(CURDATE(), INTERVAL 7 DAY), CURDATE(),
-    3960000, 712800, 0, 3247200,
-    'PENDING', NULL,
-    'Tháng hiện tại: Vinpearl VNT-DLX cọc 30% online 2.520.000 (comm18%=453.600) + No-show Furama FDN-DLX cọc 1.440.000 (comm18%=259.200). Admin chuyển khoản đầu tháng tới.',
-    NOW()),
-    -- partner3 VILLA (acc4 Anam, acc5 Ba Na Hills):
-    --   booking #14 BNH-BNG  FULL_PAYMENT 6.600.000 → comm 12%=792.000
-    --   booking #33 ANM-GDN-0003 FULL_PAYMENT 10.500.000 → comm 12%=1.260.000
-    -- Gross=17.100.000  Commission=2.052.000  Payout=15.048.000
-    (7,
-    DATE_SUB(CURDATE(), INTERVAL 7 DAY), CURDATE(),
-    17100000, 2052000, 0, 15048000,
-    'PENDING', NULL,
-    'Tháng hiện tại: Ba Na Hills BNH-BNG 6.600.000 (comm12%=792.000) + Anam Garden ANM-GDN-0003 10.500.000 (comm12%=1.260.000). Admin chuyển khoản đầu tháng tới.',
-    NOW()),
-    -- partner4 HOMESTAY (acc6 Hoa Lư, acc7 Mộc Nhiên):
-    --   booking #13 HLR-DLX     FULL_PAYMENT 960.000   → comm 10%=96.000
-    --   booking #34 MND-ATT-0002 FULL_PAYMENT 1.160.000 → comm 12% (room override)=139.200
-    -- Gross=2.120.000  Commission=235.200  Payout=1.884.800
-    (8,
-    DATE_SUB(CURDATE(), INTERVAL 7 DAY), CURDATE(),
-    2120000, 235200, 0, 1884800,
-    'PENDING', NULL,
-    'Tháng hiện tại: Hoa Lư HLR-DLX 960.000 (comm10%=96.000) + Mộc Nhiên MND-ATT-0002 1.160.000 (comm12% override=139.200). Admin chuyển khoản đầu tháng tới.',
-    NOW());
+    -- Các booking 23–28 đã được gộp vào block partner_settlements monthly phía trên.
+    -- Không insert thêm settlement dạng kỳ 7 ngày để tránh trùng unique key theo partner + tháng.
 
     -- =============================================
     -- KIỂM TRA SAU KHI CHẠY SQL (cập nhật)
@@ -2198,7 +2114,7 @@
     -- SELECT COUNT(*) FROM bookings;            -- kỳ vọng: 28
     -- SELECT COUNT(*) FROM payments;            -- kỳ vọng: 28
     -- SELECT COUNT(*) FROM reviews;             -- kỳ vọng: 16
-    -- SELECT COUNT(*) FROM partner_settlements; -- kỳ vọng: 17 (10 cũ + 6 mới + 1 pending)
+    -- SELECT COUNT(*) FROM partner_settlements; -- kỳ vọng: 13 (monthly, không còn kỳ 7 ngày)
     -- SELECT COUNT(*) FROM vouchers;            -- kỳ vọng: 5
     --
     -- Kiểm tra acc2, acc5, acc6 đã có reviews nhất quán:
@@ -2702,70 +2618,167 @@
     -- acc7 Mộc Nhiên: reviews 10(4★)+18(4★)+32(5★) → avg 4.33 × 2 = 8.7
     UPDATE accommodations SET rating = 8.7, review_count = 3 WHERE id = 7;
 
+    -- Các booking #29–#32 đã được gộp vào settlement monthly phía trên.
+    -- Không insert settlement bổ sung dạng kỳ 7 ngày để tránh trùng kỳ tháng.
+
     -- =============================================
-    -- SETTLEMENTS BỔ SUNG — Partner3 và Partner4 thêm lịch sử
+    -- PARTNER WALLET DEMO — ví quyết toán + lịch sử + rút tiền
+    -- Dữ liệu ở block này cũng phục vụ export Excel đối soát:
+    --   /admin/settlements/{id}/export-excel và /admin/withdrawals/export-excel
     -- =============================================
+    UPDATE partner_settlements
+    SET scheduled_payout_date = DATE_ADD(LAST_DAY(period_end), INTERVAL 10 DAY)
+    WHERE id > 0 AND scheduled_payout_date IS NULL;
 
-    -- Tháng 04/2026 — partner3 VILLA: booking #29 ANM-BCH gross=17.400.000 comm15%(override)=2.610.000 payout=14.790.000
-    INSERT INTO partner_settlements
-        (partner_id, period_start, period_end,
-        gross_amount, commission_amount, voucher_deduction_amount, payout_amount,
-        settlement_status, settlement_date, note, created_at)
+    INSERT INTO partner_wallets
+        (partner_id, available_balance, pending_withdrawal_amount,
+         total_earned_amount, total_withdrawn_amount, updated_at)
+    SELECT
+        u.id,
+        COALESCE(SUM(CASE WHEN ps.settlement_status = 'PAID' THEN ps.payout_amount ELSE 0 END), 0),
+        0,
+        COALESCE(SUM(CASE WHEN ps.settlement_status = 'PAID' THEN ps.payout_amount ELSE 0 END), 0),
+        0,
+        NOW()
+    FROM users u
+    LEFT JOIN partner_settlements ps ON ps.partner_id = u.id
+    WHERE u.role = 'PARTNER'
+    GROUP BY u.id;
+
+    INSERT INTO partner_withdrawal_requests
+        (partner_id, request_code, amount,
+         bank_name, bank_account_number, bank_account_holder, bank_branch,
+         withdrawal_status, requested_at, processed_at, processed_by_admin_id, admin_note)
     VALUES
-    (7,
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+12) DAY),
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+6) DAY),
-    17400000, 2610000, 0, 14790000,
-    'PAID', DATE_SUB(NOW(), INTERVAL 5 DAY),
-    'Tháng 04/2026: The Anam Beachfront Pool Villa 3 đêm — không voucher.',
-    DATE_SUB(NOW(), INTERVAL 5 DAY));
+    (3, 'WD-DEMO-PENDING-001', 1000000,
+     'Vietcombank', '0123456789', 'NGUYEN VAN PARTNER', 'CN Đà Lạt',
+     'PENDING', DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, NULL, NULL),
+    (4, 'WD-DEMO-PAID-001', 2500000,
+     'Techcombank', '0987654321', 'TRAN THI RESORT', 'CN Nha Trang',
+     'PAID', DATE_SUB(NOW(), INTERVAL 8 DAY), DATE_SUB(NOW(), INTERVAL 7 DAY), 1,
+     'Demo: Admin đã chuyển khoản ngoài hệ thống, mã GD TCB-DEMO-2500.'),
+    (7, 'WD-DEMO-REJECT-001', 1500000,
+     'BIDV', '1122334455', 'LE VAN VILLA', 'CN Đà Nẵng',
+     'REJECTED', DATE_SUB(NOW(), INTERVAL 6 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY), 1,
+     'Demo: Từ chối do Partner cần kiểm tra lại thông tin tài khoản.');
 
-    -- Tháng 03/2026 — partner3 VILLA: booking #30 BNH-SUI với voucher ANAM15 (partner chịu)
-    -- gross=7.600.000, comm16%(override)=1.216.000, voucher_deduction=1.050.000, payout=5.334.000
-    INSERT INTO partner_settlements
-        (partner_id, period_start, period_end,
-        gross_amount, commission_amount, voucher_deduction_amount, payout_amount,
-        settlement_status, settlement_date, note, created_at)
-    VALUES
-    (7,
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+19) DAY),
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+13) DAY),
-    7600000, 1216000, 1050000, 5334000,
-    'PAID', DATE_SUB(NOW(), INTERVAL 12 DAY),
-    'Tháng 03/2026: Ba Na Hills Treetop Suite — voucher ANAM15 do Partner chịu, trừ 1.050.000đ.',
-    DATE_SUB(NOW(), INTERVAL 12 DAY));
+    UPDATE partner_wallets
+    SET pending_withdrawal_amount = pending_withdrawal_amount + 1000000,
+        available_balance = GREATEST(available_balance - 1000000, 0),
+        updated_at = NOW()
+    WHERE id > 0 AND partner_id = 3;
 
-    -- Tháng 04/2026 — partner4 HOMESTAY: booking #31 HLR-FAM gross=1.500.000 comm8%(override)=120.000 payout=1.380.000
-    INSERT INTO partner_settlements
-        (partner_id, period_start, period_end,
-        gross_amount, commission_amount, voucher_deduction_amount, payout_amount,
-        settlement_status, settlement_date, note, created_at)
-    VALUES
-    (8,
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+12) DAY),
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+6) DAY),
-    1500000, 120000, 0, 1380000,
-    'PAID', DATE_SUB(NOW(), INTERVAL 5 DAY),
-    'Tháng 04/2026: Hoa Lư Family Room 2 đêm — không voucher.',
-    DATE_SUB(NOW(), INTERVAL 5 DAY));
+    UPDATE partner_wallets
+    SET total_withdrawn_amount = total_withdrawn_amount + 2500000,
+        available_balance = GREATEST(available_balance - 2500000, 0),
+        updated_at = NOW()
+    WHERE id > 0 AND partner_id = 4;
 
-    -- Tháng 03/2026 — partner4 HOMESTAY: booking #32 MND-FAM với HOALUU50K (partner chịu)
-    -- gross=1.760.000, comm10%=176.000, voucher_deduction=50.000, payout=1.534.000
-    INSERT INTO partner_settlements
-        (partner_id, period_start, period_end,
-        gross_amount, commission_amount, voucher_deduction_amount, payout_amount,
-        settlement_status, settlement_date, note, created_at)
-    VALUES
-    (8,
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+26) DAY),
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFWEEK(CURDATE())+20) DAY),
-    1760000, 176000, 50000, 1534000,
-    'PAID', DATE_SUB(NOW(), INTERVAL 19 DAY),
-    'Tháng 03/2026: Mộc Nhiên Family Room — voucher HOALUU50K do Partner chịu, trừ 50.000đ.',
-    DATE_SUB(NOW(), INTERVAL 19 DAY));
+    INSERT INTO partner_wallet_transactions
+        (partner_id, settlement_id, withdrawal_request_id, transaction_code,
+         transaction_type, direction, amount, balance_before, balance_after,
+         description, created_at, created_by_admin_id)
+    SELECT
+        ps.partner_id,
+        ps.id,
+        NULL,
+        CONCAT('STL-', LPAD(ps.id, 6, '0')),
+        'SETTLEMENT_CREDIT',
+        'IN',
+        ps.payout_amount,
+        ps.balance_before_seed,
+        ps.balance_after_seed,
+        CONCAT('Cộng tiền quyết toán kỳ ', DATE_FORMAT(ps.period_start, '%d/%m/%Y'), ' - ', DATE_FORMAT(ps.period_end, '%d/%m/%Y')),
+        COALESCE(ps.settlement_date, ps.created_at, NOW()),
+        1
+    FROM (
+        SELECT
+            paid.*,
+            COALESCE(
+                SUM(COALESCE(paid.payout_amount, 0)) OVER (
+                    PARTITION BY paid.partner_id
+                    ORDER BY COALESCE(paid.settlement_date, paid.created_at, NOW()), paid.id
+                    ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+                ),
+                0
+            ) AS balance_before_seed,
+            SUM(COALESCE(paid.payout_amount, 0)) OVER (
+                PARTITION BY paid.partner_id
+                ORDER BY COALESCE(paid.settlement_date, paid.created_at, NOW()), paid.id
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            ) AS balance_after_seed
+        FROM partner_settlements paid
+        WHERE paid.settlement_status = 'PAID'
+    ) ps;
 
-    -- NOTE: Các settlement PENDING tháng hiện tại đã được gộp vào block phía trên (line ~1731)
-    -- Không insert lại ở đây để tránh lỗi Duplicate Entry (UNIQUE KEY uk_settlement_partner_period)
+    INSERT INTO partner_wallet_transactions
+        (partner_id, settlement_id, withdrawal_request_id, transaction_code,
+         transaction_type, direction, amount, balance_before, balance_after,
+         description, created_at, created_by_admin_id)
+    SELECT
+        wr.partner_id,
+        NULL,
+        wr.id,
+        CONCAT('WDREQ-', LPAD(wr.id, 6, '0')),
+        'WITHDRAWAL_REQUEST',
+        'OUT',
+        wr.amount,
+        CASE
+            WHEN wr.withdrawal_status = 'REJECTED' THEN pw.available_balance
+            ELSE pw.available_balance + wr.amount
+        END,
+        CASE
+            WHEN wr.withdrawal_status = 'REJECTED' THEN GREATEST(pw.available_balance - wr.amount, 0)
+            ELSE pw.available_balance
+        END,
+        CONCAT('Partner gửi yêu cầu rút tiền về tài khoản ', CONCAT('****', RIGHT(wr.bank_account_number, 4))),
+        wr.requested_at,
+        NULL
+    FROM partner_withdrawal_requests wr
+    JOIN partner_wallets pw ON pw.partner_id = wr.partner_id
+    WHERE wr.request_code IN ('WD-DEMO-PENDING-001', 'WD-DEMO-PAID-001', 'WD-DEMO-REJECT-001');
+
+    INSERT INTO partner_wallet_transactions
+        (partner_id, settlement_id, withdrawal_request_id, transaction_code,
+         transaction_type, direction, amount, balance_before, balance_after,
+         description, created_at, created_by_admin_id)
+    SELECT
+        wr.partner_id,
+        NULL,
+        wr.id,
+        CONCAT('WDPAID-', LPAD(wr.id, 6, '0')),
+        'WITHDRAWAL_PAID',
+        'INFO',
+        wr.amount,
+        pw.available_balance,
+        pw.available_balance,
+        'Admin xác nhận đã chuyển khoản ngoài hệ thống',
+        wr.processed_at,
+        1
+    FROM partner_withdrawal_requests wr
+    JOIN partner_wallets pw ON pw.partner_id = wr.partner_id
+    WHERE wr.request_code = 'WD-DEMO-PAID-001';
+
+    INSERT INTO partner_wallet_transactions
+        (partner_id, settlement_id, withdrawal_request_id, transaction_code,
+         transaction_type, direction, amount, balance_before, balance_after,
+         description, created_at, created_by_admin_id)
+    SELECT
+        wr.partner_id,
+        NULL,
+        wr.id,
+        CONCAT('WDREJ-', LPAD(wr.id, 6, '0')),
+        'WITHDRAWAL_REJECTED',
+        'IN',
+        wr.amount,
+        GREATEST(pw.available_balance - wr.amount, 0),
+        pw.available_balance,
+        'Hoàn lại số dư vì yêu cầu rút tiền bị từ chối',
+        wr.processed_at,
+        1
+    FROM partner_withdrawal_requests wr
+    JOIN partner_wallets pw ON pw.partner_id = wr.partner_id
+    WHERE wr.request_code = 'WD-DEMO-REJECT-001';
 
     -- =============================================
     -- TIỆN NGHI PHÒNG (AMENITIES) — SEED DATA
@@ -3065,7 +3078,7 @@
     -- SELECT COUNT(*) FROM vouchers;            -- kỳ vọng: 8
     -- SELECT COUNT(*) FROM amenities;           -- kỳ vọng: 32
     -- SELECT COUNT(*) FROM room_amenities;      -- kỳ vọng: ~230
-    -- SELECT COUNT(*) FROM partner_settlements; -- kỳ vọng: 26
+    -- SELECT COUNT(*) FROM partner_settlements; -- kỳ vọng: 13
     -- SELECT COUNT(*) FROM admin_action_logs;    -- kỳ vọng: 50 (phủ đủ 8 loại: BOOKING, ACCOMMODATION, ROOM, USER, REVIEW, VOUCHER, SETTLEMENT, TICKET)
     --
     -- Kiểm tra ownership:
@@ -3258,7 +3271,9 @@
 
     -- Gán approved_at cho các payment đã được duyệt
     SET SQL_SAFE_UPDATES = 0;
-    UPDATE payments SET approved_at = paid_at WHERE payment_status IN ('APPROVED', 'DEPOSIT_FORFEITED');
+    UPDATE payments
+    SET approved_at = paid_at
+    WHERE id > 0 AND payment_status IN ('APPROVED', 'DEPOSIT_FORFEITED');
     SET SQL_SAFE_UPDATES = 1;
 
     -- =============================================
@@ -3987,7 +4002,7 @@
     -- SELECT COUNT(*) FROM vouchers;            -- kỳ vọng: 8
     -- SELECT COUNT(*) FROM amenities;           -- kỳ vọng: 32
     -- SELECT COUNT(*) FROM room_amenities;      -- kỳ vọng: ~230
-    -- SELECT COUNT(*) FROM partner_settlements; -- kỳ vọng: 26
+    -- SELECT COUNT(*) FROM partner_settlements; -- kỳ vọng: 13
     -- SELECT COUNT(*) FROM admin_action_logs;   -- kỳ vọng: ~110 (sau bổ sung partner3/4)
     -- SELECT COUNT(*) FROM notifications;       -- kỳ vọng: 21 (user2=9, user5=6, user6=6)
     --
@@ -4754,6 +4769,238 @@
         'Khách hủy giao dịch trên cổng VNPAY (mã 24).',
         DATE_SUB(NOW(), INTERVAL 15 MINUTE), DATE_SUB(NOW(), INTERVAL 15 MINUTE)
     ) ON DUPLICATE KEY UPDATE updated_at = NOW();
+
+    -- =============================================
+    -- SEED WALLET/SETTLEMENT FULL DEMO
+    -- Mục đích: có data trực quan để test đầy đủ:
+    --   1) Admin generate settlement tháng trước cho partner seed
+    --   2) Mark settlement paid -> cộng ví
+    --   3) Partner có bank info rút tiền thành công
+    --   4) Partner không có bank info bị chặn rút tiền
+    --   5) Admin thấy withdrawal PENDING/PAID/REJECTED và export Excel có dữ liệu
+    --
+    -- Tài khoản:
+    --   USER    seeduser_wallet@travelmate.vn    / user123
+    --   PARTNER seedpartner_wallet@travelmate.vn / partner123
+    --   PARTNER seedpartner_nobank@travelmate.vn / partner123
+    --
+    -- Expected khi Admin bấm "Tạo quyết toán tháng trước" trong tháng 05/2026:
+    --   grossAmount             = 2.250.000
+    --   commissionAmount        =   337.500
+    --   voucherDeductionAmount  =   200.000
+    --   payoutAmount            = 1.712.500
+    -- =============================================
+
+    SET @admin_id = (SELECT id FROM users WHERE email = 'admin@travelmate.vn' LIMIT 1);
+
+    INSERT INTO users (email, password, full_name, name, phone, role, status, partner_property_type,
+                    bank_account_number, bank_name, bank_account_holder, bank_branch,
+                    created_at, updated_at) VALUES
+    ('seeduser_wallet@travelmate.vn',
+     '$2a$10$FsFOdcKQPqCnlIPA3j82ZeY7R6tMpdhavFO2bfqWUfJqF1Z4nloO2',
+     'Seed User Wallet', 'Seed User Wallet', '0908 111 222', 'USER', 'ACTIVE', NULL,
+     NULL, NULL, NULL, NULL, NOW(), NOW()),
+    ('seedpartner_wallet@travelmate.vn',
+     '$2a$10$dCikCIiksr/Ne1Xpv40vKOMFwpiY751Cb1kdIVDwobiMzImbLC3oq',
+     'SEED Partner Wallet Hotel', 'SEED Partner Wallet Hotel', '0908 333 444', 'PARTNER', 'ACTIVE', 'HOTEL',
+     '123456789012', 'Vietcombank', 'SEED PARTNER WALLET HOTEL', 'CN Đà Lạt', NOW(), NOW()),
+    ('seedpartner_nobank@travelmate.vn',
+     '$2a$10$dCikCIiksr/Ne1Xpv40vKOMFwpiY751Cb1kdIVDwobiMzImbLC3oq',
+     'SEED Partner No Bank', 'SEED Partner No Bank', '0908 555 666', 'PARTNER', 'ACTIVE', 'HOTEL',
+     NULL, NULL, NULL, NULL, NOW(), NOW());
+
+    SET @seed_user_id = (SELECT id FROM users WHERE email = 'seeduser_wallet@travelmate.vn' LIMIT 1);
+    SET @seed_partner_id = (SELECT id FROM users WHERE email = 'seedpartner_wallet@travelmate.vn' LIMIT 1);
+    SET @seed_nobank_partner_id = (SELECT id FROM users WHERE email = 'seedpartner_nobank@travelmate.vn' LIMIT 1);
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    VALUES (
+        '[SEED WALLET] Đà Lạt Settlement Hotel',
+        'Khách sạn seed dành riêng để demo quyết toán tháng, ví Partner, rút tiền và export Excel. Không dùng cho production.',
+        '88 Seed Demo, Phường 1',
+        'Đà Lạt',
+        'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80',
+        4, 9.1, 12, 'HOTEL', 'APPROVED', @seed_partner_id, NOW(), NOW()
+    );
+    SET @seed_acc_id = (SELECT id FROM accommodations WHERE name = '[SEED WALLET] Đà Lạt Settlement Hotel' LIMIT 1);
+
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night,
+                       available_quantity, description, image_url, room_category, commission_rate_override)
+    VALUES (
+        @seed_acc_id, 'SEED-WALLET-STD', 'Seed Standard Settlement Room', '1 giường Queen',
+        2, 850000, 8,
+        'Phòng seed dùng để kiểm tra công thức settlement: gross, commission 15%, voucher partner chịu và payout.',
+        'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400&q=70',
+        'STANDARD', NULL
+    );
+    SET @seed_room_id = (SELECT id FROM rooms WHERE room_code = 'SEED-WALLET-STD' LIMIT 1);
+
+    -- 2 booking đủ điều kiện settlement tháng 04/2026
+    INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
+        check_in, check_out, adults, children, room_quantity,
+        customer_name, customer_phone, customer_email,
+        total_amount, paid_amount, remaining_amount,
+        booking_status, payment_option, payment_status, partner_status,
+        note, voucher_code, discount_amount, voucher_cost_bearer, total_before_discount,
+        booking_source, created_at, updated_at)
+    VALUES
+    ('BK-SEED-WALLET-FULL-001', @seed_user_id, @seed_acc_id, @seed_room_id,
+     '2026-04-11', '2026-04-13', 2, 0, 1,
+     'Seed User Wallet', '0908 111 222', 'seeduser_wallet@travelmate.vn',
+     1500000, 1500000, 0,
+     'COMPLETED', 'FULL_PAYMENT', 'APPROVED', 'PARTNER_CONFIRMED',
+     'SEED: Booking FULL_PAYMENT đã hoàn tất, đủ điều kiện settlement tháng 04/2026.',
+     'SEED200', 200000, 'PARTNER', 1700000,
+     'ONLINE', '2026-04-10 09:00:00', '2026-04-13 12:00:00'),
+    ('BK-SEED-WALLET-NOSHOW-001', @seed_user_id, @seed_acc_id, @seed_room_id,
+     '2026-04-18', '2026-04-20', 2, 0, 1,
+     'Seed User Wallet', '0908 111 222', 'seeduser_wallet@travelmate.vn',
+     2500000, 750000, 1750000,
+     'NO_SHOW', 'DEPOSIT_30', 'DEPOSIT_FORFEITED', NULL,
+     'SEED: Booking cọc 30% no-show, chỉ phần cọc online được đưa vào settlement.',
+     NULL, 0, NULL, 2500000,
+     'ONLINE', '2026-04-17 09:00:00', '2026-04-20 12:00:00');
+
+    INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code,
+                          payment_status, paid_at, approved_at, note)
+    SELECT id, 'VNPAY_DEMO', 'FULL_PAYMENT', 1500000, 'TXN-SEED-WALLET-FULL-001',
+           'APPROVED', '2026-04-10 09:05:00', '2026-04-10 09:10:00',
+           'SEED: Payment FULL_PAYMENT đủ điều kiện settlement.'
+    FROM bookings WHERE booking_code = 'BK-SEED-WALLET-FULL-001';
+
+    INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code,
+                          payment_status, paid_at, approved_at, note)
+    SELECT id, 'VNPAY_DEMO', 'DEPOSIT_30', 750000, 'TXN-SEED-WALLET-NOSHOW-001',
+           'DEPOSIT_FORFEITED', '2026-04-18 09:05:00', '2026-04-20 12:10:00',
+           'SEED: Payment cọc 30% bị giữ do no-show, đủ điều kiện settlement.'
+    FROM bookings WHERE booking_code = 'BK-SEED-WALLET-NOSHOW-001';
+
+    -- 2 booking không đủ điều kiện settlement để giảng viên nhìn thấy rule lọc
+    INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
+        check_in, check_out, adults, children, room_quantity,
+        customer_name, customer_phone, customer_email,
+        total_amount, paid_amount, remaining_amount,
+        booking_status, payment_option, payment_status, partner_status,
+        note, voucher_code, discount_amount, voucher_cost_bearer, total_before_discount,
+        booking_source, created_at, updated_at)
+    VALUES
+    ('BK-SEED-WALLET-DIRECT-001', @seed_user_id, @seed_acc_id, @seed_room_id,
+     '2026-04-22', '2026-04-24', 2, 0, 1,
+     'Seed User Wallet', '0908 111 222', 'seeduser_wallet@travelmate.vn',
+     900000, 900000, 0,
+     'COMPLETED', 'FULL_PAYMENT', 'APPROVED', 'PARTNER_CONFIRMED',
+     'SEED: Booking DIRECT tại cơ sở, không phải doanh thu online TravelMate nên không settlement.',
+     NULL, 0, NULL, 900000,
+     'DIRECT', '2026-04-22 09:00:00', '2026-04-24 11:00:00'),
+    ('BK-SEED-WALLET-PENDING-001', @seed_user_id, @seed_acc_id, @seed_room_id,
+     '2026-04-27', '2026-04-29', 2, 0, 1,
+     'Seed User Wallet', '0908 111 222', 'seeduser_wallet@travelmate.vn',
+     1000000, 1000000, 0,
+     'CONFIRMED', 'FULL_PAYMENT', 'APPROVED', 'PENDING_PARTNER_CONFIRMATION',
+     'SEED: Payment đã approved nhưng booking chưa COMPLETED/NO_SHOW nên không settlement.',
+     NULL, 0, NULL, 1000000,
+     'ONLINE', '2026-04-26 09:00:00', '2026-04-26 09:30:00');
+
+    INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code,
+                          payment_status, paid_at, approved_at, note)
+    SELECT id, 'VNPAY_DEMO', 'FULL_PAYMENT', 900000, 'TXN-SEED-WALLET-DIRECT-001',
+           'APPROVED', '2026-04-22 09:05:00', '2026-04-22 09:10:00',
+           'SEED: DIRECT booking bị loại khỏi settlement dù payment approved.'
+    FROM bookings WHERE booking_code = 'BK-SEED-WALLET-DIRECT-001';
+
+    INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code,
+                          payment_status, paid_at, approved_at, note)
+    SELECT id, 'VNPAY_DEMO', 'FULL_PAYMENT', 1000000, 'TXN-SEED-WALLET-PENDING-001',
+           'APPROVED', '2026-04-26 09:05:00', '2026-04-26 09:10:00',
+           'SEED: Booking chưa hoàn tất nên bị loại khỏi settlement.'
+    FROM bookings WHERE booking_code = 'BK-SEED-WALLET-PENDING-001';
+
+    -- Settlement PAID cũ để Partner có ví và lịch sử giao dịch ngay khi đăng nhập
+    INSERT INTO partner_settlements
+        (partner_id, period_start, period_end,
+         gross_amount, commission_amount, voucher_deduction_amount, payout_amount,
+         scheduled_payout_date, settlement_status, settlement_date, note, created_at)
+    VALUES
+    (@seed_partner_id, '2026-03-01', '2026-03-31',
+     4800000, 720000, 80000, 4000000,
+     '2026-04-10', 'PAID', '2026-04-10 10:00:00',
+     'SEED: Settlement cũ đã paid để demo ví có tiền vào, rút tiền và export Excel.',
+     '2026-03-31 18:30:00'),
+    (@seed_nobank_partner_id, '2026-03-01', '2026-03-31',
+     1200000, 180000, 20000, 1000000,
+     '2026-04-10', 'PAID', '2026-04-10 10:05:00',
+     'SEED: Partner có số dư nhưng chưa có bank info, dùng test chặn rút tiền.',
+     '2026-03-31 18:35:00');
+
+    SET @seed_paid_settlement_id = (
+        SELECT id FROM partner_settlements
+        WHERE partner_id = @seed_partner_id
+          AND period_start = '2026-03-01'
+          AND period_end = '2026-03-31'
+        LIMIT 1
+    );
+    SET @seed_nobank_settlement_id = (
+        SELECT id FROM partner_settlements
+        WHERE partner_id = @seed_nobank_partner_id
+          AND period_start = '2026-03-01'
+          AND period_end = '2026-03-31'
+        LIMIT 1
+    );
+
+    INSERT INTO partner_wallets
+        (partner_id, available_balance, pending_withdrawal_amount,
+         total_earned_amount, total_withdrawn_amount, updated_at)
+    VALUES
+    (@seed_partner_id, 2200000, 800000, 4000000, 1000000, NOW()),
+    (@seed_nobank_partner_id, 1000000, 0, 1000000, 0, NOW());
+
+    INSERT INTO partner_withdrawal_requests
+        (partner_id, request_code, amount,
+         bank_name, bank_account_number, bank_account_holder, bank_branch,
+         withdrawal_status, requested_at, processed_at, processed_by_admin_id, admin_note)
+    VALUES
+    (@seed_partner_id, 'WD-SEED-PENDING-001', 800000,
+     'Vietcombank', '123456789012', 'SEED PARTNER WALLET HOTEL', 'CN Đà Lạt',
+     'PENDING', '2026-05-18 09:00:00', NULL, NULL, NULL),
+    (@seed_partner_id, 'WD-SEED-PAID-001', 1000000,
+     'Vietcombank', '123456789012', 'SEED PARTNER WALLET HOTEL', 'CN Đà Lạt',
+     'PAID', '2026-05-12 09:00:00', '2026-05-12 15:00:00', @admin_id,
+     'SEED: Admin đã chuyển khoản ngoài hệ thống, mã GD SEED-VCB-1000.'),
+    (@seed_partner_id, 'WD-SEED-REJECTED-001', 500000,
+     'Vietcombank', '123456789012', 'SEED PARTNER WALLET HOTEL', 'CN Đà Lạt',
+     'REJECTED', '2026-05-14 09:00:00', '2026-05-14 15:00:00', @admin_id,
+     'SEED: Từ chối để demo hoàn tiền về ví Partner.');
+
+    SET @wd_seed_pending_id = (SELECT id FROM partner_withdrawal_requests WHERE request_code = 'WD-SEED-PENDING-001' LIMIT 1);
+    SET @wd_seed_paid_id = (SELECT id FROM partner_withdrawal_requests WHERE request_code = 'WD-SEED-PAID-001' LIMIT 1);
+    SET @wd_seed_rejected_id = (SELECT id FROM partner_withdrawal_requests WHERE request_code = 'WD-SEED-REJECTED-001' LIMIT 1);
+
+    INSERT INTO partner_wallet_transactions
+        (partner_id, settlement_id, withdrawal_request_id, transaction_code,
+         transaction_type, direction, amount, balance_before, balance_after,
+         description, created_at, created_by_admin_id)
+    VALUES
+    (@seed_partner_id, @seed_paid_settlement_id, NULL, 'WTX-SEED-STL-CREDIT-001',
+     'SETTLEMENT_CREDIT', 'IN', 4000000, 0, 4000000,
+     'SEED: Cộng tiền settlement tháng 03/2026 vào ví Partner', '2026-04-10 10:00:00', @admin_id),
+    (@seed_partner_id, NULL, @wd_seed_pending_id, 'WTX-SEED-WDREQ-PENDING-001',
+     'WITHDRAWAL_REQUEST', 'OUT', 800000, 4000000, 3200000,
+     'SEED: Partner gửi yêu cầu rút 800.000đ đang chờ Admin xử lý', '2026-05-18 09:00:00', NULL),
+    (@seed_partner_id, NULL, @wd_seed_paid_id, 'WTX-SEED-WDREQ-PAID-001',
+     'WITHDRAWAL_REQUEST', 'OUT', 1000000, 3200000, 2200000,
+     'SEED: Partner gửi yêu cầu rút 1.000.000đ', '2026-05-12 09:00:00', NULL),
+    (@seed_partner_id, NULL, @wd_seed_paid_id, 'WTX-SEED-WDPAID-001',
+     'WITHDRAWAL_PAID', 'INFO', 1000000, 2200000, 2200000,
+     'SEED: Admin xác nhận đã chuyển khoản, không trừ availableBalance lần 2', '2026-05-12 15:00:00', @admin_id),
+    (@seed_partner_id, NULL, @wd_seed_rejected_id, 'WTX-SEED-WDREQ-REJECTED-001',
+     'WITHDRAWAL_REQUEST', 'OUT', 500000, 2200000, 1700000,
+     'SEED: Partner gửi yêu cầu rút 500.000đ để demo từ chối', '2026-05-14 09:00:00', NULL),
+    (@seed_partner_id, NULL, @wd_seed_rejected_id, 'WTX-SEED-WDREJECTED-001',
+     'WITHDRAWAL_REJECTED', 'IN', 500000, 1700000, 2200000,
+     'SEED: Admin từ chối, hệ thống hoàn tiền về ví Partner', '2026-05-14 15:00:00', @admin_id),
+    (@seed_nobank_partner_id, @seed_nobank_settlement_id, NULL, 'WTX-SEED-NOBANK-STL-CREDIT-001',
+     'SETTLEMENT_CREDIT', 'IN', 1000000, 0, 1000000,
+     'SEED: Partner có tiền nhưng chưa có tài khoản ngân hàng', '2026-04-10 10:05:00', @admin_id);
 
     -- =============================================
     -- END OF travelmate_db.sql v18 — TravelMate Demo Data

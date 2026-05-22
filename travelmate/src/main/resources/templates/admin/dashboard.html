@@ -230,6 +230,7 @@
             <div class="admin-sidebar__section-title">Tài chính</div>
             <a href="/admin/revenue" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
             <a href="/admin/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
+            <a href="/admin/withdrawals" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👛</span> Yêu cầu rút tiền</a>
             <a href="/admin/vouchers" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
             <div class="admin-sidebar__section-title">Hỗ trợ</div>
             <a href="/admin/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
@@ -399,6 +400,14 @@
                     </div>
                     <i class="fa-solid fa-chevron-right kpi-arrow"></i>
                 </a>
+                <a href="/admin/withdrawals" class="kpi-card" style="--kpi-color:#0f766e;--kpi-bg:#f0fdfa;">
+                    <div class="kpi-icon"><i class="fa-solid fa-money-bill-transfer"></i></div>
+                    <div>
+                        <div class="kpi-value" th:text="${pendingWithdrawals}">0</div>
+                        <div class="kpi-label">Yêu cầu rút tiền chờ xử lý</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right kpi-arrow"></i>
+                </a>
                 <a href="/admin/reviews" class="kpi-card" style="--kpi-color:#d97706;--kpi-bg:#fffbeb;">
                     <div class="kpi-icon"><i class="fa-solid fa-star"></i></div>
                     <div>
@@ -451,6 +460,9 @@
                             </a>
                             <a href="/admin/settlements" class="qa-item">
                                 <div class="qa-icon">🏦</div> Quyết toán
+                            </a>
+                            <a href="/admin/withdrawals" class="qa-item">
+                                <div class="qa-icon">👛</div> Rút tiền
                             </a>
                             <a href="/admin/audit-log" class="qa-item">
                                 <div class="qa-icon">📜</div> Nhật ký

@@ -21,6 +21,9 @@ public interface PartnerSettlementRepository extends JpaRepository<PartnerSettle
     /** Lấy settlement của 1 partner — partner chỉ thấy của mình */
     List<PartnerSettlement> findByPartnerOrderByCreatedAtDesc(User partner);
 
+    /** Lấy settlement theo trạng thái — dùng để backfill ví từ dữ liệu quyết toán cũ */
+    List<PartnerSettlement> findByPartnerAndSettlementStatusOrderBySettlementDateAsc(User partner, SettlementStatus status);
+
     /**
      * Kiểm tra đã có settlement cho partner trong kỳ này chưa.
      * Dùng để tránh tạo trùng khi admin bấm Generate nhiều lần.

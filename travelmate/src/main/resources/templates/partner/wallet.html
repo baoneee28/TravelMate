@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ví quyết toán – Partner TravelMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&subset=vietnamese&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/admin.css" />
+    <link rel="stylesheet" href="/assets/css/partners.css" />
+    <link rel="stylesheet" href="/assets/css/responsive.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        .wallet-hero {
+            display:grid;
+            grid-template-columns:minmax(0,1.4fr) minmax(280px,.9fr);
+            gap:18px;
+            margin-bottom:20px;
+        }
+        .wallet-balance-panel {
+            background:linear-gradient(135deg,#0f766e,#2563eb);
+            color:#fff;
+            border-radius:14px;
+            padding:24px;
+            box-shadow:0 18px 40px rgba(37,99,235,.18);
+            min-height:188px;
+            display:flex;
+            flex-direction:column;
+            justify-content:space-between;
+        }
+        .wallet-balance-panel__label { font-size:13px; opacity:.86; font-weight:600; }
+        .wallet-balance-panel__amount { font-size:34px; line-height:1.15; font-weight:800; margin:8px 0; }
+        .wallet-balance-panel__caption { font-size:13px; opacity:.88; max-width:680px; line-height:1.6; }
+        .wallet-mini-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:18px; }
+        .wallet-mini {
+            background:rgba(255,255,255,.14);
+            border:1px solid rgba(255,255,255,.2);
+            border-radius:10px;
+            padding:10px 12px;
+        }
+        .wallet-mini__label { font-size:11px; opacity:.82; }
+        .wallet-mini__value { font-size:15px; font-weight:800; margin-top:4px; }
+        .wallet-note {
+            background:#fff;
+            border:1px solid #dbeafe;
+            border-radius:14px;
+            padding:18px;
+            color:#0f172a;
+            box-shadow:0 1px 4px rgba(15,23,42,.06);
+        }
+        .wallet-note__title { font-size:15px; font-weight:800; margin-bottom:8px; color:#1d4ed8; display:flex; gap:8px; align-items:center; }
+        .wallet-note__text { font-size:13px; color:#475569; line-height:1.7; margin:0; }
+        .wallet-kpi-grid { display:grid; grid-template-columns:repeat(4,minmax(160px,1fr)); gap:14px; margin-bottom:20px; }
+        .wallet-kpi {
+            background:#fff;
+            border:1px solid #e5e7eb;
+            border-radius:12px;
+            padding:16px;
+            box-shadow:0 1px 4px rgba(0,0,0,.05);
+        }
+        .wallet-kpi__icon { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:10px; }
+        .wallet-kpi__label { font-size:12px; color:#64748b; font-weight:600; }
+        .wallet-kpi__value { font-size:20px; font-weight:800; margin-top:4px; color:#0f172a; }
+        .wallet-layout { display:grid; grid-template-columns:minmax(290px,.85fr) minmax(0,1.25fr); gap:18px; align-items:start; }
+        .wallet-panel {
+            background:#fff;
+            border:1px solid #e5e7eb;
+            border-radius:14px;
+            padding:18px;
+            box-shadow:0 1px 4px rgba(0,0,0,.05);
+            margin-bottom:18px;
+        }
+        .wallet-panel__title { font-size:15px; font-weight:800; color:#0f172a; margin:0 0 14px; display:flex; align-items:center; gap:8px; }
+        .wallet-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .wallet-field label { display:block; font-size:12px; font-weight:700; color:#475569; margin-bottom:6px; }
+        .wallet-field input, .wallet-field textarea {
+            width:100%;
+            border:1.5px solid #e2e8f0;
+            border-radius:10px;
+            padding:10px 12px;
+            font-size:13px;
+            font-family:inherit;
+            box-sizing:border-box;
+            background:#fff;
+        }
+        .wallet-field input:focus { outline:none; border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.12); }
+        .wallet-field--full { grid-column:1 / -1; }
+        .wallet-warning {
+            background:#fffbeb;
+            border:1px solid #fde68a;
+            color:#92400e;
+            border-radius:10px;
+            padding:11px 13px;
+            font-size:13px;
+            line-height:1.5;
+            margin-bottom:12px;
+        }
+        .wallet-success-note {
+            background:#ecfdf5;
+            border:1px solid #a7f3d0;
+            color:#065f46;
+            border-radius:10px;
+            padding:11px 13px;
+            font-size:13px;
+            line-height:1.5;
+            margin-bottom:12px;
+        }
+        .wallet-table-wrap { overflow-x:auto; }
+        .wallet-table { width:100%; border-collapse:collapse; font-size:13px; min-width:760px; }
+        .wallet-table th {
+            background:#f8fafc;
+            color:#475569;
+            font-weight:800;
+            text-align:left;
+            padding:11px 12px;
+            border-bottom:1px solid #e2e8f0;
+            white-space:nowrap;
+        }
+        .wallet-table td { padding:11px 12px; border-bottom:1px solid #f1f5f9; vertical-align:top; }
+        .wallet-table tr:hover td { background:#f8fafc; }
+        .wallet-status {
+            display:inline-flex;
+            align-items:center;
+            padding:4px 9px;
+            border-radius:999px;
+            font-size:11px;
+            font-weight:800;
+            white-space:nowrap;
+        }
+        .wallet-status--pending { background:#fef3c7; color:#92400e; }
+        .wallet-status--paid { background:#dcfce7; color:#166534; }
+        .wallet-status--rejected { background:#fee2e2; color:#991b1b; }
+        .wallet-status--in { background:#dcfce7; color:#166534; }
+        .wallet-status--out { background:#fee2e2; color:#991b1b; }
+        .wallet-status--info { background:#e0f2fe; color:#075985; }
+        .money-in { color:#16a34a; font-weight:800; white-space:nowrap; }
+        .money-out { color:#dc2626; font-weight:800; white-space:nowrap; }
+        .money-muted { color:#94a3b8; }
+        .empty-wallet {
+            text-align:center;
+            padding:34px 18px;
+            color:#64748b;
+            border:1px dashed #cbd5e1;
+            border-radius:12px;
+            background:#f8fafc;
+        }
+        @media(max-width:1024px) {
+            .wallet-hero, .wallet-layout { grid-template-columns:1fr; }
+            .wallet-kpi-grid { grid-template-columns:repeat(2,1fr); }
+        }
+        @media(max-width:640px) {
+            .wallet-mini-grid, .wallet-kpi-grid, .wallet-form-grid { grid-template-columns:1fr; }
+            .wallet-balance-panel__amount { font-size:28px; }
+        }
+    </style>
+</head>
+<body>
+<div class="admin-wrapper">
+    <aside th:replace="~{fragments/partner-sidebar :: sidebar('wallet', ${partnerName})}"></aside>
+    <div class="admin-sidebar-overlay"></div>
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div style="display:flex;align-items:center;gap:var(--space-4)">
+                <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
+                <h1 class="admin-topbar__title"><i class="fa-solid fa-wallet"></i> Ví quyết toán</h1>
+            </div>
+            <div class="admin-topbar__actions">
+                <a href="/partner/settlements" class="btn btn--ghost btn--sm">
+                    <i class="fa-solid fa-file-invoice-dollar"></i> Quyết toán
+                </a>
+                <form th:action="@{/auth/logout}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn--ghost btn--sm">Đăng xuất</button>
+                </form>
+            </div>
+        </header>
+
+        <main class="admin-content">
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+
+            <div class="wallet-hero">
+                <section class="wallet-balance-panel">
+                    <div>
+                        <div class="wallet-balance-panel__label">Số dư có thể rút</div>
+                        <div class="wallet-balance-panel__amount"
+                             th:text="${#numbers.formatDecimal(wallet.availableBalance,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
+                        <p class="wallet-balance-panel__caption">
+                            Số dư được cộng tự động khi Admin xác nhận quyết toán. Yêu cầu rút tiền sẽ giữ số dư cho đến khi Admin chuyển khoản hoặc từ chối.
+                        </p>
+                    </div>
+                    <div class="wallet-mini-grid">
+                        <div class="wallet-mini">
+                            <div class="wallet-mini__label">Đang chờ rút</div>
+                            <div class="wallet-mini__value" th:text="${#numbers.formatDecimal(wallet.pendingWithdrawalAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
+                        </div>
+                        <div class="wallet-mini">
+                            <div class="wallet-mini__label">Tổng đã nhận</div>
+                            <div class="wallet-mini__value" th:text="${#numbers.formatDecimal(wallet.totalEarnedAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
+                        </div>
+                        <div class="wallet-mini">
+                            <div class="wallet-mini__label">Tổng đã rút</div>
+                            <div class="wallet-mini__value" th:text="${#numbers.formatDecimal(wallet.totalWithdrawnAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="wallet-note">
+                    <div class="wallet-note__title"><i class="fa-solid fa-circle-info"></i> Ví nội bộ TravelMate</div>
+                    <p class="wallet-note__text">
+                        Đây là sổ quyết toán nội bộ giữa TravelMate và Partner, không phải ví điện tử thật và không tự động chuyển tiền ngân hàng.
+                        Partner gửi yêu cầu rút về tài khoản đã khai báo; Admin chuyển khoản ngoài hệ thống rồi cập nhật trạng thái tại đây.
+                    </p>
+                </section>
+            </div>
+
+            <div class="wallet-kpi-grid">
+                <div class="wallet-kpi">
+                    <div class="wallet-kpi__icon" style="background:#ecfdf5;color:#047857;"><i class="fa-solid fa-sack-dollar"></i></div>
+                    <div class="wallet-kpi__label">Có thể rút ngay</div>
+                    <div class="wallet-kpi__value" th:text="${#numbers.formatDecimal(wallet.availableBalance,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
+                </div>
+                <div class="wallet-kpi">
+                    <div class="wallet-kpi__icon" style="background:#fffbeb;color:#b45309;"><i class="fa-solid fa-hourglass-half"></i></div>
+                    <div class="wallet-kpi__label">Đang chờ Admin xử lý</div>
+                    <div class="wallet-kpi__value" th:text="${#numbers.formatDecimal(wallet.pendingWithdrawalAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
+                </div>
+                <div class="wallet-kpi">
+                    <div class="wallet-kpi__icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                    <div class="wallet-kpi__label">Tổng quyết toán đã cộng</div>
+                    <div class="wallet-kpi__value" th:text="${#numbers.formatDecimal(wallet.totalEarnedAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
+                </div>
+                <div class="wallet-kpi">
+                    <div class="wallet-kpi__icon" style="background:#fef2f2;color:#b91c1c;"><i class="fa-solid fa-building-columns"></i></div>
+                    <div class="wallet-kpi__label">Tổng rút thành công</div>
+                    <div class="wallet-kpi__value" th:text="${#numbers.formatDecimal(wallet.totalWithdrawnAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
+                </div>
+            </div>
+
+            <div class="wallet-layout">
+                <div>
+                    <section class="wallet-panel">
+                        <h2 class="wallet-panel__title"><i class="fa-solid fa-building-columns"></i> Tài khoản nhận tiền</h2>
+
+                        <div th:if="${hasBankInfo}" class="wallet-success-note">
+                            Tài khoản nhận tiền đã sẵn sàng:
+                            <strong th:text="${partner.bankName}">Ngân hàng</strong> -
+                            <strong th:text="${maskedBankAccountNumber}">****0000</strong>
+                        </div>
+                        <div th:if="${!hasBankInfo}" class="wallet-warning">
+                            Partner cần có ngân hàng, số tài khoản và chủ tài khoản trước khi gửi yêu cầu rút tiền.
+                        </div>
+
+                        <form th:action="@{/partner/wallet/bank}" method="post" data-wallet-once>
+                            <div class="wallet-form-grid">
+                                <div class="wallet-field">
+                                    <label>Tên ngân hàng</label>
+                                    <input name="bankName" type="text" th:value="${partner.bankName}" placeholder="VD: Vietcombank" required />
+                                </div>
+                                <div class="wallet-field">
+                                    <label>Số tài khoản</label>
+                                    <input name="bankAccountNumber" type="text" th:value="${partner.bankAccountNumber}"
+                                           placeholder="VD: 0123456789" inputmode="numeric" pattern="[0-9]{6,30}"
+                                           minlength="6" maxlength="30" autocomplete="off" required />
+                                </div>
+                                <div class="wallet-field">
+                                    <label>Chủ tài khoản</label>
+                                    <input name="bankAccountHolder" type="text" th:value="${partner.bankAccountHolder}" placeholder="VD: NGUYEN VAN A" required />
+                                </div>
+                                <div class="wallet-field">
+                                    <label>Chi nhánh</label>
+                                    <input name="bankBranch" type="text" th:value="${partner.bankBranch}" placeholder="VD: CN Đà Lạt" />
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn--primary btn--sm" style="margin-top:14px;width:100%;">
+                                <i class="fa-solid fa-floppy-disk"></i> Lưu tài khoản nhận tiền
+                            </button>
+                        </form>
+                    </section>
+
+                    <section class="wallet-panel">
+                        <h2 class="wallet-panel__title"><i class="fa-solid fa-money-bill-transfer"></i> Tạo yêu cầu rút tiền</h2>
+                        <form th:action="@{/partner/wallet/withdrawals}" method="post" data-wallet-once>
+                            <div class="wallet-field">
+                                <label>Số tiền muốn rút</label>
+                                <input name="amount" type="number" min="1000" step="1000"
+                                       th:attr="max=${wallet.availableBalance}"
+                                       placeholder="Nhập số tiền"
+                                       th:disabled="${!hasBankInfo or wallet.availableBalance.compareTo(T(java.math.BigDecimal).ZERO) <= 0}"
+                                       required />
+                            </div>
+                            <div style="margin-top:10px;font-size:12px;color:#64748b;line-height:1.5;">
+                                Tối đa:
+                                <strong th:text="${#numbers.formatDecimal(wallet.availableBalance,0,'COMMA',0,'POINT')} + 'đ'">0đ</strong>
+                            </div>
+                            <button type="submit" class="btn btn--primary btn--sm" style="margin-top:14px;width:100%;"
+                                    th:disabled="${!hasBankInfo or wallet.availableBalance.compareTo(T(java.math.BigDecimal).ZERO) <= 0}">
+                                <i class="fa-solid fa-paper-plane"></i> Gửi yêu cầu rút tiền
+                            </button>
+                        </form>
+                    </section>
+                </div>
+
+                <div>
+                    <section class="wallet-panel">
+                        <h2 class="wallet-panel__title"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử giao dịch ví</h2>
+                        <div th:if="${#lists.isEmpty(transactions)}" class="empty-wallet">
+                            <i class="fa-solid fa-receipt" style="font-size:34px;opacity:.28;margin-bottom:8px;"></i>
+                            <div>Chưa có giao dịch ví nào.</div>
+                        </div>
+                        <div th:if="${!#lists.isEmpty(transactions)}" class="wallet-table-wrap">
+                            <table class="wallet-table">
+                                <thead>
+                                    <tr>
+                                        <th>Thời gian</th>
+                                        <th>Nội dung</th>
+                                        <th>Loại</th>
+                                        <th>Tiền vào</th>
+                                        <th>Tiền ra</th>
+                                        <th>Số dư sau</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="tx : ${transactions}">
+                                        <td style="white-space:nowrap;color:#64748b;"
+                                            th:text="${tx.createdAt != null ? #temporals.format(tx.createdAt,'dd/MM/yyyy HH:mm') : '—'}">—</td>
+                                        <td>
+                                            <div style="font-weight:700;color:#0f172a;" th:text="${tx.transactionCode}">WTX</div>
+                                            <div style="font-size:12px;color:#64748b;line-height:1.45;" th:text="${tx.description}">—</div>
+                                        </td>
+                                        <td>
+                                            <span class="wallet-status"
+                                                  th:classappend="${tx.direction.name() == 'IN'} ? ' wallet-status--in' : (${tx.direction.name() == 'OUT'} ? ' wallet-status--out' : ' wallet-status--info')"
+                                                  th:text="${tx.transactionType.displayName}">Loại</span>
+                                        </td>
+                                        <td>
+                                            <span th:if="${tx.direction.name() == 'IN'}" class="money-in"
+                                                  th:text="'+' + ${#numbers.formatDecimal(tx.amount,0,'COMMA',0,'POINT')} + 'đ'">+0đ</span>
+                                            <span th:if="${tx.direction.name() != 'IN'}" class="money-muted">—</span>
+                                        </td>
+                                        <td>
+                                            <span th:if="${tx.direction.name() == 'OUT'}" class="money-out"
+                                                  th:text="'-' + ${#numbers.formatDecimal(tx.amount,0,'COMMA',0,'POINT')} + 'đ'">-0đ</span>
+                                            <span th:if="${tx.direction.name() != 'OUT'}" class="money-muted">—</span>
+                                        </td>
+                                        <td style="font-weight:800;white-space:nowrap;"
+                                            th:text="${#numbers.formatDecimal(tx.balanceAfter,0,'COMMA',0,'POINT')} + 'đ'">0đ</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section class="wallet-panel">
+                        <h2 class="wallet-panel__title"><i class="fa-solid fa-list-check"></i> Yêu cầu rút tiền</h2>
+                        <div th:if="${#lists.isEmpty(withdrawals)}" class="empty-wallet">
+                            <i class="fa-solid fa-inbox" style="font-size:34px;opacity:.28;margin-bottom:8px;"></i>
+                            <div>Chưa có yêu cầu rút tiền nào.</div>
+                        </div>
+                        <div th:if="${!#lists.isEmpty(withdrawals)}" class="wallet-table-wrap">
+                            <table class="wallet-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã yêu cầu</th>
+                                        <th>Số tiền</th>
+                                        <th>Ngân hàng</th>
+                                        <th>Trạng thái</th>
+                                        <th>Ngày yêu cầu</th>
+                                        <th>Ngày xử lý</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="w : ${withdrawals}">
+                                        <td style="font-family:monospace;font-weight:800;" th:text="${w.requestCode}">WD</td>
+                                        <td class="money-out" th:text="${#numbers.formatDecimal(w.amount,0,'COMMA',0,'POINT')} + 'đ'">0đ</td>
+                                        <td>
+                                            <div style="font-weight:700;" th:text="${w.bankName}">Bank</div>
+                                            <div style="font-size:12px;color:#64748b;"
+                                                 th:text="${w.maskedBankAccountNumber + ' - ' + w.bankAccountHolder}">****1234</div>
+                                        </td>
+                                        <td>
+                                            <span class="wallet-status"
+                                                  th:classappend="${w.withdrawalStatus.name() == 'PENDING'} ? ' wallet-status--pending' : (${w.withdrawalStatus.name() == 'PAID'} ? ' wallet-status--paid' : ' wallet-status--rejected')"
+                                                  th:text="${w.withdrawalStatus.displayName}">Status</span>
+                                        </td>
+                                        <td style="white-space:nowrap;color:#64748b;"
+                                            th:text="${w.requestedAt != null ? #temporals.format(w.requestedAt,'dd/MM/yyyy HH:mm') : '—'}">—</td>
+                                        <td style="white-space:nowrap;color:#64748b;"
+                                            th:text="${w.processedAt != null ? #temporals.format(w.processedAt,'dd/MM/yyyy HH:mm') : '—'}">—</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/admin.js"></script>
+<script>
+    document.querySelectorAll('form[data-wallet-once]').forEach((form) => {
+        form.addEventListener('submit', () => {
+            const button = form.querySelector('button[type="submit"]');
+            if (button) {
+                button.disabled = true;
+            }
+        });
+    });
+</script>
+</body>
+</html>

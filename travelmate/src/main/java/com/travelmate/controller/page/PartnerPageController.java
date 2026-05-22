@@ -6,6 +6,9 @@ import com.travelmate.dto.RoomAvailabilityDto;
 import com.travelmate.entity.Accommodation;
 import com.travelmate.entity.Amenity;
 import com.travelmate.entity.Booking;
+import com.travelmate.entity.PartnerWallet;
+import com.travelmate.entity.PartnerWalletTransaction;
+import com.travelmate.entity.PartnerWithdrawalRequest;
 import com.travelmate.entity.PartnerSettlement;
 import com.travelmate.entity.Review;
 import com.travelmate.entity.Room;
@@ -29,6 +32,7 @@ import com.travelmate.service.CommissionService;
 import com.travelmate.service.RevenueService;
 import com.travelmate.service.ReviewService;
 import com.travelmate.service.SettlementService;
+import com.travelmate.service.PartnerWalletService;
 import com.travelmate.service.FileStorageService;
 import com.travelmate.service.SupportTicketService;
 import com.travelmate.service.VoucherService;
@@ -66,6 +70,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/partner")
 public class PartnerPageController {
 
+    private static final String BANK_ACCOUNT_PATTERN = "\\d{6,30}";
+
     private final BookingService bookingService;
     private final AccommodationService accommodationService;
     private final UserRepository userRepository;
@@ -79,6 +85,7 @@ public class PartnerPageController {
     private final AvailabilityService availabilityService;
     private final AdminActionLogRepository actionLogRepository;
     private final CommissionService commissionService;
+    private final PartnerWalletService partnerWalletService;
 
     public PartnerPageController(BookingService bookingService,
                                  AccommodationService accommodationService,
@@ -92,7 +99,8 @@ public class PartnerPageController {
                                  FileStorageService fileStorageService,
                                  AvailabilityService availabilityService,
                                  AdminActionLogRepository actionLogRepository,
-                                 CommissionService commissionService) {
+                                 CommissionService commissionService,
+                                 PartnerWalletService partnerWalletService) {
         this.bookingService = bookingService;
         this.accommodationService = accommodationService;
         this.userRepository = userRepository;
@@ -106,6 +114,7 @@ public class PartnerPageController {
         this.availabilityService = availabilityService;
         this.actionLogRepository = actionLogRepository;
         this.commissionService = commissionService;
+        this.partnerWalletService = partnerWalletService;
     }
 
     /** Helper: ghi audit log cho thao tác Partner */
@@ -914,6 +923,103 @@ public class PartnerPageController {
         model.addAttribute("breakdown",      breakdown);
         model.addAttribute("partnerName",    partner.getName());
         return "partner/settlement-detail";
+    }
+
+    // ─── Partner Wallet ──────────────────────────────────────────────────────
+
+    @GetMapping("/wallet")
+    public String wallet(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
+        User partner = getCurrentPartner(userDetails);
+        PartnerWallet wallet = partnerWalletService.ensureWalletWithPaidSettlements(partner);
+        List<PartnerWalletTransaction> transactions = partnerWalletService.getTransactions(partner);
+        List<PartnerWithdrawalRequest> withdrawals = partnerWalletService.getWithdrawalsForPartner(partner);
+
+        boolean hasBankInfo = hasPartnerBankInfo(partner);
+        addUnitLabels(model, partner);
+        model.addAttribute("partner", partner);
+        model.addAttribute("wallet", wallet);
+        model.addAttribute("transactions", transactions);
+        model.addAttribute("withdrawals", withdrawals);
+        model.addAttribute("hasBankInfo", hasBankInfo);
+        model.addAttribute("maskedBankAccountNumber", maskBankAccountNumber(partner.getBankAccountNumber()));
+        model.addAttribute("partnerName", partner.getName());
+        return "partner/wallet";
+    }
+
+    @PostMapping("/wallet/bank")
+    public String updateWalletBankInfo(@RequestParam(required = false) String bankAccountNumber,
+                                       @RequestParam(required = false) String bankName,
+                                       @RequestParam(required = false) String bankAccountHolder,
+                                       @RequestParam(required = false) String bankBranch,
+                                       @AuthenticationPrincipal CustomUserDetails userDetails,
+                                       RedirectAttributes ra) {
+        User partner = getCurrentPartner(userDetails);
+        String cleanedBankName = trimToNull(bankName);
+        String cleanedAccountNumber = trimToNull(bankAccountNumber);
+        String cleanedAccountHolder = trimToNull(bankAccountHolder);
+        String cleanedBankBranch = trimToNull(bankBranch);
+
+        if (!hasText(cleanedBankName) || !hasText(cleanedAccountNumber) || !hasText(cleanedAccountHolder)) {
+            ra.addFlashAttribute("errorMessage",
+                    "❌ Vui lòng nhập đầy đủ ngân hàng, số tài khoản và chủ tài khoản.");
+            return "redirect:/partner/wallet";
+        }
+        if (!cleanedAccountNumber.matches(BANK_ACCOUNT_PATTERN)) {
+            ra.addFlashAttribute("errorMessage",
+                    "❌ Số tài khoản chỉ được gồm chữ số, từ 6 đến 30 ký tự.");
+            return "redirect:/partner/wallet";
+        }
+
+        partner.setBankAccountNumber(cleanedAccountNumber);
+        partner.setBankName(cleanedBankName);
+        partner.setBankAccountHolder(cleanedAccountHolder);
+        partner.setBankBranch(cleanedBankBranch);
+        userRepository.save(partner);
+        ra.addFlashAttribute("successMessage", "✅ Đã cập nhật tài khoản nhận tiền cho ví quyết toán!");
+        return "redirect:/partner/wallet";
+    }
+
+    @PostMapping("/wallet/withdrawals")
+    public String requestWithdrawal(@RequestParam BigDecimal amount,
+                                    @AuthenticationPrincipal CustomUserDetails userDetails,
+                                    RedirectAttributes ra) {
+        User partner = getCurrentPartner(userDetails);
+        try {
+            PartnerWithdrawalRequest request = partnerWalletService.requestWithdrawal(partner, amount);
+            logPartnerAction(partner, "PARTNER_REQUEST_WITHDRAWAL", "WITHDRAWAL", request.getId(),
+                    "Partner gửi yêu cầu rút tiền " + request.getRequestCode(), null);
+            ra.addFlashAttribute("successMessage",
+                    "✅ Đã gửi yêu cầu rút tiền " + request.getRequestCode() + ". Admin sẽ xử lý chuyển khoản ngoài hệ thống.");
+        } catch (RuntimeException e) {
+            ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
+        }
+        return "redirect:/partner/wallet";
+    }
+
+    private boolean hasPartnerBankInfo(User partner) {
+        return hasText(partner.getBankName())
+                && hasText(partner.getBankAccountNumber())
+                && partner.getBankAccountNumber().trim().matches(BANK_ACCOUNT_PATTERN)
+                && hasText(partner.getBankAccountHolder());
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    private String trimToNull(String value) {
+        return hasText(value) ? value.trim() : null;
+    }
+
+    private String maskBankAccountNumber(String accountNumber) {
+        if (!hasText(accountNumber)) {
+            return "—";
+        }
+        String cleaned = accountNumber.trim();
+        if (cleaned.length() <= 4) {
+            return cleaned;
+        }
+        return "****" + cleaned.substring(cleaned.length() - 4);
     }
 
     /**

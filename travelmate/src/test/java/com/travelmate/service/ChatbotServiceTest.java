@@ -57,6 +57,13 @@ class ChatbotServiceTest {
     }
 
     @Test
+    void greetingUnderstandsShortGreetingAndCommonTypo() {
+        assertThat(chatbotService.processMessage("helo", null).intent()).isEqualTo("GREETING");
+        assertThat(chatbotService.processMessage("hi", null).intent()).isEqualTo("GREETING");
+        assertThat(chatbotService.processMessage("halo", null).intent()).isEqualTo("GREETING");
+    }
+
+    @Test
     void budgetPlanUnderstandsMoneyAndDestinationBeforeFallback() {
         when(accommodationRepository.findByApprovalStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED))
                 .thenReturn(List.of(
@@ -120,13 +127,40 @@ class ChatbotServiceTest {
     @Test
     void outOfScopeRedirectsBackToTravelMate() {
         ChatbotService.ChatbotResponse response =
-                chatbotService.processMessage("Tôi buồn tình quá", null);
+                chatbotService.processMessage("Viết code Java giúp tôi", null);
 
         assertThat(response.intent()).isEqualTo("OUT_OF_SCOPE");
         assertThat(response.reply())
                 .contains("du lịch và đặt phòng")
                 .contains("Đà Lạt")
                 .contains("Nha Trang");
+    }
+
+    @Test
+    void casualLifeContextCanFlowToTravelAiFallbackWhenConfigured() {
+        ChatbotService.ChatbotResponse response =
+                chatbotService.processMessage("Hôm nay tôi đói", null);
+
+        assertThat(response.intent()).isNotEqualTo("OUT_OF_SCOPE");
+        assertThat(response.reply()).doesNotContain("chỉ hỗ trợ");
+    }
+
+    @Test
+    void breakupMoodCanFlowToTravelAiFallbackWhenConfigured() {
+        ChatbotService.ChatbotResponse response =
+                chatbotService.processMessage("Tôi đang thất tình, muốn đi đâu để gặp người mới?", null);
+
+        assertThat(response.intent()).isNotEqualTo("OUT_OF_SCOPE");
+        assertThat(response.reply()).doesNotContain("chỉ hỗ trợ");
+    }
+
+    @Test
+    void outOfScopeWinsEvenWhenMessageMentionsBookingOrDestination() {
+        ChatbotService.ChatbotResponse response =
+                chatbotService.processMessage("Viết code đặt phòng Đà Lạt giúp tôi", null);
+
+        assertThat(response.intent()).isEqualTo("OUT_OF_SCOPE");
+        assertThat(response.reply()).contains("du lịch và đặt phòng");
     }
 
     private Accommodation accommodation(Long id, String name, String city,

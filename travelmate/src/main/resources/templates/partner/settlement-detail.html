@@ -26,6 +26,9 @@
                 <h1 class="admin-topbar__title">🏦 Chi tiết quyết toán</h1>
             </div>
             <div class="admin-topbar__actions">
+                <a href="/partner/wallet" class="btn btn--primary btn--sm">
+                    <i class="fa-solid fa-wallet"></i> Ví quyết toán
+                </a>
                 <form th:action="@{/auth/logout}" method="post" style="display:inline;">
                     <button type="submit" class="btn btn--ghost btn--sm">🚪 Đăng xuất</button>
                 </form>
@@ -38,6 +41,10 @@
                     <h2 class="page-header__title">🏦 Chi tiết kỳ quyết toán</h2>
                     <p class="page-header__subtitle">
                         Kỳ: <strong th:text="${#temporals.format(settlement.periodStart,'dd/MM/yyyy')} + ' → ' + ${#temporals.format(settlement.periodEnd,'dd/MM/yyyy')}">—</strong>
+                        <span th:if="${settlement.scheduledPayoutDate != null}">
+                            · Chi trả dự kiến:
+                            <strong style="color:#1d4ed8;" th:text="${#temporals.format(settlement.scheduledPayoutDate,'dd/MM/yyyy')}">—</strong>
+                        </span>
                     </p>
                 </div>
                 <a href="/partner/settlements" class="btn btn--ghost">← Quay lại</a>
@@ -115,6 +122,11 @@
                             <span th:if="${settlement.settlementStatus.name()=='PAID'}" class="badge badge--success">✅ Đã thanh toán</span>
                             <span th:if="${settlement.settlementStatus.name()!='PAID'}" class="badge badge--warning">⏳ Chờ thanh toán</span>
                         </td>
+                    </tr>
+                    <tr th:if="${settlement.scheduledPayoutDate != null}" style="border-bottom:1px solid #f3f4f6;">
+                        <td style="padding:10px 0;color:#6b7280;">Ngày chi trả dự kiến:</td>
+                        <td style="padding:10px 0;color:#1d4ed8;font-weight:700;"
+                            th:text="${#temporals.format(settlement.scheduledPayoutDate,'dd/MM/yyyy')}">—</td>
                     </tr>
                     <tr th:if="${settlement.settlementDate != null}">
                         <td style="padding:10px 0;color:#6b7280;">Ngày thanh toán:</td>

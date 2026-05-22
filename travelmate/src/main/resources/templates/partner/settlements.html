@@ -42,6 +42,9 @@
                 <h1 class="admin-topbar__title">🏦 Quyết Toán Của Tôi</h1>
             </div>
             <div class="admin-topbar__actions">
+                <a href="/partner/wallet" class="btn btn--primary btn--sm">
+                    <i class="fa-solid fa-wallet"></i> Ví quyết toán
+                </a>
                 <form th:action="@{/auth/logout}" method="post" style="display:inline;">                    <button type="submit" class="btn btn--ghost btn--sm">🚪 Đăng xuất</button>
                 </form>
             </div>
@@ -58,8 +61,8 @@
             </div>
 
             <div class="info-box">
-                📌 Mỗi tháng Admin sẽ tạo bản ghi quyết toán cho doanh thu tháng trước và thực hiện chuyển khoản cho bạn.
-                Bạn sẽ nhận được thông báo khi trạng thái chuyển sang <strong>Đã thanh toán ✅</strong>.
+                📌 Mỗi tháng Admin sẽ tạo bản ghi quyết toán cho doanh thu tháng trước. Ngày chi trả dự kiến là <strong>mùng 10</strong>.
+                Khi settlement chuyển sang <strong>Đã thanh toán ✅</strong>, số tiền nhận sẽ được cộng vào <strong>Ví quyết toán</strong> để bạn gửi yêu cầu rút tiền.
                 <br/><strong>Số tiền nhận = Tiền TravelMate thu online − Commission nền tảng − Voucher partner chịu</strong>
                 <br/><span style="font-size:12px;color:#1d4ed8;">Chỉ booking COMPLETED hoặc NO_SHOW (giữ cọc) mới được quyết toán. Với đơn cọc 30%: quyết toán chỉ tính trên 30% đã thanh toán qua TravelMate.</span>
             </div>
@@ -103,6 +106,7 @@
                                 <th>Hoa hồng nền tảng (đ)</th>
                                 <th>Voucher đối tác chịu (đ)</th>
                                 <th>Đối tác nhận (đ)</th>
+                                <th>Ngày chi trả dự kiến</th>
                                 <th>Trạng thái</th>
                                 <th>Ngày TT</th>
                                 <th>Ghi chú</th>
@@ -124,6 +128,8 @@
                                     th:text="${#numbers.formatDecimal(s.voucherDeductionAmount,0,'COMMA',0,'POINT')}">0</td>
                                 <td style="font-weight:700;color:#16a34a;"
                                     th:text="${#numbers.formatDecimal(s.payoutAmount,0,'COMMA',0,'POINT')}">0</td>
+                                <td style="font-size:12px;color:#1d4ed8;font-weight:700;white-space:nowrap;"
+                                    th:text="${s.scheduledPayoutDate != null ? #temporals.format(s.scheduledPayoutDate,'dd/MM/yyyy') : '—'}">—</td>
                                 <td>
                                     <span class="badge-pending" th:if="${s.settlementStatus.name() == 'PENDING'}">⏳ Chờ chuyển khoản</span>
                                     <span class="badge-paid"    th:if="${s.settlementStatus.name() == 'PAID'}">✅ Đã chuyển khoản</span>
@@ -153,4 +159,3 @@
 <script src="/assets/js/admin.js"></script>
 </body>
 </html>
-

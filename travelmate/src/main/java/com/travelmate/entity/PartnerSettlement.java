@@ -70,6 +70,10 @@ public class PartnerSettlement {
     @Column(name = "payout_amount", precision = 15, scale = 0)
     private BigDecimal payoutAmount = BigDecimal.ZERO;
 
+    /** Ngày chi trả dự kiến theo quy tắc mùng 10 của tháng sau kỳ quyết toán */
+    @Column(name = "scheduled_payout_date")
+    private LocalDate scheduledPayoutDate;
+
     /** Trạng thái: PENDING / PAID / CANCELLED */
     @Enumerated(EnumType.STRING)
     @Column(name = "settlement_status", length = 20)

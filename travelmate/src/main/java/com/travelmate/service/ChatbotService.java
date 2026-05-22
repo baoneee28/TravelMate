@@ -16,8 +16,13 @@ import com.travelmate.repository.TravelPostRepository;
 import com.travelmate.repository.UserRepository;
 import com.travelmate.repository.VoucherRepository;
 import com.travelmate.util.DestinationAliasUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 
 import java.text.NumberFormat;
 import java.text.Normalizer;
@@ -25,6 +30,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -34,11 +40,25 @@ import java.util.stream.Collectors;
 @Service
 public class ChatbotService {
 
+    private static final Logger log = LoggerFactory.getLogger(ChatbotService.class);
+
     private final AccommodationRepository accommodationRepository;
     private final TravelPostRepository travelPostRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final VoucherRepository voucherRepository;
+
+    @Value("${travelmate.chatbot.groq.enabled:true}")
+    private boolean groqEnabled = true;
+
+    @Value("${travelmate.chatbot.groq.api-key:}")
+    private String groqApiKey = "";
+
+    @Value("${travelmate.chatbot.groq.base-url:https://api.groq.com/openai/v1}")
+    private String groqBaseUrl = "https://api.groq.com/openai/v1";
+
+    @Value("${travelmate.chatbot.groq.model:llama-3.3-70b-versatile}")
+    private String groqModel = "llama-3.3-70b-versatile";
 
     public ChatbotService(AccommodationRepository accommodationRepository,
                           TravelPostRepository travelPostRepository,
@@ -56,6 +76,9 @@ public class ChatbotService {
 
     private record TravelPreference(String key, String label, String icon,
                                     List<String> destinations, String note) {}
+    private record GroqMessage(String role, String content) {}
+    private record GroqChoice(GroqMessage message) {}
+    private record GroqChatCompletion(List<GroqChoice> choices) {}
 
     // ── intent name constants ─────────────────────────────────
     private static final String I_GREETING         = "GREETING";
@@ -70,6 +93,7 @@ public class ChatbotService {
     private static final String I_OUT_OF_SCOPE     = "OUT_OF_SCOPE";
     private static final String I_FALLBACK         = "FALLBACK";
     private static final String I_BUDGET_PLAN       = "BUDGET_TRAVEL_PLAN";
+    private static final String I_AI_BUSINESS       = "AI_BUSINESS";
 
     private static final NumberFormat VND_FORMAT =
             NumberFormat.getIntegerInstance(Locale.of("vi", "VN"));
@@ -108,9 +132,14 @@ public class ChatbotService {
 
         String norm = DestinationAliasUtil.normalizeText(message);
 
+        // Chỉ chặn các chủ đề rủi ro/không phù hợp rõ ràng. Các câu đời thường
+        // sẽ được AI bẻ lái mềm sang nhu cầu du lịch, đặt phòng, đổi không khí.
+        if (isHardOutOfScope(norm)) {
+            return outOfScope();
+        }
+
         // ── GREETING ──────────────────────────────────────────
-        if (matches(norm, "xin chao", "chao ban", "hello", " hi ", " hey ",
-                "chao ", "alo", "xin chao ban")) {
+        if (isGreeting(norm)) {
             return greeting(username);
         }
 
@@ -220,9 +249,9 @@ public class ChatbotService {
             return searchAccommodations(message, null);
         }
 
-        // ── OUT OF SCOPE ──────────────────────────────────────
-        if (isOutOfScope(norm)) {
-            return outOfScope();
+        Optional<ChatbotResponse> aiResponse = groqBusinessFallback(message, norm, username);
+        if (aiResponse.isPresent()) {
+            return aiResponse.get();
         }
 
         return fallback();
@@ -649,7 +678,243 @@ public class ChatbotService {
         return new ChatbotResponse(I_FALLBACK, reply, DEFAULT_QR);
     }
 
+    private Optional<ChatbotResponse> groqBusinessFallback(String message, String norm, String username) {
+        if (!groqEnabled || isBlank(groqApiKey) || !isBusinessFallbackCandidate(message, norm)) {
+            return Optional.empty();
+        }
+
+        String context = buildGroqBusinessContext(message, norm, username);
+        try {
+            GroqChatCompletion completion = RestClient.builder()
+                    .baseUrl(trimTrailingSlash(groqBaseUrl))
+                    .defaultHeader("Authorization", "Bearer " + groqApiKey.trim())
+                    .defaultHeader("Content-Type", "application/json")
+                    .build()
+                    .post()
+                    .uri("/chat/completions")
+                    .body(Map.of(
+                            "model", groqModel,
+                            "temperature", 0.1,
+                            "top_p", 0.7,
+                            "max_completion_tokens", 260,
+                            "messages", List.of(
+                                    Map.of("role", "system", "content", groqSystemPrompt()),
+                                    Map.of("role", "user", "content",
+                                            "Cau hoi cua khach:\n" + message + "\n\nDu lieu TravelMate duoc phep dung:\n" + context)
+                            )
+                    ))
+                    .retrieve()
+                    .body(GroqChatCompletion.class);
+
+            String content = extractGroqContent(completion);
+            if (isBlank(content)) {
+                return Optional.empty();
+            }
+
+            return Optional.of(new ChatbotResponse(
+                    I_AI_BUSINESS,
+                    formatAiReply(content),
+                    List.of("Tìm khách sạn", "Hướng dẫn đặt phòng", "Voucher", "Liên hệ hỗ trợ")
+            ));
+        } catch (RestClientException | IllegalArgumentException ex) {
+            log.warn("Groq chatbot fallback failed: {}", ex.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    private String groqSystemPrompt() {
+        return """
+                Ban la TravelBot cua TravelMate.
+                Quy tac bat buoc:
+                - Chi tra loi bang tieng Viet, toi da 80 tu.
+                - Chi dung thong tin trong phan "Du lieu TravelMate duoc phep dung".
+                - Khong bia gia, chinh sach, dia diem, voucher, hotline, link hay trang thai dat phong.
+                - Neu du lieu khong du de tra loi, noi ngan gon: "Minh chua co du lieu TravelMate de tra loi phan nay."
+                - Neu tin nhan doi thuong hoac lac de, hay suy ra tinh canh cua khach roi be lai sang goi y diem den, hoat dong du lich, loai noi luu tru hoac cach dat phong tren TravelMate.
+                - Vi du: doi bung thi goi y diem den hop am thuc/pho di bo/cho dem; met, stress thi goi y nghi duong; buon, co don, that tinh thi goi y doi khong khi, cafe, photowalk, hoat dong nhom.
+                - Khong hua hen se tim duoc nguoi yeu, khong tu van tinh cam sau, khong dua loi khuyen y te/phap ly/tai chinh/lap trinh.
+                - Khong tra loi lan man, khong markdown, khong HTML.
+                """;
+    }
+
+    private String buildGroqBusinessContext(String message, String norm, String username) {
+        String destination = extractDestination(norm);
+        TravelPreference preference = extractTravelPreference(norm);
+        PropertyType propertyType = extractPropertyTypePreference(norm);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Pham vi chatbot: tim noi luu tru, goi y diem den trong TravelMate, tu van ngan sach dua tren gia phong trong he thong, huong dan dat phong, thanh toan, voucher, lich su dat phong khi da dang nhap, lien he ho tro.\n");
+        sb.append("Tin nhan lac de van duoc xu ly bang cach suy ra tinh canh va noi ve du lich/luu tru/hoat dong trong TravelMate, khong tra loi truc tiep ngoai pham vi.\n");
+        sb.append("Khong ho tro: ve may bay/xe, gia ngoai he thong, nha hang ngoai du lieu, y te, phap ly, tai chinh, lap trinh, chinh tri.\n");
+        sb.append("Loai hinh luu tru: khach san, villa, homestay, resort.\n");
+        if (isContextualTravelBridgeCandidate(norm)) {
+            sb.append("Bang goi y theo tinh canh:\n");
+            sb.append("- Doi bung/them an: Hoi An, Da Nang, Nha Trang, TP. HCM; uu tien luu tru gan trung tam, pho di bo, cho dem, khu am thuc.\n");
+            sb.append("- Met/stress/can nghi: Da Lat, Phu Quoc, Nha Trang, Sa Pa; uu tien resort, homestay yen tinh, phong co view.\n");
+            sb.append("- Buon/co don/that tinh/muon gap nguoi moi: Da Lat, Hoi An, Da Nang, Nha Trang, Vung Tau; goi y cafe, photowalk, bien, tour/hoat dong nhom; khong cam ket tim duoc nguoi yeu.\n");
+            sb.append("- Nong buc: bien nhu Nha Trang, Da Nang, Phu Quoc, Vung Tau. Mua lanh: Da Lat, Sa Pa, cafe/khach san gan trung tam.\n");
+            sb.append("- An mung/sinh nhat/di cung ban be: Da Nang, Nha Trang, TP. HCM, Hoi An; uu tien villa/homestay/khach san gan khu vui choi.\n");
+        }
+        sb.append("Quy trinh dat phong: tim diem den va ngay o, chon noi luu tru/phong, dang nhap hoac dang ky, chon dat coc 30% hoac thanh toan 100% qua VNPAY, theo doi trong Dat phong cua toi.\n");
+        sb.append("Thanh toan: demo dung VNPAY Sandbox. Dat coc 30% qua VNPAY, 70% con lai thanh toan truc tiep tai co so khi nhan phong. Thanh toan 100% truc tuyen duoc uu tien xac nhan nhanh.\n");
+        sb.append("Huy/no-show: no-show mat tien coc 30%. Huy phong can lien he TravelMate truoc it nhat 24 gio de duoc ho tro. Thanh toan 100% hoan tien theo chinh sach tung co so.\n");
+        sb.append("Ho tro: email support@travelmate.vn, hotline 1800 6868 tu 8:00 den 22:00, trang /contact.\n");
+        sb.append(username == null
+                ? "Nguoi dung chua dang nhap, khong duoc noi co the xem lich su dat phong truc tiep neu chua dang nhap.\n"
+                : "Nguoi dung da dang nhap, co the huong dan xem Dat phong cua toi.\n");
+
+        appendGroqAccommodationContext(sb, destination, preference, propertyType);
+        appendGroqTravelPostContext(sb, destination);
+        appendGroqVoucherContext(sb);
+        return sb.toString();
+    }
+
+    private void appendGroqAccommodationContext(StringBuilder sb, String destination,
+                                                TravelPreference preference, PropertyType propertyType) {
+        List<Accommodation> pool = (propertyType != null)
+                ? accommodationRepository.findByPropertyTypeAndApprovalStatus(propertyType, ApprovalStatus.APPROVED)
+                : accommodationRepository.findByApprovalStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED);
+
+        List<Accommodation> matches = pool.stream()
+                .filter(a -> matchesDestinationOrPreference(a, destination, preference))
+                .filter(a -> a.getName() != null && !a.getName().isBlank())
+                .limit(5)
+                .collect(Collectors.toList());
+
+        if (matches.isEmpty()) {
+            sb.append("Noi luu tru phu hop trong DB: chua co ket qua ro rang.\n");
+            return;
+        }
+
+        sb.append("Noi luu tru phu hop trong DB:\n");
+        for (Accommodation a : matches) {
+            sb.append("- ").append(a.getName());
+            if (a.getCity() != null) sb.append(", ").append(a.getCity());
+            if (a.getPropertyType() != null) sb.append(", loai ").append(typeLabel(a.getPropertyType()));
+            if (a.getMinPrice() != null) sb.append(", tu ").append(fmtPrice(a.getMinPrice())).append("/dem");
+            if (a.getRating() != null) sb.append(", diem ").append(String.format("%.1f", a.getRating()));
+            sb.append(", link /accommodations/").append(a.getId()).append("\n");
+        }
+    }
+
+    private void appendGroqTravelPostContext(StringBuilder sb, String destination) {
+        if (destination == null || destination.isBlank()) {
+            return;
+        }
+
+        Set<String> slugs = DestinationAliasUtil.searchSlugs(destination);
+        String slug = DestinationAliasUtil.normalizeSlug(destination);
+        List<TravelPost> posts = slugs.isEmpty()
+                ? travelPostRepository.findTop3ByDestinationSlugAndStatusOrderByCreatedAtDesc(
+                        slug, TravelPost.Status.VISIBLE)
+                : travelPostRepository.findTop3ByDestinationSlugInAndStatusOrderByCreatedAtDesc(
+                        slugs, TravelPost.Status.VISIBLE);
+
+        if (posts.isEmpty()) {
+            return;
+        }
+
+        sb.append("Bai goi y du lich trong DB:\n");
+        for (TravelPost post : posts) {
+            sb.append("- ").append(post.getTitle());
+            if (post.getSummary() != null && !post.getSummary().isBlank()) {
+                sb.append(": ").append(trimTo(post.getSummary(), 140));
+            }
+            if (post.getSourceUrl() != null && !post.getSourceUrl().isBlank()) {
+                sb.append(" (").append(post.getSourceUrl()).append(")");
+            }
+            sb.append("\n");
+        }
+    }
+
+    private void appendGroqVoucherContext(StringBuilder sb) {
+        List<Voucher> active = voucherRepository
+                .findByVoucherScopeOrderByCreatedAtDesc(VoucherScope.USER_GLOBAL)
+                .stream()
+                .filter(Voucher::isCurrentlyValid)
+                .limit(5)
+                .collect(Collectors.toList());
+
+        if (active.isEmpty()) {
+            sb.append("Voucher toan san dang hoat dong: chua co voucher hop le.\n");
+            return;
+        }
+
+        sb.append("Voucher toan san dang hoat dong:\n");
+        for (Voucher v : active) {
+            sb.append("- Ma ").append(v.getCode());
+            if (v.getName() != null && !v.getName().isBlank()) sb.append(", ").append(v.getName());
+            if (v.getDiscountType() == DiscountType.PERCENT) {
+                sb.append(", giam ").append(v.getDiscountValue().stripTrailingZeros().toPlainString()).append("%");
+                if (v.getMaxDiscountAmount() != null) {
+                    sb.append(" toi da ").append(fmtPrice(v.getMaxDiscountAmount().doubleValue()));
+                }
+            } else {
+                sb.append(", giam ").append(fmtPrice(v.getDiscountValue().doubleValue()));
+            }
+            if (v.getEndDate() != null) sb.append(", HSD ").append(v.getEndDate().format(DATE_FMT));
+            sb.append("\n");
+        }
+    }
+
+    private boolean isBusinessFallbackCandidate(String message, String norm) {
+        return !isBlank(message)
+                && !isHardOutOfScope(norm)
+                && (extractDestination(norm) != null
+                || DestinationAliasUtil.isKnownDestination(message)
+                || extractTravelPreference(norm) != null
+                || isContextualTravelBridgeCandidate(norm)
+                || matches(norm,
+                        "travelmate", "du lich", "di choi", "di dau", "lich trinh", "diem den",
+                        "khach san", "homestay", "villa", "resort", "noi luu tru", "phong",
+                        "dat phong", "booking", "check in", "check-in", "check out", "check-out",
+                        "nhan phong", "tra phong", "doi lich", "doi ngay", "huy phong", "huy don",
+                        "huy booking", "no show",
+                        "thanh toan", "dat coc", "vnpay", "hoan tien", "voucher", "ma giam gia",
+                        "uu dai", "tai khoan", "dang nhap", "dang ky", "ho tro", "lien he",
+                        "gia phong", "gia tien", "bang gia", "gia re", "chi phi", "ngan sach")
+                || norm.length() >= 3);
+    }
+
+    private String extractGroqContent(GroqChatCompletion completion) {
+        if (completion == null || completion.choices() == null || completion.choices().isEmpty()) {
+            return null;
+        }
+        GroqChoice choice = completion.choices().get(0);
+        return choice == null || choice.message() == null ? null : choice.message().content();
+    }
+
+    private String formatAiReply(String content) {
+        String text = trimTo(content.replace("\r", "").trim(), 700);
+        if (isBlank(text)) {
+            return fallback().reply();
+        }
+        String escaped = esc(text);
+        String html = escaped.replaceAll("\\n{2,}", "</p><p>")
+                .replace("\n", "<br>");
+        return "<div class='bot-ai-response'><p>" + html + "</p></div>";
+    }
+
+    private String trimTo(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, Math.max(0, maxLength - 3)).trim() + "...";
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    private String trimTrailingSlash(String value) {
+        if (isBlank(value)) {
+            return "https://api.groq.com/openai/v1";
+        }
+        return value.endsWith("/") ? value.substring(0, value.length() - 1) : value;
+    }
+
     // ── helpers ──────────────────────────────────────────────
+
 
     private boolean matches(String norm, String... keywords) {
         for (String kw : keywords) {
@@ -658,10 +923,34 @@ public class ChatbotService {
         return false;
     }
 
-    private boolean isOutOfScope(String norm) {
+    private boolean isGreeting(String norm) {
+        String padded = " " + norm + " ";
+        return matches(padded,
+                " xin chao ", " chao ban ", " hello ", " helo ", " hi ", " hey ",
+                " chao ", " alo ", " halo ", " hallo ");
+    }
+
+    private boolean isTravelMoodCandidate(String norm) {
         return matches(norm,
-                // relationships / personal advice
-                "tinh cam", "tinh yeu", "buon tinh", "that tinh", "ban trai", "ban gai", "chia tay", "hon nhan",
+                "that tinh", "buon tinh", "chia tay", "co don", "doc than",
+                "tim nguoi yeu", "tim tinh yeu", "muon co nguoi yeu",
+                "muon yeu", "gap nguoi moi", "hen ho", "crush");
+    }
+
+    private boolean isContextualTravelBridgeCandidate(String norm) {
+        return isTravelMoodCandidate(norm)
+                || matches(norm,
+                        "doi", "them an", "muon an", "an gi", "do an", "am thuc",
+                        "met", "stress", "ap luc", "cang thang", "can nghi", "muon nghi",
+                        "chan", "buon", "doi gio", "doi khong khi", "khong biet lam gi",
+                        "hom nay toi", "toi dang", "toi muon", "cuoi tuan",
+                        "nong", "lanh", "mua", "nang", "ngu khong ngon",
+                        "sinh nhat", "ky niem", "an mung", "di voi ban", "di cung ban",
+                        "gia dinh", "tre em", "cap doi", "mot minh");
+    }
+
+    private boolean isHardOutOfScope(String norm) {
+        return matches(norm,
                 // programming
                 "viet code", "lap trinh", "debug code", "code java", "code python",
                 // medical
@@ -673,6 +962,7 @@ public class ChatbotService {
                 "bai hat moi", "ca si noi tieng",
                 // finance / crypto / gambling
                 "chung khoan", "co phieu", "tien ao", "bitcoin", "crypto",
+                "gia vang", "ty gia", "forex", "lai suat",
                 "xo so", "ca cuoc"
         );
     }

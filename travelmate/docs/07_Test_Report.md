@@ -1,8 +1,8 @@
 # TravelMate — Test Report
 
 **Phiên bản:** 1.0  
-**Ngày kiểm thử:** 2026-05-20  
-**Môi trường:** Spring Boot 3.5 + JUnit 5 + Mockito (Unit Tests, không DB)
+**Ngày kiểm thử:** 2026-05-22
+**Môi trường:** Spring Boot 3.5 + JUnit 5 + Mockito + MockMvc Integration Tests
 
 ---
 
@@ -10,11 +10,19 @@
 
 | Hạng mục | Số lượng |
 |---|---|
-| Tổng test cases | 47 |
-| PASS | 47 |
+| Tổng test cases | 115 |
+| PASS | 115 |
 | FAIL | 0 |
 | ERROR | 0 |
 | Tỷ lệ pass | 100% |
+
+**Lần chạy tự động gần nhất:** `./mvnw.cmd test` lúc 2026-05-22 22:38 (Asia/Saigon), sau khi tích hợp seed settlement/wallet vào SQL gốc — `BUILD SUCCESS`, `Tests run: 115, Failures: 0, Errors: 0, Skipped: 0`.
+
+**Cơ cấu test:**
+- Unit/service/template/static tests: 102
+- Integration tests `PartnerWalletAndSettlementIntegrationTest`: 13
+
+> Phạm vi report này gồm unit/service/template/static tests và integration tests bằng MockMvc cho module settlement/wallet. Các luồng VNPAY sandbox, UI trên browser, phân quyền thực tế và import SQL nên được kiểm thử thủ công trên máy local trước khi demo.
 
 ---
 
@@ -122,11 +130,100 @@
 
 ---
 
-### 2.6 Tests Hiện Có (Trước Đồ Án)
+### 2.6 PartnerWalletServiceTest — Ví quyết toán Partner
 
-**AccommodationServiceSearchTest** — Tìm kiếm chỗ lưu trú theo thành phố/loại  
-**ChatbotServiceTest** — Intent chatbot ngân sách, gợi ý điểm đến  
-**TravelPostServiceTest** — Quản lý bài viết du lịch
+**File:** `src/test/java/com/travelmate/service/PartnerWalletServiceTest.java`
+
+| # | Test name | Mô tả | Kết quả |
+|---|---|---|---|
+| 1 | `creditSettlement_addsBalanceAndTransaction` | Settlement PAID cộng payout vào ví và ghi transaction | ✅ PASS |
+| 2 | `creditSettlement_shouldRejectPendingSettlement` | Không cộng ví nếu settlement chưa PAID | ✅ PASS |
+| 3 | `creditSettlement_preventsDoubleCredit` | Settlement đã credit không cộng tiền lần hai | ✅ PASS |
+| 4 | `requestWithdrawal_requiresBankInfo` | Thiếu thông tin ngân hàng thì không được rút | ✅ PASS |
+| 5 | `requestWithdrawal_updatesWallet` | Rút hợp lệ: available giảm, pending tăng | ✅ PASS |
+| 6 | `requestWithdrawal_shouldFailWhenAmountGreaterThanBalance` | Không cho rút vượt số dư khả dụng | ✅ PASS |
+| 7 | `markWithdrawalPaid_updatesPendingAndTotalWithdrawn` | Admin xác nhận chuyển khoản: pending giảm, totalWithdrawn tăng | ✅ PASS |
+| 8 | `markWithdrawalPaid_shouldFailWhenAlreadyProcessed` | Không xử lý lại withdrawal đã PAID/REJECTED | ✅ PASS |
+| 9 | `rejectWithdrawal_refundsAvailableBalance` | Admin từ chối: hoàn tiền về availableBalance | ✅ PASS |
+| 10 | `rejectWithdrawal_shouldFailWhenAlreadyProcessed` | Không từ chối lại withdrawal đã xử lý | ✅ PASS |
+
+**Kết quả: 10/10 PASS**
+
+---
+
+### 2.7 SettlementServiceTest — Luồng Quyết Toán Tháng
+
+**File:** `src/test/java/com/travelmate/service/SettlementServiceTest.java`
+
+| # | Test name | Mô tả | Kết quả |
+|---|---|---|---|
+| 1 | `generateMonthlySettlement_shouldSetScheduledPayoutDateToDay10` | Settlement tháng trước có ngày chi trả dự kiến mùng 10 tháng hiện tại | ✅ PASS |
+| 2 | `markPaid_shouldCreditPartnerWallet` | Mark PAID sẽ lưu trạng thái và cộng payout vào ví Partner | ✅ PASS |
+| 3 | `markPaid_shouldBlockBeforeScheduledPayoutDateWhenDemoModeFalse` | Demo mode tắt: chưa tới lịch chi trả thì không cho PAID | ✅ PASS |
+| 4 | `markPaid_shouldAllowBeforeScheduledPayoutDateWhenDemoModeTrue` | Demo mode bật: cho phép trình bày trước ngày chi trả | ✅ PASS |
+
+**Kết quả: 4/4 PASS**
+
+---
+
+### 2.8 ExcelExportServiceTest — Xuất Excel Đối Soát
+
+**File:** `src/test/java/com/travelmate/service/ExcelExportServiceTest.java`
+
+| # | Test name | Mô tả | Kết quả |
+|---|---|---|---|
+| 1 | `exportSettlementDetail_shouldReturnXlsxBytes` | Export settlement trả về file XLSX hợp lệ | ✅ PASS |
+| 2 | `exportSettlementDetail_shouldContainSheets` | Workbook có sheet `Tong quan` và `Chi tiet booking` | ✅ PASS |
+| 3 | `exportWithdrawals_shouldReturnXlsxBytes` | Export withdrawal trả về file XLSX hợp lệ | ✅ PASS |
+| 4 | `exportWithdrawals_shouldContainHeaders` | Sheet withdrawal có các header chính | ✅ PASS |
+| 5 | `exportWithdrawals_shouldMaskBankAccount` | Số tài khoản được mask dạng `****6789` | ✅ PASS |
+
+**Kết quả: 5/5 PASS**
+
+---
+
+### 2.9 PartnerWalletAndSettlementIntegrationTest — Route Admin/Partner Wallet & Settlement
+
+**File:** `src/test/java/com/travelmate/controller/page/PartnerWalletAndSettlementIntegrationTest.java`
+
+| # | Test name | Mô tả | Kết quả |
+|---|---|---|---|
+| 1 | `userAccessingPartnerWallet_shouldReturnForbidden` | USER truy cập ví Partner bị chặn 403 | ✅ PASS |
+| 2 | `userAccessingAdminSettlements_shouldReturnForbidden` | USER truy cập Admin settlements bị chặn 403 | ✅ PASS |
+| 3 | `userAccessingAdminWithdrawals_shouldReturnForbidden` | USER truy cập Admin withdrawals bị chặn 403 | ✅ PASS |
+| 4 | `anonymousAccessingAdminSettlements_shouldRedirectToLogin` | Chưa đăng nhập vào Admin settlements bị redirect login | ✅ PASS |
+| 5 | `adminAccessingSettlements_shouldSucceed` | ADMIN mở trang quản lý settlements thành công | ✅ PASS |
+| 6 | `adminAccessingWithdrawals_shouldSucceed` | ADMIN mở trang quản lý withdrawals thành công | ✅ PASS |
+| 7 | `adminExportWithdrawalsExcel_shouldReturnExcelFile` | ADMIN xuất Excel withdrawals trả về file XLSX | ✅ PASS |
+| 8 | `adminExportSettlementExcel_shouldReturnExcelFile` | ADMIN xuất Excel chi tiết settlement trả về file `settlement-{id}.xlsx` | ✅ PASS |
+| 9 | `adminExportMissingSettlementExcel_shouldReturnNotFound` | ADMIN xuất Excel settlement ID không tồn tại trả về 404 | ✅ PASS |
+| 10 | `partnerAccessingWallet_shouldSucceed` | PARTNER mở ví, thấy wallet/transactions/withdrawals | ✅ PASS |
+| 11 | `partnerUpdatingBankInfo_shouldSucceed` | PARTNER cập nhật tài khoản ngân hàng thành công | ✅ PASS |
+| 12 | `partnerUpdatingInvalidBankInfo_shouldFail` | Số tài khoản không hợp lệ bị báo lỗi | ✅ PASS |
+| 13 | `partnerRequestingOverdraftWithdrawal_shouldFail` | Rút vượt số dư khả dụng bị chặn | ✅ PASS |
+
+**Kết quả: 13/13 PASS**
+
+---
+
+### 2.10 Tests Hiện Có (Trước Đồ Án)
+
+Các test class này đã tồn tại trong project trước khi bổ sung module settlement/wallet:
+
+| # | Test class | Số test | Mô tả |
+|---|---|---:|---|
+| 1 | AccommodationPageControllerTravelSuggestionTest | 7 | Controller gợi ý du lịch |
+| 2 | TravelDestinationSeedSqlTest | 1 | Seed SQL điểm đến du lịch |
+| 3 | TravelPostSeedSqlTest | 6 | Seed SQL bài viết du lịch |
+| 4 | AccommodationServiceSearchTest | 2 | Tìm kiếm chỗ lưu trú |
+| 5 | ChatbotServiceTest | 8 | Intent chatbot ngân sách, gợi ý |
+| 6 | TravelPostServiceTest | 4 | Quản lý bài viết du lịch |
+| 7 | TravelmateApplicationTests | 1 | Context load test |
+| 8 | AdminTravelPostSidebarTest | 1 | UI sidebar admin bài viết |
+| 9 | TravelSuggestionHotelsTemplateTest | 6 | Template gợi ý khách sạn |
+| | **Subtotal** | **36** | |
+
+**Tổng kiểm tra:** Sections 2.1–2.9 = 79 tests + Section 2.10 = 36 tests = **115 tests** ✅ khớp Maven
 
 ---
 
@@ -137,6 +234,7 @@
 | Loại | Tool | Mô tả |
 |---|---|---|
 | **Unit Test** | JUnit 5 + Mockito | Kiểm thử logic thuần, không kết nối DB |
+| **Integration Test** | Spring Boot Test + MockMvc | Kiểm thử route, phân quyền, form wallet và export Excel |
 | **Mocking** | Mockito `@Mock` | Mock repositories và services phụ thuộc |
 | **Reflection Test** | Spring `ReflectionTestUtils` | Kiểm thử private method (isSettlementEligible) |
 | **Manual Test** | Browser | Kiểm thử UI, luồng VNPAY, phân quyền |
@@ -158,35 +256,40 @@
 - Số phòng = 0 → lỗi validation
 - No-show FULL_PAYMENT (không mất tiền, không mở phòng)
 
-### 3.3 Kiểm Thử Phân Quyền (Manual)
+### 3.3 Checklist Kiểm Thử Phân Quyền (Manual)
 
-| Test | Kết quả |
+| Test | Trạng thái |
 |---|---|
-| Guest truy cập `/admin/` → redirect login | ✅ |
-| User truy cập `/admin/` → Access Denied | ✅ |
-| Partner truy cập `/admin/` → Access Denied | ✅ |
-| User truy cập `/partner/` → Access Denied | ✅ |
-| `GET /api/travel-posts/` không login → 200 OK | ✅ |
-| `POST /api/travel-posts/` không login → redirect login | ✅ |
-| `/payment/vnpay-return` không có session → 200 OK | ✅ |
-| VNPAY IPN callback `/payment/vnpay-ipn` → 200 OK | ✅ |
+| Guest truy cập `/admin/` → redirect login | Cần kiểm thủ công trên local |
+| User truy cập `/admin/` → Access Denied | Cần kiểm thủ công trên local |
+| Partner truy cập `/admin/` → Access Denied | Cần kiểm thủ công trên local |
+| User truy cập `/partner/` → Access Denied | Cần kiểm thủ công trên local |
+| `GET /api/travel-posts/` không login → 200 OK | Cần kiểm thủ công trên local |
+| `POST /api/travel-posts/` không login → redirect login | Cần kiểm thủ công trên local |
+| `/payment/vnpay-return` không có session → 200 OK | Cần kiểm thủ công trên local |
+| VNPAY IPN callback `/payment/vnpay-ipn` → 200 OK | Cần kiểm thủ công trên local |
 
 ---
 
 ## 4. Các Lưu Ý Kiểm Thử
 
-### 4.1 Tests Không Yêu Cầu DB
-Toàn bộ unit tests dùng Mockito — chạy offline, không cần MySQL:
+### 4.1 Cách Chạy Test Tự Động
+Chạy toàn bộ unit/service/template/static tests và integration tests:
 ```bash
 cd travelmate && mvn test
 ```
 
-### 4.2 Tests Cần DB (Integration - Tương Lai)
+### 4.2 Tests Cần Browser/DB Thật Khi Demo
+- Import lại `src/main/resources/travelmate_db.sql` trên MySQL local
+- Mở browser để kiểm thử UI Admin/Partner/User
+- Tải và mở file Excel thật bằng Excel/LibreOffice
+
+### 4.3 Tests Cần Bổ Sung Sau Demo
 - Kiểm thử anti-overbooking với `PESSIMISTIC_WRITE` lock
 - Kiểm thử settlement amount chính xác với data thực
 - Kiểm thử VNPAY IPN idempotent
 
-### 4.3 Không Test
+### 4.4 Không Test
 - VNPAY gateway (external system, sandbox)
 - File upload (cần filesystem)
 - Email/notification thật (mock trong test)
