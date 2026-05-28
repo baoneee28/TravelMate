@@ -64,7 +64,7 @@ public class PartnerWalletService {
     @Transactional
     public PartnerWallet ensureWalletWithPaidSettlements(User partner) {
         PartnerWallet wallet = getOrCreateWallet(partner);
-        // Đồng bộ dữ liệu seed/demo: settlement PAID có sẵn trong SQL sẽ được backfill vào ví.
+        // Đồng bộ dữ liệu ban đầu: settlement PAID có sẵn trong SQL sẽ được backfill vào ví.
         // Luồng chính vẫn là Admin mark settlement PAID -> creditSettlement().
         List<PartnerSettlement> paidSettlements = settlementRepository
                 .findByPartnerAndSettlementStatusOrderBySettlementDateAsc(partner, SettlementStatus.PAID);
@@ -167,10 +167,12 @@ public class PartnerWalletService {
 
     @Transactional
     public PartnerWithdrawalRequest markWithdrawalPaid(Long withdrawalId, User admin, String adminNote) {
-        PartnerWithdrawalRequest request = findWithdrawal(withdrawalId);
+        PartnerWithdrawalRequest request = findWithdrawalForUpdate(withdrawalId);
         ensurePending(request);
+        ensureNoWithdrawalTransaction(request, PartnerWalletTransactionType.WITHDRAWAL_PAID);
 
-        PartnerWallet wallet = getOrCreateWallet(request.getPartner());
+        PartnerWallet wallet = walletRepository.findByPartnerForUpdate(request.getPartner())
+                .orElseGet(() -> getOrCreateWallet(request.getPartner()));
         BigDecimal amount = zeroIfNull(request.getAmount());
 
         wallet.setPendingWithdrawalAmount(subtractFloorZero(wallet.getPendingWithdrawalAmount(), amount));
@@ -203,10 +205,12 @@ public class PartnerWalletService {
 
     @Transactional
     public PartnerWithdrawalRequest rejectWithdrawal(Long withdrawalId, User admin, String adminNote) {
-        PartnerWithdrawalRequest request = findWithdrawal(withdrawalId);
+        PartnerWithdrawalRequest request = findWithdrawalForUpdate(withdrawalId);
         ensurePending(request);
+        ensureNoWithdrawalTransaction(request, PartnerWalletTransactionType.WITHDRAWAL_REJECTED);
 
-        PartnerWallet wallet = getOrCreateWallet(request.getPartner());
+        PartnerWallet wallet = walletRepository.findByPartnerForUpdate(request.getPartner())
+                .orElseGet(() -> getOrCreateWallet(request.getPartner()));
         BigDecimal amount = zeroIfNull(request.getAmount());
         BigDecimal before = zeroIfNull(wallet.getAvailableBalance());
         BigDecimal after = before.add(amount);
@@ -254,14 +258,21 @@ public class PartnerWalletService {
         return withdrawalRepository.countByWithdrawalStatus(PartnerWithdrawalStatus.PENDING);
     }
 
-    private PartnerWithdrawalRequest findWithdrawal(Long withdrawalId) {
-        return withdrawalRepository.findById(withdrawalId)
+    private PartnerWithdrawalRequest findWithdrawalForUpdate(Long withdrawalId) {
+        return withdrawalRepository.findByIdForUpdate(withdrawalId)
                 .orElseThrow(() -> new IllegalArgumentException("Yêu cầu rút tiền không tồn tại!"));
     }
 
     private void ensurePending(PartnerWithdrawalRequest request) {
         if (request.getWithdrawalStatus() != PartnerWithdrawalStatus.PENDING) {
             throw new IllegalArgumentException("Yêu cầu rút tiền đã được xử lý!");
+        }
+    }
+
+    private void ensureNoWithdrawalTransaction(PartnerWithdrawalRequest request,
+                                               PartnerWalletTransactionType transactionType) {
+        if (transactionRepository.existsByWithdrawalRequestAndTransactionType(request, transactionType)) {
+            throw new IllegalArgumentException("Yêu cầu rút tiền đã có lịch sử xử lý tương ứng!");
         }
     }
 

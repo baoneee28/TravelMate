@@ -4,6 +4,7 @@ import com.travelmate.entity.Booking;
 import com.travelmate.entity.Payment;
 import com.travelmate.entity.Room;
 import com.travelmate.entity.enums.BookingStatus;
+import com.travelmate.entity.enums.PartnerBookingStatus;
 import com.travelmate.entity.enums.PaymentStatus;
 import com.travelmate.repository.BookingRepository;
 import com.travelmate.repository.PaymentRepository;
@@ -42,9 +43,9 @@ public class PaymentService {
      *
      * Chỉ xử lý nếu payment đang ở PENDING_PAYMENT (idempotent).
      * Sau khi xử lý:
-     *   - paymentStatus = PENDING_ADMIN_APPROVAL
-     *   - bookingStatus = PENDING_ADMIN_APPROVAL
-     *   - Gửi notification cho user
+     *   - paymentStatus = APPROVED vì kết quả VNPAY đã được xác minh chữ ký và số tiền
+     *   - bookingStatus = CONFIRMED
+     *   - partnerStatus = PENDING_PARTNER_CONFIRMATION
      *
      * @param vnpTxnRef  Mã giao dịch (vnp_TxnRef)
      * @param vnpParams  Toàn bộ params từ VNPAY (để lưu audit)
@@ -77,19 +78,21 @@ public class PaymentService {
         payment.setVnpPayDate(vnpParams.get("vnp_PayDate"));
         payment.setConfirmedFromGatewayAt(LocalDateTime.now());
         payment.setRawReturnPayload(buildPayload(vnpParams));
-        payment.setPaymentStatus(PaymentStatus.PENDING_ADMIN_APPROVAL);
+        payment.setPaymentStatus(PaymentStatus.APPROVED);
         payment.setPaidAt(LocalDateTime.now());
+        payment.setApprovedAt(LocalDateTime.now());
+        payment.setNote("VNPAY xác nhận thành công; TravelMate tự động ghi nhận thanh toán.");
         paymentRepository.save(payment);
 
         // Cập nhật booking
         Booking booking = payment.getBooking();
-        booking.setBookingStatus(BookingStatus.PENDING_ADMIN_APPROVAL);
-        booking.setPaymentStatus(PaymentStatus.PENDING_ADMIN_APPROVAL);
+        booking.setBookingStatus(BookingStatus.CONFIRMED);
+        booking.setPaymentStatus(PaymentStatus.APPROVED);
+        booking.setPartnerStatus(PartnerBookingStatus.PENDING_PARTNER_CONFIRMATION);
         booking.setExpireAt(null); // Đã thanh toán xong, không cần expireAt nữa
         bookingRepository.save(booking);
 
-        // Gửi notification: "TravelMate đã nhận thanh toán/cọc — chờ xác nhận"
-        // KHÔNG dùng createBookingConfirmed vì booking chưa được xác nhận, chỉ mới nhận tiền.
+        // Thanh toán đã được hệ thống xác nhận; partner vẫn phải nhận giữ phòng/căn.
         try {
             String optionLabel = (payment.getPaymentOption() != null
                     && payment.getPaymentOption().name().equals("DEPOSIT_30"))
@@ -104,7 +107,7 @@ public class PaymentService {
             log.warn("Không gửi được notification cho booking {}: {}", booking.getId(), e.getMessage());
         }
 
-        log.info("PaymentService.markGatewaySuccess: vnpTxnRef={} → PENDING_ADMIN_APPROVAL ✓", vnpTxnRef);
+        log.info("PaymentService.markGatewaySuccess: vnpTxnRef={} → CONFIRMED / APPROVED, chờ đối tác xác nhận", vnpTxnRef);
         return true;
     }
 
@@ -181,12 +184,13 @@ public class PaymentService {
         if (payment.getPaymentStatus() != PaymentStatus.PENDING_PAYMENT) return;
 
         payment.setPaymentStatus(PaymentStatus.EXPIRED);
+        payment.setExpireAt(null);
         paymentRepository.save(payment);
 
         Booking booking = payment.getBooking();
         booking.setBookingStatus(BookingStatus.CANCELLED);
         booking.setPaymentStatus(PaymentStatus.EXPIRED);
-        booking.setNote("Tự động hủy: quá 15 phút chưa hoàn tất thanh toán VNPAY.");
+        booking.setNote("Tự động hủy: quá 3 phút chưa hoàn tất thanh toán VNPAY.");
         booking.setExpireAt(null);
         bookingRepository.save(booking);
 

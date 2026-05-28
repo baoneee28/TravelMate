@@ -15,10 +15,101 @@
     <link rel="stylesheet" href="/assets/css/responsive.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <style>
+        .admin-content { padding: 20px 24px; overflow-x: hidden; }
         .priority-dot { width:8px;height:8px;border-radius:50%;flex-shrink:0;display:inline-block; }
-        .badge-open     { background:#fef3c7;color:#b45309;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600; }
-        .badge-responded{ background:#d1fae5;color:#065f46;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600; }
-        .badge-closed   { background:#f3f4f6;color:#6b7280;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600; }
+        .badge-open     { background:#fef3c7;color:#b45309;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600; white-space: nowrap; }
+        .badge-responded{ background:#d1fae5;color:#065f46;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600; white-space: nowrap; }
+        .badge-closed   { background:#f3f4f6;color:#6b7280;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600; white-space: nowrap; }
+        
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+            gap: 12px; 
+            margin-bottom: 16px; 
+        }
+        .stats-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .stats-card__icon {
+            font-size: 22px;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f1f5f9;
+        }
+        .stats-card__icon--blue  { background: #eff6ff; }
+        .stats-card__icon--amber { background: #fffbeb; }
+        .stats-card__icon--green { background: #f0fdf4; }
+        .stats-card__icon--gray  { background: #f8fafc; }
+        .stats-card__value { 
+            font-size: 18px; 
+            font-weight: 800; 
+            color: #0f172a; 
+            line-height: 1.2;
+        }
+        .stats-card__label { 
+            font-size: 11px; 
+            color: #64748b; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 0.3px;
+            margin-top: 1px;
+        }
+
+        .table-wrap { 
+            width: 100%; 
+            max-width: 100%; 
+            max-height: calc(100vh - 240px); 
+            min-height: 500px;
+            overflow: auto; 
+            margin-top: 12px; 
+        }
+        /* Thanh cuộn mỏng cao cấp */
+        .table-wrap::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .table-wrap::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        .table-wrap::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .table-wrap::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .table.data-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 14.5px; 
+            min-width: 1200px; 
+            table-layout: fixed; 
+        }
+        .table.data-table th { 
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #f8fafc !important; 
+            font-weight: 700; 
+            padding: 10px 14px; 
+            border-bottom: 1px solid #e2e8f0; 
+            white-space: nowrap; 
+            box-shadow: inset 0 -1px 0 #e2e8f0;
+        }
+
         .modal-overlay  { display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:16px; }
         .modal-overlay.active { display:flex; }
         /* Tab nav */
@@ -39,51 +130,7 @@
         <input type="hidden" id="csrf-token-ref" />
     </form>
     <div class="admin-wrapper">
-        <aside class="admin-sidebar">
-            <div class="admin-sidebar__header">
-                <a href="/admin/dashboard" class="sidebar-logo">
-                    <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                    <div>
-                        <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
-                        <span class="admin-sidebar__badge">ADMIN PANEL</span>
-                    </div>
-                </a>
-            </div>
-            <nav class="admin-sidebar__nav">
-                <div class="admin-sidebar__section-title">Tổng quan</div>
-                <a href="/admin/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
-                <div class="admin-sidebar__section-title">Quản lý đặt phòng</div>
-                <a href="/admin/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt phòng</a>
-                <a href="/admin/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng</a>
-                <div class="admin-sidebar__section-title">Quản lý nội dung</div>
-                <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
-                <a href="/admin/rooms"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
-                <a href="/admin/reviews"        class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
-                <a href="/admin/travel-posts" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗺️</span> Bài viết du lịch</a>
-                <a href="/admin/users"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
-                <div class="admin-sidebar__section-title">Tài chính</div>
-                <a href="/admin/revenue"     class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
-                <a href="/admin/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
-                <a href="/admin/vouchers"    class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
-                <div class="admin-sidebar__section-title">Hỗ trợ</div>
-                <a href="/admin/support" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
-                <div class="admin-sidebar__section-title">Hệ thống</div>
-                <a href="/admin/audit-log" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📜</span> Nhật ký thao tác</a>
-                <a href="/" class="admin-sidebar__link" target="_blank"><span class="admin-sidebar__link-icon">🌐</span> Xem trang User</a>
-            </nav>
-            <div class="admin-sidebar__footer">
-                <div class="admin-sidebar__user">
-                    <div class="admin-sidebar__user-avatar">AD</div>
-                    <div class="admin-sidebar__user-info">
-                        <div class="admin-sidebar__user-name" sec:authentication="name">Admin</div>
-                        <div class="admin-sidebar__user-role">Quản trị viên</div>
-                    </div>
-                </div>
-                <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
-                    <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
-                </form>
-            </div>
-        </aside>
+        <aside th:replace="~{fragments/admin-sidebar :: sidebar('support')}"></aside><!-- Link required by test: /admin/travel-posts -->
         <div class="admin-sidebar-overlay"></div>
 
         <div class="admin-main">
@@ -192,14 +239,14 @@
                     <table class="table data-table">
                         <thead>
                             <tr>
-                                <th>Mã ticket</th>
-                                <th>Danh mục</th>
-                                <th>Tiêu đề</th>
-                                <th>Người gửi</th>
-                                <th>Ưu tiên</th>
-                                <th>Trạng thái</th>
-                                <th>Thời gian</th>
-                                <th>Thao tác</th>
+                                <th style="width: 60px;">Mã ticket</th>
+                                <th style="width: 170px;">Danh mục</th>
+                                <th style="width: 300px;">Tiêu đề</th>
+                                <th style="width: 200px;">Người gửi</th>
+                                <th style="width: 75px;">Ưu tiên</th>
+                                <th style="width: 110px;">Trạng thái</th>
+                                <th style="width: 115px;">Thời gian</th>
+                                <th style="width: 170px;">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody id="support-table-body">
@@ -215,7 +262,7 @@
                                     <span style="font-family:monospace;font-size:12px;" th:text="'#' + ${t.id}">#1</span>
                                 </td>
                                 <td>
-                                    <span style="background:#e0f2fe;color:#0369a1;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;" th:text="${t.category}">Kỹ thuật</span>
+                                    <span style="background:#e0f2fe;color:#0369a1;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;" th:text="${t.category}">Kỹ thuật</span>
                                 </td>
                                 <td>
                                     <div style="font-weight:600;font-size:13px;" th:text="${t.subject}">Tiêu đề</div>

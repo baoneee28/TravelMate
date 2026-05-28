@@ -14,6 +14,8 @@
 | MySQL | 8.0+ |
 | Trình duyệt | Chrome / Edge (VNPAY Sandbox hoạt động tốt nhất) |
 
+> `travelmate_db.sql` dùng một số window function để khởi tạo lịch sử ví Partner, nên khuyến nghị MySQL 8.0+.
+
 ---
 
 ## 2. Import Database
@@ -35,16 +37,19 @@ mysql -u root -p < travelmate/src/main/resources/travelmate_db.sql
 
 ### Kết quả sau import
 ```
-users              : 8 records (1 admin, 3 user, 4 partner)
-accommodations     : 13 records (11 APPROVED + 2 PENDING/REJECTED)
-rooms              : 30 records
+users              : 11 records (1 admin, 4 user, 6 partner)
+accommodations     : 14+ records (APPROVED + PENDING/REJECTED + ví đối tác)
+rooms              : 31+ records
 vouchers           : 5 records
-bookings           : 28+ records (đủ trạng thái)
+bookings           : 32+ records (đủ trạng thái + quyết toán/ví)
 payments           : tương ứng bookings
-partner_settlements: có sẵn PAID + PENDING để demo
-reviews            : 2 records
+partner_settlements: 15+ kỳ quyết toán tháng (PAID + PENDING + tự động khởi tạo)
+partner_wallets     : ví quyết toán nội bộ cho 6 Partner
+partner_withdrawals : yêu cầu rút tiền PENDING/PAID/REJECTED + dữ liệu mẫu
+wallet_transactions : lịch sử tiền vào/ra ví
+reviews            : 16 records
 support_tickets    : 10 records
-travel_destinations: seed dữ liệu du lịch
+travel_destinations: dữ liệu điểm đến du lịch
 travel_posts       : bài viết gợi ý du lịch
 ```
 
@@ -62,15 +67,16 @@ spring.datasource.password=YOUR_PASSWORD_HERE
 ```
 
 ### VNPAY Sandbox
-Cấu hình VNPAY hiện tại là **Sandbox** (chỉ dùng để test):
+Cấu hình VNPAY hiện tại là **Sandbox** và lấy thông tin từ biến môi trường:
 ```properties
-vnpay.tmn-code=JQLMS7O0
-# vnpay.hash-secret đã được cấu hình trong application.properties
+VNPAY_TMN_CODE=your_sandbox_tmn_code
+VNPAY_HASH_SECRET=your_sandbox_hash_secret
 vnpay.pay-url=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
 vnpay.return-url=http://localhost:8080/payment/vnpay-return
 ```
 
 **Lưu ý khi test VNPAY:**
+- Xem mẫu biến môi trường tại `travelmate/docs/demo-env.example`
 - Dùng thẻ test sandbox của VNPAY: số thẻ `9704198526191432198`, tên `NGUYEN VAN A`, ngày hết hạn `07/15`, OTP `123456`
 - Return URL hoạt động trên `localhost:8080` không cần ngrok
 - IPN URL cần ngrok nếu muốn test server-to-server callback (không bắt buộc cho demo local)
@@ -101,10 +107,13 @@ mvn spring-boot:run
 | **ADMIN** | admin@travelmate.vn | admin123 | Quản trị hệ thống toàn bộ |
 | **USER** | user@travelmate.vn | user123 | Khách đặt phòng (có sẵn bookings) |
 | **USER 2** | user2@travelmate.vn | user123 | Tài khoản user phụ |
-| **PARTNER** | partner@travelmate.vn | partner123 | Partner HOTEL — Đà Lạt (3 khách sạn) |
-| **PARTNER 2** | partner2@travelmate.vn | partner123 | Partner RESORT — Nha Trang/Đà Nẵng |
-| **PARTNER 3** | partner3@travelmate.vn | partner123 | Partner VILLA |
-| **PARTNER 4** | partner4@travelmate.vn | partner123 | Partner HOMESTAY |
+| **PARTNER** | partner@travelmate.vn | partner123 | Đối tác HOTEL — Đà Lạt (3 khách sạn) |
+| **PARTNER 2** | partner2@travelmate.vn | partner123 | Đối tác RESORT — Nha Trang/Đà Nẵng |
+| **PARTNER 3** | partner3@travelmate.vn | partner123 | Đối tác VILLA |
+| **PARTNER 4** | partner4@travelmate.vn | partner123 | Đối tác HOMESTAY |
+| **USER VÍ MẪU** | nguyenhuuan92@gmail.com | user123 | Tài khoản khách hàng chạy thử ví & quyết toán |
+| **PARTNER PALACE** | contact@dalatpalacehotel.vn | partner123 | Đối tác (Đà Lạt Palace) có đầy đủ ví, ngân hàng và các yêu cầu rút tiền |
+| **PARTNER RỪNG THÔNG** | info@rungthongdalat.vn | partner123 | Đối tác có doanh thu nhưng chưa cấu hình tài khoản ngân hàng (dùng để test chặn rút tiền) |
 
 ---
 
@@ -116,30 +125,83 @@ mvn spring-boot:run
 3. Chọn **Cọc 30%** hoặc **Thanh toán toàn bộ**
 4. Nhập mã voucher (thử: `SUMMER10`, `WELCOME50`, `TRAVEL15`)
 5. Thanh toán qua VNPAY Sandbox → dùng thẻ test
-6. Đăng nhập admin → **Quản lý đặt phòng** → Duyệt booking
+6. VNPAY thành công → TravelMate tự xác nhận thanh toán, booking chuyển sang **Đã thanh toán / Chờ đối tác xác nhận giữ phòng**
+7. Đăng nhập Partner → `/partner/bookings` → xác nhận giữ phòng, check-in/check-out
 
 ### 6.2 Flow Admin
-- `/admin/bookings` — Danh sách booking, duyệt/từ chối, đánh dấu No-Show
+- `/admin/bookings` — Danh sách booking, theo dõi trạng thái, xử lý đối soát ngoại lệ, partner hủy, hoàn tiền/no-show
 - `/admin/accommodations` — Duyệt cơ sở lưu trú PENDING (id=10)
-- `/admin/settlements` — Tạo quyết toán tháng → xem báo cáo
+- `/admin/settlements` — Tạo quyết toán tháng, ngày chi trả dự kiến mùng 10, cộng payout vào ví Partner, xuất Excel chi tiết settlement
+- `/admin/withdrawals` — Duyệt/từ chối yêu cầu rút tiền Partner, xuất Excel danh sách withdrawal
 - `/admin/vouchers` — Quản lý voucher toàn hệ thống
-- `/admin/revenue` — Biểu đồ doanh thu 5 tuần
+- `/admin/revenue` — Tổng quan doanh thu, commission và số tiền chờ quyết toán
 
 ### 6.3 Flow Partner
 - `/partner/bookings` — Xác nhận giữ phòng / Check-in / Check-out
 - `/partner/revenue` — Doanh thu cá nhân
 - `/partner/settlements` — Lịch sử quyết toán
-- `/partner/vouchers` — Tạo voucher cho cơ sở/phòng
+- `/partner/wallet` — Ví quyết toán, lịch sử tiền vào/ra, cập nhật ngân hàng, yêu cầu rút tiền
+- `/partner/vouchers` — Xem/gắn voucher được Admin cấp cho phòng/căn
 
-### 6.4 Demo Dữ Liệu Có Sẵn
+### 6.4 Flow Ví Quyết Toán Partner
+1. Admin vào `/admin/settlements` → xác nhận chi trả một settlement PENDING
+2. Hệ thống chuyển settlement sang PAID và cộng payout vào ví Partner
+3. Partner vào `/partner/wallet` → thấy số dư có thể rút, tổng đã nhận, tổng đã rút
+4. Partner cập nhật tài khoản ngân hàng nếu thiếu
+5. Partner gửi yêu cầu rút tiền
+6. Admin vào `/admin/withdrawals` → xác nhận đã chuyển khoản hoặc từ chối
+7. Nếu từ chối, hệ thống hoàn tiền về số dư khả dụng của Partner
+
+> Ví này là sổ quyết toán nội bộ, không tích hợp chuyển khoản ngân hàng thật.
+
+### 6.4.1 Kịch bản dữ liệu đối soát & quyết toán thực tế
+Login `admin@travelmate.vn`, vào `/admin/settlements`, bấm **Tạo quyết toán tháng trước**.
+
+Với đối tác `contact@dalatpalacehotel.vn`, settlement được tạo từ 2 booking đủ điều kiện:
+- `BK-PL-FULL-001`: `ONLINE + COMPLETED + APPROVED`
+- `BK-PL-NOSHOW-001`: `ONLINE + NO_SHOW + DEPOSIT_FORFEITED`
+
+Hai booking mẫu sau bị loại khỏi settlement để kiểm tra điều kiện lọc:
+- `BK-PL-DIRECT-001`: `booking_source = DIRECT` (Thanh toán tại quầy)
+- `BK-PL-PENDING-001`: booking `CONFIRMED`, chưa hoàn tất
+
+Số liệu kỳ vọng:
+```text
+grossAmount            = 2.250.000đ
+commissionAmount       =   337.500đ
+voucherDeductionAmount =   200.000đ
+payoutAmount           = 1.712.500đ
+status                 = PENDING
+```
+
+Login `contact@dalatpalacehotel.vn` vào `/partner/wallet` sẽ thấy ví đối tác:
+```text
+Số dư có thể rút = 2.200.000đ
+Đang chờ rút     =   800.000đ
+Tổng đã nhận     = 4.000.000đ
+Tổng đã rút      = 1.000.000đ
+```
+
+Login `info@rungthongdalat.vn` vào `/partner/wallet` để test case có tiền nhưng chưa có tài khoản ngân hàng nên không được rút.
+
+### 6.5 Flow Xuất Excel Đối Soát
+1. Admin vào `/admin/settlements/{id}` → bấm **Xuất Excel**
+2. File `settlement-{id}.xlsx` có sheet `Tong quan` và `Chi tiet booking`
+3. Admin vào `/admin/withdrawals` → bấm **Xuất Excel**
+4. File `partner-withdrawals.xlsx` có danh sách yêu cầu rút tiền, số tài khoản được mask
+
+> Excel export dùng Apache POI và tạo file nội bộ, không gọi dịch vụ online.
+
+### 6.6 Demo Dữ Liệu Có Sẵn
 | Booking code | Trạng thái | Kịch bản demo |
 |---|---|---|
-| BK-LATA-STD-0001 | PENDING_ADMIN_APPROVAL | Admin duyệt — cọc 30% |
-| BK-TLP-SUP-0001 | PENDING_ADMIN_APPROVAL | Admin từ chối — 100% |
+| BK-LATA-STD-0001 | CONFIRMED / PENDING_PARTNER_CONFIRMATION | Đã cọc 30% — chờ đối tác xác nhận giữ phòng |
+| BK-TLP-SUP-0001 | CONFIRMED / PENDING_PARTNER_CONFIRMATION | Đã thanh toán 100% — chờ đối tác xác nhận giữ phòng |
+| BK-ANM-GDN-0001 | PENDING_ADMIN_APPROVAL | Ngoại lệ đối soát để Admin xử lý thủ công |
 | BK-TLP-STD-0001 | NO_SHOW / DEPOSIT_FORFEITED | Demo mất cọc no-show |
 | BK-LATA-FAM-0001 | COMPLETED | Đã có review |
 | BK-TMG-PRE-0001 | CHECKED_IN | Đang lưu trú |
-| BK-TLP-SUP-0002 | CONFIRMED / PARTNER_CANCELLED | Demo admin xử lý partner hủy |
+| BK-TLP-SUP-0002 | CONFIRMED / PARTNER_CANCELLED | Demo Admin xử lý đối tác từ chối giữ phòng |
 
 ---
 
@@ -186,12 +248,18 @@ mvn test
 ```
 
 Test bao gồm:
+- Tổng hiện tại: **234 tests PASS** (234 pass, 0 fail, 0 error, 0 skipped theo surefire, chạy ngày 27/05/2026)
+- `DataInitializerTest` — Phục hồi snapshot tiền tại cơ sở của đơn cọc cũ theo Hướng A
 - `BookingCalculationTest` — Tính tiền DEPOSIT_30 / FULL_PAYMENT
 - `VoucherCalculationTest` — Logic voucher PERCENT / FIXED_AMOUNT / VNPAY guard
 - `SettlementEligibilityTest` — Điều kiện quyết toán
 - `NoShowDepositTest` — No-show DEPOSIT_30 → DEPOSIT_FORFEITED + mở phòng
 - `AccommodationServiceSearchTest` — Tìm kiếm theo thành phố/loại
 - `ChatbotServiceTest` — Intent chatbot budget/travel
+- `PartnerWalletServiceTest` — Cộng ví, chống cộng trùng, rút tiền, paid/reject withdrawal
+- `SettlementServiceTest` — Generate settlement tháng, ngày chi trả mùng 10, mark PAID cộng ví
+- `ExcelExportServiceTest` — Xuất Excel settlement/withdrawal, kiểm sheet/header/mask tài khoản
+- `PartnerWalletAndSettlementIntegrationTest` — Phân quyền, wallet route, export Excel settlement/withdrawal và 404 khi export settlement ID sai
 
 ---
 

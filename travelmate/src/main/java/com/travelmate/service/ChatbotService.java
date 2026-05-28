@@ -1,7 +1,9 @@
 package com.travelmate.service;
 
+import com.travelmate.dto.RoomAvailabilityDto;
 import com.travelmate.entity.Accommodation;
 import com.travelmate.entity.Booking;
+import com.travelmate.entity.Room;
 import com.travelmate.entity.TravelPost;
 import com.travelmate.entity.User;
 import com.travelmate.entity.Voucher;
@@ -26,6 +28,7 @@ import org.springframework.web.client.RestClientException;
 
 import java.text.NumberFormat;
 import java.text.Normalizer;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
@@ -47,6 +50,7 @@ public class ChatbotService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final VoucherRepository voucherRepository;
+    private final AvailabilityService availabilityService;
 
     @Value("${travelmate.chatbot.groq.enabled:true}")
     private boolean groqEnabled = true;
@@ -64,12 +68,14 @@ public class ChatbotService {
                           TravelPostRepository travelPostRepository,
                           UserRepository userRepository,
                           BookingRepository bookingRepository,
-                          VoucherRepository voucherRepository) {
+                          VoucherRepository voucherRepository,
+                          AvailabilityService availabilityService) {
         this.accommodationRepository = accommodationRepository;
         this.travelPostRepository = travelPostRepository;
         this.userRepository = userRepository;
         this.bookingRepository = bookingRepository;
         this.voucherRepository = voucherRepository;
+        this.availabilityService = availabilityService;
     }
 
     public record ChatbotResponse(String intent, String reply, List<String> quickReplies) {}
@@ -79,6 +85,8 @@ public class ChatbotService {
     private record GroqMessage(String role, String content) {}
     private record GroqChoice(GroqMessage message) {}
     private record GroqChatCompletion(List<GroqChoice> choices) {}
+    private record StayDates(LocalDate checkIn, LocalDate checkOut, boolean suppliedByUser) {}
+    private record AvailableRoomSuggestion(Accommodation accommodation, RoomAvailabilityDto room) {}
 
     // ── intent name constants ─────────────────────────────────
     private static final String I_GREETING         = "GREETING";
@@ -222,31 +230,31 @@ public class ChatbotService {
         // ── SEARCH BY PROPERTY TYPE ───────────────────────────
         if (matches(norm, "villa", "biet thu")) {
             String dest = extractDestination(norm);
-            return dest != null ? searchAccommodations(dest, PropertyType.VILLA)
+            return dest != null ? searchAccommodations(dest, PropertyType.VILLA, message)
                     : askDestinationForType("Villa / Biệt thự");
         }
         if (matches(norm, "homestay")) {
             String dest = extractDestination(norm);
-            return dest != null ? searchAccommodations(dest, PropertyType.HOMESTAY)
+            return dest != null ? searchAccommodations(dest, PropertyType.HOMESTAY, message)
                     : askDestinationForType("Homestay");
         }
         if (matches(norm, "resort")) {
             String dest = extractDestination(norm);
-            return dest != null ? searchAccommodations(dest, PropertyType.RESORT)
+            return dest != null ? searchAccommodations(dest, PropertyType.RESORT, message)
                     : askDestinationForType("Resort");
         }
         if (matches(norm, "khach san", "nha nghi", "dat phong", "tim phong", "book phong")) {
             String dest = extractDestination(norm);
-            return dest != null ? searchAccommodations(dest, PropertyType.HOTEL) : askDestination();
+            return dest != null ? searchAccommodations(dest, PropertyType.HOTEL, message) : askDestination();
         }
 
         // ── DESTINATION-ONLY MENTION ──────────────────────────
         String extractedDest = extractDestination(norm);
         if (extractedDest != null) {
-            return searchAccommodations(extractedDest, null);
+            return searchAccommodations(extractedDest, null, message);
         }
         if (DestinationAliasUtil.isKnownDestination(message)) {
-            return searchAccommodations(message, null);
+            return searchAccommodations(message, null, message);
         }
 
         Optional<ChatbotResponse> aiResponse = groqBusinessFallback(message, norm, username);
@@ -366,15 +374,15 @@ public class ChatbotService {
                 + "<p>📋 <strong>Chính sách đặt phòng TravelMate:</strong></p>"
                 + "<p><strong>💳 Hình thức thanh toán:</strong></p>"
                 + "<ul>"
-                + "<li><strong>Đặt cọc 30%</strong> qua VNPAY → đơn được ghi nhận và chuyển TravelMate/Partner xác nhận giữ phòng</li>"
+                + "<li><strong>Đặt cọc 30%</strong> qua VNPAY → đơn được ghi nhận và chuyển đối tác xác nhận giữ phòng</li>"
                 + "<li>Thanh toán <strong>70% còn lại</strong> trực tiếp tại cơ sở khi nhận phòng</li>"
                 + "<li>Hoặc <strong>thanh toán 100%</strong> trực tuyến để được ưu tiên xác nhận nhanh</li>"
                 + "</ul>"
                 + "<p><strong>🚫 Chính sách hủy &amp; no-show:</strong></p>"
                 + "<ul>"
-                + "<li><span style='color:#dc2626;font-weight:600'>No-show (không đến)</span>: mất toàn bộ tiền cọc 30%</li>"
-                + "<li>Hủy phòng: liên hệ TravelMate trước <strong>ít nhất 24 giờ</strong> để được hỗ trợ</li>"
-                + "<li>Thanh toán 100%: hoàn tiền theo chính sách của từng cơ sở lưu trú</li>"
+                + "<li><strong>Cọc 30%</strong>: nếu hủy hoặc không đến nhận phòng, tiền cọc không được hoàn lại</li>"
+                + "<li><strong>Thanh toán 100%</strong>: hủy trước ngày check-in sẽ gửi yêu cầu hoàn dự kiến 70%; phí hủy 30%</li>"
+                + "<li>Phòng/căn được mở lại sau khi ghi nhận hủy để khách khác có thể đặt</li>"
                 + "</ul>"
                 + "<p>📞 Cần hỗ trợ hủy đơn? <a href='/contact' class='bot-link'>Liên hệ ngay</a></p>"
                 + "</div>";
@@ -389,7 +397,7 @@ public class ChatbotService {
                 + "<li>✅ Thanh toán trực tuyến qua <strong>VNPAY Sandbox</strong> trong bản demo</li>"
                 + "<li>🏦 Hỗ trợ mô phỏng thanh toán bằng thẻ test do VNPAY cung cấp</li>"
                 + "<li>🔒 Mã hóa SSL — bảo mật tuyệt đối</li>"
-                + "<li>⏱ Sau khi thanh toán/cọc thành công, đơn chuyển sang trạng thái chờ TravelMate xác nhận thanh toán và Partner xác nhận giữ phòng</li>"
+                + "<li>⏱ Sau khi thanh toán/cọc thành công, TravelMate tự xác nhận kết quả VNPAY và chuyển đơn sang chờ đối tác giữ phòng</li>"
                 + "</ul>"
                 + "<p>⚠️ Gặp sự cố? <a href='/contact' class='bot-link'>Liên hệ hỗ trợ ngay</a>.</p>"
                 + "</div>";
@@ -504,7 +512,7 @@ public class ChatbotService {
                         slugs, TravelPost.Status.VISIBLE);
 
         if (posts.isEmpty()) {
-            return searchAccommodations(destination, null);
+            return searchAccommodations(destination, null, destination);
         }
 
         StringBuilder sb = new StringBuilder("<div>");
@@ -581,10 +589,14 @@ public class ChatbotService {
                         "Xem voucher", "Điểm đến khác"));
     }
 
-    private ChatbotResponse searchAccommodations(String destination, PropertyType propertyType) {
+    private ChatbotResponse searchAccommodations(String destination, PropertyType propertyType, String queryText) {
         String displayName = resolveDisplayName(destination);
         String typeLabel = typeLabel(propertyType);
         String typeParam = (propertyType != null) ? "&type=" + propertyType.name() : "";
+        String norm = DestinationAliasUtil.normalizeText(queryText);
+        int guests = extractGuests(norm);
+        int rooms = extractRooms(norm);
+        StayDates dates = extractStayDates(queryText, extractNights(norm));
 
         List<Accommodation> pool = (propertyType != null)
                 ? accommodationRepository.findByPropertyTypeAndApprovalStatus(
@@ -592,13 +604,12 @@ public class ChatbotService {
                 : accommodationRepository.findByApprovalStatusOrderByCreatedAtDesc(
                         ApprovalStatus.APPROVED);
 
-        List<Accommodation> filtered = pool.stream()
+        List<Accommodation> matching = pool.stream()
                 .filter(a -> DestinationAliasUtil.matchesTextOrDestination(a.getCity(), destination)
                           || DestinationAliasUtil.matchesTextOrDestination(a.getName(), destination))
-                .limit(3)
                 .collect(Collectors.toList());
 
-        if (filtered.isEmpty()) {
+        if (matching.isEmpty()) {
             String reply = "<p>😔 Chưa có <strong>" + esc(typeLabel) + "</strong> nào ở <strong>"
                     + esc(displayName) + "</strong> trong hệ thống.</p>"
                     + "<p><a href='/accommodations?keyword=" + encUrl(displayName) + typeParam
@@ -607,32 +618,26 @@ public class ChatbotService {
                     List.of("Đà Lạt", "Nha Trang", "Phú Quốc", "Xem tất cả"));
         }
 
-        StringBuilder sb = new StringBuilder("<div class='bot-hotel-results'>");
-        sb.append("<p>🏨 Tìm thấy <strong>").append(filtered.size()).append("+</strong> ")
-          .append(esc(typeLabel)).append(" ở <strong>").append(esc(displayName)).append("</strong>:</p>");
+        List<AvailableRoomSuggestion> available = findAvailableRooms(
+                matching, dates, rooms, guests, 0L).stream().limit(5).toList();
+        if (available.isEmpty()) {
+            String reply = "<p>Hiện chưa còn <strong>" + esc(typeLabel) + "</strong> phù hợp tại <strong>"
+                    + esc(displayName) + "</strong> cho kỳ " + dates.checkIn() + " đến " + dates.checkOut() + ".</p>"
+                    + "<p><a href='/accommodations?keyword=" + encUrl(displayName) + typeParam
+                    + "' class='bot-link'>Xem thêm lựa chọn</a> hoặc đổi ngày lưu trú.</p>";
+            return new ChatbotResponse(I_FIND, reply,
+                    List.of("Đà Lạt", "Nha Trang", "Phú Quốc", "Xem tất cả"));
+        }
 
-        for (Accommodation h : filtered) {
-            sb.append("<div class='bot-hotel-card'>");
-            if (h.getThumbnailUrl() != null && !h.getThumbnailUrl().isBlank()) {
-                sb.append("<img src='").append(h.getThumbnailUrl())
-                  .append("' alt='' class='bot-hotel-img' loading='lazy'/>");
-            } else {
-                sb.append("<div class='bot-hotel-img-ph'><i class='fas fa-hotel'></i></div>");
-            }
-            sb.append("<div class='bot-hotel-info'>")
-              .append("<p class='bot-hotel-name'>").append(esc(h.getName())).append("</p>")
-              .append("<p class='bot-hotel-city'>📍 ").append(esc(h.getCity())).append("</p>");
-            if (h.getMinPrice() != null) {
-                sb.append("<p class='bot-hotel-price'>Từ <strong>")
-                  .append(fmtPrice(h.getMinPrice())).append("</strong>/đêm</p>");
-            }
-            if (h.getRating() != null) {
-                sb.append("<p class='bot-hotel-rating'>⭐ ")
-                  .append(String.format("%.1f", h.getRating())).append("</p>");
-            }
-            sb.append("<a href='/accommodations/").append(h.getId())
-              .append("' class='bot-hotel-btn' target='_blank'>Xem chi tiết</a>")
-              .append("</div></div>");
+        StringBuilder sb = new StringBuilder("<div class='bot-hotel-results'>");
+        sb.append("<p>🏨 Phòng/căn đang còn trống tại <strong>").append(esc(displayName)).append("</strong>:</p>")
+          .append("<p class='bot-budget-note'>Kiểm tra cho <strong>")
+          .append(dates.checkIn()).append(" - ").append(dates.checkOut())
+          .append("</strong>, ").append(guests).append(" khách, ").append(rooms).append(" phòng")
+          .append(dates.suppliedByUser() ? ".</p>" : " (ngày mặc định gần nhất; bạn có thể nhập ngày cụ thể).</p>");
+
+        for (AvailableRoomSuggestion suggestion : available) {
+            sb.append(roomCard(suggestion, dates, guests, rooms));
         }
 
         sb.append("<a href='/accommodations?keyword=").append(encUrl(displayName)).append(typeParam)
@@ -757,7 +762,7 @@ public class ChatbotService {
         }
         sb.append("Quy trinh dat phong: tim diem den va ngay o, chon noi luu tru/phong, dang nhap hoac dang ky, chon dat coc 30% hoac thanh toan 100% qua VNPAY, theo doi trong Dat phong cua toi.\n");
         sb.append("Thanh toan: demo dung VNPAY Sandbox. Dat coc 30% qua VNPAY, 70% con lai thanh toan truc tiep tai co so khi nhan phong. Thanh toan 100% truc tuyen duoc uu tien xac nhan nhanh.\n");
-        sb.append("Huy/no-show: no-show mat tien coc 30%. Huy phong can lien he TravelMate truoc it nhat 24 gio de duoc ho tro. Thanh toan 100% hoan tien theo chinh sach tung co so.\n");
+        sb.append("Huy/no-show: dat coc 30% da thanh toan neu huy hoac no-show thi mat toan bo tien coc. Thanh toan 100% neu huy truoc check-in thi du kien hoan 70% va giu 30% phi huy. He thong mo lai quota sau khi ghi nhan huy.\n");
         sb.append("Ho tro: email support@travelmate.vn, hotline 1800 6868 tu 8:00 den 22:00, trang /contact.\n");
         sb.append(username == null
                 ? "Nguoi dung chua dang nhap, khong duoc noi co the xem lich su dat phong truc tiep neu chua dang nhap.\n"
@@ -1030,9 +1035,9 @@ public class ChatbotService {
             case PENDING_PAYMENT ->
                 "<span style='background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:700'>⏳ Chờ TT</span>";
             case PENDING_ADMIN_APPROVAL ->
-                "<span style='background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:700'>🔍 Chờ xác nhận</span>";
+                "<span style='background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:700'>⚠ Cần đối soát</span>";
             case CONFIRMED ->
-                "<span style='background:#dcfce7;color:#166534;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:700'>✅ Đã xác nhận</span>";
+                "<span style='background:#dcfce7;color:#166534;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:700'>✅ VNPAY đã xác nhận</span>";
             case CHECKED_IN ->
                 "<span style='background:#ccfbf1;color:#065f46;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:700'>🏨 Đang ở</span>";
             case COMPLETED ->
@@ -1057,6 +1062,66 @@ public class ChatbotService {
     private String encUrl(String s) {
         try { return java.net.URLEncoder.encode(s, "UTF-8"); }
         catch (Exception e) { return s; }
+    }
+
+    private List<AvailableRoomSuggestion> findAvailableRooms(
+            List<Accommodation> accommodations, StayDates dates, int requestedRooms,
+            int guests, long maxPricePerNight) {
+        return accommodations.stream()
+                .flatMap(accommodation -> {
+                    List<RoomAvailabilityDto> availability = availabilityService.checkAvailabilityForAccommodation(
+                            accommodation, dates.checkIn(), dates.checkOut());
+                    return availability == null ? java.util.stream.Stream.empty()
+                            : availability.stream().map(room -> new AvailableRoomSuggestion(accommodation, room));
+                })
+                .filter(s -> s.room().getAvailableQuantity() >= requestedRooms)
+                .filter(s -> s.room().getPricePerNight() != null)
+                .filter(s -> maxPricePerNight <= 0
+                        || s.room().getPricePerNight().longValue() <= maxPricePerNight)
+                .filter(s -> roomCanHostGuests(s.accommodation(), s.room().getRoomId(), guests, requestedRooms))
+                .sorted(Comparator.comparing(s -> s.room().getPricePerNight()))
+                .toList();
+    }
+
+    private boolean roomCanHostGuests(
+            Accommodation accommodation, Long roomId, int guests, int requestedRooms) {
+        if (accommodation.getRooms() == null || accommodation.getRooms().isEmpty()) {
+            return true;
+        }
+        return accommodation.getRooms().stream()
+                .filter(room -> roomId.equals(room.getId()))
+                .findFirst()
+                .map(Room::getCapacity)
+                .map(capacity -> capacity * requestedRooms >= guests)
+                .orElse(true);
+    }
+
+    private String roomCard(AvailableRoomSuggestion suggestion, StayDates dates, int guests, int rooms) {
+        Accommodation accommodation = suggestion.accommodation();
+        RoomAvailabilityDto room = suggestion.room();
+        StringBuilder sb = new StringBuilder("<div class='bot-hotel-card'>");
+        if (accommodation.getThumbnailUrl() != null && !accommodation.getThumbnailUrl().isBlank()) {
+            sb.append("<img src='").append(accommodation.getThumbnailUrl())
+              .append("' alt='' class='bot-hotel-img' loading='lazy'/>");
+        } else {
+            sb.append("<div class='bot-hotel-img-ph'><i class='fas fa-hotel'></i></div>");
+        }
+        sb.append("<div class='bot-hotel-info'>")
+          .append("<p class='bot-hotel-name'>").append(esc(accommodation.getName())).append("</p>")
+          .append("<p>").append(esc(room.getRoomName())).append("</p>")
+          .append("<p class='bot-hotel-city'>📍 ").append(esc(accommodation.getCity())).append("</p>")
+          .append("<p class='bot-hotel-price'><strong>")
+          .append(fmtPrice(room.getPricePerNight().doubleValue())).append("</strong>/đêm · còn ")
+          .append(room.getAvailableQuantity()).append(" phòng</p>")
+          .append("<a href='/accommodations/").append(accommodation.getId())
+          .append("?checkIn=").append(dates.checkIn())
+          .append("&amp;checkOut=").append(dates.checkOut())
+          .append("&amp;adults=").append(guests)
+          .append("&amp;children=0&amp;rooms=").append(rooms)
+          .append("#room-").append(room.getRoomId())
+          .append("' class='bot-hotel-btn' target='_blank'>Xem phòng này</a>")
+          .append("</div></div>");
+        return sb.toString();
     }
 
     private String hotelCard(Accommodation h) {
@@ -1179,26 +1244,29 @@ public class ChatbotService {
     // ── Budget Travel Plan ───────────────────────────────
 
     private ChatbotResponse budgetTravelPlan(String message, String norm, long budgetVnd, String username) {
-        int nights = extractNights(norm);
+        int requestedNights = extractNights(norm);
         int rooms = extractRooms(norm);
         int guests = extractGuests(norm);
+        StayDates dates = extractStayDates(message, requestedNights);
+        int nights = (int) (dates.checkOut().toEpochDay() - dates.checkIn().toEpochDay());
         PropertyType preferredType = extractPropertyTypePreference(norm);
         TravelPreference preference = extractTravelPreference(norm);
         String dest = extractDestination(norm);
 
-        long lodgingBudget = Math.round(budgetVnd * 0.6);
-        long maxPerNight = Math.max(1L, lodgingBudget / nights / rooms);
+        boolean nightlyRoomBudget = isNightlyRoomBudget(norm);
+        long lodgingBudget = nightlyRoomBudget ? budgetVnd * nights * rooms : Math.round(budgetVnd * 0.6);
+        long maxPerNight = nightlyRoomBudget ? budgetVnd : Math.max(1L, lodgingBudget / nights / rooms);
 
         List<Accommodation> pool = (preferredType != null)
                 ? accommodationRepository.findByPropertyTypeAndApprovalStatus(preferredType, ApprovalStatus.APPROVED)
                 : accommodationRepository.findByApprovalStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED);
 
-        List<Accommodation> filtered = pool.stream()
-                .filter(a -> a.getMinPrice() != null && a.getMinPrice() <= maxPerNight)
+        List<Accommodation> matching = pool.stream()
                 .filter(a -> matchesDestinationOrPreference(a, dest, preference))
                 .sorted(budgetAccommodationComparator(dest, preference))
-                .limit(3)
                 .collect(Collectors.toList());
+        List<AvailableRoomSuggestion> filtered = findAvailableRooms(
+                matching, dates, rooms, guests, maxPerNight).stream().limit(3).toList();
 
         String destDisplay = dest != null ? resolveDisplayName(dest) : null;
         String contextLabel = destDisplay != null
@@ -1227,8 +1295,13 @@ public class ChatbotService {
           .append("<p><strong>TravelMate tạm tính:</strong></p>")
           .append("<p>👥 ").append(guests).append(" người · ")
           .append(rooms).append(" phòng · ").append(nights).append(" đêm</p>")
-          .append("<p>🏨 60% ngân sách dành cho lưu trú: <strong>")
-          .append(fmtPrice((double) lodgingBudget)).append("</strong></p>")
+          .append("<p>📅 Kiểm tra phòng trống: <strong>").append(dates.checkIn())
+          .append(" - ").append(dates.checkOut()).append("</strong>")
+          .append(dates.suppliedByUser() ? "</p>" : " (ngày mặc định gần nhất)</p>")
+          .append(nightlyRoomBudget
+                  ? "<p>🏨 Mức giá phòng/đêm bạn yêu cầu: <strong>"
+                  : "<p>🏨 60% ngân sách dành cho lưu trú: <strong>")
+          .append(fmtPrice(nightlyRoomBudget ? (double) maxPerNight : (double) lodgingBudget)).append("</strong></p>")
           .append("<p>💵 Giá phù hợp khoảng <strong>")
           .append(fmtPrice((double) maxPerNight)).append("</strong>/phòng/đêm</p>")
           .append("</div>")
@@ -1251,8 +1324,8 @@ public class ChatbotService {
             sb.append("<p>🎯 Gợi ý <strong>").append(esc(typeLabel))
               .append("</strong> phù hợp ngân sách:</p>");
 
-            for (Accommodation h : filtered) {
-                sb.append(hotelCard(h));
+            for (AvailableRoomSuggestion suggestion : filtered) {
+                sb.append(roomCard(suggestion, dates, guests, rooms));
             }
 
             appendTravelPostHint(sb, destDisplay != null ? dest : actionDestination, destDisplay != null ? destDisplay : actionDestination);
@@ -1266,6 +1339,12 @@ public class ChatbotService {
                 : List.of("4 triệu muốn đi biển", "5 triệu đi Đà Lạt 3 ngày 2 đêm",
                           "2tr tìm homestay Đà Lạt", "Xem voucher");
         return new ChatbotResponse(I_BUDGET_PLAN, sb.toString(), qr);
+    }
+
+    private boolean isNightlyRoomBudget(String norm) {
+        return matches(norm, "phong duoi", "gia phong duoi", "moi dem", "/dem", "mot dem")
+                || (matches(norm, "homestay", "khach san", "hotel", "resort", "villa")
+                    && matches(norm, "duoi"));
     }
 
     private Long extractBudgetVnd(String norm) {
@@ -1304,6 +1383,35 @@ public class ChatbotService {
     private long parsePlainVnd(String numStr) {
         try { return Long.parseLong(numStr.replaceAll("[.,\\s]", "")); }
         catch (Exception e) { return 0L; }
+    }
+
+    private StayDates extractStayDates(String text, int nights) {
+        String normalizedDateText = normalizeMoneyText(text);
+        Matcher matcher = Pattern.compile(
+                "(\\d{1,2})[/-](\\d{1,2})(?:[/-](\\d{2,4}))?\\s*(?:den|toi|-)\\s*"
+                        + "(\\d{1,2})[/-](\\d{1,2})(?:[/-](\\d{2,4}))?")
+                .matcher(normalizedDateText);
+        if (matcher.find()) {
+            LocalDate checkIn = parseStayDate(matcher.group(1), matcher.group(2), matcher.group(3));
+            LocalDate checkOut = parseStayDate(matcher.group(4), matcher.group(5), matcher.group(6));
+            if (checkIn != null && checkOut != null && checkOut.isAfter(checkIn)) {
+                return new StayDates(checkIn, checkOut, true);
+            }
+        }
+        LocalDate checkIn = LocalDate.now().plusDays(1);
+        return new StayDates(checkIn, checkIn.plusDays(Math.max(1, nights)), false);
+    }
+
+    private LocalDate parseStayDate(String day, String month, String year) {
+        try {
+            int parsedYear = year == null ? LocalDate.now().getYear() : Integer.parseInt(year);
+            if (parsedYear < 100) {
+                parsedYear += 2000;
+            }
+            return LocalDate.of(parsedYear, Integer.parseInt(month), Integer.parseInt(day));
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 
     private int extractNights(String norm) {

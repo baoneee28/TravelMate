@@ -1,10 +1,10 @@
 ﻿<!doctype html>
-<html lang="vi">
+<html lang="vi" th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Đăng nhập – TravelMate</title>
+    <title th:text="#{auth.login.pageTitle}">Đăng nhập - TravelMate</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&subset=vietnamese&display=swap"
@@ -20,21 +20,21 @@
         <div class="lp-img">
             <img src="/assets/images/MienBac/MB_HN.jpg" alt="TravelMate resort" />
             <div class="lp-copy">
-                <div class="badge">✦ nền tảng booking #1 Việt Nam</div>
-                <h2>Chào mừng trở lại<br />với <em>TravelMate</em></h2>
-                <p>Hàng nghìn khách sạn, villa và địa điểm du lịch đang chờ bạn khám phá.</p>
+                <div class="badge" th:text="#{auth.login.heroBadge}">✦ nền tảng booking #1 Việt Nam</div>
+                <h2 th:utext="#{auth.login.heroTitle}">Chào mừng trở lại<br />với <em>TravelMate</em></h2>
+                <p th:text="#{auth.login.heroDescription}">Hàng nghìn khách sạn, villa và địa điểm du lịch đang chờ bạn khám phá.</p>
                 <div class="lp-feat">
                     <div class="lp-feat-item">
                         <div class="lp-feat-icon">⭐</div>
-                        <span>Hơn 500 khách sạn và homestay uy tín</span>
+                        <span th:text="#{auth.login.heroFeatureHotels}">Hơn 500 khách sạn và homestay uy tín</span>
                     </div>
                     <div class="lp-feat-item">
                         <div class="lp-feat-icon">💳</div>
-                        <span>Đặt phòng nhanh – thanh toán an toàn</span>
+                        <span th:text="#{auth.login.heroFeaturePayment}">Đặt phòng nhanh - thanh toán an toàn</span>
                     </div>
                     <div class="lp-feat-item">
                         <div class="lp-feat-icon">📞</div>
-                        <span>Hỗ trợ khách hàng 24/7</span>
+                        <span th:text="#{auth.login.heroFeatureSupport}">Hỗ trợ khách hàng 24/7</span>
                     </div>
                 </div>
             </div>
@@ -46,8 +46,9 @@
                 <span class="lb">TRAVEL</span><span class="ly">MATE</span>
             </a>
 
-            <h1 class="ff-title">Đăng nhập</h1>
-            <p class="ff-sub">Chưa có tài khoản? <a href="/auth/register">Đăng ký ngay →</a></p>
+            <h1 class="ff-title" th:text="#{auth.login.heading}">Đăng nhập</h1>
+            <p class="ff-sub"><span th:text="#{auth.login.noAccount}">Chưa có tài khoản?</span>
+                <a href="/auth/register" th:text="#{auth.login.registerNow}">Đăng ký ngay →</a></p>
 
             <!-- Thông báo thành công khi vừa đăng ký xong -->
             <div th:if="${success}"
@@ -68,11 +69,17 @@
                 <!-- Hiển thị thông báo lỗi khi đăng nhập sai -->
                 <div id="login-error" style="display:none; background:#fef2f2; color:#dc2626; padding:10px 14px; border-radius:8px; font-size:0.875rem; margin-bottom:12px; border:1px solid #fecaca;">
                     <i class="fa-solid fa-circle-exclamation" style="margin-right:6px;"></i>
-                    Email hoặc mật khẩu không đúng. Vui lòng thử lại.
+                    <span th:text="#{auth.login.invalid}">Email hoặc mật khẩu không đúng. Vui lòng thử lại.</span>
+                </div>
+                <div th:if="${param.oauth2Error}" class="auth-message auth-message-error">
+                    <i class="fa-solid fa-circle-exclamation" style="margin-top:2px;"></i>
+                    <span th:text="#{auth.login.oauthError}">
+                        Google Login hiện chưa thể hoàn tất. Tính năng này chỉ đăng nhập tài khoản USER và cần cấu hình Client ID/Secret hợp lệ.
+                    </span>
                 </div>
 
                 <div class="ff-field">
-                    <label class="ff-label" for="email">Email <span class="req">*</span></label>
+                    <label class="ff-label" for="email"><span th:text="#{auth.field.email}">Email</span> <span class="req">*</span></label>
                     <div class="ff-wrap">
                         <!-- name="email" phải khớp với usernameParameter trong SecurityConfig -->
                         <input id="email" name="email" type="email" class="ff-input"
@@ -82,28 +89,30 @@
                 </div>
 
                 <div class="ff-field">
-                    <label class="ff-label" for="password">Mật khẩu <span class="req">*</span></label>
+                    <label class="ff-label" for="password"><span th:text="#{auth.field.password}">Mật khẩu</span> <span class="req">*</span></label>
                     <div class="ff-wrap">
                         <!-- name="password" phải khớp với passwordParameter trong SecurityConfig -->
                         <input id="password" name="password" type="password" class="ff-input"
-                            placeholder="Nhập mật khẩu của bạn" required autocomplete="current-password" />
+                            placeholder="Nhập mật khẩu của bạn" th:placeholder="#{auth.login.passwordPlaceholder}" required autocomplete="current-password" />
                         <i class="fa-solid fa-lock"></i>
                     </div>
                 </div>
 
                 <div class="ff-util">
                     <label class="ff-check">
-                        <input type="checkbox" id="remember-me" /> Ghi nhớ đăng nhập
+                        <input type="checkbox" id="remember-me" /> <span th:text="#{auth.login.remember}">Ghi nhớ đăng nhập</span>
                     </label>
-                    <a href="#" class="ff-forget">Quên mật khẩu?</a>
+                    <a href="/auth/forgot-password" class="ff-forget" th:text="#{auth.login.forgot}">Quên mật khẩu?</a>
                 </div>
 
-                <button type="submit" id="login-btn" class="btn-cta">Đăng nhập</button>
+                <button type="submit" id="login-btn" class="btn-cta" th:text="#{auth.login.submit}"
+                    th:attr="data-loading-text=#{auth.login.loading}">Đăng nhập</button>
             </form>
 
-            <div class="ff-divider">hoặc tiếp tục với</div>
+            <div class="ff-divider" th:text="#{auth.divider}">hoặc tiếp tục với</div>
 
-            <button class="btn-google">
+            <a th:if="${googleOAuthConfigured}" th:href="@{/oauth2/authorization/google}" class="btn-google"
+                title="Đăng nhập bằng tài khoản Google. Chỉ áp dụng cho tài khoản USER.">
                 <svg width="18" height="18" viewBox="0 0 48 48">
                     <path fill="#EA4335"
                         d="M24 9.5c3.14 0 5.95 1.08 8.17 2.86l6.07-6.07C34.52 3.05 29.57 1 24 1 14.84 1 7.04 6.59 3.74 14.45l7.05 5.47C12.47 13.37 17.74 9.5 24 9.5z" />
@@ -114,12 +123,29 @@
                     <path fill="#34A853"
                         d="M24 47c5.57 0 10.23-1.84 13.64-5l-7.05-5.47c-1.84 1.23-4.19 1.97-6.59 1.97-6.26 0-11.53-3.87-13.21-9.42l-7.07 5.47C7.04 41.41 14.84 47 24 47z" />
                 </svg>
-                Tiếp tục bằng Google
+                <span th:text="#{auth.google.login}">Đăng nhập với Google</span>
+            </a>
+
+            <button th:unless="${googleOAuthConfigured}" class="btn-google btn-google-disabled" type="button" disabled
+                th:title="${googleOAuthDisabledReason}">
+                <svg width="18" height="18" viewBox="0 0 48 48">
+                    <path fill="#EA4335"
+                        d="M24 9.5c3.14 0 5.95 1.08 8.17 2.86l6.07-6.07C34.52 3.05 29.57 1 24 1 14.84 1 7.04 6.59 3.74 14.45l7.05 5.47C12.47 13.37 17.74 9.5 24 9.5z" />
+                    <path fill="#4285F4"
+                        d="M46.08 24.5c0-1.48-.13-2.88-.36-4.25H24v8.04h12.43c-.53 2.88-2.16 5.32-4.6 6.96l7.05 5.47C42.8 37.02 46.08 31.22 46.08 24.5z" />
+                    <path fill="#FBBC05"
+                        d="M10.79 28.58C10.29 27.12 10 25.6 10 24s.29-3.12.79-4.58L3.2 13.98A22.89 22.89 0 0 0 1 24c0 3.58.86 6.96 2.38 9.95l7.41-5.37z" />
+                    <path fill="#34A853"
+                        d="M24 47c5.57 0 10.23-1.84 13.64-5l-7.05-5.47c-1.84 1.23-4.19 1.97-6.59 1.97-6.26 0-11.53-3.87-13.21-9.42l-7.07 5.47C7.04 41.41 14.84 47 24 47z" />
+                </svg>
+                <span th:text="#{auth.google.disabled}">Google Login - cần cấu hình</span>
             </button>
 
             <p class="ff-note">
-                Bằng cách đăng nhập, bạn đồng ý với <a href="#">Điều khoản</a> và
-                <a href="#">Chính sách bảo mật</a> của TravelMate.
+                <span th:text="#{auth.terms.prefix}">Bằng cách đăng nhập, bạn đồng ý với</span>
+                <a href="#" th:text="#{auth.terms.use}">Điều khoản sử dụng</a>
+                <span th:text="#{auth.terms.and}">và</span>
+                <a href="#" th:text="#{auth.terms.privacy}">Chính sách bảo mật</a>.
             </p>
         </div>
     </div>
@@ -138,7 +164,7 @@
             form.addEventListener("submit", () => {
                 const btn = document.getElementById("login-btn");
                 btn.innerHTML =
-                    '<i class="fa-solid fa-circle-notch fa-spin" style="margin-right:8px;"></i>Đang đăng nhập...';
+                    '<i class="fa-solid fa-circle-notch fa-spin" style="margin-right:8px;"></i>' + btn.dataset.loadingText;
                 btn.disabled = true;
                 // Không preventDefault — để form POST thực sự đến Spring Security
             });

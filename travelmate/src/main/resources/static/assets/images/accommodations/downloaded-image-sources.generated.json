@@ -1,0 +1,737 @@
+[
+  {
+    "Path": "amenities\\homestay\\bedroom.jpg",
+    "Source": "https://images.pexels.com/photos/20771843/pexels-photo-20771843.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 315536
+  },
+  {
+    "Path": "amenities\\homestay\\bicycles.jpg",
+    "Source": "https://images.pexels.com/photos/276517/pexels-photo-276517.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 131339
+  },
+  {
+    "Path": "amenities\\homestay\\breakfast.jpg",
+    "Source": "https://images.pexels.com/photos/4109506/pexels-photo-4109506.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 364586
+  },
+  {
+    "Path": "amenities\\homestay\\garden.jpg",
+    "Source": "https://images.pexels.com/photos/259588/pexels-photo-259588.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 256592
+  },
+  {
+    "Path": "amenities\\homestay\\shared-kitchen.jpg",
+    "Source": "https://images.pexels.com/photos/16056401/pexels-photo-16056401.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 117490
+  },
+  {
+    "Path": "amenities\\hotel\\bedroom.jpg",
+    "Source": "https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 113125
+  },
+  {
+    "Path": "amenities\\hotel\\gym.jpg",
+    "Source": "https://images.pexels.com/photos/1954524/pexels-photo-1954524.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 186448
+  },
+  {
+    "Path": "amenities\\hotel\\lobby.jpg",
+    "Source": "https://images.pexels.com/photos/32229384/pexels-photo-32229384.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 467632
+  },
+  {
+    "Path": "amenities\\hotel\\pool.jpg",
+    "Source": "https://images.pexels.com/photos/261395/pexels-photo-261395.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 397260
+  },
+  {
+    "Path": "amenities\\hotel\\restaurant.jpg",
+    "Source": "https://images.pexels.com/photos/9703894/pexels-photo-9703894.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 312874
+  },
+  {
+    "Path": "amenities\\resort\\fine-dining.jpg",
+    "Source": "https://images.pexels.com/photos/30469700/pexels-photo-30469700.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 121389
+  },
+  {
+    "Path": "amenities\\resort\\infinity-pool.jpg",
+    "Source": "https://images.pexels.com/photos/13114888/pexels-photo-13114888.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 117499
+  },
+  {
+    "Path": "amenities\\resort\\private-beach.jpg",
+    "Source": "https://images.pexels.com/photos/12004337/pexels-photo-12004337.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 574023
+  },
+  {
+    "Path": "amenities\\resort\\spa.jpg",
+    "Source": "https://images.pexels.com/photos/11774389/pexels-photo-11774389.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 411910
+  },
+  {
+    "Path": "amenities\\resort\\sports-center.jpg",
+    "Source": "https://images.pexels.com/photos/6388364/pexels-photo-6388364.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 240193
+  },
+  {
+    "Path": "amenities\\villa\\bbq-area.jpg",
+    "Source": "https://images.pexels.com/photos/17396861/pexels-photo-17396861.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 190706
+  },
+  {
+    "Path": "amenities\\villa\\bedroom.jpg",
+    "Source": "https://images.pexels.com/photos/7167070/pexels-photo-7167070.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 162942
+  },
+  {
+    "Path": "amenities\\villa\\kitchen.jpg",
+    "Source": "https://images.pexels.com/photos/8082300/pexels-photo-8082300.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 221288
+  },
+  {
+    "Path": "amenities\\villa\\panoramic-view.jpg",
+    "Source": "https://images.pexels.com/photos/7903178/pexels-photo-7903178.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 308808
+  },
+  {
+    "Path": "amenities\\villa\\private-pool.jpg",
+    "Source": "https://images.pexels.com/photos/4146874/pexels-photo-4146874.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 691960
+  },
+  {
+    "Path": "catalog\\homestay-exterior.jpg",
+    "Source": "https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 292741
+  },
+  {
+    "Path": "catalog\\hotel-exterior.jpg",
+    "Source": "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 314660
+  },
+  {
+    "Path": "catalog\\resort-exterior.jpg",
+    "Source": "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 432989
+  },
+  {
+    "Path": "catalog\\resort-room.jpg",
+    "Source": "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 510897
+  },
+  {
+    "Path": "catalog\\villa-exterior.jpg",
+    "Source": "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 315363
+  },
+  {
+    "Path": "homestay\\hoa-lu-riverside-homestay\\cover.jpg",
+    "Source": "https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 194787
+  },
+  {
+    "Path": "homestay\\hoa-lu-riverside-homestay\\rooms\\hlr-dlx.jpg",
+    "Source": "https://images.pexels.com/photos/1457842/pexels-photo-1457842.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 131154
+  },
+  {
+    "Path": "homestay\\hoa-lu-riverside-homestay\\rooms\\hlr-fam.jpg",
+    "Source": "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 450790
+  },
+  {
+    "Path": "homestay\\hoa-lu-riverside-homestay\\rooms\\hlr-std.jpg",
+    "Source": "https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 176006
+  },
+  {
+    "Path": "homestay\\hoa-lu-riverside-homestay\\rooms\\hs101.jpg",
+    "Source": "https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 194787
+  },
+  {
+    "Path": "homestay\\hoa-lu-riverside-homestay\\rooms\\hs102.jpg",
+    "Source": "https://images.pexels.com/photos/259588/pexels-photo-259588.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 256592
+  },
+  {
+    "Path": "homestay\\moc-nhien-garden-homestay-da-lat\\cover.jpg",
+    "Source": "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 839637
+  },
+  {
+    "Path": "homestay\\moc-nhien-garden-homestay-da-lat\\rooms\\mnd-att.jpg",
+    "Source": "https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 292741
+  },
+  {
+    "Path": "homestay\\moc-nhien-garden-homestay-da-lat\\rooms\\mnd-fam.jpg",
+    "Source": "https://images.pexels.com/photos/1571463/pexels-photo-1571463.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 227002
+  },
+  {
+    "Path": "homestay\\moc-nhien-garden-homestay-da-lat\\rooms\\mnd-std.jpg",
+    "Source": "https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 180824
+  },
+  {
+    "Path": "homestay\\sapa-valley-homestay\\cover.jpg",
+    "Source": "https://images.pexels.com/photos/259962/pexels-photo-259962.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 171942
+  },
+  {
+    "Path": "homestay\\sapa-valley-homestay\\rooms\\svh-dlx.jpg",
+    "Source": "https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 176006
+  },
+  {
+    "Path": "homestay\\sapa-valley-homestay\\rooms\\svh-std.jpg",
+    "Source": "https://images.pexels.com/photos/1457842/pexels-photo-1457842.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 131154
+  },
+  {
+    "Path": "homestay\\tam-coc-garden-homestay\\cover.jpg",
+    "Source": "https://images.pexels.com/photos/1457847/pexels-photo-1457847.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 125868
+  },
+  {
+    "Path": "homestay\\tam-coc-garden-homestay\\rooms\\tcg-fam.jpg",
+    "Source": "https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 180824
+  },
+  {
+    "Path": "homestay\\tam-coc-garden-homestay\\rooms\\tcg-std.jpg",
+    "Source": "https://images.pexels.com/photos/1571463/pexels-photo-1571463.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 227002
+  },
+  {
+    "Path": "hotel\\da-lat-mountain-boutique-hotel\\cover.jpg",
+    "Source": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 549556
+  },
+  {
+    "Path": "hotel\\da-lat-sunrise-guesthouse\\cover.jpg",
+    "Source": "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 433131
+  },
+  {
+    "Path": "hotel\\intercontinental-nha-trang\\cover.jpg",
+    "Source": "https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 113125
+  },
+  {
+    "Path": "hotel\\intercontinental-nha-trang\\rooms\\icn-dlx.jpg",
+    "Source": "https://images.pexels.com/photos/271639/pexels-photo-271639.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 80804
+  },
+  {
+    "Path": "hotel\\intercontinental-nha-trang\\rooms\\icn-std.jpg",
+    "Source": "https://images.pexels.com/photos/271618/pexels-photo-271618.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 107630
+  },
+  {
+    "Path": "hotel\\intercontinental-nha-trang\\rooms\\icn-sui.jpg",
+    "Source": "https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 245250
+  },
+  {
+    "Path": "hotel\\la-siesta-hoi-an-resort-spa\\cover.jpg",
+    "Source": "https://images.unsplash.com/photo-1568084680786-a84f91d1153c?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 670018
+  },
+  {
+    "Path": "hotel\\la-siesta-hoi-an-resort-spa\\rooms\\lsh-dlx.jpg",
+    "Source": "https://images.unsplash.com/photo-1549294413-26f195200c16?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 749874
+  },
+  {
+    "Path": "hotel\\la-siesta-hoi-an-resort-spa\\rooms\\lsh-std.jpg",
+    "Source": "https://images.unsplash.com/photo-1563911302283-d2bc129e7570?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 1218436
+  },
+  {
+    "Path": "hotel\\la-siesta-hoi-an-resort-spa\\rooms\\lsh-sui.jpg",
+    "Source": "https://images.unsplash.com/photo-1559599189-fe84dea4eb79?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 345828
+  },
+  {
+    "Path": "hotel\\new-world-sai-gon-hotel\\cover.jpg",
+    "Source": "https://images.pexels.com/photos/262048/pexels-photo-262048.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 178736
+  },
+  {
+    "Path": "hotel\\new-world-sai-gon-hotel\\rooms\\nws-dlx.jpg",
+    "Source": "https://images.pexels.com/photos/271643/pexels-photo-271643.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 180024
+  },
+  {
+    "Path": "hotel\\new-world-sai-gon-hotel\\rooms\\nws-std.jpg",
+    "Source": "https://images.pexels.com/photos/237371/pexels-photo-237371.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 173402
+  },
+  {
+    "Path": "hotel\\novotel-da-nang-premier\\cover.jpg",
+    "Source": "https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 169132
+  },
+  {
+    "Path": "hotel\\novotel-da-nang-premier\\rooms\\nvd-dlx.jpg",
+    "Source": "https://images.pexels.com/photos/261395/pexels-photo-261395.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 397260
+  },
+  {
+    "Path": "hotel\\novotel-da-nang-premier\\rooms\\nvd-fam.jpg",
+    "Source": "https://images.pexels.com/photos/221457/pexels-photo-221457.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 194744
+  },
+  {
+    "Path": "hotel\\novotel-da-nang-premier\\rooms\\nvd-std.jpg",
+    "Source": "https://images.pexels.com/photos/261181/pexels-photo-261181.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 157308
+  },
+  {
+    "Path": "hotel\\pullman-vung-tau\\cover.jpg",
+    "Source": "https://images.pexels.com/photos/261169/pexels-photo-261169.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 245666
+  },
+  {
+    "Path": "hotel\\pullman-vung-tau\\rooms\\pvt-dlx.jpg",
+    "Source": "https://images.pexels.com/photos/262047/pexels-photo-262047.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 313374
+  },
+  {
+    "Path": "hotel\\pullman-vung-tau\\rooms\\pvt-std.jpg",
+    "Source": "https://images.pexels.com/photos/210604/pexels-photo-210604.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 187353
+  },
+  {
+    "Path": "hotel\\sapa-cloud-valley-hotel\\cover.jpg",
+    "Source": "https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 209917
+  },
+  {
+    "Path": "hotel\\sapa-cloud-valley-hotel\\rooms\\spc-dlx.jpg",
+    "Source": "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 317669
+  },
+  {
+    "Path": "hotel\\sapa-cloud-valley-hotel\\rooms\\spc-std.jpg",
+    "Source": "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 432989
+  },
+  {
+    "Path": "hotel\\sofitel-legend-metropole-ha-noi\\cover.jpg",
+    "Source": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 301038
+  },
+  {
+    "Path": "hotel\\sofitel-legend-metropole-ha-noi\\rooms\\slm-fam.jpg",
+    "Source": "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 351126
+  },
+  {
+    "Path": "hotel\\sofitel-legend-metropole-ha-noi\\rooms\\slm-gra.jpg",
+    "Source": "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 346671
+  },
+  {
+    "Path": "hotel\\sofitel-legend-metropole-ha-noi\\rooms\\slm-pre.jpg",
+    "Source": "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 314660
+  },
+  {
+    "Path": "hotel\\travelmate-grand-hotel\\cover.jpg",
+    "Source": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 274935
+  },
+  {
+    "Path": "hotel\\travelmate-grand-hotel\\rooms\\r301.jpg",
+    "Source": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 549556
+  },
+  {
+    "Path": "hotel\\travelmate-grand-hotel\\rooms\\r302.jpg",
+    "Source": "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 433131
+  },
+  {
+    "Path": "hotel\\travelmate-grand-hotel\\rooms\\r303.jpg",
+    "Source": "https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 113125
+  },
+  {
+    "Path": "hotel\\travelmate-grand-hotel\\rooms\\r304.jpg",
+    "Source": "https://images.pexels.com/photos/271639/pexels-photo-271639.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 80804
+  },
+  {
+    "Path": "hotel\\travelmate-grand-hotel\\rooms\\tmg-dlx.jpg",
+    "Source": "https://images.pexels.com/photos/262048/pexels-photo-262048.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 178736
+  },
+  {
+    "Path": "hotel\\travelmate-grand-hotel\\rooms\\tmg-fam.jpg",
+    "Source": "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 314660
+  },
+  {
+    "Path": "hotel\\travelmate-grand-hotel\\rooms\\tmg-pre.jpg",
+    "Source": "https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 245250
+  },
+  {
+    "Path": "hotel\\travelmate-grand-hotel\\rooms\\tmg-pre2.jpg",
+    "Source": "https://images.pexels.com/photos/210604/pexels-photo-210604.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 187353
+  },
+  {
+    "Path": "hotel\\tulip-hotel-2-dalat\\cover.jpg",
+    "Source": "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 432989
+  },
+  {
+    "Path": "hotel\\tulip-hotel-2-dalat\\rooms\\r201.jpg",
+    "Source": "https://images.pexels.com/photos/271618/pexels-photo-271618.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 107630
+  },
+  {
+    "Path": "hotel\\tulip-hotel-2-dalat\\rooms\\r202.jpg",
+    "Source": "https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 245250
+  },
+  {
+    "Path": "hotel\\tulip-hotel-2-dalat\\rooms\\r203.jpg",
+    "Source": "https://images.pexels.com/photos/262048/pexels-photo-262048.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 178736
+  },
+  {
+    "Path": "hotel\\tulip-hotel-2-dalat\\rooms\\r204.jpg",
+    "Source": "https://images.pexels.com/photos/271643/pexels-photo-271643.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 180024
+  },
+  {
+    "Path": "hotel\\tulip-hotel-2-dalat\\rooms\\tlp-fam.jpg",
+    "Source": "https://images.pexels.com/photos/237371/pexels-photo-237371.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 173402
+  },
+  {
+    "Path": "hotel\\tulip-hotel-2-dalat\\rooms\\tlp-std.jpg",
+    "Source": "https://images.pexels.com/photos/271618/pexels-photo-271618.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 107630
+  },
+  {
+    "Path": "hotel\\tulip-hotel-2-dalat\\rooms\\tlp-sup.jpg",
+    "Source": "https://images.pexels.com/photos/271643/pexels-photo-271643.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 180024
+  },
+  {
+    "Path": "hotel\\tulip-hotel-2-dalat\\rooms\\tlp-vip.jpg",
+    "Source": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 301038
+  },
+  {
+    "Path": "lata\\cover\\room-hero.jpg",
+    "Source": "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 317669
+  },
+  {
+    "Path": "lata\\rooms\\deluxe-double\\bedroom.jpg",
+    "Source": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 549556
+  },
+  {
+    "Path": "lata\\rooms\\deluxe-double\\dining-area.jpg",
+    "Source": "https://images.pexels.com/photos/237371/pexels-photo-237371.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 173402
+  },
+  {
+    "Path": "lata\\rooms\\deluxe-double\\kitchen.jpg",
+    "Source": "https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 169132
+  },
+  {
+    "Path": "lata\\rooms\\deluxe-double\\window.jpg",
+    "Source": "https://images.pexels.com/photos/261395/pexels-photo-261395.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 397260
+  },
+  {
+    "Path": "lata\\rooms\\family\\bedroom.jpg",
+    "Source": "https://images.pexels.com/photos/221457/pexels-photo-221457.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 194744
+  },
+  {
+    "Path": "lata\\rooms\\family\\bedside.jpg",
+    "Source": "https://images.pexels.com/photos/261181/pexels-photo-261181.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 157308
+  },
+  {
+    "Path": "lata\\rooms\\family\\interior.jpg",
+    "Source": "https://images.pexels.com/photos/261169/pexels-photo-261169.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 245666
+  },
+  {
+    "Path": "lata\\rooms\\family\\main.jpg",
+    "Source": "https://images.pexels.com/photos/271639/pexels-photo-271639.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 80804
+  },
+  {
+    "Path": "lata\\rooms\\family\\tv-area.jpg",
+    "Source": "https://images.pexels.com/photos/262047/pexels-photo-262047.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 313374
+  },
+  {
+    "Path": "lata\\rooms\\loft-suite\\kitchen-lounge.jpg",
+    "Source": "https://images.pexels.com/photos/210604/pexels-photo-210604.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 187353
+  },
+  {
+    "Path": "lata\\rooms\\loft-suite\\living-room.jpg",
+    "Source": "https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 209917
+  },
+  {
+    "Path": "lata\\rooms\\loft-suite\\view-lounge.jpg",
+    "Source": "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 346671
+  },
+  {
+    "Path": "lata\\rooms\\standard-king\\bathroom.jpg",
+    "Source": "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 317669
+  },
+  {
+    "Path": "lata\\rooms\\standard-king\\interior.jpg",
+    "Source": "https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 113125
+  },
+  {
+    "Path": "lata\\rooms\\standard-king\\loft.jpg",
+    "Source": "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 432989
+  },
+  {
+    "Path": "lata\\rooms\\standard-king\\lounge.jpg",
+    "Source": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 301038
+  },
+  {
+    "Path": "lata\\shared\\corridor.jpg",
+    "Source": "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 351126
+  },
+  {
+    "Path": "lata\\shared\\dining-area.jpg",
+    "Source": "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 346671
+  },
+  {
+    "Path": "lata\\shared\\lounge-bench.jpg",
+    "Source": "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 314660
+  },
+  {
+    "Path": "lata\\shared\\main-lounge.jpg",
+    "Source": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 549556
+  },
+  {
+    "Path": "lata\\shared\\open-kitchen.jpg",
+    "Source": "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 433131
+  },
+  {
+    "Path": "lata\\shared\\upstairs-lounge.jpg",
+    "Source": "https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 113125
+  },
+  {
+    "Path": "resort\\azerai-can-tho-resort\\cover.jpg",
+    "Source": "https://images.unsplash.com/photo-1560347876-aeef00ee58a1?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 737043
+  },
+  {
+    "Path": "resort\\azerai-can-tho-resort\\rooms\\azc-dlx.jpg",
+    "Source": "https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 169132
+  },
+  {
+    "Path": "resort\\azerai-can-tho-resort\\rooms\\azc-sui.jpg",
+    "Source": "https://images.pexels.com/photos/338504/pexels-photo-338504.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 200579
+  },
+  {
+    "Path": "resort\\furama-resort-da-nang\\cover.jpg",
+    "Source": "https://images.pexels.com/photos/338504/pexels-photo-338504.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 200579
+  },
+  {
+    "Path": "resort\\furama-resort-da-nang\\rooms\\fdn-bch.jpg",
+    "Source": "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 510897
+  },
+  {
+    "Path": "resort\\furama-resort-da-nang\\rooms\\fdn-dlx.jpg",
+    "Source": "https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 169132
+  },
+  {
+    "Path": "resort\\furama-resort-da-nang\\rooms\\fdn-fam.jpg",
+    "Source": "https://images.pexels.com/photos/261395/pexels-photo-261395.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 397260
+  },
+  {
+    "Path": "resort\\furama-resort-da-nang\\rooms\\rs101.jpg",
+    "Source": "https://images.pexels.com/photos/261395/pexels-photo-261395.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 397260
+  },
+  {
+    "Path": "resort\\furama-resort-da-nang\\rooms\\rs102.jpg",
+    "Source": "https://images.pexels.com/photos/280222/pexels-photo-280222.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 382406
+  },
+  {
+    "Path": "resort\\legacy-bay-resort-ha-long\\cover.jpg",
+    "Source": "https://images.pexels.com/photos/279746/pexels-photo-279746.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 177307
+  },
+  {
+    "Path": "resort\\legacy-bay-resort-ha-long\\rooms\\lbr-dlx.jpg",
+    "Source": "https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 209917
+  },
+  {
+    "Path": "resort\\legacy-bay-resort-ha-long\\rooms\\lbr-sui.jpg",
+    "Source": "https://images.pexels.com/photos/374870/pexels-photo-374870.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 245975
+  },
+  {
+    "Path": "resort\\sunset-pearl-resort-phu-quoc\\cover.jpg",
+    "Source": "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 433131
+  },
+  {
+    "Path": "resort\\sunset-pearl-resort-phu-quoc\\rooms\\spq-dlx.jpg",
+    "Source": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 274935
+  },
+  {
+    "Path": "resort\\sunset-pearl-resort-phu-quoc\\rooms\\spq-sea.jpg",
+    "Source": "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 421394
+  },
+  {
+    "Path": "resort\\ttc-resort-mui-ne\\cover.jpg",
+    "Source": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 528219
+  },
+  {
+    "Path": "resort\\ttc-resort-mui-ne\\rooms\\ttc-dlx.jpg",
+    "Source": "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 322720
+  },
+  {
+    "Path": "resort\\ttc-resort-mui-ne\\rooms\\ttc-fam.jpg",
+    "Source": "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 432989
+  },
+  {
+    "Path": "resort\\vinpearl-resort-spa-nha-trang\\cover.jpg",
+    "Source": "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 433131
+  },
+  {
+    "Path": "resort\\vinpearl-resort-spa-nha-trang\\rooms\\vnt-dlx.jpg",
+    "Source": "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 421394
+  },
+  {
+    "Path": "resort\\vinpearl-resort-spa-nha-trang\\rooms\\vnt-sui.jpg",
+    "Source": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 528219
+  },
+  {
+    "Path": "resort\\vinpearl-resort-spa-nha-trang\\rooms\\vnt-vil.jpg",
+    "Source": "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 322720
+  },
+  {
+    "Path": "villa\\ba-na-hills-forest-villa\\cover.jpg",
+    "Source": "https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 511450
+  },
+  {
+    "Path": "villa\\ba-na-hills-forest-villa\\rooms\\bnh-bng.jpg",
+    "Source": "https://images.pexels.com/photos/259588/pexels-photo-259588.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 256592
+  },
+  {
+    "Path": "villa\\ba-na-hills-forest-villa\\rooms\\bnh-sui.jpg",
+    "Source": "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 276708
+  },
+  {
+    "Path": "villa\\ba-na-hills-forest-villa\\rooms\\bnh-twn.jpg",
+    "Source": "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 315363
+  },
+  {
+    "Path": "villa\\ba-na-hills-forest-villa\\rooms\\v101.jpg",
+    "Source": "https://images.unsplash.com/photo-1600585152220-90363fe7e115?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 215705
+  },
+  {
+    "Path": "villa\\ba-na-hills-forest-villa\\rooms\\v102.jpg",
+    "Source": "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 276708
+  },
+  {
+    "Path": "villa\\pine-hill-villa-da-lat\\cover.jpg",
+    "Source": "https://images.unsplash.com/photo-1600566752355-35792bedcfea?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 355137
+  },
+  {
+    "Path": "villa\\pine-hill-villa-da-lat\\rooms\\phv-dlx.jpg",
+    "Source": "https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 194787
+  },
+  {
+    "Path": "villa\\pine-hill-villa-da-lat\\rooms\\phv-fam.jpg",
+    "Source": "https://images.pexels.com/photos/259588/pexels-photo-259588.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 256592
+  },
+  {
+    "Path": "villa\\sunset-beach-villa-phu-quoc\\cover.jpg",
+    "Source": "https://images.pexels.com/photos/259962/pexels-photo-259962.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 171942
+  },
+  {
+    "Path": "villa\\sunset-beach-villa-phu-quoc\\rooms\\sbv-pool.jpg",
+    "Source": "https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 198174
+  },
+  {
+    "Path": "villa\\sunset-beach-villa-phu-quoc\\rooms\\sbv-sea.jpg",
+    "Source": "https://images.pexels.com/photos/323780/pexels-photo-323780.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 142467
+  },
+  {
+    "Path": "villa\\the-anam-villa-nha-trang\\cover.jpg",
+    "Source": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 301472
+  },
+  {
+    "Path": "villa\\the-anam-villa-nha-trang\\rooms\\anm-bch.jpg",
+    "Source": "https://images.unsplash.com/photo-1600585152220-90363fe7e115?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 215705
+  },
+  {
+    "Path": "villa\\the-anam-villa-nha-trang\\rooms\\anm-fam.jpg",
+    "Source": "https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "Bytes": 176006
+  },
+  {
+    "Path": "villa\\the-anam-villa-nha-trang\\rooms\\anm-gdn.jpg",
+    "Source": "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1600&q=85",
+    "Bytes": 328745
+  }
+]

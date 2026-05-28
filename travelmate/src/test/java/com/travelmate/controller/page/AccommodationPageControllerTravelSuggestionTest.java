@@ -1,6 +1,8 @@
 package com.travelmate.controller.page;
 
 import com.travelmate.entity.Accommodation;
+import com.travelmate.entity.Room;
+import com.travelmate.entity.RoomImage;
 import com.travelmate.entity.TravelPost;
 import com.travelmate.entity.enums.ApprovalStatus;
 import com.travelmate.entity.enums.PropertyType;
@@ -9,6 +11,7 @@ import com.travelmate.repository.TravelPostRepository;
 import com.travelmate.service.AccommodationService;
 import com.travelmate.service.AvailabilityService;
 import com.travelmate.service.ReviewService;
+import com.travelmate.service.RoomImageService;
 import com.travelmate.service.TravelPostService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +25,8 @@ import org.springframework.ui.Model;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,6 +52,9 @@ class AccommodationPageControllerTravelSuggestionTest {
     @Mock
     private TravelPostRepository travelPostRepository;
 
+    @Mock
+    private RoomImageService roomImageService;
+
     private AccommodationPageController controller;
 
     @BeforeEach
@@ -57,7 +65,8 @@ class AccommodationPageControllerTravelSuggestionTest {
                 reviewService,
                 bookingRepository,
                 availabilityService,
-                travelPostService
+                travelPostService,
+                roomImageService
         );
     }
 
@@ -110,18 +119,22 @@ class AccommodationPageControllerTravelSuggestionTest {
     }
 
     @Test
-    void accommodationsPageDoesNotShowDestinationSuggestionSectionWithoutKeyword() {
-        when(accommodationService.searchByType(PropertyType.HOTEL, "")).thenReturn(List.of());
+    void accommodationsPageDefaultsBlankKeywordToDaLat() {
+        List<TravelPost> daLatPosts = List.of(post("Đà Lạt cuối tuần", "Đà Lạt", "da-lat"));
+        when(accommodationService.searchByType(PropertyType.HOTEL, "Đà Lạt")).thenReturn(List.of());
+        when(travelPostRepository.findByDestinationSlugInAndStatusOrderByCreatedAtDesc(
+                Set.of("da-lat"), TravelPost.Status.VISIBLE)).thenReturn(daLatPosts);
 
         Model model = new ExtendedModelMap();
         controller.listHotels("HOTEL", "", "", "", 2, 0, 1, model);
 
-        assertThat(model.getAttribute("travelPosts")).isEqualTo(List.of());
-        assertThat(model.getAttribute("travelDestSlug")).isEqualTo("");
-        assertThat(model.getAttribute("travelDestLabel")).isEqualTo("");
-        assertThat(model.getAttribute("showTravelSuggestSection")).isEqualTo(false);
-        assertThat(model.getAttribute("hasTravelPosts")).isEqualTo(false);
-        verifyNoInteractions(travelPostRepository);
+        assertThat(model.getAttribute("keyword")).isEqualTo("Đà Lạt");
+        assertThat(model.getAttribute("keywordDisplay")).isEqualTo("Đà Lạt");
+        assertThat(model.getAttribute("travelPosts")).isEqualTo(daLatPosts);
+        assertThat(model.getAttribute("travelDestSlug")).isEqualTo("da-lat");
+        assertThat(model.getAttribute("travelDestLabel")).isEqualTo("Đà Lạt");
+        assertThat(model.getAttribute("showTravelSuggestSection")).isEqualTo(true);
+        assertThat(model.getAttribute("hasTravelPosts")).isEqualTo(true);
     }
 
     @Test
@@ -150,7 +163,7 @@ class AccommodationPageControllerTravelSuggestionTest {
             "HOMESTAY,hoi an,Hội An,hoi-an",
             "RESORT,phu quoc,Phú Quốc,phu-quoc"
     })
-    void travelSuggestionsDependOnDestinationNotAccommodationType(
+    void travelSuggestionsAndFiveImageGalleryDependOnDestinationNotAccommodationType(
             String type, String keyword, String destinationLabel, String destinationSlug) {
         PropertyType propertyType = PropertyType.valueOf(type);
         List<Accommodation> accommodations = List.of(accommodation(10L, "Demo " + type, destinationLabel, propertyType));
@@ -166,6 +179,34 @@ class AccommodationPageControllerTravelSuggestionTest {
         assertThat(model.getAttribute("travelPosts")).isEqualTo(posts);
         assertThat(model.getAttribute("travelDestLabel")).isEqualTo(destinationLabel);
         assertThat(model.getAttribute("travelDestSlug")).isEqualTo(destinationSlug);
+
+        Room room = new Room();
+        room.setId(77L);
+        room.setRoomName("Phòng ảnh thật");
+        room.setImageUrl("/uploads/legacy-room.jpg");
+        room.setAvailableQuantity(2);
+        RoomImage uploadedImage = new RoomImage();
+        uploadedImage.setImageUrl("/uploads/official-room.webp");
+        uploadedImage.setCaption("Ảnh đã duyệt");
+        when(accommodationService.getById(10L)).thenReturn(Optional.of(accommodations.get(0)));
+        when(accommodationService.getAvailableRooms(accommodations.get(0))).thenReturn(List.of(room));
+        when(accommodationService.getAllApprovedRooms(accommodations.get(0))).thenReturn(List.of(room));
+        when(roomImageService.getImagesForRooms(List.of(room))).thenReturn(Map.of(room.getId(), List.of(uploadedImage)));
+        when(reviewService.getReviewsByAccommodation(accommodations.get(0))).thenReturn(List.of());
+        when(bookingRepository.findByAccommodationAndBookingStatusIn(
+                org.mockito.ArgumentMatchers.eq(accommodations.get(0)),
+                org.mockito.ArgumentMatchers.anyList())).thenReturn(List.of());
+        when(travelPostRepository.findTop3ByDestinationSlugInAndStatusOrderByCreatedAtDesc(
+                Set.of(destinationSlug), TravelPost.Status.VISIBLE)).thenReturn(List.of());
+
+        Model detailModel = new ExtendedModelMap();
+        assertThat(controller.hotelDetail(10L, "", "", 2, 0, 1, detailModel)).isEqualTo("user/hotel-detail");
+        @SuppressWarnings("unchecked")
+        List<Map<String, String>> gallery = (List<Map<String, String>>) detailModel.getAttribute("galleryImages");
+        assertThat(gallery).hasSize(5);
+        assertThat(gallery.get(0).get("src")).isEqualTo("/assets/images/resort.jpg");
+        assertThat(gallery.get(1).get("src")).isEqualTo("/uploads/official-room.webp");
+        assertThat(detailModel.getAttribute("roomImagesMap")).isEqualTo(Map.of(room.getId(), List.of(uploadedImage)));
     }
 
     private static Accommodation accommodation(Long id, String name, String city, PropertyType propertyType) {

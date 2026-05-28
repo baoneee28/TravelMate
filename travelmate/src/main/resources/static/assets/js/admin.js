@@ -86,16 +86,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Active Sidebar Link ──────────────────────
   // Dùng toàn bộ pathname thay vì chỉ lấy phần cuối (tên file)
-  // Vì Spring MVC dùng /admin/listings, /admin/rooms... không có .html
-  const currentPath = window.location.pathname; // e.g. "/admin/listings"
-  document.querySelectorAll('.admin-sidebar__link').forEach(link => {
-    link.classList.remove('active');
-    const href = link.getAttribute('href') || '';
-    // So sánh chính xác full path - tránh /accommodations bị highlight khi ở /accommodations/new
-    if (href && href !== '#' && currentPath === href) {
-      link.classList.add('active');
-    }
-  });
+  const currentPath = window.location.pathname; // e.g. "/admin/bookings/100"
+  
+  // Kiểm tra xem Thymeleaf đã render link nào có class 'active' chưa.
+  // Nếu server đã xác định class 'active' chính xác, JS sẽ không xóa đi.
+  const hasActiveLink = document.querySelector('.admin-sidebar__link.active');
+  
+  if (!hasActiveLink) {
+    document.querySelectorAll('.admin-sidebar__link').forEach(link => {
+      const href = link.getAttribute('href') || '';
+      // So khớp thông minh để hỗ trợ các subpage (e.g. /admin/bookings/100 -> highlight /admin/bookings)
+      if (href && href !== '#' && (currentPath === href || currentPath.startsWith(href + '/'))) {
+        link.classList.add('active');
+      }
+    });
+  }
 
 
   // ── Bar Chart Animation ──────────────────────

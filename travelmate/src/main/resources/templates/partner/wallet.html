@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ví quyết toán – Partner TravelMate</title>
+    <title>Ví quyết toán – Đối tác TravelMate</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&subset=vietnamese&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/assets/css/base.css" />
@@ -33,7 +33,7 @@
         }
         .wallet-balance-panel__label { font-size:13px; opacity:.86; font-weight:600; }
         .wallet-balance-panel__amount { font-size:34px; line-height:1.15; font-weight:800; margin:8px 0; }
-        .wallet-balance-panel__caption { font-size:13px; opacity:.88; max-width:680px; line-height:1.6; }
+        .wallet-balance-panel__caption { font-size:13px; color: #ffffff; opacity: 1; font-weight: 500; max-width:680px; line-height:1.6; }
         .wallet-mini-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:18px; }
         .wallet-mini {
             background:rgba(255,255,255,.14);
@@ -211,8 +211,8 @@
                 <section class="wallet-note">
                     <div class="wallet-note__title"><i class="fa-solid fa-circle-info"></i> Ví nội bộ TravelMate</div>
                     <p class="wallet-note__text">
-                        Đây là sổ quyết toán nội bộ giữa TravelMate và Partner, không phải ví điện tử thật và không tự động chuyển tiền ngân hàng.
-                        Partner gửi yêu cầu rút về tài khoản đã khai báo; Admin chuyển khoản ngoài hệ thống rồi cập nhật trạng thái tại đây.
+                        Đây là sổ quyết toán nội bộ giữa TravelMate và đối tác, không phải ví điện tử thật và không tự động chuyển tiền ngân hàng.
+                        Đối tác gửi yêu cầu rút về tài khoản đã khai báo; Admin chuyển khoản ngoài hệ thống rồi cập nhật trạng thái tại đây.
                     </p>
                 </section>
             </div>
@@ -251,7 +251,7 @@
                             <strong th:text="${maskedBankAccountNumber}">****0000</strong>
                         </div>
                         <div th:if="${!hasBankInfo}" class="wallet-warning">
-                            Partner cần có ngân hàng, số tài khoản và chủ tài khoản trước khi gửi yêu cầu rút tiền.
+                            Đối tác cần có ngân hàng, số tài khoản và chủ tài khoản trước khi gửi yêu cầu rút tiền.
                         </div>
 
                         <form th:action="@{/partner/wallet/bank}" method="post" data-wallet-once>

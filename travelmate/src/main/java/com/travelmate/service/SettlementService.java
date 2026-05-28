@@ -1,6 +1,7 @@
 package com.travelmate.service;
 
 import com.travelmate.dto.SettlementDetailItemDto;
+import com.travelmate.entity.Accommodation;
 import com.travelmate.entity.Booking;
 import com.travelmate.entity.PartnerSettlement;
 import com.travelmate.entity.Payment;
@@ -20,12 +21,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * SettlementService — Quản lý quyết toán THÁNG cho partner.
@@ -41,13 +44,13 @@ import java.util.List;
  *
  * Điều kiện đưa booking vào quyết toán (isSettlementEligible):
  *  - Booking ONLINE + Payment APPROVED + BookingStatus COMPLETED
- *  - Booking ONLINE + Payment DEPOSIT_FORFEITED + BookingStatus NO_SHOW
+ *  - Booking ONLINE + Payment DEPOSIT_FORFEITED + BookingStatus NO_SHOW/CANCELLED
  *  → Chỉ booking đã hoàn tất lưu trú hoặc khách không đến mới được quyết toán.
  *
- * Quy tắc commission: chỉ tính trên tiền thực thu online (payment.amount).
- *   - DEPOSIT_30 + APPROVED: commBase = cọc 30% đã thu online
- *   - DEPOSIT_30 + DEPOSIT_FORFEITED (no-show): commBase = cọc 30% bị giữ
- *   - FULL_PAYMENT: commBase = 100% đã thu
+ * Quy tắc commission dung rate snapshot booking:
+ *   - Moi don ONLINE: commBase = khoan TravelMate da thu online
+ *   - DEPOSIT_30: chi tinh tren coc online 30%, ke ca hoan tat hoac mat coc
+ *   - FULL_PAYMENT: tinh tren khoan thanh toan online 100%
  *   payout = max(0, gross - commission - voucherPartnerDeduct)
  */
 @SuppressWarnings("null")
@@ -123,10 +126,7 @@ public class SettlementService {
 
             // Lọc payment của partner này trong kỳ
             List<Payment> partnerPayments = periodPayments.stream()
-                    .filter(p -> {
-                        User owner = p.getBooking().getAccommodation().getOwner();
-                        return owner != null && owner.getId().equals(partner.getId());
-                    })
+                    .filter(p -> isManagedByPartner(p, partner))
                     .toList();
 
             if (partnerPayments.isEmpty()) continue; // Không có doanh thu → không tạo
@@ -135,26 +135,19 @@ public class SettlementService {
             BigDecimal gross = BigDecimal.ZERO;
             BigDecimal commission = BigDecimal.ZERO;
             BigDecimal voucherDeduct = BigDecimal.ZERO;
+            BigDecimal payout = BigDecimal.ZERO;
 
             for (Payment p : partnerPayments) {
-                BigDecimal g = p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO;
-
-                Room room = p.getBooking().getRoom();
-                BigDecimal commBase = resolveCommissionBase(p);
-                BigDecimal c = commissionService.calculateCommission(commBase, room);
-
-                BigDecimal vd = BigDecimal.ZERO;
-                if (p.getBooking().getVoucherCostBearer() == VoucherCostBearer.PARTNER
-                        && p.getBooking().getDiscountAmount() != null) {
-                    vd = p.getBooking().getDiscountAmount();
-                }
+                BigDecimal g = resolveOnlinePaid(p);
+                BigDecimal c = resolveCommissionAmount(p);
+                BigDecimal vd = resolvePartnerVoucherAmount(p);
+                BigDecimal partnerPayout = resolvePartnerPayout(p);
 
                 gross = gross.add(g);
                 commission = commission.add(c);
                 voucherDeduct = voucherDeduct.add(vd);
+                payout = payout.add(partnerPayout);
             }
-
-            BigDecimal payout = gross.subtract(commission).subtract(voucherDeduct).max(BigDecimal.ZERO);
 
             PartnerSettlement settlement = new PartnerSettlement();
             settlement.setPartner(partner);
@@ -180,10 +173,10 @@ public class SettlementService {
      *
      * Chỉ chấp nhận:
      * - ONLINE + APPROVED + COMPLETED  → khách đã hoàn tất lưu trú
-     * - ONLINE + DEPOSIT_FORFEITED + NO_SHOW → khách không đến, cọc bị giữ
+     * - ONLINE + DEPOSIT_FORFEITED + NO_SHOW/CANCELLED → coc bi giu
      *
-     * Loại bỏ: PENDING_ADMIN_APPROVAL, CONFIRMED, CHECKED_IN, CANCELLED, REFUNDED,
-     *           DIRECT, MANUAL_BLOCK...
+     * Loại bỏ: PENDING_ADMIN_APPROVAL, CONFIRMED, CHECKED_IN, CANCELLED không giữ cọc,
+     *           REFUNDED, DIRECT, MANUAL_BLOCK...
      */
     private boolean isSettlementEligible(Payment p) {
         if (p == null || p.getBooking() == null) return false;
@@ -203,8 +196,9 @@ public class SettlementService {
             return true;
         }
 
-        // Case 2: Booking NO_SHOW + Payment DEPOSIT_FORFEITED → khách không đến
-        if (ps == PaymentStatus.DEPOSIT_FORFEITED && bs == BookingStatus.NO_SHOW) {
+        // Case 2: cọc bị giữ do khách hủy hoặc không đến
+        if (ps == PaymentStatus.DEPOSIT_FORFEITED
+                && (bs == BookingStatus.NO_SHOW || bs == BookingStatus.CANCELLED)) {
             return true;
         }
 
@@ -225,12 +219,55 @@ public class SettlementService {
 
     // ─── HELPERS ──────────────────────────────────────────────────────────────
 
-    /**
-     * Cơ sở tính commission = tiền thực thu qua hệ thống (payment.amount).
-     * TravelMate chỉ tính commission trên tiền online, không tính 70% khách trả tại cơ sở.
-     */
     private BigDecimal resolveCommissionBase(Payment p) {
+        return resolveOnlinePaid(p);
+    }
+
+    private BigDecimal resolveCommissionAmount(Payment p) {
+        BigDecimal base = resolveCommissionBase(p);
+        if (hasFinancialSnapshot(p)) {
+            return base.multiply(p.getBooking().getCommissionRateSnapshot())
+                    .setScale(0, RoundingMode.HALF_UP);
+        }
+        return commissionService.calculateCommission(base, p.getBooking().getRoom());
+    }
+
+    private BigDecimal resolvePartnerVoucherAmount(Payment p) {
+        if (hasFinancialSnapshot(p) && p.getBooking().getPartnerVoucherAmountSnapshot() != null) {
+            return p.getBooking().getPartnerVoucherAmountSnapshot();
+        }
+        return p.getBooking().getVoucherCostBearer() == VoucherCostBearer.PARTNER
+                && p.getBooking().getDiscountAmount() != null
+                ? p.getBooking().getDiscountAmount() : BigDecimal.ZERO;
+    }
+
+    private BigDecimal resolvePartnerPayout(Payment p) {
+        return resolveOnlinePaid(p).subtract(resolveCommissionAmount(p))
+                .subtract(resolvePartnerVoucherAmount(p)).max(BigDecimal.ZERO);
+    }
+
+    private BigDecimal resolveOnlinePaid(Payment p) {
         return p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO;
+    }
+
+    private BigDecimal resolveOnsiteAmount(Payment p) {
+        if (hasFinancialSnapshot(p) && p.getBooking().getOnsiteAmountSnapshot() != null) {
+            return p.getBooking().getOnsiteAmountSnapshot();
+        }
+        if (p.getPaymentOption() == PaymentOption.DEPOSIT_30
+                && p.getPaymentStatus() != PaymentStatus.DEPOSIT_FORFEITED) {
+            return p.getBooking().getRemainingAmount() != null
+                    ? p.getBooking().getRemainingAmount() : BigDecimal.ZERO;
+        }
+        return BigDecimal.ZERO;
+    }
+
+    private boolean hasFinancialSnapshot(Payment p) {
+        return p != null && p.getBooking() != null && p.getBooking().getCommissionRateSnapshot() != null;
+    }
+
+    private BigDecimal safeAmount(BigDecimal amount) {
+        return amount != null ? amount : BigDecimal.ZERO;
     }
 
     // ─── MARK PAID ────────────────────────────────────────────────────────────
@@ -264,6 +301,9 @@ public class SettlementService {
                     + ". Có thể bật travelmate.demo-mode=true để demo trước ngày chi trả.");
         }
 
+        // Settlement legacy phai duoc doi soat theo Huong A truoc khi payout duoc cong vao vi.
+        refreshPendingSettlementTotals(List.of(settlement));
+
         settlement.setSettlementStatus(SettlementStatus.PAID);
         settlement.setSettlementDate(LocalDateTime.now());
         if (note != null && !note.isBlank()) {
@@ -277,17 +317,90 @@ public class SettlementService {
 
     // ─── QUERY ────────────────────────────────────────────────────────────────
 
-    /** Admin: xem tất cả settlement */
+    /**
+     * Admin: xem tất cả settlement.
+     * Settlement dang cho chi tra duoc dong bo lai tu breakdown theo quy tac
+     * hien tai; settlement da PAID duoc giu nguyen de bao toan lich su vi.
+     */
+    @Transactional
     public List<PartnerSettlement> getAllSettlementsForAdmin() {
-        return settlementRepository.findAllByOrderByCreatedAtDesc();
+        List<PartnerSettlement> settlements = settlementRepository.findAllByOrderByCreatedAtDesc();
+        refreshPendingSettlementTotals(settlements);
+        return settlements;
     }
 
     /**
      * Partner: chỉ xem settlement của mình.
      * Security: lọc theo partner entity → không lộ data partner khác.
      */
+    @Transactional
     public List<PartnerSettlement> getSettlementsForPartner(User partner) {
-        return settlementRepository.findByPartnerOrderByCreatedAtDesc(partner);
+        List<PartnerSettlement> settlements = settlementRepository.findByPartnerOrderByCreatedAtDesc(partner);
+        refreshPendingSettlementTotals(settlements);
+        return settlements;
+    }
+
+    /**
+     * Tổng trên trang chi tiết được tính lại từ các booking đang hiển thị.
+     * Cách này giúp footer luôn khớp từng dòng, kể cả settlement cũ còn lưu thiếu voucher.
+     */
+    public Map<String, BigDecimal> calculateBreakdownTotals(List<SettlementDetailItemDto> breakdown) {
+        List<SettlementDetailItemDto> items = breakdown != null ? breakdown : List.of();
+        BigDecimal totalOrder = BigDecimal.ZERO;
+        BigDecimal gross = BigDecimal.ZERO;
+        BigDecimal onsite = BigDecimal.ZERO;
+        BigDecimal commission = BigDecimal.ZERO;
+        BigDecimal voucher = BigDecimal.ZERO;
+        BigDecimal payout = BigDecimal.ZERO;
+
+        for (SettlementDetailItemDto item : items) {
+            totalOrder = totalOrder.add(safeAmount(item.getTotalOrderAmount()));
+            gross = gross.add(safeAmount(item.getGross()));
+            onsite = onsite.add(safeAmount(item.getOnsiteAmount()));
+            commission = commission.add(safeAmount(item.getCommissionAmount()));
+            voucher = voucher.add(safeAmount(item.getVoucherDeductAmount()));
+            payout = payout.add(safeAmount(item.getPartnerPayout()));
+        }
+
+        return Map.of(
+                "totalOrder", totalOrder,
+                "gross", gross,
+                "onsite", onsite,
+                "commission", commission,
+                "voucher", voucher,
+                "payout", payout
+        );
+    }
+
+    private void refreshPendingSettlementTotals(List<PartnerSettlement> settlements) {
+        for (PartnerSettlement settlement : settlements != null ? settlements : List.<PartnerSettlement>of()) {
+            if (settlement.getSettlementStatus() != SettlementStatus.PENDING) {
+                continue;
+            }
+            List<SettlementDetailItemDto> breakdown = getBreakdownForSettlement(settlement);
+            if (breakdown.isEmpty()) {
+                continue;
+            }
+            Map<String, BigDecimal> totals = calculateBreakdownTotals(breakdown);
+            BigDecimal gross = totals.get("gross");
+            BigDecimal commission = totals.get("commission");
+            BigDecimal voucher = totals.get("voucher");
+            BigDecimal payout = totals.get("payout");
+            if (amountChanged(settlement.getGrossAmount(), gross)
+                    || amountChanged(settlement.getCommissionAmount(), commission)
+                    || amountChanged(settlement.getVoucherDeductionAmount(), voucher)
+                    || amountChanged(settlement.getPayoutAmount(), payout)) {
+                settlement.setGrossAmount(gross);
+                settlement.setCommissionAmount(commission);
+                settlement.setVoucherDeductionAmount(voucher);
+                settlement.setPayoutAmount(payout);
+                settlementRepository.save(settlement);
+            }
+        }
+    }
+
+    private boolean amountChanged(BigDecimal stored, BigDecimal recalculated) {
+        return safeAmount(stored).compareTo(safeAmount(recalculated)) != 0;
     }
 
     /** Đếm settlement PENDING — hiển thị badge admin */
@@ -315,6 +428,7 @@ public class SettlementService {
                         s.getPartner(), REVENUE_STATUSES);
 
         return partnerPayments.stream()
+                .filter(p -> isManagedByPartner(p, s.getPartner()))
                 .filter(this::isSettlementEligible)
                 .filter(p -> {
                     LocalDate d = resolveSettlementDate(p);
@@ -324,28 +438,33 @@ public class SettlementService {
                     var b    = p.getBooking();
                     Room room = b.getRoom();
 
-                    BigDecimal gross = p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO;
+                    BigDecimal gross = resolveOnlinePaid(p);
                     BigDecimal commBase = resolveCommissionBase(p);
-                    BigDecimal commission = commissionService.calculateCommission(commBase, room);
+                    BigDecimal commission = resolveCommissionAmount(p);
 
-                    BigDecimal effectiveRate = commissionService.getEffectiveCommissionRate(room);
+                    BigDecimal effectiveRate = hasFinancialSnapshot(p)
+                            ? b.getCommissionRateSnapshot() : commissionService.getEffectiveCommissionRate(room);
                     int ratePercent = effectiveRate.multiply(BigDecimal.valueOf(100)).intValue();
-                    boolean isOverride = commissionService.isRoomOverride(room);
-                    String baseNote = (p.getPaymentOption() == PaymentOption.DEPOSIT_30)
-                            ? ", CK trên cọc online" : ", CK trên 100% đã thu";
+                    boolean isOverride = hasFinancialSnapshot(p)
+                            ? "ROOM_OVERRIDE".equals(b.getCommissionSourceSnapshot())
+                            : commissionService.isRoomOverride(room);
+                    String baseNote;
+                    if (p.getPaymentOption() == PaymentOption.DEPOSIT_30
+                            && p.getPaymentStatus() == PaymentStatus.DEPOSIT_FORFEITED) {
+                        baseNote = ", HH trên cọc online bị giữ";
+                    } else if (p.getPaymentOption() == PaymentOption.DEPOSIT_30) {
+                        baseNote = ", HH trên cọc online 30%";
+                    } else {
+                        baseNote = ", HH trên tiền online 100%";
+                    }
                     String rateDisplay = ratePercent + "%" + (isOverride ? " (theo phòng)" : " (mặc định)") + baseNote;
 
-                    BigDecimal voucherDeduct = BigDecimal.ZERO;
-                    if (b.getVoucherCostBearer() == VoucherCostBearer.PARTNER
-                            && b.getDiscountAmount() != null) {
-                        voucherDeduct = b.getDiscountAmount();
-                    }
-
-                    BigDecimal payout = gross.subtract(commission).subtract(voucherDeduct).max(BigDecimal.ZERO);
+                    BigDecimal voucherDeduct = resolvePartnerVoucherAmount(p);
+                    BigDecimal payout = resolvePartnerPayout(p);
 
                     String statusVN = switch (p.getPaymentStatus().name()) {
                         case "APPROVED"          -> "Đã thanh toán";
-                        case "DEPOSIT_FORFEITED" -> "Giữ cọc (no-show)";
+                        case "DEPOSIT_FORFEITED" -> "Giữ cọc (hủy/no-show)";
                         default                  -> p.getPaymentStatus().name();
                     };
 
@@ -355,7 +474,10 @@ public class SettlementService {
                     dto.setRoomName(room != null ? room.getRoomName() : "—");
                     dto.setCheckIn(b.getCheckIn() != null ? b.getCheckIn().format(fmt) : "—");
                     dto.setCheckOut(b.getCheckOut() != null ? b.getCheckOut().format(fmt) : "—");
+                    dto.setTotalOrderAmount(b.getTotalAmount());
                     dto.setGross(gross);
+                    dto.setOnsiteAmount(resolveOnsiteAmount(p));
+                    dto.setCommissionBaseLabel(baseNote.substring(2));
                     dto.setCommissionRateDisplay(rateDisplay);
                     dto.setCommissionAmount(commission);
                     dto.setVoucherCode(b.getVoucherCode());
@@ -365,5 +487,25 @@ public class SettlementService {
                     return dto;
                 })
                 .toList();
+    }
+
+    private boolean isManagedByPartner(Payment payment, User partner) {
+        if (payment == null || payment.getBooking() == null) {
+            return false;
+        }
+        return isManagedByPartner(payment.getBooking().getAccommodation(), partner);
+    }
+
+    private boolean isManagedByPartner(Accommodation accommodation, User partner) {
+        if (accommodation == null || partner == null || partner.getId() == null) {
+            return false;
+        }
+        if (partner.getPartnerPropertyType() == null || accommodation.getPropertyType() == null) {
+            return false;
+        }
+        return accommodation.getOwner() != null
+                && accommodation.getOwner().getId() != null
+                && accommodation.getOwner().getId().equals(partner.getId())
+                && accommodation.getPropertyType() == partner.getPartnerPropertyType();
     }
 }

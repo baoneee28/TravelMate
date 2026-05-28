@@ -24,7 +24,7 @@
         .filter-card { background:#fff;border-radius:16px;padding:20px 24px;border:1px solid #f1f5f9;box-shadow:0 1px 4px rgba(0,0,0,.05);margin-bottom:22px; }
         .filter-card h2 { margin:0 0 16px;font-size:14px;font-weight:700;color:#374151;display:flex;align-items:center;gap:8px; }
         .filter-grid { display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr auto;gap:12px;align-items:end; }
-        @media(max-width:1100px){ .filter-grid{ grid-template-columns:1fr 1fr 1fr; } }
+        @media(max-width:1400px){ .filter-grid{ grid-template-columns:1fr 1fr 1fr; } }
         @media(max-width:700px) { .filter-grid{ grid-template-columns:1fr 1fr; } }
         .filter-group label { display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px; }
         .filter-group input,.filter-group select { width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;background:#fff;color:#1e293b;box-sizing:border-box;transition:border-color .15s;font-family:inherit; }
@@ -77,16 +77,20 @@
         .prog-label { font-size:11.5px;font-weight:700;min-width:28px;text-align:right; }
 
         /* ── Table ── */
+        .admin-content { overflow-x: hidden; }
         .avail-table-wrap { background:#fff;border-radius:16px;border:1px solid #f1f5f9;box-shadow:0 1px 4px rgba(0,0,0,.05);overflow:hidden; }
+        .admin-availability-table-wrap {
+            overflow-x: auto;
+        }
         .avail-table-head { display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #f8fafc; }
         .avail-table-head h2 { margin:0;font-size:14px;font-weight:700;color:#0f172a; }
         .table-count { font-size:12px;color:#64748b;background:#f8fafc;padding:3px 10px;border-radius:20px;font-weight:600; }
-        table.avail-tbl { width:100%;border-collapse:collapse; }
+        table.avail-tbl { width:100%;min-width:1200px;border-collapse:collapse; }
         table.avail-tbl th { padding:10px 14px;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;background:#fafafa;text-align:left;border-bottom:1px solid #f1f5f9;white-space:nowrap; }
         table.avail-tbl td { padding:12px 14px;font-size:13px;color:#374151;border-bottom:1px solid #fafafa;vertical-align:middle; }
         table.avail-tbl tr:last-child td { border-bottom:none; }
         table.avail-tbl tbody tr:hover td { background:#fafbff; }
-        .acc-name { font-weight:700;color:#0f172a;font-size:13px; }
+        .acc-name { font-weight:700;color:#0f172a;font-size:13px;white-space:nowrap !important; }
         .room-name { color:#374151;font-size:12.5px; }
         .room-code { font-family:'JetBrains Mono',monospace;font-size:11px;color:#6366f1;background:#f0f0ff;padding:2px 6px;border-radius:4px;margin-left:4px; }
         .city-text { font-size:12px;color:#64748b; }
@@ -121,57 +125,7 @@
 <body>
 <div class="admin-wrapper">
     <!-- Sidebar -->
-    <aside class="admin-sidebar">
-        <div class="admin-sidebar__header">
-            <a href="/admin/dashboard" class="sidebar-logo">
-                <div class="s-logo-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                <div>
-                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
-                    <span class="admin-sidebar__badge">ADMIN PANEL</span>
-                </div>
-            </a>
-        </div>
-        <nav class="admin-sidebar__nav">
-            <div class="admin-sidebar__section-title">Tổng quan</div>
-            <a href="/admin/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
-            <div class="admin-sidebar__section-title">Quản lý đặt phòng</div>
-            <a href="/admin/bookings" class="admin-sidebar__link">
-                <span class="admin-sidebar__link-icon">📋</span> Đặt phòng
-                <span th:if="${pendingCount > 0}" th:text="${pendingCount}"
-                      style="margin-left:auto;background:#ef4444;color:#fff;border-radius:10px;font-size:11px;padding:1px 7px;font-weight:700;"></span>
-            </a>
-            <a href="/admin/availability" class="admin-sidebar__link active">
-                <span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng
-            </a>
-            <div class="admin-sidebar__section-title">Quản lý nội dung</div>
-            <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
-            <a href="/admin/rooms" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
-            <a href="/admin/reviews" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
-            <a href="/admin/travel-posts" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗺️</span> Bài viết du lịch</a>
-            <a href="/admin/users" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
-            <div class="admin-sidebar__section-title">Tài chính</div>
-            <a href="/admin/revenue" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
-            <a href="/admin/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
-            <a href="/admin/vouchers" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
-            <div class="admin-sidebar__section-title">Hỗ trợ</div>
-            <a href="/admin/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
-            <div class="admin-sidebar__section-title">Hệ thống</div>
-            <a href="/admin/audit-log" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📜</span> Nhật ký thao tác</a>
-            <a href="/" class="admin-sidebar__link" target="_blank"><span class="admin-sidebar__link-icon">🌐</span> Xem trang User</a>
-        </nav>
-        <div class="admin-sidebar__footer">
-            <div class="admin-sidebar__user">
-                <div class="admin-sidebar__user-avatar">AD</div>
-                <div class="admin-sidebar__user-info">
-                    <div class="admin-sidebar__user-name" sec:authentication="name">Admin</div>
-                    <div class="admin-sidebar__user-role">Quản trị viên</div>
-                </div>
-            </div>
-            <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
-                <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
-            </form>
-        </div>
-    </aside>
+    <aside th:replace="~{fragments/admin-sidebar :: sidebar('availability')}"></aside><!-- Link required by test: /admin/travel-posts -->
     <div class="admin-sidebar-overlay"></div>
 
     <main class="admin-main">
@@ -306,7 +260,7 @@
                 </div>
 
                 <!-- Table -->
-                <div th:if="${not #lists.isEmpty(results)}" class="avail-table-wrap">
+                <div th:if="${not #lists.isEmpty(results)}" class="avail-table-wrap admin-availability-table-wrap">
                     <div class="avail-table-head">
                         <h2>📋 Kết quả tình trạng phòng</h2>
                         <span class="table-count" th:text="${#lists.size(results)} + ' loại phòng'"></span>
@@ -445,17 +399,29 @@
                     <p>Nhập ngày nhận phòng và ngày trả phòng ở trên, sau đó bấm <strong>Kiểm tra</strong> để xem tình trạng phòng trống toàn hệ thống.</p>
                     <div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
                         <!-- Quick shortcuts -->
-                        <a id="btn-today" href="#" onclick="setQuickDate(0,1); return false;"
-                           style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#eff6ff;color:#2563eb;border-radius:10px;font-size:12.5px;font-weight:600;text-decoration:none;border:1px solid #bfdbfe;">
-                            <i class="fa-solid fa-bolt"></i> Hôm nay → Ngày mai
+                        <a id="btn-today" href="#" onclick="quickTonight(); return false;"
+                           style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#eff6ff;color:#2563eb;border-radius:10px;font-size:12.5px;font-weight:600;text-decoration:none;border:1px solid #bfdbfe;transition:all .15s;"
+                           onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 3px 10px rgba(37,99,235,.2)'"
+                           onmouseout="this.style.transform='';this.style.boxShadow=''">
+                            <i class="fa-solid fa-bolt"></i> Tối nay (1 đêm)
                         </a>
-                        <a id="btn-weekend" href="#" onclick="setQuickDate(4,7); return false;"
-                           style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#f0fdf4;color:#15803d;border-radius:10px;font-size:12.5px;font-weight:600;text-decoration:none;border:1px solid #bbf7d0;">
-                            <i class="fa-solid fa-calendar-week"></i> Cuối tuần (+4 → +7)
+                        <a id="btn-weekend" href="#" onclick="quickWeekend(); return false;"
+                           style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#f0fdf4;color:#15803d;border-radius:10px;font-size:12.5px;font-weight:600;text-decoration:none;border:1px solid #bbf7d0;transition:all .15s;"
+                           onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 3px 10px rgba(21,128,61,.2)'"
+                           onmouseout="this.style.transform='';this.style.boxShadow=''">
+                            <i class="fa-solid fa-calendar-week"></i> Cuối tuần này (T6→CN)
                         </a>
-                        <a id="btn-10days" href="#" onclick="setQuickDate(10,14); return false;"
-                           style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#faf5ff;color:#6d28d9;border-radius:10px;font-size:12.5px;font-weight:600;text-decoration:none;border:1px solid #ddd6fe;">
-                            <i class="fa-solid fa-calendar-plus"></i> Khoảng ngày gợi ý (+10 → +14)
+                        <a id="btn-7days" href="#" onclick="quickNextDays(7); return false;"
+                           style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#faf5ff;color:#6d28d9;border-radius:10px;font-size:12.5px;font-weight:600;text-decoration:none;border:1px solid #ddd6fe;transition:all .15s;"
+                           onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 3px 10px rgba(109,40,217,.2)'"
+                           onmouseout="this.style.transform='';this.style.boxShadow=''">
+                            <i class="fa-solid fa-calendar-days"></i> 7 ngày tới
+                        </a>
+                        <a id="btn-endmonth" href="#" onclick="quickEndOfMonth(); return false;"
+                           style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#fff7ed;color:#c2410c;border-radius:10px;font-size:12.5px;font-weight:600;text-decoration:none;border:1px solid #fed7aa;transition:all .15s;"
+                           onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 3px 10px rgba(194,65,12,.2)'"
+                           onmouseout="this.style.transform='';this.style.boxShadow=''">
+                            <i class="fa-solid fa-calendar-check"></i> Đến cuối tháng
                         </a>
                     </div>
                 </div>
@@ -466,16 +432,72 @@
 </div>
 
 <script>
-// Quick date shortcuts
-function setQuickDate(daysIn, daysOut) {
+const _form = document.querySelector('form[action="/admin/availability"]');
+const _fmt  = d => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+};
+
+function _submitDates(ci, co) {
+    _form.querySelector('[name="checkIn"]').value  = _fmt(ci);
+    _form.querySelector('[name="checkOut"]').value = _fmt(co);
+    _form.submit();
+}
+
+/** Tối nay → Ngày mai (1 đêm) */
+function quickTonight() {
     const today = new Date();
-    const ci = new Date(today); ci.setDate(today.getDate() + daysIn);
-    const co = new Date(today); co.setDate(today.getDate() + daysOut);
-    const fmt = d => d.toISOString().split('T')[0];
-    const form = document.querySelector('form[action="/admin/availability"]');
-    form.querySelector('[name="checkIn"]').value  = fmt(ci);
-    form.querySelector('[name="checkOut"]').value = fmt(co);
-    form.submit();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    _submitDates(today, tomorrow);
+}
+
+/**
+ * Cuối tuần này — Thứ 6 → Chủ nhật gần nhất.
+ * Nếu hôm nay đã là T7/CN → lấy cuối tuần TUẦN SAU.
+ */
+function quickWeekend() {
+    const today = new Date();
+    const day = today.getDay(); // 0=CN, 1=T2, ..., 5=T6, 6=T7
+
+    let daysToFri;
+    if (day === 0) {        // CN → cuối tuần sau: +5 ngày tới T6
+        daysToFri = 5;
+    } else if (day === 6) { // T7 → cuối tuần sau: +6 ngày tới T6
+        daysToFri = 6;
+    } else {                // T2-T5 → cuối tuần này
+        daysToFri = 5 - day;
+    }
+
+    const fri = new Date(today);
+    fri.setDate(today.getDate() + daysToFri);
+    const sun = new Date(fri);
+    sun.setDate(fri.getDate() + 2);
+    _submitDates(fri, sun);
+}
+
+/** Hôm nay → +N ngày */
+function quickNextDays(n) {
+    const today = new Date();
+    const end = new Date(today);
+    end.setDate(today.getDate() + n);
+    _submitDates(today, end);
+}
+
+/** Hôm nay → cuối tháng (nếu còn < 3 ngày → cuối tháng SAU) */
+function quickEndOfMonth() {
+    const today = new Date();
+    let endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0); // ngày cuối tháng này
+
+    // Nếu còn dưới 3 ngày trong tháng → lấy cuối tháng sau
+    const daysLeft = endOfMonth.getDate() - today.getDate();
+    if (daysLeft < 3) {
+        endOfMonth = new Date(today.getFullYear(), today.getMonth() + 2, 0);
+    }
+
+    _submitDates(today, endOfMonth);
 }
 
 // Sidebar toggle

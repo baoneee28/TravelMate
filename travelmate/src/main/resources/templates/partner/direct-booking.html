@@ -71,11 +71,21 @@
             <!-- Homestay: entire-home rental tip -->
             <div th:if="${propertyWord == 'homestay'}"
                  style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px 18px;margin-bottom:var(--space-5);font-size:13px;color:#166534;">
-                <div style="font-weight:700;margin-bottom:6px;">🏠 Gợi ý dành cho Homestay</div>
+                <div style="font-weight:700;margin-bottom:6px;">🏠 Phạm vi Homestay</div>
                 <p style="margin:0;line-height:1.8;">
-                    Nếu homestay của bạn cho thuê <strong>nguyên căn</strong> (toàn bộ nhà), hãy chọn loại phòng
-                    <strong>"Nguyên căn homestay"</strong>. Sau khi tạo booking, hệ thống tự động giữ 1 căn
-                    khỏi bán online trong khoảng thời gian đó — tránh overbooking hiệu quả.
+                    Luồng trình bày hiện tại vận hành Homestay theo <strong>từng phòng</strong>.
+                    Không mở bán đồng thời phòng riêng và <strong>nguyên căn</strong> trong phiên bản hiện tại, vì đặt nguyên căn
+                    cần thêm cơ chế chặn đồng bộ toàn bộ phòng của cùng Homestay.
+                </p>
+            </div>
+
+            <div th:if="${isResortPartner}"
+                 style="background:#eff6ff;border:1px solid #93c5fd;border-radius:10px;padding:14px 18px;margin-bottom:var(--space-5);font-size:13px;color:#1e40af;">
+                <div style="font-weight:700;margin-bottom:6px;">🌴 Vận hành trực tiếp tại Resort</div>
+                <p style="margin:0;line-height:1.8;">
+                    Chọn đúng <strong>loại phòng / suite</strong> và số lượng thực tế khách nhận.
+                    Booking trực tiếp chỉ giữ quota để tránh bán trùng; tiền khách thanh toán tại Resort
+                    <strong>không vào doanh thu hoặc quyết toán TravelMate</strong>.
                 </p>
             </div>
 
@@ -104,12 +114,12 @@
                         <!-- Chọn phòng/căn -->
                         <div style="margin-bottom:18px;">
                             <label style="font-size:13px;font-weight:700;color:#0f172a;display:block;margin-bottom:6px;"
-                                   th:text="${isVillaPartner} ? '🏡 Căn villa *' : '🛏️ Loại phòng/căn *'">
-                                🛏️ Loại phòng/căn *
+                                   th:text="${isVillaPartner} ? '🏡 Căn villa *' : '🛏️ ' + (unitTypeLabelCap ?: 'Phòng') + ' *'">
+                                🛏️ Phòng *
                             </label>
                             <select name="roomId" id="room-select" required
                                     style="width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:10px;font-size:13px;box-sizing:border-box;background:#fff;">
-                                <option value="" th:text="${isVillaPartner} ? '— Chọn căn —' : '— Chọn loại phòng/căn —'">— Chọn loại phòng/căn —</option>
+                                <option value="" th:text="${isVillaPartner} ? '— Chọn căn —' : '— Chọn ' + (unitTypeLabel ?: 'loại phòng') + ' —'">— Chọn loại phòng —</option>
                                 <option th:each="room : ${myRooms}"
                                         th:value="${room.id}"
                                         th:text="${room.roomName} + ' — ' + ${#numbers.formatDecimal(room.pricePerNight, 0, 'POINT', 0, 'COMMA')} + '₫/đêm'"
@@ -262,6 +272,8 @@
 // Snapshot all room options before any DOM mutation so filterRooms can restore them
 const originalRoomOptions = Array.from(document.querySelectorAll('.room-option'))
     .map(opt => opt.cloneNode(true));
+const unitLabel = /*[[${unitLabel}]]*/ 'phòng';
+const roomSelectPlaceholder = /*[[${isVillaPartner ? '— Chọn căn —' : '— Chọn ' + (unitTypeLabel ?: 'loại phòng') + ' —'}]]*/ '— Chọn loại phòng —';
 
 // Map room price per night
 const roomPrices = {};
@@ -272,7 +284,7 @@ originalRoomOptions.forEach(opt => {
 function filterRooms(accSelect) {
     const accId = accSelect.value;
     const roomSel = document.getElementById('room-select');
-    roomSel.innerHTML = '<option value="">— Chọn loại phòng/căn —</option>';
+    roomSel.innerHTML = '<option value="">' + roomSelectPlaceholder + '</option>';
     originalRoomOptions.forEach(opt => {
         if (!accId || opt.dataset.accId === accId) {
             roomSel.appendChild(opt.cloneNode(true));
@@ -287,7 +299,7 @@ function calcTotal() {
     const roomId = document.getElementById('room-select').value;
     const qty = parseInt(document.querySelector('input[name=roomQuantity]').value) || 1;
 
-    document.getElementById('sum-qty').textContent = qty + ' ' + /*[[${unitLabel}]]*/ 'phòng';
+    document.getElementById('sum-qty').textContent = qty + ' ' + unitLabel;
 
     if (roomId && roomPrices[roomId]) {
         const price = roomPrices[roomId];

@@ -3,12 +3,12 @@ package com.travelmate.entity.enums;
 /**
  * VoucherScope — Phạm vi áp dụng voucher.
  *
- * USER_GLOBAL:            Admin tạo, user dùng khi đặt bất kỳ phòng nào
- * PARTNER_ACCOMMODATION:  Partner tạo, gắn vào 1 accommodation cụ thể
- * PARTNER_ROOM:           Partner tạo, gắn vào 1 phòng cụ thể
+ * USER_GLOBAL:            Admin tạo, tự động áp dụng được cho mọi phòng.
+ * PARTNER_ACCOMMODATION:  Giữ tương thích dữ liệu cũ, không tạo mới từ UI.
+ * PARTNER_ROOM:           Admin đưa vào kho, partner gắn vào phòng/căn đã duyệt.
  */
 public enum VoucherScope {
-    USER_GLOBAL,            // Admin tạo — áp dụng toàn hệ thống
-    PARTNER_ACCOMMODATION,  // Partner tạo — áp dụng cho accommodation của mình
-    PARTNER_ROOM            // Partner tạo — áp dụng cho room cụ thể của mình
+    USER_GLOBAL,
+    PARTNER_ACCOMMODATION,
+    PARTNER_ROOM
 }

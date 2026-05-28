@@ -18,10 +18,23 @@
         .set-kpi-card { background:var(--color-surface,#fff); border-radius:12px; padding:18px 20px; box-shadow:0 1px 4px rgba(0,0,0,.07); }
         .set-kpi-card__label { font-size:12px; color:#6b7280; margin-bottom:4px; }
         .set-kpi-card__value { font-size:22px; font-weight:700; }
-        .set-table-wrap { overflow-x:auto; }
-        .set-table { width:100%; border-collapse:collapse; font-size:13px; min-width:720px; }
-        .set-table th { background:#f8fafc; font-weight:600; padding:10px 14px; border-bottom:1px solid #e2e8f0; white-space:nowrap; }
-        .set-table td { padding:10px 14px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+        .admin-content { overflow-x: hidden; }
+        @media (min-width: 1025px) {
+            .admin-main {
+                zoom: 0.9 !important;
+                margin-left: 289px !important;
+            }
+        }
+        .set-table-wrap { overflow-x:auto; border:1px solid #e2e8f0; border-radius:10px; background:#fff; }
+        .set-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 1460px;
+            table-layout: fixed; /* Respect column widths perfectly */
+        }
+        .set-table th { background:#f8fafc; font-weight:600; padding:10px 10px; border-bottom:1px solid #e2e8f0; vertical-align:middle; }
+        .set-table td { padding:10px 10px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
         .set-table tr:last-child td { border-bottom:none; }
         .badge-pending { background:#fef9c3; color:#a16207; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
         .badge-paid    { background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
@@ -64,7 +77,7 @@
                 📌 Mỗi tháng Admin sẽ tạo bản ghi quyết toán cho doanh thu tháng trước. Ngày chi trả dự kiến là <strong>mùng 10</strong>.
                 Khi settlement chuyển sang <strong>Đã thanh toán ✅</strong>, số tiền nhận sẽ được cộng vào <strong>Ví quyết toán</strong> để bạn gửi yêu cầu rút tiền.
                 <br/><strong>Số tiền nhận = Tiền TravelMate thu online − Commission nền tảng − Voucher partner chịu</strong>
-                <br/><span style="font-size:12px;color:#1d4ed8;">Chỉ booking COMPLETED hoặc NO_SHOW (giữ cọc) mới được quyết toán. Với đơn cọc 30%: quyết toán chỉ tính trên 30% đã thanh toán qua TravelMate.</span>
+                <br/><span style="font-size:12px;color:#1d4ed8;">Booking COMPLETED hoặc đơn cọc bị giữ do hủy/no-show mới được quyết toán. Hoa hồng chỉ tính trên tiền TravelMate đã thu online; với đơn cọc 30%, phần 70% tại cơ sở không tính hoa hồng và không cộng vào ví TravelMate.</span>
             </div>
 
             <!-- KPI -->
@@ -100,17 +113,17 @@
                     <table class="set-table">
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Kỳ quyết toán</th>
-                                <th>TravelMate đã thu (đ)</th>
-                                <th>Hoa hồng nền tảng (đ)</th>
-                                <th>Voucher đối tác chịu (đ)</th>
-                                <th>Đối tác nhận (đ)</th>
-                                <th>Ngày chi trả dự kiến</th>
-                                <th>Trạng thái</th>
-                                <th>Ngày TT</th>
-                                <th>Ghi chú</th>
-                                <th>Thao tác</th>
+                                <th style="width: 35px;">#</th>
+                                <th style="width: 180px;">Kỳ quyết toán</th>
+                                <th style="width: 140px;">TravelMate đã thu (đ)</th>
+                                <th style="width: 135px;">Hoa hồng nền tảng (đ)</th>
+                                <th style="width: 140px;">Voucher đối tác chịu (đ)</th>
+                                <th style="width: 120px;">Đối tác nhận (đ)</th>
+                                <th style="width: 110px;">Ngày chi trả dự kiến</th>
+                                <th style="width: 140px;">Trạng thái</th>
+                                <th style="width: 120px;">Ngày TT</th>
+                                <th style="width: 350px;">Ghi chú</th>
+                                <th style="width: 85px;">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -130,7 +143,7 @@
                                     th:text="${#numbers.formatDecimal(s.payoutAmount,0,'COMMA',0,'POINT')}">0</td>
                                 <td style="font-size:12px;color:#1d4ed8;font-weight:700;white-space:nowrap;"
                                     th:text="${s.scheduledPayoutDate != null ? #temporals.format(s.scheduledPayoutDate,'dd/MM/yyyy') : '—'}">—</td>
-                                <td>
+                                <td style="white-space: nowrap;">
                                     <span class="badge-pending" th:if="${s.settlementStatus.name() == 'PENDING'}">⏳ Chờ chuyển khoản</span>
                                     <span class="badge-paid"    th:if="${s.settlementStatus.name() == 'PAID'}">✅ Đã chuyển khoản</span>
                                     <span style="font-size:12px;color:#6b7280;"
@@ -139,7 +152,7 @@
                                 </td>
                                 <td style="font-size:12px;color:#6b7280;white-space:nowrap;"
                                     th:text="${s.settlementDate != null ? #temporals.format(s.settlementDate,'dd/MM/yyyy HH:mm') : '—'}">—</td>
-                                <td style="font-size:12px;" th:text="${s.note != null ? s.note : '—'}">—</td>
+                                <td style="font-size:12px; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;" th:text="${s.note != null ? s.note : '—'}">—</td>
                                 <td>
                                     <a th:href="@{/partner/settlements/{id}(id=${s.id})}"
                                        class="btn btn--ghost btn--sm" style="font-size:12px;padding:4px 10px;">

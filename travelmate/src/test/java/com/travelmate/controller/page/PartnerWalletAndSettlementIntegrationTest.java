@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -63,11 +64,24 @@ class PartnerWalletAndSettlementIntegrationTest {
     }
 
     @Test
-    @DisplayName("Chưa đăng nhập truy cập admin/settlements bị redirect về trang login")
+    @DisplayName("Khách chưa đăng nhập được chuyển về login và các trang xác thực EN render được")
     void anonymousAccessingAdminSettlements_shouldRedirectToLogin() throws Exception {
         mockMvc.perform(get("/admin/settlements"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("http://localhost/auth/login"));
+
+        mockMvc.perform(get("/auth/login").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Log in")));
+        mockMvc.perform(get("/auth/register").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Create an account")));
+        mockMvc.perform(get("/auth/forgot-password").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Forgot password")));
+        mockMvc.perform(get("/auth/reset-password").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("This link is no longer valid")));
     }
 
     @Test
@@ -106,7 +120,7 @@ class PartnerWalletAndSettlementIntegrationTest {
     void adminExportSettlementExcel_shouldReturnExcelFile() throws Exception {
         PartnerSettlement settlement = settlementRepository.findAll().stream()
                 .findFirst()
-                .orElseThrow(() -> new AssertionError("Seed data settlement not found"));
+                .orElseThrow(() -> new AssertionError("Default settlement not found"));
 
         mockMvc.perform(get("/admin/settlements/{id}/export-excel", settlement.getId()))
                 .andExpect(status().isOk())
@@ -128,7 +142,7 @@ class PartnerWalletAndSettlementIntegrationTest {
     @DisplayName("PARTNER truy cập trang ví thành công và xem thông tin")
     void partnerAccessingWallet_shouldSucceed() throws Exception {
         User partner = userRepository.findByEmail("partner@travelmate.vn")
-                .orElseThrow(() -> new AssertionError("Seed data partner not found"));
+                .orElseThrow(() -> new AssertionError("Default partner not found"));
         CustomUserDetails userDetails = new CustomUserDetails(partner);
 
         mockMvc.perform(get("/partner/wallet").with(user(userDetails)))
@@ -143,7 +157,7 @@ class PartnerWalletAndSettlementIntegrationTest {
     @DisplayName("PARTNER cập nhật tài khoản ngân hàng thành công")
     void partnerUpdatingBankInfo_shouldSucceed() throws Exception {
         User partner = userRepository.findByEmail("partner@travelmate.vn")
-                .orElseThrow(() -> new AssertionError("Seed data partner not found"));
+                .orElseThrow(() -> new AssertionError("Default partner not found"));
         CustomUserDetails userDetails = new CustomUserDetails(partner);
 
         mockMvc.perform(post("/partner/wallet/bank")
@@ -167,7 +181,7 @@ class PartnerWalletAndSettlementIntegrationTest {
     @DisplayName("PARTNER cập nhật tài khoản ngân hàng không hợp lệ bị báo lỗi")
     void partnerUpdatingInvalidBankInfo_shouldFail() throws Exception {
         User partner = userRepository.findByEmail("partner@travelmate.vn")
-                .orElseThrow(() -> new AssertionError("Seed data partner not found"));
+                .orElseThrow(() -> new AssertionError("Default partner not found"));
         CustomUserDetails userDetails = new CustomUserDetails(partner);
 
         // Account number with letters (invalid)
@@ -186,7 +200,7 @@ class PartnerWalletAndSettlementIntegrationTest {
     @DisplayName("PARTNER yêu cầu rút tiền vượt số dư khả dụng bị chặn")
     void partnerRequestingOverdraftWithdrawal_shouldFail() throws Exception {
         User partner = userRepository.findByEmail("partner@travelmate.vn")
-                .orElseThrow(() -> new AssertionError("Seed data partner not found"));
+                .orElseThrow(() -> new AssertionError("Default partner not found"));
         CustomUserDetails userDetails = new CustomUserDetails(partner);
 
         // Standard wallet starts with 0 available balance

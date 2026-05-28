@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<!--
+  Fragment: admin-sidebar
+  Usage: <aside th:replace="~{fragments/admin-sidebar :: sidebar('dashboard')}"></aside>
+
+  activeMenu values:
+    dashboard | bookings | availability | accommodations | rooms | reviews | travel-posts | users
+    revenue | settlements | withdrawals | vouchers | support | audit-log
+-->
+<aside th:fragment="sidebar(activeMenu)" class="admin-sidebar">
+    <div class="admin-sidebar__header">
+        <a href="/admin/dashboard" class="sidebar-logo">
+            <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
+            <div>
+                <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
+                <span class="admin-sidebar__badge">ADMIN PANEL</span>
+            </div>
+        </a>
+    </div>
+    <nav class="admin-sidebar__nav">
+        <!-- ── Tổng quan ── -->
+        <div class="admin-sidebar__section-title">Tổng quan</div>
+        <a href="/admin/dashboard"
+           th:classappend="${activeMenu == 'dashboard'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">📊</span> Dashboard
+        </a>
+
+        <!-- ── Quản lý đặt phòng ── -->
+        <div class="admin-sidebar__section-title">Quản lý đặt phòng</div>
+        <a href="/admin/bookings"
+           th:classappend="${activeMenu == 'bookings'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">📋</span> Đặt phòng
+        </a>
+        <a href="/admin/availability"
+           th:classappend="${activeMenu == 'availability'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng
+        </a>
+
+        <!-- ── Quản lý nội dung ── -->
+        <div class="admin-sidebar__section-title">Quản lý nội dung</div>
+        <a href="/admin/accommodations"
+           th:classappend="${activeMenu == 'accommodations'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú
+        </a>
+        <a href="/admin/rooms"
+           th:classappend="${activeMenu == 'rooms'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng
+        </a>
+        <a href="/admin/reviews"
+           th:classappend="${activeMenu == 'reviews'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">⭐</span> Đánh giá
+        </a>
+        <a href="/admin/travel-posts"
+           th:classappend="${activeMenu == 'travel-posts'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">🗺️</span> Bài viết du lịch
+        </a>
+        <a href="/admin/users"
+           th:classappend="${activeMenu == 'users'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">👥</span> Người dùng
+        </a>
+
+        <!-- ── Tài chính ── -->
+        <div class="admin-sidebar__section-title">Tài chính</div>
+        <a href="/admin/revenue"
+           th:classappend="${activeMenu == 'revenue'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">💰</span> Doanh thu
+        </a>
+        <a href="/admin/settlements"
+           th:classappend="${activeMenu == 'settlements'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">🏦</span> Quyết toán
+        </a>
+        <a href="/admin/withdrawals"
+           th:classappend="${activeMenu == 'withdrawals'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">👛</span> Yêu cầu rút tiền
+        </a>
+        <a href="/admin/vouchers"
+           th:classappend="${activeMenu == 'vouchers'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">🎟</span> Voucher
+        </a>
+
+        <!-- ── Hỗ trợ ── -->
+        <div class="admin-sidebar__section-title">Hỗ trợ</div>
+        <a href="/admin/support"
+           th:classappend="${activeMenu == 'support'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ
+        </a>
+
+        <!-- ── Hệ thống ── -->
+        <div class="admin-sidebar__section-title">Hệ thống</div>
+        <a href="/admin/audit-log"
+           th:classappend="${activeMenu == 'audit-log'} ? ' active' : ''"
+           class="admin-sidebar__link">
+            <span class="admin-sidebar__link-icon">📜</span> Nhật ký thao tác
+        </a>
+        <a href="/" class="admin-sidebar__link" target="_blank">
+            <span class="admin-sidebar__link-icon">🌐</span> Xem trang User
+        </a>
+    </nav>
+    <div class="admin-sidebar__footer">
+        <div class="admin-sidebar__user">
+            <div class="admin-sidebar__user-avatar">AD</div>
+            <div class="admin-sidebar__user-info">
+                <div class="admin-sidebar__user-name" sec:authentication="name">Admin</div>
+                <div class="admin-sidebar__user-role">Quản trị viên</div>
+            </div>
+        </div>
+        <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
+            <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
+        </form>
+    </div>
+</aside>
+
+</body>
+</html>

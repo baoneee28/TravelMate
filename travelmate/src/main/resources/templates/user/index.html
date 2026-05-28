@@ -68,7 +68,7 @@
                 <!-- Slides sử dụng ảnh thực tế -->
                 <div class="slide" style="background-image: url('/assets/images/MienBac/NB.jpg');"></div>
                 <div class="slide"
-                    style="background-image: url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=600');">
+                    style="background-image: url('/assets/images/MienBac/Sapa.jpg');">
                 </div>
                 <div class="slide" style="background-image: url('/assets/images/MienBac/CBang.jpg');"></div>
                 <div class="slide" style="background-image: url('/assets/images/resort.jpg');"></div>
@@ -80,7 +80,7 @@
                 <!-- Lặp lại để chạy mượt -->
                 <div class="slide" style="background-image: url('/assets/images/MienBac/NB.jpg');"></div>
                 <div class="slide"
-                    style="background-image: url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=600');">
+                    style="background-image: url('/assets/images/MienBac/Sapa.jpg');">
                 </div>
                 <div class="slide" style="background-image: url('/assets/images/MienBac/CBang.jpg');"></div>
                 <div class="slide" style="background-image: url('/assets/images/resort.jpg');"></div>
@@ -214,6 +214,9 @@
                         <span class="btn-text">TÌM KIẾM</span>
                     </button>
                 </form>
+                <div style="margin-top:10px;font-size:0.78rem;color:#e2e8f0;text-align:left;">
+                    <i class="fa-solid fa-circle-info"></i> Nếu chưa nhập điểm đến, TravelMate mặc định gợi ý <strong>Đà Lạt</strong>.
+                </div>
             </div>
         </div>
     </section>
@@ -464,6 +467,9 @@
             document.getElementById('hiddenAdults').value   = state.adults;
             document.getElementById('hiddenChildren').value = state.children;
             document.getElementById('hiddenRooms').value    = state.rooms;
+            if (!destInput.value.trim()) {
+                destInput.value = 'Đà Lạt';
+            }
 
             // Kiểm tra ngày hợp lệ trước khi submit
             const todayNorm = new Date();

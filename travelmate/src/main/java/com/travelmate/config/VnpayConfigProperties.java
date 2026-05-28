@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
  * VnpayConfigProperties — Đọc config VNPAY từ application.properties.
  *
  * Sử dụng prefix "vnpay", ví dụ:
- *   vnpay.tmn-code=XXXXXXXX
- *   vnpay.hash-secret=XXXXXXXXXXXXXXXXXXXXXXXX
+ *   vnpay.tmn-code=${VNPAY_TMN_CODE:}
+ *   vnpay.hash-secret=${VNPAY_HASH_SECRET:}
  *   vnpay.return-url=http://localhost:8080/payment/vnpay-return
  *   vnpay.ipn-url=https://xxx.ngrok-free.app/payment/vnpay-ipn
  */
@@ -45,5 +45,5 @@ public class VnpayConfigProperties {
     private String orderType = "other";
 
     /** Số phút trước khi giao dịch hết hạn */
-    private int expireMinutes = 15;
+    private int expireMinutes = 3;
 }

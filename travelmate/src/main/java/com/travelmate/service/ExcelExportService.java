@@ -19,7 +19,8 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -41,17 +42,19 @@ public class ExcelExportService {
             throw new IllegalArgumentException("Settlement không hợp lệ!");
         }
 
-        try (Workbook workbook = new XSSFWorkbook();
+        try (SXSSFWorkbook workbook = createStreamingWorkbook();
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             WorkbookStyles styles = createStyles(workbook);
+            List<SettlementDetailItemDto> safeBreakdown = breakdown != null ? breakdown : List.of();
 
-            Sheet summarySheet = workbook.createSheet("Tong quan");
-            writeSettlementSummary(summarySheet, settlement, styles);
+            Sheet summarySheet = createSheet(workbook, "Tong quan");
+            writeSettlementSummary(summarySheet, settlement, safeBreakdown, styles);
 
-            Sheet detailSheet = workbook.createSheet("Chi tiet booking");
-            writeSettlementBreakdown(detailSheet, breakdown != null ? breakdown : List.of(), styles);
+            Sheet detailSheet = createSheet(workbook, "Chi tiet booking");
+            writeSettlementBreakdown(detailSheet, safeBreakdown, styles);
 
             workbook.write(outputStream);
+            workbook.dispose();
             return outputStream.toByteArray();
         } catch (IOException e) {
             throw new IllegalStateException("Không thể tạo file Excel quyết toán!", e);
@@ -59,10 +62,10 @@ public class ExcelExportService {
     }
 
     public byte[] exportWithdrawals(List<PartnerWithdrawalRequest> withdrawals) {
-        try (Workbook workbook = new XSSFWorkbook();
+        try (SXSSFWorkbook workbook = createStreamingWorkbook();
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             WorkbookStyles styles = createStyles(workbook);
-            Sheet sheet = workbook.createSheet("Yeu cau rut tien");
+            Sheet sheet = createSheet(workbook, "Yeu cau rut tien");
 
             writeTitle(sheet, "BÁO CÁO YÊU CẦU RÚT TIỀN PARTNER", styles.title());
             writeGeneratedAt(sheet, 1, styles.muted());
@@ -93,13 +96,30 @@ public class ExcelExportService {
             sheet.createFreezePane(0, 4);
             autoSizeColumns(sheet, headers.length);
             workbook.write(outputStream);
+            workbook.dispose();
             return outputStream.toByteArray();
         } catch (IOException e) {
             throw new IllegalStateException("Không thể tạo file Excel yêu cầu rút tiền!", e);
         }
     }
 
-    private void writeSettlementSummary(Sheet sheet, PartnerSettlement settlement, WorkbookStyles styles) {
+    private SXSSFWorkbook createStreamingWorkbook() {
+        SXSSFWorkbook workbook = new SXSSFWorkbook(100);
+        workbook.setCompressTempFiles(true);
+        return workbook;
+    }
+
+    private Sheet createSheet(Workbook workbook, String name) {
+        Sheet sheet = workbook.createSheet(name);
+        if (sheet instanceof SXSSFSheet streamingSheet) {
+            streamingSheet.trackAllColumnsForAutoSizing();
+        }
+        return sheet;
+    }
+
+    private void writeSettlementSummary(Sheet sheet, PartnerSettlement settlement,
+                                        List<SettlementDetailItemDto> breakdown,
+                                        WorkbookStyles styles) {
         writeTitle(sheet, "BÁO CÁO QUYẾT TOÁN PARTNER", styles.title());
         writeGeneratedAt(sheet, 1, styles.muted());
 
@@ -113,15 +133,30 @@ public class ExcelExportService {
         rowIndex = writeKeyValue(sheet, rowIndex, "Ghi chú", safe(settlement.getNote()), styles);
 
         rowIndex += 1;
-        rowIndex = writeMoneyKeyValue(sheet, rowIndex, "Gross", settlement.getGrossAmount(), styles);
-        rowIndex = writeMoneyKeyValue(sheet, rowIndex, "Commission", settlement.getCommissionAmount(), styles);
-        rowIndex = writeMoneyKeyValue(sheet, rowIndex, "Voucher Partner chịu", settlement.getVoucherDeductionAmount(), styles);
-        writeMoneyKeyValue(sheet, rowIndex, "Payout", settlement.getPayoutAmount(), styles);
+        rowIndex = writeMoneyKeyValue(sheet, rowIndex, "Gross", sumBreakdown(breakdown, "gross"), styles);
+        rowIndex = writeMoneyKeyValue(sheet, rowIndex, "Commission", sumBreakdown(breakdown, "commission"), styles);
+        rowIndex = writeMoneyKeyValue(sheet, rowIndex, "Voucher Partner chịu", sumBreakdown(breakdown, "voucher"), styles);
+        writeMoneyKeyValue(sheet, rowIndex, "Payout", sumBreakdown(breakdown, "payout"), styles);
 
         sheet.setColumnWidth(0, 28 * 256);
         sheet.setColumnWidth(1, 42 * 256);
         sheet.setColumnWidth(2, 18 * 256);
         sheet.setColumnWidth(3, 18 * 256);
+    }
+
+    private BigDecimal sumBreakdown(List<SettlementDetailItemDto> breakdown, String field) {
+        BigDecimal total = BigDecimal.ZERO;
+        for (SettlementDetailItemDto item : breakdown != null ? breakdown : List.<SettlementDetailItemDto>of()) {
+            BigDecimal value = switch (field) {
+                case "gross" -> item.getGross();
+                case "commission" -> item.getCommissionAmount();
+                case "voucher" -> item.getVoucherDeductAmount();
+                case "payout" -> item.getPartnerPayout();
+                default -> BigDecimal.ZERO;
+            };
+            total = total.add(zeroIfNull(value));
+        }
+        return total;
     }
 
     private void writeSettlementBreakdown(Sheet sheet, List<SettlementDetailItemDto> breakdown, WorkbookStyles styles) {
@@ -133,7 +168,7 @@ public class ExcelExportService {
         String[] headers = {
                 "Mã booking", "Cơ sở", "Phòng", "Check-in", "Check-out",
                 "Gross", "Tỷ lệ HH", "Commission", "Voucher", "Voucher trừ",
-                "Partner nhận", "Trạng thái thanh toán"
+                "Đối tác nhận", "Trạng thái thanh toán"
         };
         writeHeader(header, headers, styles.header());
 

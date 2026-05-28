@@ -12,7 +12,13 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "partner_wallet_transactions")
+@Table(name = "partner_wallet_transactions",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_wallet_tx_settlement_credit",
+                        columnNames = {"settlement_id", "transaction_type"}),
+                @UniqueConstraint(name = "uk_wallet_tx_withdrawal_type",
+                        columnNames = {"withdrawal_request_id", "transaction_type"})
+        })
 @Getter
 @Setter
 @NoArgsConstructor

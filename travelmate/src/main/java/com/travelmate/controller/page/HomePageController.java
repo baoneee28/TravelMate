@@ -93,22 +93,34 @@ public class HomePageController {
     }
 
     @GetMapping("/news")
-    public String news(@AuthenticationPrincipal CustomUserDetails principal, Model model) {
+    public String news(@AuthenticationPrincipal CustomUserDetails principal,
+                       @RequestParam(required = false, defaultValue = "") String keyword,
+                       @RequestParam(required = false, defaultValue = "") String destination,
+                       Model model) {
         boolean isAdmin = principal != null && principal.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        List<TravelPost> newsPosts = travelPostService.getVisiblePosts();
+        String requestedFilter = !destination.isBlank() ? destination : keyword;
+        boolean filtered = !requestedFilter.isBlank();
+        List<TravelPost> allVisiblePosts = travelPostService.getVisiblePosts();
+        List<TravelPost> newsPosts = filtered
+                ? travelPostService.getVisibleByDestination(requestedFilter)
+                : allVisiblePosts;
+        String filterLabel = filtered ? travelPostService.getDestinationDisplayName(requestedFilter) : "";
 
         model.addAttribute("isAdmin", isAdmin);
         model.addAttribute("newsPosts", newsPosts);
-        model.addAttribute("featuredPost", newsPosts.isEmpty() ? null : newsPosts.get(0));
-        model.addAttribute("sidebarPosts", newsPosts.stream().skip(1).limit(5).toList());
-        model.addAttribute("gridPosts", newsPosts.stream().skip(6).toList());
-        model.addAttribute("newsLocations", newsPosts.stream()
+        model.addAttribute("featuredPost", filtered || newsPosts.isEmpty() ? null : newsPosts.get(0));
+        model.addAttribute("sidebarPosts", filtered ? List.of() : newsPosts.stream().skip(1).limit(5).toList());
+        model.addAttribute("gridPosts", filtered ? List.of() : newsPosts.stream().skip(6).toList());
+        model.addAttribute("newsLocations", allVisiblePosts.stream()
                 .map(TravelPost::getDestination)
-                .filter(destination -> destination != null && !destination.isBlank())
+                .filter(location -> location != null && !location.isBlank())
                 .distinct()
                 .limit(8)
                 .toList());
+        model.addAttribute("newsFiltered", filtered);
+        model.addAttribute("newsFilterKeyword", requestedFilter);
+        model.addAttribute("newsFilterLabel", filterLabel);
         return "user/news";
     }
 

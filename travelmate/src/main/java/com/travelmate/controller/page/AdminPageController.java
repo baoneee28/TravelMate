@@ -11,6 +11,9 @@ import com.travelmate.entity.enums.BookingStatus;
 import com.travelmate.entity.enums.DiscountType;
 import com.travelmate.entity.enums.PaymentStatus;
 import com.travelmate.entity.enums.PartnerWithdrawalStatus;
+import com.travelmate.entity.enums.PropertyType;
+import com.travelmate.entity.enums.VoucherCostBearer;
+import com.travelmate.entity.enums.VoucherScope;
 import com.travelmate.repository.AdminActionLogRepository;
 import com.travelmate.repository.PaymentRepository;
 import com.travelmate.repository.UserRepository;
@@ -22,19 +25,25 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
 @RequestMapping("/admin")
 public class AdminPageController {
+
+    private static final Logger log = LoggerFactory.getLogger(AdminPageController.class);
 
     private final BookingService bookingService;
     private final AccommodationService accommodationService;
@@ -52,6 +61,8 @@ public class AdminPageController {
     private final TravelPostService travelPostService;
     private final PartnerWalletService partnerWalletService;
     private final ExcelExportService excelExportService;
+    private final RoomImageService roomImageService;
+    private final FileStorageService fileStorageService;
 
     private static final MediaType XLSX_MEDIA_TYPE = MediaType.parseMediaType(
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -71,7 +82,9 @@ public class AdminPageController {
                                CommissionService commissionService,
                                TravelPostService travelPostService,
                                PartnerWalletService partnerWalletService,
-                               ExcelExportService excelExportService) {
+                               ExcelExportService excelExportService,
+                               RoomImageService roomImageService,
+                               FileStorageService fileStorageService) {
         this.bookingService = bookingService;
         this.accommodationService = accommodationService;
         this.reviewService = reviewService;
@@ -88,6 +101,8 @@ public class AdminPageController {
         this.travelPostService = travelPostService;
         this.partnerWalletService = partnerWalletService;
         this.excelExportService = excelExportService;
+        this.roomImageService = roomImageService;
+        this.fileStorageService = fileStorageService;
     }
 
     /** Helper: ghi audit log */
@@ -123,7 +138,7 @@ public class AdminPageController {
 
         model.addAttribute("totalApprovedHotels", bookingService.countApprovedAccommodations());
         model.addAttribute("totalAvailableRooms", bookingService.countTotalAvailableRooms());
-        model.addAttribute("approvedRevenue", bookingService.calculateDemoRevenue());
+        model.addAttribute("approvedRevenue", bookingService.calculateApprovedRevenue());
 
         // Thống kê accommodation & room chờ duyệt
         model.addAttribute("pendingAccommodations", accommodationService.countPendingAccommodations());
@@ -292,7 +307,7 @@ public class AdminPageController {
         return "redirect:/admin/bookings/{id}".replace("{id}", id.toString());
     }
 
-    /** POST /admin/bookings/{id}/handle-partner-cancelled — Admin xử lý khi partner hủy giữ phòng */
+    /** POST /admin/bookings/{id}/handle-partner-cancelled — Admin xử lý khi đối tác hủy giữ phòng */
     @PostMapping("/bookings/{id}/handle-partner-cancelled")
     public String handlePartnerCancelled(@PathVariable Long id,
                                          @RequestParam(required = false) String reason,
@@ -300,9 +315,26 @@ public class AdminPageController {
         try {
             Booking b = bookingService.handlePartnerCancelledByAdmin(id, reason);
             logAction(auth, "PARTNER_CANCELLED_RESOLVED", "BOOKING", id,
-                    "Hủy đơn do partner từ chối giữ phòng: " + b.getBookingCode(), reason);
+                    "Hủy đơn do đối tác từ chối giữ phòng: " + b.getBookingCode(), reason);
             ra.addFlashAttribute("successMessage",
-                "✅ Đã hủy đơn và trả lại phòng do partner từ chối!");
+                "✅ Đã hủy đơn và trả lại phòng do đối tác từ chối!");
+        } catch (RuntimeException e) {
+            ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
+        }
+        return "redirect:/admin/bookings";
+    }
+
+    /** POST /admin/bookings/{id}/expire-payment — Admin hủy giữ phòng PENDING_PAYMENT để demo/khẩn cấp */
+    @PostMapping("/bookings/{id}/expire-payment")
+    public String expirePendingPayment(@PathVariable Long id,
+                                       Authentication auth,
+                                       RedirectAttributes ra) {
+        try {
+            Booking b = bookingService.expirePendingPaymentByAdmin(id);
+            logAction(auth, "EXPIRE_PENDING_PAYMENT", "BOOKING", id,
+                    "Hủy giữ phòng tạm do quá hạn thanh toán: " + b.getBookingCode(), null);
+            ra.addFlashAttribute("successMessage",
+                    "✅ Đã hủy giữ phòng tạm cho đơn " + b.getBookingCode() + " và mở lại số phòng.");
         } catch (RuntimeException e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
         }
@@ -422,8 +454,10 @@ public class AdminPageController {
         response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
         response.setHeader("Pragma", "no-cache");
         List<Room> rooms = accommodationService.getAllRoomsForAdmin();
-        long pendingCount  = accommodationService.countPendingRooms();
-        long approvedCount = accommodationService.countApprovedRooms();
+        long pendingCount  = rooms.stream()
+                .filter(r -> r.getApprovalStatus() == ApprovalStatus.PENDING).count();
+        long approvedCount = rooms.stream()
+                .filter(r -> r.getApprovalStatus() == ApprovalStatus.APPROVED).count();
         long rejectedCount = rooms.stream()
                 .filter(r -> r.getApprovalStatus() == ApprovalStatus.REJECTED).count();
 
@@ -432,6 +466,7 @@ public class AdminPageController {
         model.addAttribute("pendingCount",  pendingCount);
         model.addAttribute("approvedCount", approvedCount);
         model.addAttribute("rejectedCount", rejectedCount);
+        model.addAttribute("roomImagesMap", roomImageService.getImagesForRooms(rooms));
         return "admin/rooms";
     }
 
@@ -464,6 +499,48 @@ public class AdminPageController {
         return "redirect:/admin/rooms";
     }
 
+    /** POST /admin/rooms/{id}/images - Admin duyệt và cập nhật bộ ảnh hiển thị. */
+    @PostMapping("/rooms/{id}/images")
+    public String updateRoomImages(@PathVariable Long id,
+                                   @RequestParam(name = "imageUrls", required = false) List<String> imageUrls,
+                                   @RequestParam(name = "captions", required = false) List<String> captions,
+                                   @RequestParam(name = "imageFiles", required = false) MultipartFile[] imageFiles,
+                                   @RequestParam(defaultValue = "0") int primaryIndex,
+                                   Authentication auth, RedirectAttributes ra) {
+        try {
+            List<String> mergedUrls = new ArrayList<>();
+            List<String> mergedCaptions = new ArrayList<>();
+            if (imageUrls != null) {
+                for (int i = 0; i < imageUrls.size(); i++) {
+                    String url = imageUrls.get(i);
+                    if (url != null && !url.isBlank()) {
+                        mergedUrls.add(url);
+                        mergedCaptions.add(captions != null && i < captions.size() ? captions.get(i) : null);
+                    }
+                }
+            }
+            if (imageFiles != null) {
+                for (MultipartFile file : imageFiles) {
+                    String storedUrl = fileStorageService.storeRoomImage(file);
+                    if (storedUrl != null) {
+                        mergedUrls.add(storedUrl);
+                        mergedCaptions.add("Ảnh phòng/căn do Admin upload");
+                    }
+                }
+            }
+
+            List<RoomImage> images = roomImageService.replaceImagesByAdmin(id, mergedUrls, mergedCaptions, primaryIndex);
+            logAction(auth, "UPDATE_ROOM_IMAGES", "ROOM", id,
+                    "Cập nhật " + images.size() + " ảnh hiển thị đã duyệt", null);
+            ra.addFlashAttribute("successMessage", "Đã cập nhật bộ ảnh phòng/căn hiển thị cho khách hàng.");
+        } catch (RuntimeException e) {
+            ra.addFlashAttribute("errorMessage", e.getMessage());
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMessage", "Không thể lưu ảnh: " + e.getMessage());
+        }
+        return "redirect:/admin/rooms";
+    }
+
     @GetMapping("/vouchers")
     public String vouchers(Model model) {
         List<Voucher> vouchers = voucherService.getAllVouchersForAdmin();
@@ -477,7 +554,7 @@ public class AdminPageController {
         return "admin/vouchers";
     }
 
-    /** POST /admin/vouchers/create — Admin tạo voucher USER_GLOBAL */
+    /** POST /admin/vouchers/create - Admin tạo voucher trong kho tập trung. */
     @PostMapping("/vouchers/create")
     public String createVoucher(
             @RequestParam String code,
@@ -489,15 +566,20 @@ public class AdminPageController {
             @RequestParam(required = false) BigDecimal minOrderAmount,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
+            @RequestParam(defaultValue = "USER_GLOBAL") String voucherScope,
+            @RequestParam(defaultValue = "ADMIN") String costBearer,
+            @RequestParam(required = false) String propertyType,
             Authentication auth, RedirectAttributes ra) {
         try {
             LocalDate start = (startDate != null && !startDate.isBlank()) ? LocalDate.parse(startDate) : null;
             LocalDate end   = (endDate   != null && !endDate.isBlank())   ? LocalDate.parse(endDate)   : null;
             Voucher v = voucherService.createAdminVoucher(code, name, description,
                     DiscountType.valueOf(discountType), discountValue,
-                    maxDiscountAmount, minOrderAmount, start, end);
+                    maxDiscountAmount, minOrderAmount, start, end,
+                    VoucherScope.valueOf(voucherScope), VoucherCostBearer.valueOf(costBearer),
+                    propertyType != null && !propertyType.isBlank() ? PropertyType.valueOf(propertyType) : null);
             logAction(auth, "CREATE_VOUCHER", "VOUCHER", v.getId(),
-                    "Tạo voucher '" + code + "' (" + discountType + " " + discountValue + ")", null);
+                    "Tạo voucher '" + code + "' (" + v.getVoucherScope() + ", " + v.getCostBearer() + " chịu)", null);
             ra.addFlashAttribute("successMessage", "✅ Tạo voucher '" + code + "' thành công!");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
@@ -549,8 +631,10 @@ public class AdminPageController {
         try {
             PartnerSettlement settlement = settlementService.findById(id);
             List<SettlementDetailItemDto> breakdown = settlementService.getBreakdownForSettlement(settlement);
+            var detailTotals = settlementService.calculateBreakdownTotals(breakdown);
             model.addAttribute("settlement", settlement);
             model.addAttribute("breakdown", breakdown);
+            model.addAttribute("detailTotals", detailTotals);
             return "admin/settlement-detail";
         } catch (IllegalArgumentException e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
@@ -572,6 +656,9 @@ public class AdminPageController {
                             "attachment; filename=\"settlement-" + id + ".xlsx\"")
                     .body(bytes);
         } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.warn("Không thể xuất Excel settlement id={}: {}", id, e.getMessage(), e);
             return ResponseEntity.notFound().build();
         }
     }
@@ -610,8 +697,8 @@ public class AdminPageController {
             User admin = getCurrentAdmin(auth);
             PartnerSettlement s = settlementService.markSettlementPaid(id, combinedNote, admin);
             logAction(auth, "MARK_SETTLEMENT_PAID", "SETTLEMENT", id,
-                    "Thanh toán quyết toán #" + id + " cho partner: " + s.getPartner().getName(), combinedNote);
-            ra.addFlashAttribute("successMessage", "✅ Đã thanh toán settlement #" + id + " và cộng tiền vào ví Partner!");
+                    "Thanh toán quyết toán #" + id + " cho đối tác: " + s.getPartner().getName(), combinedNote);
+            ra.addFlashAttribute("successMessage", "✅ Đã thanh toán settlement #" + id + " và cộng tiền vào ví đối tác!");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
         }
@@ -662,14 +749,18 @@ public class AdminPageController {
     /** GET /admin/withdrawals/export-excel — Xuất danh sách yêu cầu rút tiền */
     @GetMapping("/withdrawals/export-excel")
     public ResponseEntity<byte[]> exportWithdrawalsExcel() {
-        List<PartnerWithdrawalRequest> withdrawals = partnerWalletService.getAllWithdrawalsForAdmin();
-        byte[] bytes = excelExportService.exportWithdrawals(withdrawals);
+        try {
+            List<PartnerWithdrawalRequest> withdrawals = partnerWalletService.getAllWithdrawalsForAdmin();
+            byte[] bytes = excelExportService.exportWithdrawals(withdrawals);
 
-        return ResponseEntity.ok()
-                .contentType(XLSX_MEDIA_TYPE)
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"partner-withdrawals.xlsx\"")
-                .body(bytes);
+            return ResponseEntity.ok()
+                    .contentType(XLSX_MEDIA_TYPE)
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"partner-withdrawals.xlsx\"")
+                    .body(bytes);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @PostMapping("/withdrawals/{id}/mark-paid")

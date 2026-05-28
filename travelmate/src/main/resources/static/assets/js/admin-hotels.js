@@ -49,8 +49,13 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const statusClass = room.status === 'Đang bán' ? 'status-dot--active' : 'status-dot--inactive';
       const statusText = room.status === 'Đang bán' ? 'Hoạt động' : 'Tạm ngưng';
-      // Mock random image for demo
-      const imgUrl = `https://images.unsplash.com/photo-${1500000000000 + index * 1000}?w=160&q=60`;
+      const thumbnailByType = {
+        hotel: '/assets/images/accommodations/amenities/hotel/bedroom.jpg',
+        villa: '/assets/images/accommodations/amenities/villa/bedroom.jpg',
+        homestay: '/assets/images/accommodations/amenities/homestay/bedroom.jpg',
+        resort: '/assets/images/accommodations/catalog/resort-room.jpg'
+      };
+      const imgUrl = thumbnailByType[(room.roomType || 'hotel').toLowerCase()] || thumbnailByType.hotel;
       
       // Generate mock fallback code if old room
       const fallbackCode = 'RM-' + (1000 + index * 10);

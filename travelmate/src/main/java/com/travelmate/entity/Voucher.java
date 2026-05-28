@@ -1,6 +1,7 @@
 package com.travelmate.entity;
 
 import com.travelmate.entity.enums.DiscountType;
+import com.travelmate.entity.enums.PropertyType;
 import com.travelmate.entity.enums.VoucherCostBearer;
 import com.travelmate.entity.enums.VoucherScope;
 import jakarta.persistence.*;
@@ -16,12 +17,10 @@ import java.time.LocalDateTime;
 /**
  * Voucher — Entity ánh xạ bảng `vouchers`.
  *
- * Hai loại chính:
- *  1. Admin tạo (USER_GLOBAL, costBearer=ADMIN):
- *     user dùng khi đặt phòng → admin chịu chi phí giảm giá,
- *     không trừ vào settlement của partner.
- *  2. Partner tạo (PARTNER_ROOM / PARTNER_ACCOMMODATION, costBearer=PARTNER):
- *     user dùng khi đặt phòng của partner đó → trừ vào settlement của partner.
+ * Admin là bên duy nhất tạo voucher.
+ * USER_GLOBAL áp dụng tự động toàn hệ thống; PARTNER_ROOM xuất hiện trong
+ * kho voucher để partner gắn vào phòng/căn của mình.
+ * costBearer quy định chi phí do nền tảng hay đối tác chịu.
  */
 @Entity
 @Table(name = "vouchers")
@@ -84,6 +83,15 @@ public class Voucher {
     private VoucherScope voucherScope = VoucherScope.USER_GLOBAL;
 
     /**
+     * Loại cơ sở được phép dùng voucher trong kho Partner.
+     * PARTNER_ROOM để null nghĩa là mọi loại Partner đều có thể gắn vào phòng/căn của mình.
+     * USER_GLOBAL luôn để null vì áp dụng trực tiếp cho user toàn hệ thống.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "property_type", length = 20)
+    private PropertyType propertyType;
+
+    /**
      * Ai chịu chi phí giảm giá:
      * - ADMIN  → admin chịu, không trừ settlement partner
      * - PARTNER → trừ vào settlement partner
@@ -93,8 +101,8 @@ public class Voucher {
     private VoucherCostBearer costBearer = VoucherCostBearer.ADMIN;
 
     /**
-     * Partner sở hữu voucher (chỉ có khi PARTNER_ROOM / PARTNER_ACCOMMODATION).
-     * Admin voucher: null.
+     * Trường tương thích dữ liệu cũ. Với nghiệp vụ hiện tại, voucher do Admin
+     * tạo nên giá trị luôn null; đối tác gắn voucher qua room_voucher_assignments.
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")

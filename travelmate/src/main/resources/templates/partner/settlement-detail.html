@@ -13,6 +13,14 @@
     <link rel="stylesheet" href="/assets/css/partners.css" />
     <link rel="stylesheet" href="/assets/css/responsive.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        @media (min-width: 1025px) {
+            .admin-main {
+                zoom: 0.9 !important;
+                margin-left: 289px !important;
+            }
+        }
+    </style>
 </head>
 <body>
 <div class="admin-wrapper">
@@ -55,14 +63,14 @@
                 <div class="stats-card">
                     <div class="stats-card__icon stats-card__icon--blue">💵</div>
                     <div>
-                        <div class="stats-card__value" th:text="${#numbers.formatDecimal(settlement.grossAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
+                        <div class="stats-card__value" th:text="${#numbers.formatDecimal(detailTotals.gross,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
                 <div class="stats-card__label">TravelMate đã thu (ONLINE)</div>
                     </div>
                 </div>
                 <div class="stats-card">
                     <div class="stats-card__icon stats-card__icon--amber">📊</div>
                     <div>
-                        <div class="stats-card__value" th:text="${#numbers.formatDecimal(settlement.commissionAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
+                        <div class="stats-card__value" th:text="${#numbers.formatDecimal(detailTotals.commission,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
                         <div class="stats-card__label">Chiết khấu nền tảng</div>
                     </div>
                 </div>
@@ -70,7 +78,7 @@
                     <div class="stats-card__icon stats-card__icon--green">💰</div>
                     <div>
                         <div class="stats-card__value" style="color:#16a34a;"
-                             th:text="${#numbers.formatDecimal(settlement.payoutAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
+                             th:text="${#numbers.formatDecimal(detailTotals.payout,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
                         <div class="stats-card__label">Số tiền nhận được</div>
                     </div>
                 </div>
@@ -99,22 +107,22 @@
                     <tr style="border-bottom:1px solid #f3f4f6;">
                         <td style="padding:10px 0;color:#6b7280;">Tiền TravelMate thu online:</td>
                         <td style="padding:10px 0;font-weight:600;"
-                            th:text="${#numbers.formatDecimal(settlement.grossAmount,0,'COMMA',0,'POINT')} + 'đ'">—</td>
+                            th:text="${#numbers.formatDecimal(detailTotals.gross,0,'COMMA',0,'POINT')} + 'đ'">—</td>
                     </tr>
                     <tr style="border-bottom:1px solid #f3f4f6;">
                         <td style="padding:10px 0;color:#6b7280;">Chiết khấu nền tảng:</td>
                         <td style="padding:10px 0;color:#dc2626;"
-                            th:text="'- ' + ${#numbers.formatDecimal(settlement.commissionAmount,0,'COMMA',0,'POINT')} + 'đ'">—</td>
+                            th:text="'- ' + ${#numbers.formatDecimal(detailTotals.commission,0,'COMMA',0,'POINT')} + 'đ'">—</td>
                     </tr>
-                    <tr th:if="${settlement.voucherDeductionAmount != null and settlement.voucherDeductionAmount > 0}" style="border-bottom:1px solid #f3f4f6;">
+                    <tr th:if="${detailTotals.voucher != null and detailTotals.voucher.compareTo(T(java.math.BigDecimal).ZERO) > 0}" style="border-bottom:1px solid #f3f4f6;">
                         <td style="padding:10px 0;color:#6b7280;">Voucher partner chịu:</td>
                         <td style="padding:10px 0;color:#d97706;"
-                            th:text="'- ' + ${#numbers.formatDecimal(settlement.voucherDeductionAmount,0,'COMMA',0,'POINT')} + 'đ'">—</td>
+                            th:text="'- ' + ${#numbers.formatDecimal(detailTotals.voucher,0,'COMMA',0,'POINT')} + 'đ'">—</td>
                     </tr>
                     <tr style="border-bottom:2px solid #e5e7eb;background:#f9fafb;">
                         <td style="padding:12px 0;font-weight:700;">Số tiền nhận được:</td>
                         <td style="padding:12px 0;font-weight:700;font-size:18px;color:#16a34a;"
-                            th:text="${#numbers.formatDecimal(settlement.payoutAmount,0,'COMMA',0,'POINT')} + 'đ'">—</td>
+                            th:text="${#numbers.formatDecimal(detailTotals.payout,0,'COMMA',0,'POINT')} + 'đ'">—</td>
                     </tr>
                     <tr style="border-bottom:1px solid #f3f4f6;">
                         <td style="padding:10px 0;color:#6b7280;">Trạng thái:</td>
@@ -159,10 +167,11 @@
                                 <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Mã booking</th>
                                 <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Cơ sở lưu trú</th>
                                 <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Phòng</th>
-                                <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Check-in</th>
-                                <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Check-out</th>
+                                <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Check-in -> Out</th>
+                                <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Tổng đơn (đ)</th>
                                 <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">TM đã thu (đ)</th>
-                                <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Tỷ lệ HH</th>
+                                <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Tại cơ sở (đ)</th>
+                                <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">TLHH</th>
                                 <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Hoa hồng (đ)</th>
                                 <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Voucher</th>
                                 <th style="padding:10px 14px;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left;">Voucher trừ (đ)</th>
@@ -173,14 +182,25 @@
                         <tbody>
                             <tr th:each="item, stat : ${breakdown}" style="border-bottom:1px solid #f1f5f9;">
                                 <td style="padding:10px 14px;color:#6b7280;" th:text="${stat.index + 1}">1</td>
-                                <td style="padding:10px 14px;font-weight:600;font-family:monospace;color:var(--color-primary);" th:text="${item.bookingCode}">BK001</td>
+                                <td style="padding:10px 14px;font-weight:600;font-family:monospace;color:var(--color-primary);white-space:nowrap;" th:text="${item.bookingCode}">BK001</td>
                                 <td style="padding:10px 14px;" th:text="${item.accName}">—</td>
                                 <td style="padding:10px 14px;" th:text="${item.roomName}">—</td>
-                                <td style="padding:10px 14px;white-space:nowrap;" th:text="${item.checkIn}">—</td>
-                                <td style="padding:10px 14px;white-space:nowrap;" th:text="${item.checkOut}">—</td>
+                                <td style="padding:10px 14px;white-space:nowrap;">
+                                    <span th:text="${item.checkIn}">—</span>
+                                    <span style="color:#94a3b8;margin:0 2px;">→</span>
+                                    <span th:text="${item.checkOut}">—</span>
+                                </td>
+                                <td style="padding:10px 14px;"
+                                    th:text="${#numbers.formatDecimal(item.totalOrderAmount,0,'COMMA',0,'POINT')}">0</td>
                                 <td style="padding:10px 14px;color:#1d4ed8;font-weight:700;"
                                     th:text="${#numbers.formatDecimal(item.gross,0,'COMMA',0,'POINT')}">0</td>
-                                <td style="padding:10px 14px;font-size:12px;color:#6b7280;" th:text="${item.commissionRateDisplay}">15%</td>
+                                <td style="padding:10px 14px;color:#64748b;"
+                                    th:text="${#numbers.formatDecimal(item.onsiteAmount,0,'COMMA',0,'POINT')}">0</td>
+                                <td style="padding:10px 14px;font-size:12px;color:#6b7280;line-height:1.2;white-space:nowrap;">
+                                    <span th:text="${#strings.substringBefore(item.commissionRateDisplay, ' (')}">15%</span>
+                                    <br/>
+                                    <span style="font-size:11px;color:#6b7280;" th:text="'(' + ${#strings.substringAfter(item.commissionRateDisplay, ' (')}">(mặc định), HH trên cọc bị giữ</span>
+                                </td>
                                 <td style="padding:10px 14px;color:#dc2626;font-weight:600;"
                                     th:text="${#numbers.formatDecimal(item.commissionAmount,0,'COMMA',0,'POINT')}">0</td>
                                 <td style="padding:10px 14px;font-size:12px;">
@@ -193,25 +213,32 @@
                                               ? #numbers.formatDecimal(item.voucherDeductAmount,0,'COMMA',0,'POINT') : '—'}">0</td>
                                 <td style="padding:10px 14px;color:#16a34a;font-weight:700;font-size:14px;"
                                     th:text="${#numbers.formatDecimal(item.partnerPayout,0,'COMMA',0,'POINT')}">0</td>
-                                <td style="padding:10px 14px;">
-                                    <span style="background:#dcfce7;color:#15803d;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;"
+                                <td style="padding:10px 14px;text-align:center;">
+                                    <span th:if="${item.paymentStatusVN == 'Giữ cọc (hủy/no-show)'}"
+                                          style="display:inline-block; text-align:center; line-height:1.2; background:#fee2e2; color:#dc2626; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600;">
+                                        Giữ cọc<br/><span style="font-size:10px; font-weight:normal;">(hủy/no-show)</span>
+                                    </span>
+                                    <span th:if="${item.paymentStatusVN != 'Giữ cọc (hủy/no-show)'}"
+                                          style="background:#dcfce7;color:#15803d;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;"
                                           th:text="${item.paymentStatusVN}">—</span>
                                 </td>
                             </tr>
                         </tbody>
                         <tfoot>
                             <tr style="background:#f0fdf4;border-top:2px solid #bbf7d0;">
-                                <td colspan="6" style="padding:12px 14px;text-align:right;font-weight:700;color:#374151;">Tổng cộng:</td>
+                                <td colspan="5" style="padding:12px 14px;text-align:right;font-weight:700;color:#374151;">Tổng cộng:</td>
+                                <td style="padding:12px 14px;">—</td>
                                 <td style="padding:12px 14px;font-weight:700;color:#1d4ed8;"
-                                    th:text="${#numbers.formatDecimal(settlement.grossAmount,0,'COMMA',0,'POINT')}">0</td>
+                                    th:text="${#numbers.formatDecimal(detailTotals.gross,0,'COMMA',0,'POINT')}">0</td>
+                                <td style="padding:12px 14px;">—</td>
                                 <td style="padding:12px 14px;">—</td>
                                 <td style="padding:12px 14px;font-weight:700;color:#dc2626;"
-                                    th:text="${#numbers.formatDecimal(settlement.commissionAmount,0,'COMMA',0,'POINT')}">0</td>
+                                    th:text="${#numbers.formatDecimal(detailTotals.commission,0,'COMMA',0,'POINT')}">0</td>
                                 <td style="padding:12px 14px;">—</td>
                                 <td style="padding:12px 14px;font-weight:700;color:#dc2626;"
-                                    th:text="${#numbers.formatDecimal(settlement.voucherDeductionAmount,0,'COMMA',0,'POINT')}">0</td>
+                                    th:text="${#numbers.formatDecimal(detailTotals.voucher,0,'COMMA',0,'POINT')}">0</td>
                                 <td style="padding:12px 14px;color:#16a34a;font-weight:700;font-size:15px;"
-                                    th:text="${#numbers.formatDecimal(settlement.payoutAmount,0,'COMMA',0,'POINT')}">0</td>
+                                    th:text="${#numbers.formatDecimal(detailTotals.payout,0,'COMMA',0,'POINT')}">0</td>
                                 <td style="padding:12px 14px;">—</td>
                             </tr>
                         </tfoot>

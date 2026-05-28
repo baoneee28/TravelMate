@@ -19,7 +19,13 @@ public class AdminRevenueSummaryDto {
     /** Tổng tiền admin thu online từ user (APPROVED + DEPOSIT_FORFEITED) */
     private BigDecimal totalGross = BigDecimal.ZERO;
 
-    /** Tổng cơ sở tính commission (= tiền online thực thu: cọ 30% hoặc 100% đã thu qua TravelMate) */
+    /** Tong gia tri don cua cac booking co doanh thu. */
+    private BigDecimal totalOrderAmount = BigDecimal.ZERO;
+
+    /** Tong tien khach tra truc tiep tai co so o don coc van hanh binh thuong. */
+    private BigDecimal totalOnsiteAmount = BigDecimal.ZERO;
+
+    /** Tổng cơ sở tính commission theo snapshot nghiệp vụ. */
     private BigDecimal totalCommissionBase = BigDecimal.ZERO;
 
     /** Tổng chiết khấu admin giữ lại */
@@ -31,7 +37,7 @@ public class AdminRevenueSummaryDto {
     /** Số booking đã duyệt (payment APPROVED) */
     private long totalApproved = 0;
 
-    /** Số booking no-show (payment DEPOSIT_FORFEITED) */
+    /** Số booking đặt cọc bị giữ do hủy/no-show (payment DEPOSIT_FORFEITED) */
     private long totalForfeited = 0;
 
     /** Tổng số booking có doanh thu */

@@ -378,14 +378,18 @@ img {
     left: 0;
     right: 0;
     z-index: 1200;
-    padding: 20px 0;
-    transition: all 0.3s ease;
+    height: 76px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.25s ease, box-shadow 0.25s ease, backdrop-filter 0.25s ease;
 }
 
 .header.scrolled {
     background-color: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
-    padding: 12px 0;
+    height: 76px;
+    padding: 0;
     box-shadow: var(--shadow-sm);
 }
 
@@ -394,7 +398,8 @@ img {
     top: 0;
     z-index: 1200;
     background: #fff;
-    padding: 14px 0;
+    height: 76px;
+    padding: 0;
     border-bottom: 1px solid #e2e8f0;
     box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
 }
@@ -404,6 +409,7 @@ img {
     align-items: center;
     gap: 24px;
     flex-wrap: nowrap;
+    height: 100%;
 }
 
 .logo {
@@ -459,7 +465,7 @@ img {
     font-weight: 600;
     font-size: 14px;
     color: var(--text-muted);
-    transition: color 0.3s ease, transform 0.2s ease;
+    transition: color 0.2s ease;
     text-transform: uppercase;
     letter-spacing: 0;
     text-shadow: none;
@@ -487,8 +493,12 @@ img {
     font-size: 14px;
     padding: 10px 24px;
     border-radius: 50px;
-    transition: all 0.3s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
     white-space: nowrap;
+    min-width: 130px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .login-btn:hover {
@@ -505,6 +515,52 @@ img {
     display: flex;
     align-items: center;
     gap: 12px;
+}
+
+.language-switch {
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.language-switch a {
+    color: inherit;
+    opacity: 0.62;
+    text-decoration: none;
+}
+
+.language-switch a.active,
+.language-switch a:hover {
+    opacity: 1;
+    color: var(--primary-yellow);
+}
+
+.header.scrolled .language-switch,
+header[style*="background: #fff"] .language-switch,
+header[style*="background:#fff"] .language-switch,
+.header-static .language-switch {
+    border-color: rgba(15, 23, 42, 0.25);
+    color: #334155;
+}
+
+.header.scrolled .language-switch a.active,
+.header.scrolled .language-switch a:hover,
+header[style*="background: #fff"] .language-switch a.active,
+header[style*="background: #fff"] .language-switch a:hover,
+header[style*="background:#fff"] .language-switch a.active,
+header[style*="background:#fff"] .language-switch a:hover,
+.header-static .language-switch a.active,
+.header-static .language-switch a:hover {
+    color: var(--primary-blue);
+    opacity: 1;
 }
 
 .notif-wrap {
@@ -2180,7 +2236,8 @@ img {
 
 @media (max-width: 768px) {
     .header {
-        padding: 14px 0;
+        height: 76px;
+        padding: 0;
     }
 
     .dest-header p {

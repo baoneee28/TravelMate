@@ -1,8 +1,7 @@
 # TravelMate — Đặc Tả Yêu Cầu Phần Mềm (SRS)
 
-**Phiên bản:** 1.0  
-**Ngày:** 2026-05-20  
-**Môn học:** Phân Tích Thiết Kế Hệ Thống / Công Nghệ Phần Mềm  
+**Phiên bản:** 1.4  
+**Ngày cập nhật:** 2026-05-25  
 **Nền tảng:** Spring Boot 3.5 + Thymeleaf + MySQL + VNPAY Sandbox
 
 ---
@@ -10,184 +9,114 @@
 ## 1. Giới Thiệu
 
 ### 1.1 Mục Đích
-TravelMate là hệ thống đặt phòng khách sạn trực tuyến, hỗ trợ ba nhóm người dùng: Khách hàng (User), Đối tác chỗ lưu trú (Partner) và Quản trị viên (Admin). Hệ thống tích hợp thanh toán VNPAY, quản lý quyết toán doanh thu, chatbot tư vấn và gợi ý du lịch.
+TravelMate là hệ thống đặt phòng trực tuyến quy mô đồ án cơ sở, hỗ trợ ba nhóm người dùng: Khách hàng, Đối tác lưu trú và Quản trị viên. Hệ thống tập trung vào trải nghiệm đặt phòng, thanh toán VNPAY, xác nhận giữ phòng từ đối tác, voucher, quyết toán doanh thu, ví nội bộ đối tác và báo cáo đối soát.
 
 ### 1.2 Phạm Vi
-- Tìm kiếm và đặt phòng trực tuyến
-- Thanh toán qua VNPAY (cọc 30% hoặc 100%)
-- Quản lý vòng đời booking: PENDING → CONFIRMED → CHECKED_IN → COMPLETED
-- Quản lý đối tác và quyết toán doanh thu hàng tháng
-- Chatbot tư vấn du lịch theo ngân sách
-- Hệ thống voucher giảm giá (ADMIN/PARTNER)
+- Tìm kiếm và xem chi tiết khách sạn, resort, villa, homestay.
+- Đặt phòng trực tuyến với hai hình thức: cọc 30% hoặc thanh toán 100% qua VNPAY Sandbox.
+- VNPAY thành công thì hệ thống tự xác nhận thanh toán, booking chuyển sang `CONFIRMED` và chờ đối tác xác nhận giữ phòng.
+- Đối tác xác nhận giữ phòng, check-in, xác nhận thu 70% tại cơ sở nếu booking cọc 30%, check-out hoặc no-show.
+- Admin quản lý người dùng, cơ sở lưu trú, phòng, bài viết, voucher, đối soát ngoại lệ, hoàn tiền, quyết toán và yêu cầu rút tiền.
+- Voucher do Admin phát hành; `costBearer = ADMIN/PARTNER` quyết định bên chịu chi phí giảm giá.
+- Quyết toán tháng và ví nội bộ cho đối tác, bao gồm lịch sử tiền vào/ra và yêu cầu rút tiền.
+- Chatbot tư vấn du lịch theo ngân sách và điểm đến.
 
-### 1.3 Định Nghĩa và Viết Tắt
+### 1.3 Thuật Ngữ
 
 | Thuật ngữ | Ý nghĩa |
 |---|---|
-| Booking | Đơn đặt phòng |
-| DEPOSIT_30 | Hình thức cọc trước 30% qua VNPAY |
-| FULL_PAYMENT | Thanh toán toàn bộ qua VNPAY |
-| Settlement | Quyết toán doanh thu cho Partner |
-| No-show | Khách đặt phòng nhưng không đến check-in |
-| Commission | Hoa hồng TravelMate thu từ Partner |
-| VNPAY | Cổng thanh toán trực tuyến |
+| Booking | Đơn đặt phòng/căn |
+| DEPOSIT_30 | User thanh toán trước 30% qua VNPAY, 70% còn lại trả tại cơ sở |
+| FULL_PAYMENT | User thanh toán 100% qua VNPAY |
+| Partner status | Trạng thái xác nhận giữ phòng từ phía đối tác |
+| Settlement | Bản quyết toán doanh thu theo tháng cho đối tác |
+| Partner wallet | Ví quyết toán nội bộ của đối tác |
+| Voucher cost bearer | Bên chịu chi phí voucher: TravelMate/Admin hoặc Partner |
+| No-show | Khách không đến check-in |
 
 ---
 
 ## 2. Mô Tả Tổng Thể
 
-### 2.1 Perspective
+### 2.1 Kiến Trúc Tổng Quan
 
+```text
+Browser/User
+    |
+    v
+TravelMate Spring Boot MVC + Thymeleaf
+    |
+    +-- MySQL Database
+    +-- VNPAY Sandbox
+    +-- Local file storage uploads/
 ```
-User/Browser ──► TravelMate Web App (Spring Boot / Thymeleaf)
-                          │
-              ┌───────────┼───────────────────┐
-              ▼           ▼                   ▼
-          MySQL DB    VNPAY Sandbox     File Storage
-                                        (uploads/)
-```
 
-### 2.2 Chức Năng Chính
+### 2.2 Nhóm Chức Năng
 
-| Nhóm | Chức năng |
+| Nhóm | Chức năng chính |
 |---|---|
-| **Công khai** | Tìm kiếm chỗ lưu trú, xem chi tiết phòng, đọc bài gợi ý du lịch, chatbot |
-| **User** | Đăng ký/đăng nhập, đặt phòng, thanh toán VNPAY, xem lịch sử, đánh giá, dùng voucher |
-| **Partner** | Quản lý cơ sở lưu trú, xác nhận booking, check-in/out, xem doanh thu, tạo voucher |
-| **Admin** | Duyệt booking/accommodation, quản lý người dùng, tạo voucher, quyết toán, báo cáo |
-
-### 2.3 Người Dùng
-
-| Actor | Mô tả |
-|---|---|
-| **Guest** | Khách vãng lai, chỉ xem, không đặt phòng |
-| **User** | Khách hàng đã đăng ký, có thể đặt phòng và thanh toán |
-| **Partner** | Chủ cơ sở lưu trú, quản lý phòng và xác nhận booking |
-| **Admin** | Quản trị viên hệ thống, toàn quyền |
+| Công khai | Trang chủ, tìm kiếm, chi tiết lưu trú, bài viết du lịch, chatbot |
+| User | Đăng ký/đăng nhập, đặt phòng, thanh toán VNPAY, xem lịch sử, hủy, đánh giá, dùng voucher |
+| Partner | Quản lý cơ sở/phòng, gắn voucher được cấp, xác nhận giữ phòng, check-in/out, xem doanh thu, ví và rút tiền |
+| Admin | Duyệt listing, quản lý booking/đối soát, voucher, doanh thu, settlement, withdrawal, user, support |
 
 ---
 
 ## 3. Yêu Cầu Chức Năng
 
-### 3.1 Module Tìm Kiếm & Xem (UC-01 → UC-05)
+### 3.1 Tìm Kiếm, Nội Dung Và Chatbot
+- User/Guest tìm kiếm lưu trú theo điểm đến, loại hình, giá, rating và số khách.
+- Trang chi tiết hiển thị ảnh, mô tả, tiện nghi, phòng/căn, giá và số lượng còn.
+- Bài viết du lịch lọc theo điểm đến, có empty state khi không có kết quả.
+- Chatbot hỗ trợ hỏi theo ngân sách, điểm đến và từ chối lịch sự câu hỏi ngoài phạm vi du lịch.
 
-**UC-01: Tìm kiếm chỗ lưu trú**
-- Lọc theo: thành phố, loại (Hotel/Villa/Homestay/Resort), giá
-- Sắp xếp: rating, giá, tên
-- Hiển thị: thumbnail, rating, giá/đêm, số phòng còn
+### 3.2 Đặt Phòng Và Thanh Toán
+- User chọn phòng/căn, ngày nhận/trả, số khách, số lượng, voucher và hình thức thanh toán.
+- Hệ thống kiểm tra ngày hợp lệ, phòng còn đủ, voucher hợp lệ và tổng sau giảm không thấp hơn mức tối thiểu VNPAY.
+- Khi tạo booking, trạng thái ban đầu là `PENDING_PAYMENT`, payment là `PENDING_PAYMENT`, phòng được giữ tạm.
+- Nếu user không thanh toán trong thời gian cấu hình, booking hết hạn và phòng được mở lại.
+- Nếu VNPAY thành công và chữ ký hợp lệ:
+  - `PaymentStatus = APPROVED`
+  - `BookingStatus = CONFIRMED`
+  - `PartnerBookingStatus = PENDING_PARTNER_CONFIRMATION`
+  - Hệ thống gửi booking sang đối tác để xác nhận giữ phòng.
+- Nếu VNPAY thất bại/hủy/hết hạn:
+  - Booking chuyển `CANCELLED` hoặc trạng thái lỗi phù hợp.
+  - Phòng được mở lại.
+- Admin không duyệt thủ công các giao dịch VNPAY thành công thông thường; Admin chỉ xử lý ngoại lệ đối soát, từ chối, hoàn tiền hoặc khiếu nại.
 
-**UC-02: Xem chi tiết chỗ lưu trú**
-- Thông tin: mô tả, địa chỉ, ảnh, tiện nghi
-- Danh sách phòng với giá, số lượng còn
+### 3.3 Voucher
+- Admin tạo voucher toàn hệ thống hoặc voucher thuộc kho Partner/Room.
+- Partner không tự tạo voucher mới; Partner chỉ xem/gắn voucher được Admin cấp vào phòng/căn thuộc quyền quản lý nếu hệ thống cho phép.
+- `costBearer = ADMIN` nghĩa là TravelMate chịu chi phí giảm giá, không trừ payout Partner.
+- `costBearer = PARTNER` nghĩa là phần giảm giá được trừ vào quyết toán của Partner.
+- Booking lưu `voucherCode`, `discountAmount`, `voucherCostBearer` để phục vụ đối soát.
 
-**UC-03: Xem chi tiết phòng**
-- Thông tin: mô tả, ảnh, tiện nghi, giá/đêm, loại phòng
+### 3.4 Vòng Đời Booking Sau Thanh Toán
+- `CONFIRMED + PENDING_PARTNER_CONFIRMATION`: đã thanh toán, chờ đối tác xác nhận giữ phòng.
+- `CONFIRMED + PARTNER_CONFIRMED`: đối tác đã xác nhận giữ phòng.
+- `CHECKED_IN`: khách đang lưu trú.
+- `COMPLETED`: khách đã trả phòng, booking đủ điều kiện quyết toán nếu payment hợp lệ.
+- `NO_SHOW + DEPOSIT_FORFEITED`: khách không đến với booking cọc 30%, cọc bị giữ và có thể đưa vào quyết toán.
+- `CANCELLED + DEPOSIT_FORFEITED`: khách hủy booking cọc sau khi đã thanh toán, cọc bị giữ và có thể đưa vào quyết toán.
+- `CANCELLED + REFUND_PENDING`: booking đã thanh toán bị hủy, chờ Admin xử lý hoàn tiền.
 
-**UC-04: Xem bài gợi ý du lịch**
-- Danh sách bài viết, lọc theo điểm đến
+### 3.5 Admin
+- Duyệt/từ chối cơ sở lưu trú, phòng và nội dung cần kiểm duyệt.
+- Theo dõi booking, lọc theo trạng thái, xử lý đối soát ngoại lệ, partner hủy, hoàn tiền và no-show.
+- Tạo và quản lý voucher, phạm vi áp dụng và bên chịu chi phí.
+- Tạo quyết toán tháng, xem chi tiết booking đủ điều kiện, xuất Excel đối soát.
+- Xác nhận settlement đã chuyển khoản để cộng ví nội bộ Partner.
+- Xử lý yêu cầu rút tiền: chuyển khoản ngoài hệ thống, sau đó cập nhật `PAID` hoặc `REJECTED`.
 
-**UC-05: Chatbot tư vấn**
-- Hỏi theo ngân sách ("5 triệu đi đâu?")
-- Hỏi theo điểm đến ("Đà Lạt có gì?")
-- Gợi ý phòng phù hợp
-
-### 3.2 Module Đặt Phòng & Thanh Toán (UC-06 → UC-12)
-
-**UC-06: Đặt phòng**
-- Pre-condition: User đã đăng nhập
-- Input: check-in/out, số người lớn/trẻ em, số phòng, paymentOption, voucherCode
-- Validation: ngày hợp lệ, phòng còn đủ, voucher hợp lệ
-- Process: tính tiền → tạo Booking (PENDING_PAYMENT) → redirect VNPAY
-
-**UC-07: Thanh toán VNPAY (cọc 30%)**
-- User chọn DEPOSIT_30
-- paidAmount = floor(totalAmount × 30%)
-- VNPAY xử lý → return URL → Booking chờ admin duyệt
-
-**UC-08: Thanh toán VNPAY (100%)**
-- User chọn FULL_PAYMENT
-- paidAmount = totalAmount
-- VNPAY xử lý → return URL → Booking chờ admin duyệt
-
-**UC-09: Xem lịch sử đặt phòng**
-- Danh sách booking của User đang đăng nhập
-- Lọc theo trạng thái
-
-**UC-10: Đánh giá sau lưu trú**
-- Pre-condition: booking COMPLETED
-- Input: rating (1–5), comment
-- Cập nhật rating trung bình của accommodation
-
-**UC-11: Dùng voucher**
-- User nhập mã voucher khi đặt phòng
-- Hệ thống validate và áp giảm giá
-- Ghi nhận costBearer (ADMIN/PARTNER) cho quyết toán
-
-**UC-12: Hủy booking**
-- User hủy booking PENDING hoặc CONFIRMED
-- Cập nhật trạng thái, mở lại phòng
-
-### 3.3 Module Admin (UC-13 → UC-20)
-
-**UC-13: Duyệt booking**
-- Admin xem danh sách PENDING_ADMIN_APPROVAL
-- Approve → CONFIRMED + notify partner
-- Reject → CANCELLED + hoàn tiền
-
-**UC-14: Duyệt cơ sở lưu trú**
-- Admin duyệt/từ chối accommodation PENDING
-
-**UC-15: Đánh dấu No-Show**
-- DEPOSIT_30: NO_SHOW + DEPOSIT_FORFEITED + mở lại phòng
-- FULL_PAYMENT: CHECKED_IN (xử lý theo chính sách)
-
-**UC-16: Quản lý voucher**
-- Tạo voucher USER_GLOBAL (PERCENT/FIXED_AMOUNT)
-- Quản lý voucher của Partner
-
-**UC-17: Tạo quyết toán tháng**
-- Tính gross, commission, voucher deduction, payout cho từng partner
-- Chỉ tính booking ONLINE + COMPLETED + APPROVED
-- Chỉ tính booking ONLINE + NO_SHOW + DEPOSIT_FORFEITED
-
-**UC-18: Xem báo cáo doanh thu**
-- Tổng quan doanh thu, commission và số tiền chờ quyết toán
-- Phân tích theo loại accommodation
-
-**UC-19: Quản lý người dùng**
-- Xem/sửa thông tin user, partner
-- Thay đổi role, trạng thái
-
-**UC-20: Quản lý yêu cầu hỗ trợ**
-- Xem và phản hồi support tickets từ Partner/User/Guest
-
-### 3.4 Module Partner (UC-21 → UC-27)
-
-**UC-21: Quản lý cơ sở lưu trú**
-- Thêm/sửa accommodation (chờ admin duyệt)
-- Upload ảnh thumbnail
-
-**UC-22: Quản lý phòng**
-- Thêm/sửa/xóa phòng (chỉ với accommodation APPROVED)
-- Cài đặt commission_rate_override
-
-**UC-23: Xác nhận booking**
-- Partner xác nhận giữ phòng cho booking CONFIRMED
-
-**UC-24: Check-in khách**
-- Đánh dấu khách đã check-in → CHECKED_IN
-
-**UC-25: Check-out khách**
-- Đánh dấu hoàn tất → COMPLETED
-- Xác nhận thu 70% còn lại (nếu DEPOSIT_30)
-
-**UC-26: Tạo voucher**
-- Voucher cho accommodation cụ thể (PARTNER_ACCOMMODATION)
-- Voucher cho phòng cụ thể (PARTNER_ROOM)
-
-**UC-27: Xem doanh thu và quyết toán**
-- Doanh thu vận hành theo khoảng thời gian và theo tháng
-- Lịch sử quyết toán
+### 3.6 Partner
+- Quản lý cơ sở lưu trú và phòng/căn trong phạm vi loại hình đã đăng ký.
+- Xác nhận hoặc từ chối giữ phòng sau khi VNPAY thành công.
+- Check-in khách; với booking cọc 30%, xác nhận đã thu 70% còn lại tại cơ sở.
+- Check-out để hoàn tất booking.
+- Đánh dấu no-show cho booking cọc 30% theo quyền/hành động được hệ thống cho phép.
+- Xem doanh thu, lịch sử quyết toán, ví, transaction và gửi yêu cầu rút tiền.
+- Gửi ticket hỗ trợ hoặc yêu cầu hỗ trợ khuyến mãi khi cần.
 
 ---
 
@@ -195,19 +124,18 @@ User/Browser ──► TravelMate Web App (Spring Boot / Thymeleaf)
 
 | Loại | Yêu cầu |
 |---|---|
-| **Bảo mật** | BCrypt password, phân quyền theo role, HTTPS production |
-| **Hiệu năng** | Trang chủ tải < 3s, search < 2s trên data demo |
-| **Tính sẵn sàng** | Single server, no HA requirement (phạm vi đồ án) |
-| **Tính bảo trì** | MVC layered architecture, clear package structure |
-| **Tương thích** | Chrome, Edge, Firefox mới nhất |
-| **Dữ liệu** | MySQL 8.0+, UTF-8MB4, backup thủ công |
+| Bảo mật | BCrypt password, phân quyền route theo role, secrets production lấy từ môi trường |
+| Tính đúng nghiệp vụ | Không quyết toán booking chưa hoàn tất; không trừ voucher Admin chịu khỏi payout Partner |
+| Khả dụng demo | Import một file SQL gốc chạy được trên máy khác, dữ liệu đủ trạng thái để giảng viên quan sát |
+| UI/UX | Bảng dài cuộn ngang trong vùng bảng, không dùng CSS `zoom`, trạng thái hiển thị rõ bằng badge |
+| Kiểm thử | Maven test pass, report ghi đúng số test thực tế từ surefire |
+| Tương thích | Chrome/Edge/Firefox mới, MySQL 8.0+, Java 21 |
 
 ---
 
 ## 5. Ràng Buộc
 
-- **Công nghệ:** Java 21, Spring Boot 3.5, Thymeleaf, MySQL 8.0
-- **Thanh toán:** Chỉ VNPAY Sandbox (không tích hợp production)
-- **Session:** Server-side HttpSession (không dùng JWT)
-- **CSRF:** Tắt trong demo local, cần bật khi production
-- **Phạm vi:** Single-server deployment, không microservices
+- VNPAY chỉ dùng Sandbox trong phạm vi đồ án.
+- Ví Partner là sổ quyết toán nội bộ, không chuyển khoản ngân hàng tự động.
+- Admin chuyển khoản ngoài hệ thống rồi cập nhật trạng thái trong TravelMate.
+- CSRF đang tắt cho demo local; khi production cần bật lại và cấu hình token cho form Thymeleaf.

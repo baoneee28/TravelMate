@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
@@ -16,6 +16,16 @@
     <link rel="stylesheet" href="/assets/css/partners.css" />
     <link rel="stylesheet" href="/assets/css/responsive.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        .admin-wrapper, .admin-main, .admin-content { min-width: 0; }
+        .admin-content { overflow-x: hidden; }
+        @media (min-width: 1025px) {
+            .admin-main {
+                zoom: 0.9 !important;
+                margin-left: 260px !important;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -111,13 +121,15 @@
                     <button class="tab-btn tab-btn--urgent" id="needs-action-tab" data-filter="needs-action" onclick="filterNeedsAction(this)">
                         ⚡ Cần xử lý <span class="badge badge--danger" id="needs-action-count" style="margin-left:3px;font-weight:800;">0</span>
                     </button>
-                    <button class="tab-btn" data-filter="CONFIRMED" onclick="filterByStatusAndSource('CONFIRMED','ONLINE',this)">🌐 Online · TravelMate đã xác nhận TT</button>
+                    <button class="tab-btn" data-filter="CONFIRMED" onclick="filterByStatusAndSource('CONFIRMED','ONLINE',this)">🌐 Online · VNPAY đã xác nhận TT</button>
                     <button class="tab-btn" data-filter="CHECKED_IN" onclick="filterBookings('CHECKED_IN',this)">🏨 Đang ở</button>
                     <button class="tab-btn" data-filter="COMPLETED" onclick="filterBookings('COMPLETED',this)">🏁 Hoàn thành</button>
-                    <button class="tab-btn" data-filter="NO_SHOW" onclick="filterBookings('NO_SHOW',this)">⚠️ Không đến</button>
-                    <button class="tab-btn" data-filter="DIRECT" onclick="filterBySource('DIRECT',this)">🏃 Trực tiếp</button>
-                    <button class="tab-btn" data-filter="MANUAL_BLOCK" onclick="filterBySource('MANUAL_BLOCK',this)">🔒 Chặn bán trên TravelMate</button>
-                    <button class="tab-btn" data-filter="CANCELLED" onclick="filterBookings('CANCELLED',this)">❌ Hủy</button>
+                     <button class="tab-btn" data-filter="NO_SHOW" onclick="filterBookings('NO_SHOW',this)">⚠️ Không đến</button>
+                     <button class="tab-btn" data-filter="DIRECT" onclick="filterBySource('DIRECT',this)">🏃 Trực tiếp</button>
+                     <button class="tab-btn" data-filter="MANUAL_BLOCK" onclick="filterBySource('MANUAL_BLOCK',this)">🔒 Chặn bán trên TravelMate</button>
+                     <button class="tab-btn" data-filter="DEPOSIT_30" onclick="filterByPaymentOption('DEPOSIT_30',this)">💳 Cọc 30%</button>
+                     <button class="tab-btn" data-filter="FULL_PAYMENT" onclick="filterByPaymentOption('FULL_PAYMENT',this)">✅ Thanh toán 100%</button>
+                     <button class="tab-btn" data-filter="CANCELLED" onclick="filterBookings('CANCELLED',this)">❌ Hủy</button>
                 </div>
                 <style>
                   .tab-btn{padding:6px 14px;border:1px solid #d1d5db;border-radius:20px;font-size:13px;background:#fff;cursor:pointer;transition:all .15s;}
@@ -130,15 +142,37 @@
 
                 <!-- Table -->
                 <style>
-                  .bk-table{width:100%;border-collapse:collapse;font-size:13px;}
+                  .table-wrap{width:100%;max-width:100%;overflow-x:auto;border:1px solid #e2e8f0;border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+                  .table-wrap::-webkit-scrollbar{width:6px;height:6px;}
+                  .table-wrap::-webkit-scrollbar-track{background:#f1f5f9;border-radius:3px;}
+                  .table-wrap::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px;}
+                  .table-wrap::-webkit-scrollbar-thumb:hover{background:#94a3b8;}
+                  .bk-table{width:100%;min-width:1280px;border-collapse:separate;border-spacing:0;font-size:12.5px;table-layout:fixed;}
                   .bk-table thead tr{background:#f8fafc;border-bottom:2px solid #e2e8f0;}
-                  .bk-table th{padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
-                  .bk-table td{padding:12px 12px;vertical-align:top;border-bottom:1px solid #f1f5f9;}
+                  .bk-table th{padding:9px 10px;text-align:left;font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;border-bottom:2px solid #e2e8f0;}
+                  .bk-table td{padding:10px 10px;vertical-align:top;border-bottom:1px solid #f1f5f9;background:#fff;}
+                  .bk-table th:nth-child(1){width:42px;text-align:center;}
+                  .bk-table th:nth-child(2){width:170px;}
+                  .bk-table th:nth-child(3){width:180px;}
+                  .bk-table th:nth-child(4){width:220px;}
+                  .bk-table th:nth-child(5){width:130px;}
+                  .bk-table th:nth-child(6){width:190px;}
+                  .bk-table th:nth-child(7){width:280px;}
+                  .bk-table th:nth-child(8){width:170px;}
+                  .bk-table th:last-child,
+                  .bk-table td:last-child{position:sticky;right:0;z-index:8;background:#fff;box-shadow:-2px 0 5px -1px rgba(0,0,0,.08);border-left:1px solid #e2e8f0;}
+                  .bk-table th:last-child{z-index:10;background:#f8fafc;}
                   .bk-table tbody tr:hover{background:#fafbff;}
+                  .bk-table tbody tr:hover td{background:#fafbff;}
+                  .bk-table tbody tr:hover td:last-child{background:#fafbff;}
                   .bk-table tbody tr.row-checkedin{background:#f0fdf4;}
                   .bk-table tbody tr.row-completed{background:#f8fafc;}
                   .bk-table tbody tr.row-noshow{background:#fef2f2;}
                   .bk-table tbody tr.row-cancelled{background:#f9fafb;opacity:.75;}
+                  .bk-table tbody tr.row-checkedin td{background:#f0fdf4;}
+                  .bk-table tbody tr.row-completed td{background:#f8fafc;}
+                  .bk-table tbody tr.row-noshow td{background:#fef2f2;}
+                  .bk-table tbody tr.row-cancelled td{background:#f9fafb;}
                   .bk-code{font-family:monospace;font-size:12px;font-weight:700;color:#2563eb;}
                   .bk-time{font-size:11px;color:#94a3b8;margin-top:2px;}
                   .bk-guestname{font-weight:600;font-size:13px;color:#0f172a;}
@@ -153,11 +187,10 @@
                   .bk-paid{font-size:11px;color:#059669;margin-top:2px;}
                   .bk-remaining{font-size:11px;color:#dc2626;margin-top:1px;}
                   .bk-status-wrap{display:flex;flex-direction:column;gap:5px;}
-                  .bk-note-text{font-size:11px;color:#64748b;background:#f8fafc;border-radius:6px;padding:5px 8px;margin-top:4px;max-width:220px;line-height:1.5;}
-                  .bk-action-wrap{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+                  .bk-status-wrap .badge{white-space:nowrap;}
+                  .bk-note-text{font-size:11px;color:#64748b;background:#f8fafc;border-radius:6px;padding:5px 8px;margin-top:4px;max-width:220px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+                  .bk-action-wrap{display:flex;flex-direction:column;gap:6px;min-width:150px;}
                   .bk-btn{width:100%;border:none;border-radius:7px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:opacity .15s;}
-                  .bk-btn:hover{opacity:.88;}
-                  .bk-btn-confirm{background:#2563eb;color:#fff;}
                   .bk-btn-checkin{background:#059669;color:#fff;}
                   .bk-btn-checkout{background:#7c3aed;color:#fff;}
                   .bk-btn-noshow{background:#fff;color:#dc2626;border:1.5px solid #fca5a5!important;}
@@ -165,7 +198,7 @@
                   .bk-noteinput{font-size:11px;padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;width:100%;box-sizing:border-box;}
                   .bk-notebtn{background:#6366f1;color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;}
                 </style>
-                <div class="table-wrap" style="overflow-x:auto;">
+                <div class="table-wrap">
                     <table class="bk-table">
                         <thead>
                             <tr>
@@ -173,7 +206,7 @@
                                 <th>Mã đơn / Nguồn</th>
                                 <th>Khách hàng</th>
                                 <th th:text="${'Cơ sở / ' + (unitLabelCap ?: 'Phòng')}">Cơ sở / Phòng</th>
-                                <th>Nhận → Trả phòng</th>
+                                <th th:text="${'Nhận → Trả ' + (unitLabel ?: 'phòng')}">Nhận → Trả phòng</th>
                                 <th>Tổng tiền / Thanh toán</th>
                                 <th>Trạng thái &amp; Ghi chú</th>
                                 <th>Thao tác vận hành</th>
@@ -182,10 +215,10 @@
                         <tbody>
                             <!-- Empty state -->
                             <tr th:if="${#lists.isEmpty(bookings)}" class="booking-row">
-                                <td colspan="9" style="text-align:center;padding:40px;color:#94a3b8;">
+                                <td colspan="8" style="text-align:center;padding:40px;color:#94a3b8;">
                                     <div style="font-size:36px;margin-bottom:10px;">📭</div>
                                     <div style="font-weight:600;color:#475569;"><span th:text="${'Chưa có đơn đặt ' + (unitLabel ?: 'phòng') + ' nào'}">Chưa có đơn đặt phòng nào</span></div>
-                                    <div style="font-size:12px;margin-top:4px;">Các đơn TravelMate xác nhận thanh toán sẽ hiển thị tại đây.</div>
+                                    <div style="font-size:12px;margin-top:4px;">Các đơn VNPAY đã xác nhận thanh toán sẽ hiển thị tại đây.</div>
                                 </td>
                             </tr>
 
@@ -202,7 +235,7 @@
                                 <td style="color:#94a3b8;font-size:12px;font-weight:600;text-align:center;" th:text="${iter.index + 1}">1</td>
 
                                 <!-- Mã đơn + nguồn + thời gian -->
-                                <td>
+                                <td style="white-space: nowrap;">
                                     <a class="bk-code" th:href="@{/partner/bookings/{id}(id=${b.id})}"
                                        th:text="${b.bookingCode}" style="text-decoration:none;">BK-XXX</a>
                                     <div style="margin-top:4px;">
@@ -349,10 +382,10 @@
                                                                b.bookingStatus.name() == 'NO_SHOW'     ? ' badge--danger'  :
                                                                b.bookingStatus.name() == 'CANCELLED'   ? ' badge--danger'  : ' badge--warning'}"
                                               th:text="${b.bookingStatus.name() == 'PENDING_PAYMENT'         ? '⏳ Chờ khách thanh toán VNPAY'       :
-                                                        b.bookingStatus.name() == 'PENDING_ADMIN_APPROVAL' ? '⏳ TravelMate đang xét duyệt'        :
-                                                        b.bookingStatus.name() == 'CONFIRMED'              ? '✅ TravelMate đã xác nhận — chờ Partner' :
+                                                        b.bookingStatus.name() == 'PENDING_ADMIN_APPROVAL' ? '⚠ Cần đối soát thủ công'            :
+                                                        b.bookingStatus.name() == 'CONFIRMED'              ? '✅ VNPAY đã xác nhận — chờ bạn xử lý' :
                                                         b.bookingStatus.name() == 'CHECKED_IN'             ? '🏨 Khách đang lưu trú'               :
-                                                        b.bookingStatus.name() == 'COMPLETED'              ? '🏁 Đã trả phòng / Hoàn tất'          :
+                                                        b.bookingStatus.name() == 'COMPLETED'              ? '🏁 Đã trả ' + (unitLabel ?: 'phòng') + ' / Hoàn tất' :
                                                         b.bookingStatus.name() == 'NO_SHOW'                ? '🚫 Khách không đến'                   :
                                                         b.bookingStatus.name() == 'CANCELLED'              ? '❌ Đã hủy'                            : b.bookingStatus.name()}">
                                             Trạng thái
@@ -363,11 +396,11 @@
                                               class="badge"
                                               th:classappend="${b.partnerStatus.name() == 'PARTNER_CONFIRMED' or b.partnerStatus.name() == 'PARTNER_COMPLETED' ? ' badge--success' :
                                                                b.partnerStatus.name() == 'PARTNER_CANCELLED'  ? ' badge--danger'  : ' badge--warning'}"
-                                              th:text="${b.partnerStatus.name() == 'PENDING_PARTNER_CONFIRMATION' ? '⏳ Chờ Partner xác nhận giữ phòng' :
-                                                        b.partnerStatus.name() == 'PARTNER_CONFIRMED'            ? '✅ Đã xác nhận giữ phòng'          :
+                                              th:text="${b.partnerStatus.name() == 'PENDING_PARTNER_CONFIRMATION' ? '⏳ Chờ bạn xác nhận giữ ' + (unitLabel ?: 'phòng') :
+                                                        b.partnerStatus.name() == 'PARTNER_CONFIRMED'            ? '✅ Đã xác nhận giữ ' + (unitLabel ?: 'phòng') :
                                                         b.partnerStatus.name() == 'PARTNER_COMPLETED'            ? '🏁 Đã hoàn tất lưu trú'             :
-                                                        b.partnerStatus.name() == 'PARTNER_CANCELLED'            ? '❌ Partner từ chối'                  : b.partnerStatus.name()}">
-                                            Partner
+                                                        b.partnerStatus.name() == 'PARTNER_CANCELLED'            ? '❌ Đối tác từ chối'                  : b.partnerStatus.name()}">
+                                            Đối tác
                                         </span>
 
                                         <!-- Ghi chú timeline -->
@@ -471,6 +504,7 @@
                                             </th:block>
                                             <form th:action="@{/partner/bookings/{id}/check-out(id=${b.id})}" method="post">
                                                 <button type="submit" class="bk-btn bk-btn-checkout"
+                                                        th:attr="onclick=|return confirm('Xác nhận khách đã trả ${unitLabel ?: 'phòng'} và hoàn tất đơn?')|"
                                                         onclick="return confirm('Xác nhận khách đã trả phòng và hoàn tất đơn?')">
                                                     🏁 Check-out / Hoàn tất
                                                 </button>
@@ -592,6 +626,13 @@
         btn.classList.add('tab-btn--active');
         document.querySelectorAll('.booking-row').forEach(row => {
             row.style.display = (row.dataset.source === source) ? '' : 'none';
+        });
+    }
+    function filterByPaymentOption(paymentOption, btn) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-btn--active'));
+        btn.classList.add('tab-btn--active');
+        document.querySelectorAll('.booking-row').forEach(row => {
+            row.style.display = (row.dataset.paymentOption === paymentOption) ? '' : 'none';
         });
     }
 

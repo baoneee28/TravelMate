@@ -8,7 +8,7 @@ package com.travelmate.entity.enums;
  * Admin từ chối → REJECTED.
  */
 public enum ApprovalStatus {
-    PENDING,    // Đang chờ admin duyệt
+    PENDING,    // Đang chờ quản trị viên duyệt
     APPROVED,   // Đã được duyệt, hiển thị cho user
     REJECTED    // Bị từ chối
 }

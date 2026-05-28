@@ -31,5 +31,7 @@ public interface TravelPostRepository extends JpaRepository<TravelPost, Long> {
 
     java.util.Optional<TravelPost> findFirstBySourceUrlOrderByIdAsc(String sourceUrl);
 
+    java.util.Optional<TravelPost> findFirstByTitleOrderByIdAsc(String title);
+
     List<TravelPost> findAllByOrderByCreatedAtDesc();
 }

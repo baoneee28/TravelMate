@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * Nghiệp vụ:
  *   ✓ ONLINE + APPROVED + COMPLETED   → hợp lệ (khách đã hoàn tất lưu trú)
- *   ✓ ONLINE + DEPOSIT_FORFEITED + NO_SHOW → hợp lệ (cọc 30% bị giữ)
+ *   ✓ ONLINE + DEPOSIT_FORFEITED + NO_SHOW/CANCELLED → hợp lệ (cọc 30% bị giữ)
  *   ✗ DIRECT hoặc MANUAL_BLOCK        → không quyết toán
  *   ✗ PENDING_ADMIN_APPROVAL           → không quyết toán
  *   ✗ CHECKED_IN, CONFIRMED            → chưa hoàn tất
@@ -79,6 +79,14 @@ class SettlementEligibilityTest {
     @DisplayName("✓ ONLINE + DEPOSIT_FORFEITED + NO_SHOW → hợp lệ (mất cọc no-show)")
     void eligible_onlineDepositForfeitedNoShow() {
         Payment p = buildPayment(PaymentStatus.DEPOSIT_FORFEITED, BookingStatus.NO_SHOW, BookingSource.ONLINE);
+
+        assertThat(checkEligible(p)).isTrue();
+    }
+
+    @Test
+    @DisplayName("✓ ONLINE + DEPOSIT_FORFEITED + CANCELLED → hợp lệ (khách hủy mất cọc)")
+    void eligible_cancelledDepositForfeited() {
+        Payment p = buildPayment(PaymentStatus.DEPOSIT_FORFEITED, BookingStatus.CANCELLED, BookingSource.ONLINE);
 
         assertThat(checkEligible(p)).isTrue();
     }

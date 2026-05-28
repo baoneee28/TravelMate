@@ -111,7 +111,7 @@ public class PaymentController {
         if (booking.getExpireAt() != null &&
             booking.getExpireAt().isBefore(java.time.LocalDateTime.now())) {
             redirectAttributes.addFlashAttribute("errorMessage",
-                    "Phiên đặt phòng đã hết hạn (quá 15 phút). Vui lòng đặt phòng lại!");
+                    "Phiên đặt phòng đã hết hạn (quá 3 phút). Vui lòng đặt phòng lại!");
             return "redirect:/my-bookings";
         }
 
@@ -123,13 +123,20 @@ public class PaymentController {
                 + " tai " + booking.getAccommodation().getName();
 
         // Tạo URL VNPAY
-        String paymentUrl = vnpayService.createPaymentUrl(
-                payment.getVnpTxnRef(),
-                payment.getAmount().longValue(),
-                orderInfo,
-                ipAddr,
-                booking.getExpireAt()
-        );
+        String paymentUrl;
+        try {
+            paymentUrl = vnpayService.createPaymentUrl(
+                    payment.getVnpTxnRef(),
+                    payment.getAmount().longValue(),
+                    orderInfo,
+                    ipAddr,
+                    booking.getExpireAt()
+            );
+        } catch (IllegalStateException e) {
+            log.warn("Không thể tạo URL VNPAY cho booking {}: {}", bookingId, e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/my-bookings";
+        }
 
         log.info("Redirect user sang VNPAY: bookingId={}, vnpTxnRef={}", bookingId, payment.getVnpTxnRef());
         return "redirect:" + paymentUrl;
@@ -201,10 +208,10 @@ public class PaymentController {
                     && booking.getPaymentOption() != null
                     && "DEPOSIT_30".equals(booking.getPaymentOption().name())) {
                 paymentType = "DEPOSIT_30";
-                msg = "Thanh toán cọc 30% qua VNPAY thành công! Đơn đặt phòng đang chờ TravelMate xác nhận.";
+                msg = "Đã cọc 30% qua VNPAY. 70% còn lại thanh toán tại cơ sở - chờ đối tác xác nhận giữ phòng.";
             } else {
                 paymentType = "FULL_PAYMENT";
-                msg = "Thanh toán 100% qua VNPAY thành công! Đơn đặt phòng đang chờ TravelMate xác nhận.";
+                msg = "Đã thanh toán 100% qua VNPAY - chờ đối tác xác nhận giữ phòng.";
             }
 
             model.addAttribute("isSuccess", true);

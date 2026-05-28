@@ -1,6 +1,9 @@
 .antigravity/
 .claude/
 .vscode/
+.env
+*.env
+travelmate/src/main/resources/application-local.properties
 *.log
 travelmate/logs/
 ShowSchema.class

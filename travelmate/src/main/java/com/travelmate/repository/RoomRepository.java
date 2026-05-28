@@ -50,7 +50,7 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     /** Tìm phòng chưa có approvalStatus (backfill) */
     List<Room> findByApprovalStatusIsNull();
 
-    /** Lấy tất cả phòng APPROVED thuộc partner (qua accommodation.owner) — dùng cho form tạo voucher theo phòng */
+    /** Lấy tất cả phòng APPROVED thuộc partner (qua accommodation.owner) — dùng để gắn voucher Admin phát hành. */
     List<Room> findByAccommodation_OwnerAndApprovalStatus(User owner, ApprovalStatus status);
 
     /** Tìm tất cả phòng của 1 accommodation theo trạng thái duyệt — dùng cho availability check theo ngày */
@@ -64,5 +64,4 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     @Query("SELECT r FROM Room r WHERE r.id = :id")
     Optional<Room> findByIdForUpdate(@Param("id") Long id);
 }
-
 

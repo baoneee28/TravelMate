@@ -19,7 +19,12 @@
         .filter-tab:hover { background:#eff6ff;border-color:#bfdbfe;color:#2563eb; }
         .filter-tab.active { background:#2563eb;color:#fff;border-color:#2563eb;box-shadow:0 2px 8px rgba(37,99,235,.25); }
         .filter-sep { width:1px;height:24px;background:#e2e8f0;margin:0 4px; }
-        .badge-status { display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap; }
+        .booking-search-wrap { margin-left:auto;display:flex;align-items:center;gap:10px;min-width:300px; }
+        .booking-search-input { width:300px;max-width:100%;height:38px;font-size:13px; }
+        .pending-expiry-note { margin-top:5px;font-size:10.5px;line-height:1.45;color:#92400e;white-space:normal; }
+        .pending-expiry-note strong { color:#7c2d12; }
+        .pending-expiry-note--expired { color:#991b1b;background:#fee2e2;border-radius:8px;padding:4px 6px; }
+        .badge-status { display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap; }
         .badge-pending   { background:#fef3c7;color:#92400e; }
         .badge-confirmed { background:#dbeafe;color:#1e40af; }
         .badge-checkedin { background:#d1fae5;color:#065f46; }
@@ -42,7 +47,7 @@
         .btn-approve  { background:linear-gradient(135deg,#16a34a,#15803d);color:#fff; }
         .btn-reject   { background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff; }
         .btn-cancel   { background:linear-gradient(135deg,#f87171,#ef4444);color:#fff; }
-        .booking-code { font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#2563eb;font-weight:700;background:#eff6ff;padding:2px 6px;border-radius:4px; }
+        .booking-code { font-family:'JetBrains Mono',monospace;font-size:10.5px;color:#2563eb;font-weight:700;background:#eff6ff;padding:2px 4px;border-radius:4px;white-space:nowrap;letter-spacing:-0.2px;display:inline-block; }
         .bk-stats { display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:12px;margin-bottom:20px; }
         .bk-stat { background:#fff;border-radius:14px;padding:14px;border:1px solid #f1f5f9;box-shadow:0 1px 3px rgba(0,0,0,.04);display:flex;align-items:center;gap:12px;transition:all .18s;position:relative;overflow:hidden; }
         .bk-stat::before { content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--st-color,#2563eb);border-radius:14px 0 0 14px; }
@@ -64,60 +69,163 @@
         .btn-modal-cancel:hover { background:#e2e8f0; }
         .btn-modal-submit { background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff; }
         .btn-modal-submit:hover { box-shadow:0 4px 12px rgba(239,68,68,.3); }
+
+        /* Scoped styling for admin bookings page */
+        .admin-wrapper, .admin-main, .admin-content { min-width: 0; }
+        .admin-content {
+            overflow-x: hidden;
+        }
+
+        .admin-bookings-table-wrap {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+        /* Thanh cuộn mỏng cao cấp */
+        .admin-bookings-table-wrap::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .admin-bookings-table-wrap::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+            margin-bottom: 20px;
+        }
+        /* Thanh cuộn mỏng cao cấp */
+        .admin-bookings-table-wrap::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .admin-bookings-table-wrap::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        .admin-bookings-table-wrap::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .admin-bookings-table-wrap::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .admin-bookings-table {
+            min-width: 1180px;
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: #fff;
+            table-layout: fixed; /* Respect exact column widths perfectly */
+        }
+
+        .admin-bookings-table th,
+        .admin-bookings-table td {
+            padding: 7px 8px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 11.5px;
+        }
+
+        /* Column wrapping and explicit premium widths */
+        .admin-bookings-table .col-index { width: 32px; text-align: center; }
+        .admin-bookings-table .col-code { width: 150px; }
+        .admin-bookings-table .col-customer {
+            width: 125px;
+            white-space: normal !important;
+            line-height: 1.4;
+        }
+        .admin-bookings-table .col-room {
+            width: 150px;
+            white-space: normal !important;
+            line-height: 1.4;
+        }
+        .admin-bookings-table .col-date { width: 90px; }
+        .admin-bookings-table .col-money { width: 100px; }
+        .admin-bookings-table .col-payment {
+            width: 170px;
+            white-space: normal !important;
+            line-height: 1.4;
+        }
+        .admin-bookings-table .col-status {
+            width: 160px;
+            white-space: normal !important;
+            line-height: 1.4;
+        }
+        .admin-bookings-table .col-partner {
+            width: 105px;
+            white-space: normal !important;
+        }
+        .admin-bookings-table .col-actions { width: 118px; }
+
+        /* Sticky columns configuration */
+        .admin-bookings-table th.col-code,
+        .admin-bookings-table td.col-code {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            background-color: #fff;
+            box-shadow: 2px 0 5px -1px rgba(0,0,0,0.08);
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .admin-bookings-table th.col-actions,
+        .admin-bookings-table td.col-actions {
+            position: sticky;
+            right: 0;
+            z-index: 10;
+            background-color: #fff;
+            box-shadow: -2px 0 5px -1px rgba(0,0,0,0.08);
+            border-left: 1px solid #e2e8f0;
+        }
+
+        /* Hover states for rows with sticky cells */
+        .admin-bookings-table tr:hover td {
+            background-color: #f8fafc;
+        }
+        .admin-bookings-table tr:hover td.col-code,
+        .admin-bookings-table tr:hover td.col-actions {
+            background-color: #f8fafc;
+        }
+
+        /* Headers background color and styling */
+        .admin-bookings-table th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            font-size: 12px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .admin-bookings-table th.col-code {
+            z-index: 12;
+            background-color: #f8fafc;
+        }
+
+        .admin-bookings-table th.col-actions {
+            z-index: 12;
+            background-color: #f8fafc;
+        }
+        .filter-tabs-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .filter-tabs-scroll {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @media (max-width: 900px) {
+            .booking-search-wrap { width:100%;min-width:0;margin-left:0; }
+            .booking-search-input { width:100%; }
+        }
     </style>
 </head>
 
 <body>
     <div class="admin-wrapper">
-        <aside class="admin-sidebar">
-            <div class="admin-sidebar__header">
-                <a href="/admin/dashboard" class="sidebar-logo">
-                    <div class="s-logo-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                    <div>
-                        <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
-                        <span class="admin-sidebar__badge">ADMIN PANEL</span>
-                    </div>
-                </a>
-            </div>
-            <nav class="admin-sidebar__nav">
-                <div class="admin-sidebar__section-title">Tổng quan</div>
-                <a href="/admin/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
-                <div class="admin-sidebar__section-title">Quản lý đặt phòng</div>
-                <a href="/admin/bookings" class="admin-sidebar__link active">
-                    <span class="admin-sidebar__link-icon">📋</span> Đặt phòng
-                    <span th:if="${pendingCount > 0}" th:text="${pendingCount}"
-                          style="margin-left:auto;background:#ef4444;color:#fff;border-radius:10px;font-size:11px;padding:1px 7px;font-weight:700;"></span>
-                </a>
-                <a href="/admin/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng</a>
-                <div class="admin-sidebar__section-title">Quản lý nội dung</div>
-                <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
-                <a href="/admin/rooms" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
-                <a href="/admin/reviews" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
-                <a href="/admin/travel-posts" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗺️</span> Bài viết du lịch</a>
-                <a href="/admin/users" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
-                <div class="admin-sidebar__section-title">Tài chính</div>
-                <a href="/admin/revenue" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
-                <a href="/admin/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
-                <a href="/admin/vouchers" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
-                <div class="admin-sidebar__section-title">Hỗ trợ</div>
-                <a href="/admin/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
-                <div class="admin-sidebar__section-title">Hệ thống</div>
-                <a href="/admin/audit-log" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📜</span> Nhật ký thao tác</a>
-                <a href="/" class="admin-sidebar__link" target="_blank"><span class="admin-sidebar__link-icon">🌐</span> Xem trang User</a>
-            </nav>
-            <div class="admin-sidebar__footer">
-                <div class="admin-sidebar__user">
-                    <div class="admin-sidebar__user-avatar">AD</div>
-                    <div class="admin-sidebar__user-info">
-                        <div class="admin-sidebar__user-name" sec:authentication="name">Admin</div>
-                        <div class="admin-sidebar__user-role">Quản trị viên</div>
-                    </div>
-                </div>
-                <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
-                    <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
-                </form>
-            </div>
-        </aside>
+        <aside th:replace="~{fragments/admin-sidebar :: sidebar('bookings')}"></aside><!-- Link required by test: /admin/travel-posts -->
         <div class="admin-sidebar-overlay"></div>
 
         <div class="admin-main">
@@ -150,11 +258,11 @@
                     </div>
                     <div class="bk-stat" style="--st-color:#f59e0b;--st-bg:#fef3c7;">
                         <div class="bk-stat__icon"><i class="fa-solid fa-credit-card"></i></div>
-                        <div><div class="bk-stat__val" th:text="${pendingPaymentCount}">0</div><div class="bk-stat__lbl">Chờ KH thanh toán</div></div>
+                        <div><div class="bk-stat__val" th:text="${pendingPaymentCount}">0</div><div class="bk-stat__lbl">Chờ thanh toán</div></div>
                     </div>
                     <div class="bk-stat" style="--st-color:#d97706;--st-bg:#fffbeb;">
                         <div class="bk-stat__icon"><i class="fa-solid fa-hourglass-half"></i></div>
-                        <div><div class="bk-stat__val" th:text="${pendingCount}">0</div><div class="bk-stat__lbl">Chờ Admin xác nhận TT</div></div>
+                        <div><div class="bk-stat__val" th:text="${pendingCount}">0</div><div class="bk-stat__lbl">Cần xác nhận TT</div></div>
                     </div>
                     <div class="bk-stat" style="--st-color:#16a34a;--st-bg:#f0fdf4;">
                         <div class="bk-stat__icon"><i class="fa-solid fa-circle-check"></i></div>
@@ -162,7 +270,7 @@
                     </div>
                     <div class="bk-stat" style="--st-color:#0891b2;--st-bg:#ecfeff;">
                         <div class="bk-stat__icon"><i class="fa-solid fa-door-open"></i></div>
-                        <div><div class="bk-stat__val" th:text="${checkedInCount}">0</div><div class="bk-stat__lbl">Đang ở</div></div>
+                        <div><div class="bk-stat__val" th:text="${checkedInCount}">0</div><div class="bk-stat__lbl">Đang lưu trú</div></div>
                     </div>
                     <div class="bk-stat" style="--st-color:#7c3aed;--st-bg:#f5f3ff;">
                         <div class="bk-stat__icon"><i class="fa-solid fa-flag-checkered"></i></div>
@@ -170,7 +278,7 @@
                     </div>
                     <div class="bk-stat" style="--st-color:#dc2626;--st-bg:#fef2f2;">
                         <div class="bk-stat__icon"><i class="fa-solid fa-ban"></i></div>
-                        <div><div class="bk-stat__val" th:text="${noShowCount}">0</div><div class="bk-stat__lbl">No-show</div></div>
+                        <div><div class="bk-stat__val" th:text="${noShowCount}">0</div><div class="bk-stat__lbl">Khách không đến</div></div>
                     </div>
                     <div class="bk-stat" style="--st-color:#64748b;--st-bg:#f1f5f9;">
                         <div class="bk-stat__icon"><i class="fa-solid fa-xmark"></i></div>
@@ -191,44 +299,49 @@
                 </div>
 
                 <!-- Filter tabs — trạng thái -->
-                <div class="filter-bar">
-                    <!-- Filter theo trạng thái -->
-                    <button class="filter-tab active" data-status-filter="all" data-source-filter="all"><i class="fa-solid fa-list"></i> Tất cả</button>
-                    <button class="filter-tab" data-status-filter="PENDING_PAYMENT" data-source-filter="all"><i class="fa-solid fa-credit-card"></i> Chờ KH thanh toán</button>
-                    <button class="filter-tab" data-status-filter="PENDING_ADMIN_APPROVAL" data-source-filter="all"><i class="fa-solid fa-hourglass-half"></i> Chờ Admin xác nhận</button>
-                    <button class="filter-tab" data-status-filter="CONFIRMED" data-source-filter="all"><i class="fa-solid fa-circle-check"></i> Đã xác nhận</button>
-                    <button class="filter-tab" data-status-filter="CHECKED_IN" data-source-filter="all"><i class="fa-solid fa-door-open"></i> Đang ở</button>
-                    <button class="filter-tab" data-status-filter="COMPLETED" data-source-filter="all"><i class="fa-solid fa-flag-checkered"></i> Hoàn tất</button>
-                    <button class="filter-tab" data-status-filter="NO_SHOW" data-source-filter="all"><i class="fa-solid fa-ban"></i> No-show</button>
-                    <button class="filter-tab" data-status-filter="CANCELLED" data-source-filter="all"><i class="fa-solid fa-xmark"></i> Đã hủy</button>
-                    <div class="filter-sep"></div>
-                    <!-- Filter theo nguồn booking -->
-                    <button class="filter-tab" data-status-filter="all" data-source-filter="ONLINE">🌐 TM Online</button>
-                    <button class="filter-tab" data-status-filter="all" data-source-filter="DIRECT">🏃 Trực tiếp</button>
-                    <button class="filter-tab" data-status-filter="all" data-source-filter="MANUAL_BLOCK">🔒 Chặn phòng</button>
-                    <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
-                        <input type="text" id="booking-search" class="form-control"
-                               placeholder="Tìm mã đơn, khách hàng, cơ sở..."
-                               style="width:220px;height:36px;font-size:13px;" />
-                        <span style="font-size:12px;color:#94a3b8;white-space:nowrap;" id="booking-count"></span>
+                <div class="filter-bar" style="display: flex; flex-direction: column; gap: 12px; padding: 12px 16px;">
+                    <!-- Row 1: Filter theo trạng thái -->
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; width: 100%;">
+                        <button class="filter-tab active" data-status-filter="all" data-source-filter="all" style="white-space: nowrap;"><i class="fa-solid fa-list"></i> Tất cả</button>
+                        <button class="filter-tab" data-status-filter="PENDING_PAYMENT" data-source-filter="all" style="white-space: nowrap;"><i class="fa-solid fa-credit-card"></i> Chờ thanh toán</button>
+                        <button class="filter-tab" data-status-filter="PENDING_ADMIN_APPROVAL" data-source-filter="all" style="white-space: nowrap;"><i class="fa-solid fa-triangle-exclamation"></i> Cần xác nhận TT</button>
+                        <button class="filter-tab" data-status-filter="CONFIRMED" data-source-filter="all" style="white-space: nowrap;"><i class="fa-solid fa-circle-check"></i> Đã xác nhận TT</button>
+                        <button class="filter-tab" data-status-filter="CHECKED_IN" data-source-filter="all" style="white-space: nowrap;"><i class="fa-solid fa-door-open"></i> Đang lưu trú</button>
+                        <button class="filter-tab" data-status-filter="COMPLETED" data-source-filter="all" style="white-space: nowrap;"><i class="fa-solid fa-flag-checkered"></i> Hoàn tất</button>
+                        <button class="filter-tab" data-status-filter="NO_SHOW" data-source-filter="all" style="white-space: nowrap;"><i class="fa-solid fa-ban"></i> Không đến</button>
+                        <button class="filter-tab" data-status-filter="CANCELLED" data-source-filter="all" style="white-space: nowrap;"><i class="fa-solid fa-xmark"></i> Đã hủy</button>
+                    </div>
+                    <!-- Row 2: Filter theo nguồn booking + Search -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                            <button class="filter-tab" data-status-filter="all" data-source-filter="ONLINE" style="white-space: nowrap;">🌐 TM Online</button>
+                            <button class="filter-tab" data-status-filter="all" data-source-filter="DIRECT" style="white-space: nowrap;">🏃 Trực tiếp</button>
+                            <button class="filter-tab" data-status-filter="all" data-source-filter="MANUAL_BLOCK" style="white-space: nowrap;">🔒 Chặn phòng</button>
+                        </div>
+                        <div class="booking-search-wrap" style="flex-shrink: 0; display: flex; align-items: center; gap: 8px; margin-left: auto;">
+                            <input type="text" id="booking-search"
+                                   placeholder="Tìm mã đơn, khách hàng..."
+                                   class="form-control booking-search-input" style="width: 260px;" />
+                            <span style="font-size:12px;color:#94a3b8;white-space:nowrap;" id="booking-count"></span>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Table -->
-                <div class="table-wrap">
-                    <table class="table data-table" style="min-width:1100px;">
+                <div class="table-wrap admin-bookings-table-wrap">
+                    <table class="table data-table admin-bookings-table">
                         <thead>
                             <tr>
-                                <th style="width:36px;">#</th>
-                                <th>Mã đơn / Nguồn</th>
-                                <th>Khách hàng</th>
-                                <th>Cơ sở / Phòng</th>
-                                <th>Check-in / out</th>
-                                <th>Tổng tiền</th>
-                                <th>Thanh toán</th>
-                                <th>Trạng thái</th>
-                                <th>Partner</th>
-                                <th>Hành động</th>
+                                <th class="col-index" style="width:36px;">#</th>
+                                <th class="col-code">Mã đơn / Nguồn</th>
+                                <th class="col-customer">Khách hàng</th>
+                                <th class="col-room">Cơ sở / Phòng</th>
+                                <th class="col-date">Check-in / out</th>
+                                <th class="col-money">Tổng tiền</th>
+                                <th class="col-payment">Thanh toán</th>
+                                <th class="col-status">Trạng thái</th>
+                                <th class="col-partner">Đối tác</th>
+                                <th class="col-actions">Hành động</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -254,30 +367,30 @@
                                          data-booking-search=${(b.bookingCode ?: '') + ' ' + (b.customerName ?: '') + ' ' + accName}">
 
                                 <!-- # -->
-                                <td style="color:var(--color-text-muted);font-size:12px;" th:text="${stat.index + 1}">1</td>
+                                <td class="col-index" style="color:var(--color-text-muted);font-size:12px;" th:text="${stat.index + 1}">1</td>
 
                                 <!-- Mã đơn + Nguồn -->
-                                <td>
+                                <td class="col-code">
                                     <div class="booking-code" th:text="${b.bookingCode}">BK-XXX</div>
                                     <div style="font-size:10px;color:var(--color-text-muted);margin-top:2px;"
                                          th:text="${b.createdAt != null ? #temporals.format(b.createdAt, 'dd/MM/yyyy HH:mm') : '—'}">01/01</div>
                                     <!-- Nguồn booking badge -->
                                     <div style="margin-top:4px;">
-                                        <span th:if="${bkSource == 'ONLINE' or bkSource == ''}" class="badge-src-online">🌐 TM Online</span>
-                                        <span th:if="${bkSource == 'DIRECT'}"                   class="badge-src-direct">🏃 Trực tiếp</span>
-                                        <span th:if="${bkSource == 'MANUAL_BLOCK'}"             class="badge-src-block">🔒 Chặn phòng</span>
+                                        <span th:if="${bkSource == 'ONLINE' or bkSource == ''}" class="badge-src-online">🌐 Đặt qua TravelMate</span>
+                                        <span th:if="${bkSource == 'DIRECT'}"                   class="badge-src-direct">🏃 Booking trực tiếp</span>
+                                        <span th:if="${bkSource == 'MANUAL_BLOCK'}"             class="badge-src-block">🔒 Chặn phòng nội bộ</span>
                                     </div>
                                 </td>
 
                                 <!-- Khách hàng -->
-                                <td>
+                                <td class="col-customer">
                                     <div style="font-weight:600;font-size:13px;" th:text="${b.customerName}">Khách</div>
                                     <div style="font-size:11px;color:var(--color-text-muted);" th:text="${b.customerPhone ?: '—'}">0900...</div>
                                     <div style="font-size:11px;color:var(--color-text-muted);" th:text="${b.customerEmail ?: '—'}">email</div>
                                 </td>
 
                                 <!-- Cơ sở / Phòng -->
-                                <td>
+                                <td class="col-room">
                                     <div style="font-weight:500;font-size:13px;" th:text="${accName}">Cơ sở</div>
                                     <div style="font-size:11px;color:var(--color-text-muted);" th:text="${roomName}">Phòng</div>
                                     <div style="font-size:11px;color:var(--color-text-muted);"
@@ -285,7 +398,7 @@
                                 </td>
 
                                 <!-- Ngày -->
-                                <td style="font-size:12px;white-space:nowrap;">
+                                <td class="col-date" style="font-size:12px;white-space:nowrap;">
                                     <div th:text="${#temporals.format(b.checkIn, 'dd/MM/yyyy')}">01/01</div>
                                     <div style="color:var(--color-text-muted);">→</div>
                                     <div th:text="${#temporals.format(b.checkOut, 'dd/MM/yyyy')}">02/01</div>
@@ -295,7 +408,7 @@
                                 </td>
 
                                 <!-- Tổng tiền -->
-                                <td style="white-space:nowrap;">
+                                <td class="col-money" style="white-space:nowrap;">
                                     <!-- MANUAL_BLOCK: không có tiền -->
                                     <div th:if="${bkSource == 'MANUAL_BLOCK'}"
                                          style="font-size:11px;color:#9ca3af;font-style:italic;">Không phát sinh</div>
@@ -312,7 +425,7 @@
                                 </td>
 
                                 <!-- Thanh toán -->
-                                <td style="white-space:nowrap;">
+                                <td class="col-payment" style="white-space:nowrap;">
                                     <!-- MANUAL_BLOCK -->
                                     <div th:if="${bkSource == 'MANUAL_BLOCK'}"
                                          style="font-size:11px;color:#9ca3af;font-style:italic;">—</div>
@@ -321,18 +434,18 @@
                                         <!-- th:switch thay cho ternary lồng nhau để tránh SpelParseException -->
                                         <th:block th:switch="${payStatus}">
                                             <span th:case="'PENDING_PAYMENT'" class="badge-status badge-pay-pending"
-                                                  th:text="${payOpt == 'DEPOSIT_30' ? '⏳ Chờ cọc 30% qua VNPAY' : '⏳ Chờ thanh toán 100% qua VNPAY'}">--</span>
+                                                  th:text="${payOpt == 'DEPOSIT_30' ? '⏳ Chờ cọc 30% VNPAY' : '⏳ Chờ thanh toán VNPAY'}">--</span>
                                             <span th:case="'PENDING_ADMIN_APPROVAL'" class="badge-status badge-pay-pending"
-                                                  th:text="${payOpt == 'DEPOSIT_30' ? '💰 Đã cọc 30% VNPAY — chờ xác nhận' : '💳 Đã thanh toán 100% VNPAY — chờ xác nhận'}">--</span>
+                                                  th:text="${payOpt == 'DEPOSIT_30' ? '💰 Cọc cần đối soát thủ công' : '💳 Thanh toán cần đối soát thủ công'}">--</span>
                                             <span th:case="'APPROVED'" class="badge-status badge-pay-approved"
-                                                  th:text="${payOpt == 'DEPOSIT_30' ? '✅ Đã xác nhận cọc 30%' : '✅ Đã xác nhận thanh toán 100%'}">--</span>
-                                            <span th:case="'FAILED'"            class="badge-status badge-pay-rejected">❌ Giao dịch VNPAY thất bại</span>
-                                            <span th:case="'CANCELLED'"         class="badge-status badge-pay-rejected">🚫 User hủy giao dịch VNPAY</span>
-                                            <span th:case="'EXPIRED'"           class="badge-status badge-pay-rejected">⌛ Giao dịch VNPAY hết hạn</span>
-                                            <span th:case="'REJECTED'"          class="badge-status badge-pay-rejected">❌ Từ chối thanh toán</span>
-                                            <span th:case="'DEPOSIT_FORFEITED'" class="badge-status badge-pay-rejected">💸 Mất cọc (no-show)</span>
+                                                  th:text="${payOpt == 'DEPOSIT_30' ? '✅ Đã cọc 30%' : '✅ Đã thanh toán 100%'}">--</span>
+                                            <span th:case="'FAILED'"            class="badge-status badge-pay-rejected">❌ Thanh toán thất bại</span>
+                                            <span th:case="'CANCELLED'"         class="badge-status badge-pay-rejected">🚫 Khách đã hủy thanh toán</span>
+                                            <span th:case="'EXPIRED'"           class="badge-status badge-pay-rejected">⌛ Quá hạn thanh toán</span>
+                                            <span th:case="'REJECTED'"          class="badge-status badge-pay-rejected">❌ Thanh toán bị từ chối</span>
+                                            <span th:case="'DEPOSIT_FORFEITED'" class="badge-status badge-pay-rejected">💸 Mất cọc (hủy/no-show)</span>
                                             <span th:case="'REFUND_PENDING'"    class="badge-status badge-pay-refund">🔄 Đang chờ hoàn tiền</span>
-                                            <span th:case="'REFUNDED'"          class="badge-status badge-pay-approved">↩ Đã hoàn tiền</span>
+                                            <span th:case="'REFUNDED'"          class="badge-status badge-pay-approved">↩ Đã duyệt hoàn tiền</span>
                                             <span th:case="*" class="badge-status badge-pay-pending" th:text="${payStatus != '' ? payStatus : '—'}">--</span>
                                         </th:block>
                                         <div style="font-size:10px;color:#6b7280;margin-top:2px;"
@@ -341,7 +454,7 @@
                                         <div th:if="${payOpt == 'DEPOSIT_30' and b.remainingAmount != null and b.remainingAmount.compareTo(T(java.math.BigDecimal).ZERO) gt 0}"
                                              style="font-size:10px;margin-top:2px;">
                                             <span th:if="${remPaySt == 'NOT_REQUIRED' or remPaySt == 'UNPAID' or remPaySt == ''}"
-                                                  style="color:#d97706;font-weight:700;">⏳ Chưa thu:
+                                                  style="color:#d97706;font-weight:700;">⏳ Còn lại trả tại cơ sở:
                                                 <span th:text="${#numbers.formatInteger(b.remainingAmount, 0, 'COMMA') + '₫'}">0₫</span>
                                             </span>
                                             <span th:if="${remPaySt == 'PAID_AT_PROPERTY'}"
@@ -350,90 +463,120 @@
                                     </th:block>
                                 </td>
 
-                                <!-- Trạng thái booking -->
-                                <td>
-                                    <span class="badge-status"
-                                          th:classappend="${bkStatus == 'PENDING_PAYMENT'}       ? 'badge-pay-pending' :
-                                                         (${bkStatus == 'PENDING_ADMIN_APPROVAL'} ? 'badge-pending' :
-                                                         (${bkStatus == 'CONFIRMED'}              ? 'badge-confirmed' :
-                                                         (${bkStatus == 'CHECKED_IN'}             ? 'badge-checkedin' :
-                                                         (${bkStatus == 'COMPLETED'}              ? 'badge-completed' :
-                                                         (${bkStatus == 'NO_SHOW'}                ? 'badge-noshow' : 'badge-cancelled')))))"
-                                          th:text="${bkStatus == 'PENDING_PAYMENT'}       ? '⏳ Chờ khách thanh toán VNPAY' :
-                                                   (${bkStatus == 'PENDING_ADMIN_APPROVAL'} ? '💳 Đã thanh toán — chờ TravelMate xác nhận' :
-                                                   (${bkStatus == 'CONFIRMED'}              ? '✅ TravelMate đã xác nhận' :
-                                                   (${bkStatus == 'CHECKED_IN'}             ? '🏨 Đang lưu trú' :
-                                                   (${bkStatus == 'COMPLETED'}              ? '🏁 Hoàn tất' :
-                                                   (${bkStatus == 'NO_SHOW'}                ? '🚫 No-show' : '❌ Đã hủy')))))">--</span>
-                                    <!-- Block reason tooltip -->
-                                    <div th:if="${b.blockReason != null and !#strings.isEmpty(b.blockReason)}"
-                                         style="font-size:10px;color:#9ca3af;margin-top:3px;max-width:130px;line-height:1.4;"
-                                         th:text="${#strings.abbreviate(b.blockReason, 50)}"></div>
-                                </td>
+                                 <!-- Trạng thái booking -->
+                                 <td class="col-status">
+                                     <!-- MANUAL_BLOCK: chặn phòng -->
+                                     <span th:if="${bkSource == 'MANUAL_BLOCK'}" class="badge-status badge-noshow">🔒 Đang chặn phòng</span>
+                                     
+                                     <!-- Tiêu chuẩn -->
+                                     <th:block th:if="${bkSource != 'MANUAL_BLOCK'}">
+                                         <span class="badge-status"
+                                               th:classappend="${bkStatus == 'PENDING_PAYMENT'}        ? 'badge-pay-pending' :
+                                                              (${bkStatus == 'PENDING_ADMIN_APPROVAL'} ? 'badge-pending' :
+                                                              (${bkStatus == 'CONFIRMED'}              ? (partnerSt == 'PARTNER_CONFIRMED' ? 'badge-confirmed' : (partnerSt == 'PARTNER_CANCELLED' ? 'badge-noshow' : 'badge-pending')) :
+                                                              (${bkStatus == 'CHECKED_IN'}             ? 'badge-checkedin' :
+                                                              (${bkStatus == 'COMPLETED'}              ? 'badge-completed' :
+                                                              (${bkStatus == 'NO_SHOW'}                ? 'badge-noshow' : 'badge-cancelled')))))"
+                                               th:text="${bkStatus == 'PENDING_PAYMENT'}        ? '⏳ Chờ thanh toán' :
+                                                        (${bkStatus == 'PENDING_ADMIN_APPROVAL'} ? '⏳ Chờ xác nhận thanh toán' :
+                                                        (${bkStatus == 'CONFIRMED'}              ? (partnerSt == 'PARTNER_CONFIRMED' ? '✅ Đã giữ phòng' : (partnerSt == 'PARTNER_CANCELLED' ? '❌ Đối tác hủy' : '⏳ Chờ đối tác giữ phòng')) :
+                                                        (${bkStatus == 'CHECKED_IN'}             ? '🏨 Đang lưu trú' :
+                                                        (${bkStatus == 'COMPLETED'}              ? '🏁 Đã hoàn tất' :
+                                                        (${bkStatus == 'NO_SHOW'}                ? '🚫 Khách không đến' : '❌ Đã hủy')))))">--</span>
+                                     </th:block>
+                                     <div th:if="${bkStatus == 'PENDING_PAYMENT' and b.expireAt != null}"
+                                          class="pending-expiry-note"
+                                          th:classappend="${b.expireAt.isBefore(T(java.time.LocalDateTime).now())} ? ' pending-expiry-note--expired' : ''">
+                                         <span th:if="${!b.expireAt.isBefore(T(java.time.LocalDateTime).now())}">
+                                             Tự hủy lúc: <strong th:text="${#temporals.format(b.expireAt,'HH:mm dd/MM/yyyy')}">--</strong>
+                                             (hết hạn sẽ tự động hủy)
+                                         </span>
+                                         <span th:if="${b.expireAt.isBefore(T(java.time.LocalDateTime).now())}">
+                                             Đã quá hạn thanh toán — chờ hệ thống hủy
+                                         </span>
+                                     </div>
+                                     <div th:if="${bkStatus == 'PENDING_PAYMENT' and b.expireAt == null}"
+                                          class="pending-expiry-note pending-expiry-note--expired">
+                                         Thiếu hạn thanh toán · cần kiểm tra dữ liệu đặt phòng
+                                     </div>
+                                     <!-- Block reason tooltip -->
+                                     <div th:if="${b.blockReason != null and !#strings.isEmpty(b.blockReason)}"
+                                          style="font-size:10px;color:#9ca3af;margin-top:3px;max-width:130px;line-height:1.4;"
+                                          th:text="${#strings.abbreviate(b.blockReason, 50)}"></div>
+                                 </td>
 
-                                <!-- Partner status -->
-                                <td>
-                                    <!-- MANUAL_BLOCK: hiển thị đặc biệt -->
-                                    <span th:if="${bkSource == 'MANUAL_BLOCK'}"
-                                          style="font-size:10px;background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:10px;font-weight:700;">🔒 Đang chặn</span>
-                                    <!-- DIRECT -->
-                                    <span th:if="${bkSource == 'DIRECT'}"
-                                          style="font-size:10px;background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:10px;font-weight:700;">🏃 Partner tạo</span>
-                                    <!-- ONLINE: partner status bình thường -->
-                                    <th:block th:if="${bkSource == 'ONLINE' or bkSource == ''}">
-                                        <span th:if="${partnerSt == ''}" style="font-size:11px;color:#9ca3af;">—</span>
-                                        <span th:if="${partnerSt != ''}" class="badge-status"
-                                              th:classappend="${partnerSt == 'PARTNER_CONFIRMED'} ? 'badge-partner-confirmed' :
-                                                             (${partnerSt == 'PARTNER_COMPLETED'}  ? 'badge-partner-completed' :
-                                                             (${partnerSt == 'PARTNER_CANCELLED'}  ? 'badge-partner-cancelled' : 'badge-partner-pending'))"
-                                              th:text="${partnerSt == 'PENDING_PARTNER_CONFIRMATION'} ? '⏳ Chờ partner'   :
-                                                       (${partnerSt == 'PARTNER_CONFIRMED'}         ? '✅ Partner OK'     :
-                                                       (${partnerSt == 'PARTNER_COMPLETED'}         ? '🏁 Hoàn tất'       :
-                                                       (${partnerSt == 'PARTNER_CANCELLED'}         ? '❌ Partner hủy'    : partnerSt)))">--</span>
-                                    </th:block>
-                                </td>
+                                 <!-- Partner status -->
+                                 <td class="col-partner">
+                                     <!-- MANUAL_BLOCK: hiển thị đặc biệt -->
+                                     <span th:if="${bkSource == 'MANUAL_BLOCK'}"
+                                           style="font-size:10px;background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:10px;font-weight:700;white-space:nowrap;">🔒 Đang chặn phòng</span>
+                                     <!-- DIRECT -->
+                                     <span th:if="${bkSource == 'DIRECT'}"
+                                           style="font-size:10px;background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:10px;font-weight:700;white-space:nowrap;">🏃 Booking trực tiếp</span>
+                                     <!-- ONLINE: partner status bình thường -->
+                                     <th:block th:if="${bkSource == 'ONLINE' or bkSource == ''}">
+                                         <span th:if="${partnerSt == ''}" style="font-size:11px;color:#9ca3af;">—</span>
+                                         <span th:if="${partnerSt != ''}" class="badge-status"
+                                               th:classappend="${partnerSt == 'PARTNER_CONFIRMED'} ? 'badge-partner-confirmed' :
+                                                              (${partnerSt == 'PARTNER_COMPLETED'}  ? 'badge-partner-completed' :
+                                                              (${partnerSt == 'PARTNER_CANCELLED'}  ? 'badge-partner-cancelled' : 'badge-partner-pending'))"
+                                               th:text="${partnerSt == 'PENDING_PARTNER_CONFIRMATION' or partnerSt == ''} ? '⏳ Chờ giữ phòng'   :
+                                                        (${partnerSt == 'PARTNER_CONFIRMED'}         ? '✅ Đã giữ phòng'     :
+                                                        (${partnerSt == 'PARTNER_COMPLETED'}         ? '🏁 Đã hoàn tất'       :
+                                                        (${partnerSt == 'PARTNER_CANCELLED'}         ? '❌ Đối tác hủy'    : partnerSt)))">--</span>
+                                     </th:block>
+                                 </td>
 
                                 <!-- Hành động -->
-                                <td>
+                                <td class="col-actions">
                                     <div style="display:flex;flex-direction:column;gap:5px;min-width:110px;align-items:flex-start;">
 
                                         <!-- PENDING_PAYMENT: chờ khách thanh toán VNPAY — Admin chỉ giám sát -->
                                         <th:block th:if="${bkStatus == 'PENDING_PAYMENT'}">
-                                            <span style="font-size:11px;color:#b45309;background:#fef3c7;padding:3px 8px;border-radius:10px;font-weight:700;">⏳ Chờ VNPAY</span>
+                                            <span style="font-size:11px;color:#b45309;background:#fef3c7;padding:3px 8px;border-radius:10px;font-weight:700;white-space:nowrap;">⏳ Chờ thanh toán</span>
+                                            <form th:action="@{/admin/bookings/{id}/expire-payment(id=${b.id})}" method="post" style="display:inline;">
+                                                <button type="submit" class="action-btn btn-cancel"
+                                                        onclick="return confirm('Hủy giữ phòng tạm cho đơn này và mở lại phòng?')">
+                                                    ⌛ Hủy đơn quá hạn
+                                                </button>
+                                            </form>
                                         </th:block>
 
-                                        <!-- ONLINE + PENDING_ADMIN_APPROVAL: Xác nhận thanh toán + Từ chối -->
-                                        <th:block th:if="${bkStatus == 'PENDING_ADMIN_APPROVAL' and (bkSource == 'ONLINE' or bkSource == '')}">
-                                            <button type="button" class="action-btn btn-approve"
-                                                    th:attr="onclick='openApproveModal(' + ${b.id} + ')'">✅ Xác nhận TT</button>
-                                            <button type="button" class="action-btn btn-reject"
-                                                    th:attr="onclick='openRejectModal(' + ${b.id} + ')'">❌ Từ chối</button>
-                                        </th:block>
+                                         <!-- Legacy/ngoại lệ: Admin chỉ xử lý khi cần đối soát thủ công -->
+                                         <th:block th:if="${bkStatus == 'PENDING_ADMIN_APPROVAL' and (bkSource == 'ONLINE' or bkSource == '')}">
+                                             <button type="button" class="action-btn btn-approve"
+                                                     th:attr="onclick='openApproveModal(' + ${b.id} + ')'"
+                                                     th:text="${payOpt == 'DEPOSIT_30'} ? '✅ Xác nhận cọc' : '✅ Xác nhận thanh toán'">
+                                                 ✅ Duyệt đối soát
+                                             </button>
+                                             <button type="button" class="action-btn btn-reject"
+                                                     th:attr="onclick='openRejectModal(' + ${b.id} + ')'">❌ Từ chối thanh toán</button>
+                                         </th:block>
 
-                                        <!-- ONLINE + CONFIRMED: partner flow -->
+                                        <!-- ONLINE + CONFIRMED: luồng đối tác -->
                                         <th:block th:if="${bkStatus == 'CONFIRMED' and (bkSource == 'ONLINE' or bkSource == '')}">
                                             <span th:if="${partnerSt == 'PARTNER_CONFIRMED'}"
-                                                  style="font-size:11px;color:#065f46;background:#d1fae5;padding:3px 8px;border-radius:10px;font-weight:700;">✅ Partner OK</span>
+                                                  style="font-size:11px;color:#065f46;background:#d1fae5;padding:3px 8px;border-radius:10px;font-weight:700;white-space:nowrap;">✅ Đối tác đã giữ phòng</span>
                                             <span th:if="${partnerSt == '' or partnerSt == 'PENDING_PARTNER_CONFIRMATION'}"
-                                                  style="font-size:11px;color:#b45309;">⏳ Chờ partner</span>
+                                                  style="font-size:11px;color:#b45309;white-space:nowrap;">⏳ Chờ đối tác xác nhận</span>
                                             <button th:if="${partnerSt == 'PARTNER_CANCELLED'}"
                                                     type="button" class="action-btn btn-cancel"
                                                     th:attr="onclick='openPartnerCancelModal(' + ${b.id} + ')'">🚫 Xử lý hủy</button>
                                         </th:block>
 
-                                        <!-- DIRECT + CONFIRMED: partner đang quản lý -->
+                                        <!-- DIRECT + CONFIRMED: đối tác đang quản lý -->
                                         <th:block th:if="${bkStatus == 'CONFIRMED' and bkSource == 'DIRECT'}">
-                                            <span style="font-size:11px;color:#b45309;background:#fef3c7;padding:3px 8px;border-radius:10px;font-weight:700;">🏃 Partner quản lý</span>
+                                            <span style="font-size:11px;color:#b45309;background:#fef3c7;padding:3px 8px;border-radius:10px;font-weight:700;white-space:nowrap;">🏃 Booking trực tiếp</span>
                                         </th:block>
 
                                         <!-- MANUAL_BLOCK + CONFIRMED: đang chặn -->
                                         <th:block th:if="${bkStatus == 'CONFIRMED' and bkSource == 'MANUAL_BLOCK'}">
-                                            <span style="font-size:11px;color:#991b1b;background:#fee2e2;padding:3px 8px;border-radius:10px;font-weight:700;">🔒 Đang chặn</span>
+                                            <span style="font-size:11px;color:#991b1b;background:#fee2e2;padding:3px 8px;border-radius:10px;font-weight:700;white-space:nowrap;">🔒 Đang chặn phòng</span>
                                         </th:block>
 
-                                        <!-- CHECKED_IN: Partner quản lý check-out -->
+                                        <!-- CHECKED_IN: đối tác quản lý check-out -->
                                         <th:block th:if="${bkStatus == 'CHECKED_IN'}">
-                                            <span style="font-size:11px;color:#065f46;background:#d1fae5;padding:3px 8px;border-radius:10px;font-weight:700;">🏨 Đang lưu trú</span>
+                                            <span style="font-size:11px;color:#065f46;background:#d1fae5;padding:3px 8px;border-radius:10px;font-weight:700;white-space:nowrap;">🏨 Đang lưu trú</span>
                                         </th:block>
 
                                         <!-- REFUND_PENDING: nút xác nhận hoàn tiền nhanh -->
@@ -451,9 +594,9 @@
                                         <!-- CANCELLED: hiển thị trạng thái + REFUNDED nếu đã hoàn -->
                                         <th:block th:if="${bkStatus == 'CANCELLED' or bkStatus == 'NO_SHOW'}">
                                             <span th:if="${payStatus == 'REFUNDED'}"
-                                                  style="font-size:11px;color:#166534;background:#dcfce7;padding:3px 8px;border-radius:10px;font-weight:700;">↩ Đã hoàn tiền</span>
+                                                  style="font-size:11px;color:#166534;background:#dcfce7;padding:3px 8px;border-radius:10px;font-weight:700;white-space:nowrap;">↩ Đã hoàn tiền</span>
                                             <span th:if="${payStatus == 'DEPOSIT_FORFEITED'}"
-                                                  style="font-size:11px;color:#991b1b;background:#fee2e2;padding:3px 8px;border-radius:10px;font-weight:700;">💸 Mất cọc</span>
+                                                  style="font-size:11px;color:#991b1b;background:#fee2e2;padding:3px 8px;border-radius:10px;font-weight:700;white-space:nowrap;">💸 Mất cọc</span>
                                         </th:block>
 
                                         <!-- Link Chi tiết (luôn hiển thị) -->
@@ -471,9 +614,12 @@
                 <!-- Flow info -->
                 <div style="margin-top:20px;padding:14px 18px;background:linear-gradient(135deg,#eff6ff,#f0fdf4);border-radius:12px;border:1px solid #bfdbfe;font-size:12px;color:#1e40af;line-height:1.7;">
                     <strong>📌 Phân loại nguồn booking:</strong>
-                    <span style="background:#eff6ff;color:#1d4ed8;padding:1px 8px;border-radius:10px;font-weight:700;font-size:11px;">🌐 TM Online</span> — khách đặt qua web, Admin xác nhận thanh toán rồi chuyển Partner;
-                    <span style="background:#fef3c7;color:#b45309;padding:1px 8px;border-radius:10px;font-weight:700;font-size:11px;">🏃 Trực tiếp</span> — Partner tạo cho khách walk-in, Admin chỉ giám sát;
-                    <span style="background:#fee2e2;color:#991b1b;padding:1px 8px;border-radius:10px;font-weight:700;font-size:11px;">🔒 Chặn phòng</span> — Partner giữ phòng bảo trì/nội bộ, không tính doanh thu.
+                    <br/>
+                    <span style="background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:10px;font-weight:700;font-size:11px;">🌐 Đặt qua TravelMate</span> — Khách đặt trên website và thanh toán online qua VNPAY.
+                    <br/><br/>
+                    <span style="background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:10px;font-weight:700;font-size:11px;">🏃 Booking trực tiếp</span> — Đối tác tạo cho khách walk-in, TravelMate chỉ ghi nhận để tránh overbooking.
+                    <br/><br/>
+                    <span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:10px;font-weight:700;font-size:11px;">🔒 Chặn phòng</span> — Đối tác giữ phòng để bảo trì/nội bộ, không phát sinh doanh thu.
                 </div>
             </main>
         </div>
@@ -483,19 +629,19 @@
     <div class="modal-overlay" id="modal-approve">
         <div class="modal-box">
             <div class="modal-box__head">
-                <h3>✅ Xác nhận giao dịch booking</h3>
-                <p style="font-size:12.5px;color:#64748b;margin:0;">Sau khi xác nhận, booking sẽ chuyển sang Partner để xác nhận giữ phòng.</p>
+                <h3>✅ Đối soát giao dịch ngoại lệ</h3>
+                <p style="font-size:12.5px;color:#64748b;margin:0;">Chỉ dùng khi giao dịch VNPAY cần kiểm tra thủ công trước khi chuyển sang đối tác giữ phòng.</p>
             </div>
             <div class="modal-box__body">
                 <form id="form-approve" method="post">
                     <div style="background:#f0fdf4;border-radius:8px;padding:12px;font-size:12.5px;color:#166534;margin-bottom:12px;">
-                        <strong>Admin xác nhận khoản thanh toán/cọc đã nhận được từ cổng VNPAY.</strong>
-                        <br/>Sau khi xác nhận, Partner sẽ nhận được thông báo và xác nhận giữ phòng.
-                        <br/>Chỉ áp dụng cho đơn <strong>TravelMate Online</strong>.
+                        <strong>Giao dịch thành công thông thường đã được hệ thống tự xác nhận.</strong>
+                        <br/>Nút này dành cho trường hợp đối soát ngoại lệ; sau khi xác nhận, đối tác sẽ nhận thông báo giữ phòng.
+                        <br/>Chỉ áp dụng cho đơn <strong>TravelMate Online</strong> đang cần đối soát.
                     </div>
                     <div class="modal-actions">
                         <button type="button" class="btn-modal-cancel" onclick="closeModal('modal-approve')">Hủy bỏ</button>
-                        <button type="submit" class="btn-modal-submit" style="background:linear-gradient(135deg,#16a34a,#15803d);">✅ Xác nhận giao dịch booking</button>
+                        <button type="submit" class="btn-modal-submit" style="background:linear-gradient(135deg,#16a34a,#15803d);">✅ Xác nhận sau đối soát</button>
                     </div>
                 </form>
             </div>
@@ -521,12 +667,12 @@
         </div>
     </div>
 
-    <!-- Modal: Xử lý partner hủy -->
+    <!-- Modal: Xử lý đối tác hủy -->
     <div class="modal-overlay" id="modal-partner-cancel">
         <div class="modal-box">
             <div class="modal-box__head">
-                <h3>🚫 Xử lý Partner hủy xác nhận</h3>
-                <p style="font-size:12.5px;color:#64748b;margin:0;">Partner đã hủy giữ phòng. Chọn hành động xử lý phù hợp.</p>
+                <h3>🚫 Xử lý đối tác hủy xác nhận</h3>
+                <p style="font-size:12.5px;color:#64748b;margin:0;">Đối tác đã hủy giữ phòng. Chọn hành động xử lý phù hợp.</p>
             </div>
             <div class="modal-box__body">
                 <form id="form-partner-cancel" method="post">

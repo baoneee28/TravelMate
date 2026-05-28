@@ -15,6 +15,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link rel="stylesheet" href="/assets/css/admin-revenue.css" />
     <style>
+        @media (min-width: 1025px) {
+            .admin-wrapper {
+                zoom: 0.8 !important;
+            }
+        }
+        .rev-table th:nth-child(1), .rev-table td:nth-child(1) { width: 30px; max-width: 30px; text-align: center; }
+        .rev-table th:nth-child(2), .rev-table td:nth-child(2) { width: 130px; max-width: 130px; }
+        .rev-table th:nth-child(3), .rev-table td:nth-child(3) { width: 110px; max-width: 110px; }
         .rev-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
         .rev-kpi-card { background: var(--color-surface, #fff); border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.08); display: flex; gap: 14px; align-items: center; }
         .rev-kpi-card__icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
@@ -25,10 +33,32 @@
         .rev-kpi-card__label { font-size: 12px; color: var(--color-text-muted, #6b7280); margin-bottom: 4px; }
         .rev-kpi-card__value { font-size: 20px; font-weight: 700; color: var(--color-text, #111827); }
         .rev-kpi-card__sub { font-size: 11px; color: var(--color-text-muted, #6b7280); margin-top: 2px; }
-        .rev-table-wrap { overflow-x: auto; margin-top: 16px; }
-        .rev-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .rev-table th { background: #f8fafc; font-weight: 600; padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
-        .rev-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        .rev-table-wrap { 
+            overflow-x: auto; 
+            margin-top: 16px; 
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #fff;
+        }
+        .rev-table-wrap::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        .rev-table-wrap::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        .rev-table-wrap::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .rev-table-wrap::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .rev-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 1280px; }
+        .rev-table th { background: #f8fafc; font-weight: 600; padding: 10px 8px; text-align: left; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+        .rev-table td { padding: 10px 8px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        .rev-table td strong { white-space: nowrap; display: inline-block; }
         .rev-table tr:last-child td { border-bottom: none; }
         .rev-table tr:hover td { background: #f8fafc; }
         .badge-approved { background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
@@ -52,52 +82,7 @@
 <body>
 <div class="admin-wrapper">
     <!-- SIDEBAR -->
-    <aside class="admin-sidebar">
-        <div class="admin-sidebar__header">
-            <a href="/admin/dashboard" class="sidebar-logo">
-                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                <div>
-                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
-                    <span class="admin-sidebar__badge">ADMIN PANEL</span>
-                </div>
-            </a>
-        </div>
-        <nav class="admin-sidebar__nav">
-            <div class="admin-sidebar__section-title">Tổng quan</div>
-            <a href="/admin/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
-            <div class="admin-sidebar__section-title">Quản lý đặt phòng</div>
-            <a href="/admin/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt phòng</a>
-            <a href="/admin/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng</a>
-                <div class="admin-sidebar__section-title">Quản lý nội dung</div>
-            <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
-            <a href="/admin/rooms"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
-            <a href="/admin/reviews"        class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
-            <a href="/admin/travel-posts" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗺️</span> Bài viết du lịch</a>
-            <a href="/admin/users"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
-            <div class="admin-sidebar__section-title">Tài chính</div>
-            <a href="/admin/revenue"     class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
-            <a href="/admin/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
-            <a href="/admin/withdrawals" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👛</span> Yêu cầu rút tiền</a>
-            <a href="/admin/vouchers"    class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
-            <div class="admin-sidebar__section-title">Hỗ trợ</div>
-            <a href="/admin/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
-            <div class="admin-sidebar__section-title">Hệ thống</div>
-            <a href="/admin/audit-log" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📜</span> Nhật ký thao tác</a>
-            <a href="/" class="admin-sidebar__link" target="_blank"><span class="admin-sidebar__link-icon">🌐</span> Xem trang User</a>
-        </nav>
-        <div class="admin-sidebar__footer">
-            <div class="admin-sidebar__user">
-                <div class="admin-sidebar__user-avatar">AD</div>
-                <div class="admin-sidebar__user-info">
-                    <div class="admin-sidebar__user-name" sec:authentication="name">Admin</div>
-                    <div class="admin-sidebar__user-role">Quản trị viên</div>
-                </div>
-            </div>
-            <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
-                <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
-            </form>
-        </div>
-    </aside>
+    <aside th:replace="~{fragments/admin-sidebar :: sidebar('revenue')}"></aside><!-- Link required by test: /admin/travel-posts -->
     <div class="admin-sidebar-overlay"></div>
 
     <div class="admin-main">
@@ -240,12 +225,12 @@
                                 <th>Loại hình</th>
                                 <th>Hạng phòng</th>
                                 <th>Trạng thái thanh toán</th>
-                                <th>TravelMate đã thu (đ)</th>
+                                <th>TravelMate<br/>đã thu (đ)</th>
                                 <th>Cơ sở tính hoa hồng (đ)</th>
-                                <th>Tỷ lệ hoa hồng</th>
+                                <th>TLHH</th>
                                 <th>Nguồn rate</th>
-                                <th>Hoa hồng nền tảng (đ)</th>
-                                <th>Số tiền chờ quyết toán (đ)</th>
+                                <th>Hoa hồng (đ)</th>
+                                <th>Tiền chờ quyết toán (đ)</th>
                                 <th>Voucher</th>
                                 <th>Thời gian giao dịch</th>
                             </tr>
@@ -271,7 +256,9 @@
                                     <span class="badge-approved" th:if="${item.paymentStatus == 'APPROVED'}"
                                           th:text="${item.paymentStatusVN}">Đã TT</span>
                                     <span class="badge-forfeited" th:if="${item.paymentStatus == 'DEPOSIT_FORFEITED'}"
-                                          th:text="${item.paymentStatusVN}">Giữ cọc</span>
+                                          style="display: inline-block; text-align: center; white-space: nowrap;">
+                                        Giữ cọc<br/>(hủy/no-show)
+                                    </span>
                                     <div style="font-size:10px;color:#6b7280;margin-top:2px;"
                                          th:text="${item.paymentOptionVN}">100%</div>
                                 </td>
@@ -295,12 +282,12 @@
                                 <!-- ★ Rate áp dụng từ (nguồn commission) -->
                                 <td>
                                     <span th:if="${item.commissionSource == 'ROOM_OVERRIDE'}"
-                                          style="background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">
-                                        🔧 Theo loại phòng
+                                          style="background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;display:inline-block;text-align:left;white-space:nowrap;">
+                                        🔧 Theo<br/>loại phòng
                                     </span>
                                     <span th:if="${item.commissionSource != 'ROOM_OVERRIDE'}"
-                                          style="background:#f0f9ff;color:#0369a1;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">
-                                        🏨 Theo loại lưu trú
+                                          style="background:#f0f9ff;color:#0369a1;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;display:inline-block;text-align:left;white-space:nowrap;">
+                                        🏨 Theo<br/>loại lưu trú
                                     </span>
                                 </td>
                                 <!-- Commission amount -->

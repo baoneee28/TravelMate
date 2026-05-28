@@ -205,12 +205,100 @@ body[data-page="register"] .btn-cta:active { box-shadow: none; }
     display: flex; align-items: center; justify-content: center; gap: 10px;
     font-size: 0.78rem; font-weight: 600; color: #374151;
     font-family: 'Montserrat', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    text-decoration: none;
     transition: background 0.15s, border-color 0.15s, transform 0.15s;
     margin-bottom: 14px;
 }
 body[data-page="register"] .btn-google { height: 36px; font-size: 0.74rem; margin-bottom: 10px; }
 
 .btn-google:hover { background: #f8faff; border-color: #bfdbfe; transform: translateY(-1px); }
+.btn-google-disabled,
+.btn-google-disabled:hover {
+    color: #94a3b8;
+    background: #f8fafc;
+    border-color: #e5e7eb;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.reset-form .ff-sub {
+    margin-bottom: 18px;
+    line-height: 1.65;
+}
+
+.auth-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 11px 13px;
+    border-radius: 9px;
+    font-size: 0.76rem;
+    line-height: 1.55;
+    margin-bottom: 15px;
+}
+
+.auth-message-success {
+    color: #15803d;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+}
+
+.auth-message-error {
+    color: #dc2626;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+}
+
+.demo-reset-link {
+    background: #eff6ff;
+    border: 1px dashed #93c5fd;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    color: #334155;
+    font-size: 0.72rem;
+    line-height: 1.55;
+}
+
+.demo-reset-link strong {
+    color: #1d4ed8;
+}
+
+.demo-reset-link p {
+    margin: 5px 0 8px;
+}
+
+.demo-reset-link a {
+    color: #1d4ed8;
+    font-weight: 700;
+}
+
+.expired-token {
+    text-align: center;
+    color: #475569;
+    font-size: 0.76rem;
+    line-height: 1.65;
+}
+
+.expired-token i {
+    color: #94a3b8;
+    font-size: 2rem;
+    margin: 12px 0;
+}
+
+.expired-token h3 {
+    color: #0f172a;
+    font-size: 1rem;
+    margin: 0 0 6px;
+}
+
+.reset-link-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    margin-top: 16px;
+}
 
 /* Footer note */
 .ff-note { font-size: 0.68rem; color: #b0bac8; text-align: center; line-height: 1.65; font-weight: 500; }

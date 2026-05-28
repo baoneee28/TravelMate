@@ -20,16 +20,64 @@
         .rstatus--pending  { background:#fef3c7; color:#b45309; }
         .rstatus--approved { background:#d1fae5; color:#065f46; }
         .rstatus--rejected { background:#fee2e2; color:#991b1b; }
-        .room-img { width:48px; height:36px; border-radius:6px; object-fit:cover; background:#f1f5f9; }
+        .room-img { width:48px; height:36px; border-radius:6px; object-fit:cover; background:#f1f5f9; display:block; }
         .room-img-placeholder { width:48px; height:36px; border-radius:6px; background:#e2e8f0; display:flex; align-items:center; justify-content:center; font-size:18px; }
+        .room-thumb-button { padding:0;border:0;background:transparent;border-radius:8px;cursor:pointer;display:inline-flex;position:relative;outline:none; }
+        .room-thumb-button::after { content:"";position:absolute;inset:0;border-radius:8px;border:2px solid transparent;transition:border-color .15s, box-shadow .15s; }
+        .room-thumb-button:hover::after, .room-thumb-button:focus-visible::after { border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12); }
+        .room-code-link { font-family:monospace;font-size:12px;color:#075985;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;gap:5px;padding:4px 0; }
+        .room-code-link:hover { color:#2563eb;text-decoration:underline;text-underline-offset:3px; }
+        .room-code-link i { font-size:10px;color:#94a3b8; }
         .filter-tab { display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#6b7280;background:#f3f4f6;border:none;cursor:pointer;transition:all .15s; }
         .filter-tab:hover { background:#e5e7eb; }
         .filter-tab.active { background:#2563eb;color:#fff; }
+        .room-actions { display:flex;flex-direction:column;gap:6px;align-items:flex-start; }
+        .room-approval-actions { display:flex;gap:6px;flex-wrap:wrap;align-items:center; }
+        .room-secondary-actions { display:flex;gap:6px;align-items:center; }
+        .room-action-icon { width:30px;height:30px;border-radius:9px;border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;transition:transform .15s, box-shadow .15s, background .15s, border-color .15s; }
+        .room-action-icon:hover, .room-action-icon:focus-visible { transform:translateY(-1px);box-shadow:0 8px 18px rgba(15,23,42,.12);outline:none; }
+        .room-action-icon--detail { background:#eff6ff;border-color:#bfdbfe;color:#2563eb; }
+        .room-action-icon--images { background:#ecfdf5;border-color:#99f6e4;color:#0f766e; }
+        .room-action-icon i { font-size:13px; }
         .modal-overlay { display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,.5);padding:16px; }
         .modal-overlay.active { display:flex; }
         .modal-box { background:#fff;border-radius:16px;width:min(500px,100%);box-shadow:0 20px 60px rgba(0,0,0,.25); }
+        .modal-box--wide { width:min(860px,100%); max-height:90vh; overflow:auto; }
         .modal-header { padding:20px 24px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center; }
         .modal-body { padding:20px 24px; }
+        .room-image-preview-note { display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;font-size:12px;color:#64748b; }
+        .room-image-preview-note strong { color:#0f172a;font-size:13px; }
+        .room-image-preview-grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px; }
+        .room-image-preview { border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;background:#f8fafc; }
+        .room-image-preview img { width:100%;height:105px;object-fit:cover;display:block; }
+        .room-image-preview span { display:block;padding:6px 8px;font-size:11px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+        .room-image-row { display:grid;grid-template-columns:56px minmax(0,1.3fr) minmax(0,1fr);gap:8px;align-items:center;margin-bottom:8px; }
+        .room-image-row input[type="url"], .room-image-row input[type="text"] { width:100%; }
+        .room-image-form-note { font-size:12px;color:#0f766e;background:#ecfdf5;border:1px solid #99f6e4;border-radius:10px;padding:9px 11px;margin:12px 0; }
+        .room-detail-admin-grid { display:grid;grid-template-columns:minmax(240px,.95fr) minmax(0,1.3fr);gap:18px;align-items:start; }
+        .room-detail-admin-hero { border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;background:#f8fafc; }
+        .room-detail-admin-hero img { width:100%;height:220px;object-fit:cover;display:block;background:#e2e8f0; }
+        .room-detail-admin-hero__empty { height:220px;display:flex;align-items:center;justify-content:center;color:#64748b;font-weight:700;background:#f1f5f9; }
+        .room-detail-admin-thumbs { display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px; }
+        .room-detail-admin-thumb { border:2px solid transparent;border-radius:10px;padding:0;background:#fff;cursor:pointer;overflow:hidden; }
+        .room-detail-admin-thumb.active, .room-detail-admin-thumb:hover { border-color:#2563eb; }
+        .room-detail-admin-thumb img { width:100%;height:64px;object-fit:cover;display:block;background:#f8fafc; }
+        .room-detail-admin-facts { display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-top:12px; }
+        .room-detail-admin-fact { border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;padding:10px 12px; }
+        .room-detail-admin-fact span { display:block;font-size:11px;color:#64748b;margin-bottom:4px; }
+        .room-detail-admin-fact strong { display:block;font-size:13px;color:#0f172a;line-height:1.35; }
+        .room-detail-admin-section { margin-top:14px;padding-top:14px;border-top:1px solid #e2e8f0; }
+        .room-detail-admin-section h4 { margin:0 0 8px;font-size:13px;color:#0f172a;display:flex;align-items:center;gap:6px; }
+        .room-detail-admin-amenities { display:flex;flex-wrap:wrap;gap:6px; }
+        .room-detail-admin-chip { display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:999px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;font-size:11px;font-weight:700;white-space:nowrap; }
+        .room-detail-admin-actions { display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid #e2e8f0; }
+        @media (max-width:760px) {
+            .room-detail-admin-grid { grid-template-columns:1fr; }
+            .room-image-preview-grid { grid-template-columns:1fr; }
+            .room-image-row { grid-template-columns:1fr; }
+            .room-detail-admin-actions { justify-content:stretch; }
+            .room-detail-admin-actions > * { width:100%; }
+        }
     </style>
 </head>
 
@@ -186,17 +234,31 @@
                                 </td>
                             </tr>
                             <tr th:each="r : ${rooms}"
-                                th:attr="data-room-status=${r.approvalStatus != null ? r.approvalStatus.name() : 'PENDING'},data-room-search=${r.roomName + ' ' + r.accommodation.name}">
+                                th:attr="data-room-status=${r.approvalStatus != null ? r.approvalStatus.name() : 'PENDING'},
+                                         data-room-search=${r.roomName + ' ' + r.accommodation.name + ' ' + (r.accommodation.city != null ? r.accommodation.city : '') + ' ' + (r.accommodation.owner != null ? r.accommodation.owner.name + ' ' + r.accommodation.owner.email : '')}">
                                 <!-- Ảnh -->
                                 <td>
-                                    <img th:if="${r.imageUrl != null and !#strings.isEmpty(r.imageUrl)}"
-                                         th:src="${r.imageUrl}" class="room-img" alt="room" />
-                                    <div th:if="${r.imageUrl == null or #strings.isEmpty(r.imageUrl)}"
-                                         class="room-img-placeholder">🛏</div>
+                                    <button type="button"
+                                            class="room-thumb-button"
+                                            th:title="'Xem và duyệt 3 ảnh của ' + ${r.roomCode}"
+                                            th:attr="aria-label=|Xem và duyệt ảnh phòng ${r.roomCode}|"
+                                            th:onclick="'openRoomImageGallery(' + ${r.id} + ')'">
+                                        <img th:if="${r.imageUrl != null and !#strings.isEmpty(r.imageUrl)}"
+                                             th:src="${r.imageUrl}" class="room-img" alt="room" />
+                                        <div th:if="${r.imageUrl == null or #strings.isEmpty(r.imageUrl)}"
+                                             class="room-img-placeholder">🛏</div>
+                                    </button>
                                 </td>
                                 <!-- Mã phòng -->
-                                <td style="font-family:monospace;font-size:12px;color:var(--color-primary);font-weight:600;"
-                                    th:text="${r.roomCode}">ROOM-CODE</td>
+                                <td>
+                                    <a class="room-code-link"
+                                       target="_blank"
+                                       th:href="@{/accommodations/{id}(id=${r.accommodation.id})} + '#room-' + ${r.id}"
+                                       th:title="'Mở phòng ' + ${r.roomCode} + ' trên trang user'">
+                                        <span th:text="${r.roomCode}">ROOM-CODE</span>
+                                        <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                                    </a>
+                                </td>
                                 <!-- Tên phòng -->
                                 <td>
                                     <div style="font-weight:600;" th:text="${r.roomName}">Tên phòng</div>
@@ -292,7 +354,8 @@
                                 </td>
                                 <!-- Hành động -->
                                 <td>
-                                    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                    <div class="room-actions">
+                                    <div class="room-approval-actions">
                                         <!-- Nút Duyệt: chỉ hiện khi PENDING hoặc REJECTED -->
                                         <form th:if="${r.approvalStatus == null or r.approvalStatus.name() != 'APPROVED'}"
                                               th:action="@{/admin/rooms/{id}/approve(id=${r.id})}"
@@ -321,6 +384,24 @@
                                             Đã từ chối
                                         </span>
                                     </div>
+                                    <!-- Hàng 2: thao tác nhanh dạng icon để bảng gọn hơn -->
+                                    <div class="room-secondary-actions">
+                                        <button type="button"
+                                                th:onclick="'openAdminRoomDetailModal(' + ${r.id} + ')'"
+                                                class="room-action-icon room-action-icon--detail"
+                                                title="Preview chi tiết trước khi duyệt"
+                                                th:attr="aria-label=|Preview chi tiết phòng ${r.roomCode}|">
+                                            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                                        </button>
+                                        <button type="button"
+                                                th:onclick="'openRoomImageGallery(' + ${r.id} + ')'"
+                                                class="room-action-icon room-action-icon--images"
+                                                title="Xem và duyệt ảnh phòng/căn"
+                                                th:attr="aria-label=|Xem và duyệt ảnh phòng ${r.roomCode}|">
+                                            <i class="fa-solid fa-images" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>
@@ -331,9 +412,260 @@
                 <div style="margin-top:var(--space-4);padding:12px 16px;background:#f0f9ff;border-radius:8px;font-size:12px;color:#0369a1;border:1px solid #bae6fd;">
                     <strong>📌 Lưu ý:</strong>
                     Phòng phải được <strong>Admin duyệt (APPROVED)</strong> mới hiển thị cho khách hàng tại trang chi tiết cơ sở lưu trú.
-                    Phòng từ dữ liệu mẫu (SQL seed) được tự động đặt APPROVED khi khởi động hệ thống.
+                    Phòng đã có trong dữ liệu hệ thống được tự động đặt APPROVED khi khởi động hệ thống.
                 </div>
             </main>
+        </div>
+    </div>
+
+    <!-- Modal chi tiết duyệt phòng/căn cho Admin -->
+    <div th:each="r : ${rooms}"
+         th:id="'room-detail-admin-modal-' + ${r.id}"
+         class="modal-overlay"
+         th:with="imgs=${roomImagesMap != null ? roomImagesMap.get(r.id) : null}">
+        <div class="modal-box modal-box--wide">
+            <div class="modal-header">
+                <div>
+                    <div style="font-size:16px;font-weight:800;color:#0f172a;">Preview phòng/căn trước khi duyệt</div>
+                    <div style="font-size:12px;color:#64748b;margin-top:2px;">
+                        <span style="font-family:monospace;" th:text="${r.roomCode}">ROOM</span>
+                        · <span th:text="${r.roomName}">Tên phòng</span>
+                    </div>
+                </div>
+                <button th:onclick="'closeAdminRoomDetailModal(' + ${r.id} + ')'"
+                        style="background:none;border:none;font-size:22px;cursor:pointer;color:#6b7280;">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="room-detail-admin-grid">
+                    <div>
+                        <div class="room-detail-admin-hero">
+                            <img th:if="${imgs != null and !#lists.isEmpty(imgs)}"
+                                 th:id="'room-detail-admin-main-' + ${r.id}"
+                                 th:src="${imgs[0].imageUrl}" alt="Ảnh đại diện phòng"
+                                 onerror="this.onerror=null;this.src='/assets/images/homestay-o-da-lat.jpg'" />
+                            <img th:if="${(imgs == null or #lists.isEmpty(imgs)) and r.imageUrl != null and !#strings.isEmpty(r.imageUrl)}"
+                                 th:id="'room-detail-admin-main-' + ${r.id}"
+                                 th:src="${r.imageUrl}" alt="Ảnh đại diện phòng"
+                                 onerror="this.onerror=null;this.src='/assets/images/homestay-o-da-lat.jpg'" />
+                            <div th:if="${(imgs == null or #lists.isEmpty(imgs)) and (r.imageUrl == null or #strings.isEmpty(r.imageUrl))}"
+                                 class="room-detail-admin-hero__empty">
+                                Chưa có ảnh phòng/căn
+                            </div>
+                        </div>
+                        <div class="room-detail-admin-thumbs" th:if="${imgs != null and #lists.size(imgs) > 1}">
+                            <button type="button"
+                                    class="room-detail-admin-thumb"
+                                    th:each="img,iter : ${imgs}"
+                                    th:if="${iter.index lt 3}"
+                                    th:classappend="${iter.first ? ' active' : ''}"
+                                    th:attr="data-photo-src=${img.imageUrl}"
+                                    th:onclick="'selectAdminRoomPhoto(' + ${r.id} + ', this)'">
+                                <img th:src="${img.imageUrl}" alt="Ảnh phòng"
+                                     onerror="this.onerror=null;this.src='/assets/images/homestay-o-da-lat.jpg'" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="rstatus"
+                              th:classappend="${r.approvalStatus == null or r.approvalStatus.name() == 'PENDING'   ? 'rstatus--pending'  :
+                                              (r.approvalStatus.name() == 'APPROVED' ? 'rstatus--approved' : 'rstatus--rejected')}"
+                              th:text="${r.approvalStatus == null or r.approvalStatus.name() == 'PENDING'   ? '⏳ Chờ duyệt'   :
+                                        (r.approvalStatus.name() == 'APPROVED' ? '✅ Đã duyệt' : '❌ Từ chối')}">
+                            Trạng thái
+                        </span>
+                        <h3 style="margin:10px 0 4px;font-size:21px;color:#0f172a;" th:text="${r.roomName}">Tên phòng</h3>
+                        <div style="color:#64748b;font-size:13px;line-height:1.5;">
+                            <strong th:text="${r.accommodation.name}">Cơ sở</strong>
+                            · <span th:text="${r.accommodation.city}">Thành phố</span>
+                            · <span th:text="${r.accommodation.propertyType != null ? r.accommodation.propertyType.name() : 'HOTEL'}">HOTEL</span>
+                        </div>
+
+                        <div class="room-detail-admin-facts">
+                            <div class="room-detail-admin-fact">
+                                <span>Partner sở hữu</span>
+                                <strong th:text="${r.accommodation.owner != null ? r.accommodation.owner.name : 'Chưa gắn partner'}">Partner</strong>
+                            </div>
+                            <div class="room-detail-admin-fact">
+                                <span>Email partner</span>
+                                <strong th:text="${r.accommodation.owner != null ? r.accommodation.owner.email : '--'}">partner@email.com</strong>
+                            </div>
+                            <div class="room-detail-admin-fact">
+                                <span>Giá mỗi đêm</span>
+                                <strong th:text="${#numbers.formatDecimal(r.pricePerNight, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</strong>
+                            </div>
+                            <div class="room-detail-admin-fact">
+                                <span>Sức chứa</span>
+                                <strong th:text="|${r.capacity} người · còn ${r.availableQuantity}|">2 người</strong>
+                            </div>
+                            <div class="room-detail-admin-fact">
+                                <span>Giường</span>
+                                <strong th:text="${r.bedType ?: '--'}">--</strong>
+                            </div>
+                            <div class="room-detail-admin-fact">
+                                <span>Loại phòng/căn</span>
+                                <strong th:text="${r.roomCategory != null ? r.roomCategory.name() : 'STANDARD'}">STANDARD</strong>
+                            </div>
+                            <div class="room-detail-admin-fact">
+                                <span>Commission</span>
+                                <strong th:if="${r.commissionRateOverride != null}">
+                                    Theo phòng <span th:text="${r.commissionRateOverride} + '%'">20%</span>
+                                </strong>
+                                <strong th:if="${r.commissionRateOverride == null}">
+                                    Mặc định
+                                    <span th:if="${r.accommodation.propertyType != null}"
+                                          th:text="${r.accommodation.propertyType.name() == 'HOTEL'    ? '15%' :
+                                                    (r.accommodation.propertyType.name() == 'VILLA'    ? '12%' :
+                                                    (r.accommodation.propertyType.name() == 'HOMESTAY' ? '10%' :
+                                                    (r.accommodation.propertyType.name() == 'RESORT'   ? '18%' : '15%')))}">15%</span>
+                                </strong>
+                            </div>
+                            <div class="room-detail-admin-fact">
+                                <span>Mở bán online</span>
+                                <strong th:text="${r.availableForBooking != null and r.availableForBooking ? 'Đang mở' : 'Tạm ẩn'}">Đang mở</strong>
+                            </div>
+                        </div>
+
+                        <div class="room-detail-admin-section">
+                            <h4><i class="fa-solid fa-align-left"></i> Mô tả</h4>
+                            <div style="font-size:13px;color:#475569;line-height:1.55;"
+                                 th:text="${r.description != null and !#strings.isEmpty(r.description) ? r.description : 'Chưa có mô tả chi tiết.'}">
+                                Mô tả phòng
+                            </div>
+                        </div>
+
+                        <div class="room-detail-admin-section">
+                            <h4><i class="fa-solid fa-list-check"></i> Tiện nghi đã khai báo</h4>
+                            <div class="room-detail-admin-amenities" th:if="${r.amenities != null and !#lists.isEmpty(r.amenities)}">
+                                <span class="room-detail-admin-chip" th:each="a : ${r.amenities}" th:text="${a.icon + ' ' + a.name}">WiFi</span>
+                            </div>
+                            <div th:if="${r.amenities == null or #lists.isEmpty(r.amenities)}"
+                                 style="font-size:13px;color:#dc2626;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:10px;">
+                                Phòng/căn chưa khai báo tiện nghi. Nên yêu cầu partner bổ sung trước khi duyệt.
+                            </div>
+                        </div>
+
+                        <div class="room-detail-admin-actions">
+                            <a th:href="@{/accommodations/{id}(id=${r.accommodation.id})} + '#room-' + ${r.id}" target="_blank"
+                               class="btn btn--ghost btn--sm">Xem trang khách</a>
+                            <button type="button" th:onclick="'openRoomImageGallery(' + ${r.id} + ')'"
+                                    class="btn btn--ghost btn--sm">Ảnh phòng/căn</button>
+                            <form th:if="${r.approvalStatus == null or r.approvalStatus.name() != 'APPROVED'}"
+                                  th:action="@{/admin/rooms/{id}/approve(id=${r.id})}"
+                                  method="post" style="display:inline;">
+                                <button type="submit" class="btn btn--primary btn--sm"
+                                        onclick="return confirm('Duyệt phòng/căn này cho khách đặt?')">Duyệt</button>
+                            </form>
+                            <button th:if="${r.approvalStatus == null or r.approvalStatus.name() == 'PENDING'}"
+                                    type="button" class="btn btn--danger btn--sm"
+                                    th:onclick="'openRoomRejectModal(' + ${r.id} + ')'">Từ chối</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal cập nhật ảnh phòng/căn -->
+    <div th:each="r : ${rooms}"
+         th:id="'room-image-modal-' + ${r.id}"
+         class="modal-overlay"
+         th:with="imgs=${roomImagesMap != null ? roomImagesMap.get(r.id) : null},
+                  currentImageCount=${roomImagesMap != null and roomImagesMap.get(r.id) != null ? #lists.size(roomImagesMap.get(r.id)) : ((r.imageUrl != null and !#strings.isEmpty(r.imageUrl)) ? 1 : 0)}">
+        <div class="modal-box modal-box--wide">
+            <div class="modal-header">
+                <div>
+                    <div style="font-size:16px;font-weight:700;">Duyệt ảnh hiển thị phòng/căn</div>
+                    <div style="font-size:12px;color:#64748b;margin-top:2px;">
+                        <span style="font-family:monospace;" th:text="${r.roomCode}">ROOM</span>
+                        · <span th:text="${r.roomName}">Tên phòng</span>
+                    </div>
+                </div>
+                <button th:onclick="'closeRoomImageModal(' + ${r.id} + ')'"
+                        style="background:none;border:none;font-size:22px;cursor:pointer;color:#6b7280;">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="room-image-preview-note">
+                    <strong>Preview bộ ảnh bên user</strong>
+                    <span>3 ảnh đầu tiên sẽ hiện trong modal “Xem chi tiết phòng”.</span>
+                </div>
+                <div class="room-image-preview-grid">
+                    <div class="room-image-preview"
+                         th:if="${imgs != null and !#lists.isEmpty(imgs) and iter.index lt 3}"
+                         th:each="img,iter : ${imgs}">
+                        <img th:src="${img.imageUrl}" alt="Ảnh phòng" onerror="this.onerror=null;this.src='/assets/images/homestay-o-da-lat.jpg'" />
+                        <span th:text="${img.primaryImage ? 'Ảnh đại diện · ' : ''} + ${img.caption != null ? img.caption : r.roomName}">Ảnh phòng</span>
+                    </div>
+                    <div class="room-image-preview" th:if="${(imgs == null or #lists.isEmpty(imgs)) and r.imageUrl != null and !#strings.isEmpty(r.imageUrl)}">
+                        <img th:src="${r.imageUrl}" alt="Ảnh phòng" onerror="this.onerror=null;this.src='/assets/images/homestay-o-da-lat.jpg'" />
+                        <span>Ảnh đại diện hiện tại</span>
+                    </div>
+                    <div th:if="${(imgs == null or #lists.isEmpty(imgs)) and (r.imageUrl == null or #strings.isEmpty(r.imageUrl))}"
+                         style="grid-column:1/-1;text-align:center;padding:24px;border:1px dashed #cbd5e1;border-radius:10px;color:#64748b;background:#f8fafc;">
+                        Chưa có ảnh. Thêm URL hoặc upload ảnh để khách xem được phòng/căn trực quan hơn.
+                    </div>
+                </div>
+
+                <form th:action="@{/admin/rooms/{id}/images(id=${r.id})}" method="post" enctype="multipart/form-data">
+                    <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:#0f172a;">Danh sách URL ảnh đã duyệt</div>
+                    <div th:if="${imgs != null and !#lists.isEmpty(imgs)}">
+                        <div class="room-image-row" th:each="img,iter : ${imgs}" th:if="${iter.index lt 3}">
+                            <label style="font-size:12px;color:#475569;display:flex;align-items:center;gap:4px;">
+                                <input type="radio" name="primaryIndex" th:value="${iter.index}" th:checked="${img.primaryImage or iter.first}" />
+                                Chính
+                            </label>
+                            <input type="url" name="imageUrls" class="form-control" th:value="${img.imageUrl}" placeholder="https://... hoặc /uploads/rooms/..." />
+                            <input type="text" name="captions" class="form-control" th:value="${img.caption}" placeholder="Chú thích ảnh" />
+                        </div>
+                    </div>
+                    <div th:if="${(imgs == null or #lists.isEmpty(imgs)) and r.imageUrl != null and !#strings.isEmpty(r.imageUrl)}">
+                        <div class="room-image-row">
+                            <label style="font-size:12px;color:#475569;display:flex;align-items:center;gap:4px;">
+                                <input type="radio" name="primaryIndex" value="0" checked />
+                                Chính
+                            </label>
+                            <input type="url" name="imageUrls" class="form-control" th:value="${r.imageUrl}" placeholder="https://... hoặc /uploads/rooms/..." />
+                            <input type="text" name="captions" class="form-control" th:value="${r.roomName + ' - ảnh đại diện'}" placeholder="Chú thích ảnh" />
+                        </div>
+                    </div>
+                    <div th:if="${(imgs == null or #lists.isEmpty(imgs)) and (r.imageUrl == null or #strings.isEmpty(r.imageUrl))}">
+                        <div class="room-image-row">
+                            <label style="font-size:12px;color:#475569;display:flex;align-items:center;gap:4px;">
+                                <input type="radio" name="primaryIndex" value="0" checked />
+                                Chính
+                            </label>
+                            <input type="url" name="imageUrls" class="form-control" placeholder="https://... hoặc /uploads/rooms/..." />
+                            <input type="text" name="captions" class="form-control" th:value="${r.roomName + ' - ảnh đại diện'}" placeholder="Chú thích ảnh" />
+                        </div>
+                    </div>
+                    <div class="room-image-row" th:if="${currentImageCount lt 3}">
+                        <span></span>
+                        <input type="url" name="imageUrls" class="form-control" placeholder="Thêm URL ảnh khác" />
+                        <input type="text" name="captions" class="form-control" placeholder="Chú thích ảnh" />
+                    </div>
+                    <div class="room-image-row" th:if="${currentImageCount lt 2}">
+                        <span></span>
+                        <input type="url" name="imageUrls" class="form-control" placeholder="Thêm URL ảnh khác" />
+                        <input type="text" name="captions" class="form-control" placeholder="Chú thích ảnh" />
+                    </div>
+                    <div class="room-image-form-note">
+                        Sau khi bấm lưu, bộ ảnh này được xem như ảnh đã duyệt và trang user sẽ dùng ngay. Nên giữ đủ 3 ảnh rõ mặt phòng/căn.
+                    </div>
+
+                    <div style="margin-top:14px;padding:12px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;">
+                        <label style="display:block;font-size:13px;font-weight:700;margin-bottom:6px;color:#0f172a;">Upload ảnh từ máy</label>
+                        <input type="file" name="imageFiles" accept="image/png,image/jpeg,image/webp" multiple class="form-control"
+                               th:attr="onchange=|refreshUploadedImagePreview(this,${r.id})|,data-current-count=${currentImageCount}" />
+                        <div th:id="'uploaded-preview-' + ${r.id}" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
+                        <div style="font-size:11px;color:#64748b;margin-top:6px;">Chỉ hỗ trợ JPG, PNG, WEBP. Tối đa 3 ảnh hiển thị cho mỗi phòng/căn.</div>
+                    </div>
+
+                    <div style="margin-top:16px;display:flex;gap:10px;justify-content:flex-end;">
+                        <button type="button" th:onclick="'closeRoomImageModal(' + ${r.id} + ')'" class="btn btn--ghost">Hủy</button>
+                        <button type="submit" class="btn btn--primary">💾 Duyệt & lưu ảnh</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -391,6 +723,64 @@
             if (modal) modal.classList.remove('active');
         }
 
+        function openAdminRoomDetailModal(id) {
+            var modal = document.getElementById('room-detail-admin-modal-' + id);
+            if (modal) modal.classList.add('active');
+        }
+
+        function closeAdminRoomDetailModal(id) {
+            var modal = document.getElementById('room-detail-admin-modal-' + id);
+            if (modal) modal.classList.remove('active');
+        }
+
+        function selectAdminRoomPhoto(roomId, button) {
+            var img = document.getElementById('room-detail-admin-main-' + roomId);
+            if (!img || !button || !button.dataset.photoSrc) return;
+            img.src = button.dataset.photoSrc;
+            var strip = button.closest('.room-detail-admin-thumbs');
+            if (strip) {
+                strip.querySelectorAll('.room-detail-admin-thumb').forEach(function(thumb){
+                    thumb.classList.remove('active');
+                });
+            }
+            button.classList.add('active');
+        }
+
+        function openRoomImageModal(id) {
+            var modal = document.getElementById('room-image-modal-' + id);
+            if (modal) modal.classList.add('active');
+        }
+
+        function openRoomImageGallery(id) {
+            openRoomImageModal(id);
+        }
+
+        function closeRoomImageModal(id) {
+            var modal = document.getElementById('room-image-modal-' + id);
+            if (modal) modal.classList.remove('active');
+        }
+
+        function refreshUploadedImagePreview(input, roomId) {
+            var preview = document.getElementById('uploaded-preview-' + roomId);
+            if (!preview) return;
+            preview.innerHTML = '';
+            var files = Array.prototype.slice.call(input.files || []);
+            var currentCount = parseInt(input.dataset.currentCount || '0', 10);
+            var remainingSlots = Math.max(0, 3 - Math.min(currentCount, 3));
+            if (files.length > remainingSlots) {
+                var warning = document.createElement('div');
+                warning.style.cssText = 'font-size:11px;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:4px 8px;';
+                warning.textContent = 'Bạn đang chọn nhiều hơn số slot còn lại. Hệ thống chỉ lưu tối đa 3 ảnh hiển thị.';
+                preview.appendChild(warning);
+            }
+            files.forEach(function(file){
+                var item = document.createElement('div');
+                item.style.cssText = 'font-size:11px;color:#0f766e;background:#ecfdf5;border:1px solid #99f6e4;border-radius:8px;padding:4px 8px;';
+                item.textContent = file.name;
+                preview.appendChild(item);
+            });
+        }
+
         function initRoomsPage() {
             // Reset overflow (có thể bị set bởi modal trước đó)
             document.body.style.overflow = '';
@@ -418,6 +808,16 @@
                     if (e.target === this) closeRoomRejectModal();
                 });
             }
+            document.querySelectorAll('[id^="room-image-modal-"]').forEach(function(imageModal){
+                imageModal.addEventListener('click', function(e){
+                    if (e.target === imageModal) imageModal.classList.remove('active');
+                });
+            });
+            document.querySelectorAll('[id^="room-detail-admin-modal-"]').forEach(function(detailModal){
+                detailModal.addEventListener('click', function(e){
+                    if (e.target === detailModal) detailModal.classList.remove('active');
+                });
+            });
 
             // Auto-activate tab từ URL query param
             var urlParams = new URLSearchParams(window.location.search);

@@ -41,7 +41,7 @@
 
     <!-- HERO -->
     <section class="travel-hero">
-        <div class="travel-hero-bg" style="background-image: url('https://images.unsplash.com/photo-1571867424488-4565932edb41?q=80&w=1920');"></div>
+        <div class="travel-hero-bg" style="background-image: url('/assets/images/site/vouchers/voucher-hero.jpg');"></div>
         <div class="travel-hero-overlay"></div>
         <div class="container travel-hero-content">
             <h1 class="travel-title-left">KHÁM PHÁ ƯU ĐÃI &amp;</h1>
@@ -70,7 +70,7 @@
                 <div th:each="v, stat : ${publicVouchers}" class="campaign-card">
                     <!-- Ảnh bìa + badge giảm giá -->
                     <div class="campaign-card-img"
-                         th:style="'background-image: url(\'' + ${stat.index % 4 == 0 ? 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=600' : stat.index % 4 == 1 ? 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=600' : stat.index % 4 == 2 ? 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=600' : 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=600'} + '\')'">
+                         th:style="'background-image: url(\'' + ${stat.index % 4 == 0 ? '/assets/images/travel-posts/da-lat-guide.jpg' : stat.index % 4 == 1 ? '/assets/images/accommodations/catalog/resort-exterior.jpg' : stat.index % 4 == 2 ? '/assets/images/travel-posts/phu-quoc-guide.jpg' : '/assets/images/travel-posts/nha-trang-guide.jpg'} + '\')'">
                         <span class="campaign-card-badge">
                             Giảm
                             <th:block th:if="${v.discountType.name() == 'PERCENT'}"
@@ -140,12 +140,6 @@
 
 
     <script>
-        // Header scroll
-        window.addEventListener('scroll', () => {
-            const h = document.getElementById('header');
-            if (window.scrollY > 40) h.classList.add('scrolled'); else h.classList.remove('scrolled');
-        });
-
         // Sidebar toggle
         [document.getElementById('hamburgerBtn'), document.getElementById('sidebarCloseBtn'), document.getElementById('sidebarOverlay')]
             .forEach(btn => btn && btn.addEventListener('click', () => {

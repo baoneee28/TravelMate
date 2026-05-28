@@ -111,6 +111,24 @@ class PartnerWalletServiceTest {
     }
 
     @Test
+    @DisplayName("Ví đơn cọc chỉ cộng payout online 2.550.000, không cộng 70% tại cơ sở")
+    void creditSettlement_depositCreditsOnlyOnlinePayout() {
+        PartnerSettlement settlement = paidSettlement("2550000");
+        when(walletRepository.findByPartner(partner)).thenReturn(Optional.of(wallet));
+        when(transactionRepository.existsBySettlementAndTransactionType(
+                settlement, PartnerWalletTransactionType.SETTLEMENT_CREDIT)).thenReturn(false);
+
+        PartnerWallet result = walletService.creditSettlement(settlement, admin);
+
+        assertThat(result.getAvailableBalance()).isEqualByComparingTo("5550000");
+        assertThat(result.getAvailableBalance()).isNotEqualByComparingTo("12550000");
+
+        ArgumentCaptor<PartnerWalletTransaction> txCaptor = ArgumentCaptor.forClass(PartnerWalletTransaction.class);
+        verify(transactionRepository).save(txCaptor.capture());
+        assertThat(txCaptor.getValue().getAmount()).isEqualByComparingTo("2550000");
+    }
+
+    @Test
     @DisplayName("Không cộng ví nếu settlement chưa PAID")
     void creditSettlement_shouldRejectPendingSettlement() {
         PartnerSettlement settlement = paidSettlement("1200000");
@@ -193,8 +211,8 @@ class PartnerWalletServiceTest {
         wallet.setAvailableBalance(new BigDecimal("2000000"));
         wallet.setPendingWithdrawalAmount(new BigDecimal("1000000"));
 
-        when(withdrawalRepository.findById(5L)).thenReturn(Optional.of(request));
-        when(walletRepository.findByPartner(partner)).thenReturn(Optional.of(wallet));
+        when(withdrawalRepository.findByIdForUpdate(5L)).thenReturn(Optional.of(request));
+        when(walletRepository.findByPartnerForUpdate(partner)).thenReturn(Optional.of(wallet));
 
         PartnerWithdrawalRequest result = walletService.markWithdrawalPaid(5L, admin, "Đã chuyển khoản");
 
@@ -213,7 +231,7 @@ class PartnerWalletServiceTest {
         request.setAmount(new BigDecimal("1000000"));
         request.setWithdrawalStatus(PartnerWithdrawalStatus.PAID);
 
-        when(withdrawalRepository.findById(7L)).thenReturn(Optional.of(request));
+        when(withdrawalRepository.findByIdForUpdate(7L)).thenReturn(Optional.of(request));
 
         assertThatThrownBy(() -> walletService.markWithdrawalPaid(7L, admin, "Chuyển lại"))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -236,8 +254,8 @@ class PartnerWalletServiceTest {
         wallet.setAvailableBalance(new BigDecimal("2000000"));
         wallet.setPendingWithdrawalAmount(new BigDecimal("1000000"));
 
-        when(withdrawalRepository.findById(6L)).thenReturn(Optional.of(request));
-        when(walletRepository.findByPartner(partner)).thenReturn(Optional.of(wallet));
+        when(withdrawalRepository.findByIdForUpdate(6L)).thenReturn(Optional.of(request));
+        when(walletRepository.findByPartnerForUpdate(partner)).thenReturn(Optional.of(wallet));
 
         PartnerWithdrawalRequest result = walletService.rejectWithdrawal(6L, admin, "Sai STK");
 
@@ -256,7 +274,7 @@ class PartnerWalletServiceTest {
         request.setAmount(new BigDecimal("1000000"));
         request.setWithdrawalStatus(PartnerWithdrawalStatus.REJECTED);
 
-        when(withdrawalRepository.findById(8L)).thenReturn(Optional.of(request));
+        when(withdrawalRepository.findByIdForUpdate(8L)).thenReturn(Optional.of(request));
 
         assertThatThrownBy(() -> walletService.rejectWithdrawal(8L, admin, "Từ chối lại"))
                 .isInstanceOf(IllegalArgumentException.class)

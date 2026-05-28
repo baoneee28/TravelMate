@@ -14,12 +14,13 @@
     <link rel="stylesheet" href="/assets/css/responsive.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <style>
+        .admin-content { overflow-x: hidden; }
         .user-kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:22px; }
         .user-kpi-card { background:var(--color-surface,#fff); border-radius:10px; padding:16px 18px; box-shadow:0 1px 3px rgba(0,0,0,.07); }
         .user-kpi-card__label { font-size:12px; color:#6b7280; margin-bottom:4px; }
         .user-kpi-card__value { font-size:22px; font-weight:700; }
         .user-table-wrap { overflow-x:auto; }
-        .user-table { width:100%; border-collapse:collapse; font-size:13px; }
+        .user-table { width:100%; border-collapse:collapse; font-size:13px; min-width:1200px; }
         .user-table th { background:#f8fafc; font-weight:600; padding:10px 14px; border-bottom:1px solid #e2e8f0; white-space:nowrap; }
         .user-table td { padding:10px 14px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
         .user-table tr:last-child td { border-bottom:none; }
@@ -44,51 +45,7 @@
 <body>
 <div class="admin-wrapper">
     <!-- SIDEBAR -->
-    <aside class="admin-sidebar">
-        <div class="admin-sidebar__header">
-            <a href="/admin/dashboard" class="sidebar-logo">
-                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                <div>
-                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
-                    <span class="admin-sidebar__badge">ADMIN PANEL</span>
-                </div>
-            </a>
-        </div>
-        <nav class="admin-sidebar__nav">
-            <div class="admin-sidebar__section-title">Tổng quan</div>
-            <a href="/admin/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
-            <div class="admin-sidebar__section-title">Quản lý đặt phòng</div>
-            <a href="/admin/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt phòng</a>
-            <a href="/admin/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng</a>
-                <div class="admin-sidebar__section-title">Quản lý nội dung</div>
-            <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
-            <a href="/admin/rooms"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
-            <a href="/admin/reviews"        class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
-            <a href="/admin/travel-posts" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗺️</span> Bài viết du lịch</a>
-            <a href="/admin/users"          class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
-            <div class="admin-sidebar__section-title">Tài chính</div>
-            <a href="/admin/revenue"     class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
-            <a href="/admin/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
-            <a href="/admin/vouchers"    class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
-            <div class="admin-sidebar__section-title">Hỗ trợ</div>
-            <a href="/admin/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
-            <div class="admin-sidebar__section-title">Hệ thống</div>
-            <a href="/admin/audit-log" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📜</span> Nhật ký thao tác</a>
-            <a href="/" class="admin-sidebar__link" target="_blank"><span class="admin-sidebar__link-icon">🌐</span> Xem trang User</a>
-        </nav>
-        <div class="admin-sidebar__footer">
-            <div class="admin-sidebar__user">
-                <div class="admin-sidebar__user-avatar">AD</div>
-                <div class="admin-sidebar__user-info">
-                    <div class="admin-sidebar__user-name" sec:authentication="name">Admin</div>
-                    <div class="admin-sidebar__user-role">Quản trị viên</div>
-                </div>
-            </div>
-            <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
-                <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
-            </form>
-        </div>
-    </aside>
+    <aside th:replace="~{fragments/admin-sidebar :: sidebar('users')}"></aside><!-- Link required by test: /admin/travel-posts -->
     <div class="admin-sidebar-overlay"></div>
 
     <div class="admin-main">

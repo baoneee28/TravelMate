@@ -24,7 +24,10 @@ public class SettlementDetailItemDto {
     private String checkIn;
     private String checkOut;
 
+    private BigDecimal totalOrderAmount;
     private BigDecimal gross;
+    private BigDecimal onsiteAmount;
+    private String commissionBaseLabel;
 
     /** Ví dụ: "15% (mặc định)" hoặc "10% (theo phòng)" */
     private String commissionRateDisplay;
@@ -35,6 +38,6 @@ public class SettlementDetailItemDto {
 
     private BigDecimal partnerPayout;
 
-    /** Tiếng Việt: "Đã thanh toán" / "Giữ cọc (no-show)" */
+    /** Tiếng Việt: "Đã thanh toán" / "Giữ cọc (hủy/no-show)" */
     private String paymentStatusVN;
 }

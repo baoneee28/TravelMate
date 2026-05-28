@@ -48,7 +48,7 @@
         <a href="/partner/amenities"
            th:classappend="${activeMenu == 'amenities'} ? ' active' : ''"
            class="admin-sidebar__link">
-            <span class="admin-sidebar__link-icon">🏷</span> <span th:text="${'Tiện nghi ' + (unitLabel ?: 'phòng')}">Tiện nghi phòng</span>
+            <span class="admin-sidebar__link-icon">🏷</span> <span th:text="${amenityMenuLabel ?: 'Tiện nghi phòng'}">Tiện nghi phòng</span>
         </a>
         <a href="/partner/bookings"
            th:classappend="${activeMenu == 'bookings'} ? ' active' : ''"

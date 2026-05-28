@@ -4,7 +4,10 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chỉnh sửa phòng - Partner TravelMate</title>
+    <title th:text="${partnerPropertyType != null && partnerPropertyType.name() == 'RESORT' ? 'Chỉnh sửa phòng Resort - Partner TravelMate' :
+                       partnerPropertyType != null && partnerPropertyType.name() == 'VILLA'  ? 'Chỉnh sửa căn Villa - Partner TravelMate' :
+                       partnerPropertyType != null && partnerPropertyType.name() == 'HOMESTAY' ? 'Chỉnh sửa phòng Homestay - Partner TravelMate' :
+                       'Chỉnh sửa phòng - Partner TravelMate'}">Chỉnh sửa phòng - Partner TravelMate</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&subset=vietnamese&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/assets/css/base.css" />
@@ -25,7 +28,11 @@
             <header class="admin-topbar">
                 <div style="display: flex; align-items: center; gap: var(--space-4)">
                     <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
-                    <h1 class="admin-topbar__title" id="edit-room-topbar-title">Chỉnh sửa phòng</h1>
+                    <h1 class="admin-topbar__title" id="edit-room-topbar-title"
+                        th:text="${partnerPropertyType != null && partnerPropertyType.name() == 'RESORT' ? '🌴 Chỉnh sửa phòng/suite' :
+                                  partnerPropertyType != null && partnerPropertyType.name() == 'VILLA'  ? '🏡 Chỉnh sửa căn Villa' :
+                                  partnerPropertyType != null && partnerPropertyType.name() == 'HOMESTAY' ? '🏠 Chỉnh sửa phòng Homestay' :
+                                  '✏️ Chỉnh sửa phòng'}">Chỉnh sửa phòng</h1>
                 </div>
                 <a href="/partner/rooms" class="btn btn--ghost btn--sm">← Quay lại danh sách</a>
             </header>
@@ -82,10 +89,14 @@
                                         <div class="form-group">
                                             <label class="form-label">Loại phòng</label>
                                             <select id="edit-roomType" name="roomType" class="form-control">
-                                                <option value="Hotel">Hotel</option>
-                                                <option value="Villa">Villa</option>
-                                                <option value="Homestay">Homestay</option>
-                                                <option value="Resort">Resort</option>
+                                                <option value="Hotel"
+                                                    th:selected="${partnerPropertyType == null || partnerPropertyType.name() == 'HOTEL'}">Hotel</option>
+                                                <option value="Villa"
+                                                    th:selected="${partnerPropertyType != null && partnerPropertyType.name() == 'VILLA'}">Villa</option>
+                                                <option value="Homestay"
+                                                    th:selected="${partnerPropertyType != null && partnerPropertyType.name() == 'HOMESTAY'}">Homestay</option>
+                                                <option value="Resort"
+                                                    th:selected="${partnerPropertyType != null && partnerPropertyType.name() == 'RESORT'}">Resort</option>
                                             </select>
                                         </div>
                                         <div class="form-group">

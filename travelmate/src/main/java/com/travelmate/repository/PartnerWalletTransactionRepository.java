@@ -2,6 +2,7 @@ package com.travelmate.repository;
 
 import com.travelmate.entity.PartnerSettlement;
 import com.travelmate.entity.PartnerWalletTransaction;
+import com.travelmate.entity.PartnerWithdrawalRequest;
 import com.travelmate.entity.User;
 import com.travelmate.entity.enums.PartnerWalletTransactionType;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,6 +17,11 @@ public interface PartnerWalletTransactionRepository extends JpaRepository<Partne
 
     boolean existsBySettlementAndTransactionType(
             PartnerSettlement settlement,
+            PartnerWalletTransactionType transactionType
+    );
+
+    boolean existsByWithdrawalRequestAndTransactionType(
+            PartnerWithdrawalRequest withdrawalRequest,
             PartnerWalletTransactionType transactionType
     );
 

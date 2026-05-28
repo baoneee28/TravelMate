@@ -5,6 +5,5 @@ package com.travelmate.entity.enums;
  */
 public enum PaymentMethod {
     VNPAY,      // VNPAY Sandbox (tích hợp thật — hiện tại đang dùng)
-    VNPAY_DEMO, // Legacy: VNPay mô phỏng (giữ để tương thích DB cũ)
     MOMO_DEMO   // MoMo mô phỏng (dự phòng)
 }

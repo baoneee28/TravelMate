@@ -42,7 +42,7 @@
                     <div class="filter-input-wrap" id="filterInputWrap">
                         <i class="fa-solid fa-location-dot"></i>
                         <input type="text" id="locationFilterInput" placeholder="Lọc tin tức theo địa điểm du lịch..."
-                            autocomplete="off" />
+                            autocomplete="off" th:value="${newsFilterLabel}" />
                         <button type="button" class="filter-clear-btn" id="filterClearBtn" style="display:none;">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
@@ -50,14 +50,15 @@
                     <div class="filter-suggestions" id="filterSuggestions"></div>
                 </div>
                 <div class="filter-tags" id="filterTags">
-                    <button type="button" class="filter-tag active" data-location="all">
+                    <a th:href="@{/news}" class="filter-tag" th:classappend="${!newsFiltered} ? ' active' : ''" data-location="all">
                         <i class="fa-solid fa-fire"></i> Tất cả
-                    </button>
-                    <button type="button" class="filter-tag" th:each="location : ${newsLocations}"
+                    </a>
+                    <a th:href="@{/news(keyword=${location})}" class="filter-tag" th:each="location : ${newsLocations}"
+                            th:classappend="${newsFiltered and location == newsFilterLabel} ? ' active' : ''"
                             th:attr="data-location=${location}">
                         <i class="fa-solid fa-hashtag"></i>
                         <span th:text="${location}">Đà Nẵng</span>
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -140,7 +141,7 @@
                 </div>
             </div>
 
-            <div class="news-more-section" th:if="${gridPosts != null and !#lists.isEmpty(gridPosts)}">
+            <div class="news-more-section" id="newsMoreSection" th:if="${gridPosts != null and !#lists.isEmpty(gridPosts)}">
                 <div class="news-more-header">
                     <h2><i class="fa-solid fa-newspaper"></i> Tin tức mới nhất</h2>
                 </div>
@@ -170,16 +171,50 @@
                 </div>
             </div>
 
-            <div class="news-no-result" id="newsEmptyState" th:if="${featuredPost == null}">
+            <div class="news-more-section" id="filteredNewsSection"
+                 th:style="${newsFiltered} ? '' : 'display:none;'"
+                 th:if="${newsFiltered and newsPosts != null and !#lists.isEmpty(newsPosts)}">
+                <div class="news-more-header">
+                    <h2><i class="fa-solid fa-location-dot"></i> Kết quả theo địa điểm: <span id="filterResultLabel" th:text="${newsFilterLabel}"></span></h2>
+                </div>
+                <div class="news-grid">
+                    <a th:each="post : ${newsPosts}"
+                       th:href="${post.sourceUrl}" target="_blank" rel="noopener noreferrer"
+                       class="news-grid-card js-filter-result-card"
+                       th:attr="data-location=${post.destination}">
+                        <div class="grid-card-img">
+                            <img th:if="${post.thumbnailUrl != null and !#strings.isEmpty(post.thumbnailUrl)}"
+                                 th:src="${post.thumbnailUrl}" th:alt="${post.destination}" />
+                            <div th:unless="${post.thumbnailUrl != null and !#strings.isEmpty(post.thumbnailUrl)}"
+                                 class="grid-card-placeholder"><i class="fa-solid fa-link"></i></div>
+                        </div>
+                        <div class="grid-card-body">
+                            <span class="grid-card-tag" th:text="${post.destination}">Đà Lạt</span>
+                            <h3 th:text="${post.title}">Tiêu đề bài viết</h3>
+                            <p th:text="${post.summary}">Tóm tắt bài viết</p>
+                            <div class="grid-card-meta">
+                                <span><i class="fa-solid fa-link"></i> <span th:text="${post.sourceName != null ? post.sourceName : 'Vietnam.travel'}">Nguồn</span></span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="news-no-result" id="newsEmptyState" th:if="${!newsFiltered and featuredPost == null}">
                 <i class="fa-solid fa-newspaper"></i>
                 <h3>Chưa có bài viết du lịch</h3>
                 <p>Admin có thể bổ sung nội dung tại trang quản lý bài viết du lịch.</p>
             </div>
 
-            <div class="news-no-result" id="newsNoResult" style="display:none;">
+            <div class="news-no-result" id="newsNoResult"
+                 th:style="${newsFiltered and (newsPosts == null or #lists.isEmpty(newsPosts))} ? 'display:flex;' : 'display:none;'">
                 <i class="fa-solid fa-magnifying-glass"></i>
-                <h3>Không tìm thấy tin tức</h3>
-                <p>Không có tin nào phù hợp với địa điểm bạn tìm. Hãy thử từ khóa khác.</p>
+                <h3>Chưa có bài viết cho chủ đề này</h3>
+                <p>TravelMate chưa có tin phù hợp với tag bạn chọn. Bạn có thể quay lại tất cả bài viết để xem gợi ý khác.</p>
+                <button type="button" id="backAllNewsBtn"
+                        style="margin-top:12px;border:0;border-radius:999px;background:#2563eb;color:#fff;padding:10px 18px;font-weight:700;cursor:pointer;">
+                    Xem tất cả tin tức
+                </button>
             </div>
         </div>
     </section>
@@ -192,8 +227,12 @@
             const noResult = document.getElementById('newsNoResult');
             const filterTags = [...document.querySelectorAll('.filter-tag')];
             const cards = [...document.querySelectorAll('.js-news-card')];
+            const resultCards = [...document.querySelectorAll('.js-filter-result-card')];
             const newsLayout = document.getElementById('newsLayout');
-            const moreSection = document.querySelector('.news-more-section');
+            const moreSection = document.getElementById('newsMoreSection');
+            const filteredSection = document.getElementById('filteredNewsSection');
+            const filterResultLabel = document.getElementById('filterResultLabel');
+            const backAllNewsBtn = document.getElementById('backAllNewsBtn');
             const locations = [...new Set(cards.map(card => card.dataset.location).filter(Boolean))];
 
             const normalize = (value) => String(value || '')
@@ -211,16 +250,27 @@
                 const showAll = !query || query === 'all';
                 let visibleCount = 0;
 
-                cards.forEach(card => {
+                if (showAll) {
+                    cards.forEach(card => card.style.display = '');
+                    if (newsLayout) newsLayout.style.display = '';
+                    if (moreSection) moreSection.style.display = '';
+                    if (filteredSection) filteredSection.style.display = 'none';
+                    if (noResult) noResult.style.display = 'none';
+                    return;
+                }
+
+                resultCards.forEach(card => {
                     const cardLocation = normalize(card.dataset.location);
-                    const show = showAll || cardLocation.includes(query) || query.includes(cardLocation);
+                    const show = cardLocation.includes(query) || query.includes(cardLocation);
                     card.style.display = show ? '' : 'none';
                     if (show) visibleCount++;
                 });
 
-                if (noResult) noResult.style.display = visibleCount === 0 && cards.length > 0 ? 'flex' : 'none';
-                if (newsLayout) newsLayout.style.display = visibleCount === 0 ? 'none' : '';
-                if (moreSection) moreSection.style.display = visibleCount === 0 ? 'none' : '';
+                if (filterResultLabel) filterResultLabel.textContent = location;
+                if (noResult) noResult.style.display = visibleCount === 0 ? 'flex' : 'none';
+                if (newsLayout) newsLayout.style.display = 'none';
+                if (moreSection) moreSection.style.display = 'none';
+                if (filteredSection) filteredSection.style.display = visibleCount > 0 ? '' : 'none';
             }
 
             filterTags.forEach(tag => {
@@ -234,6 +284,16 @@
                     filterNews(location);
                 });
             });
+
+            if (backAllNewsBtn) {
+                backAllNewsBtn.addEventListener('click', () => {
+                    filterTags.forEach(tag => tag.classList.toggle('active', tag.dataset.location === 'all'));
+                    input.value = '';
+                    clearBtn.style.display = 'none';
+                    suggestions.style.display = 'none';
+                    filterNews('all');
+                });
+            }
 
             input.addEventListener('input', () => {
                 const value = input.value.trim();

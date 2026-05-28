@@ -1,7 +1,14 @@
 package com.travelmate.controller.page;
 
+import com.travelmate.service.PasswordResetService;
 import com.travelmate.service.UserService;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,9 +27,21 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AuthPageController {
 
     private final UserService userService;
+    private final PasswordResetService passwordResetService;
+    private final ObjectProvider<ClientRegistrationRepository> clientRegistrationRepository;
+    private final MessageSource messageSource;
+    private final boolean googleOAuthEnabled;
 
-    public AuthPageController(UserService userService) {
+    public AuthPageController(UserService userService,
+                              PasswordResetService passwordResetService,
+                              ObjectProvider<ClientRegistrationRepository> clientRegistrationRepository,
+                              MessageSource messageSource,
+                              @Value("${travelmate.oauth2.google.enabled:false}") boolean googleOAuthEnabled) {
         this.userService = userService;
+        this.passwordResetService = passwordResetService;
+        this.clientRegistrationRepository = clientRegistrationRepository;
+        this.messageSource = messageSource;
+        this.googleOAuthEnabled = googleOAuthEnabled;
     }
 
     /**
@@ -30,7 +49,8 @@ public class AuthPageController {
      * Template: templates/auth/login.html
      */
     @GetMapping("/login")
-    public String loginPage() {
+    public String loginPage(Model model) {
+        addOAuth2Model(model);
         return "auth/login";
     }
 
@@ -39,8 +59,46 @@ public class AuthPageController {
      * Template: templates/auth/register.html
      */
     @GetMapping("/register")
-    public String registerPage() {
+    public String registerPage(Model model) {
+        addOAuth2Model(model);
         return "auth/register";
+    }
+
+    @GetMapping("/forgot-password")
+    public String forgotPasswordPage() {
+        return "auth/forgot-password";
+    }
+
+    @PostMapping("/forgot-password")
+    public String handleForgotPassword(@RequestParam("email") String email,
+                                       RedirectAttributes redirectAttributes) {
+        passwordResetService.requestReset(email);
+        redirectAttributes.addFlashAttribute("success", message("auth.forgot.generic"));
+        return "redirect:/auth/forgot-password";
+    }
+
+    @GetMapping("/reset-password")
+    public String resetPasswordPage(@RequestParam(value = "token", required = false) String token,
+                                    Model model) {
+        model.addAttribute("token", token);
+        model.addAttribute("tokenValid", passwordResetService.isValidToken(token));
+        return "auth/reset-password";
+    }
+
+    @PostMapping("/reset-password")
+    public String handleResetPassword(@RequestParam("token") String token,
+                                      @RequestParam("password") String password,
+                                      @RequestParam("confirmPassword") String confirmPassword,
+                                      RedirectAttributes redirectAttributes) {
+        try {
+            passwordResetService.resetPassword(token, password, confirmPassword);
+            redirectAttributes.addFlashAttribute("success", message("auth.reset.success"));
+            return "redirect:/auth/login";
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("error", message("auth.reset.failure"));
+            redirectAttributes.addAttribute("token", token);
+            return "redirect:/auth/reset-password";
+        }
     }
 
     /**
@@ -59,19 +117,19 @@ public class AuthPageController {
     ) {
         // Kiểm tra mật khẩu khớp
         if (!password.equals(confirmPassword)) {
-            redirectAttributes.addFlashAttribute("error", "Mật khẩu xác nhận không khớp!");
+            redirectAttributes.addFlashAttribute("error", message("auth.register.error.passwordMismatch"));
             return "redirect:/auth/register";
         }
 
         // Kiểm tra độ dài mật khẩu
         if (password.length() < 8) {
-            redirectAttributes.addFlashAttribute("error", "Mật khẩu phải có ít nhất 8 ký tự!");
+            redirectAttributes.addFlashAttribute("error", message("auth.register.error.passwordLength"));
             return "redirect:/auth/register";
         }
 
         // Kiểm tra email đã tồn tại
         if (userService.existsByEmail(email)) {
-            redirectAttributes.addFlashAttribute("error", "Email này đã được đăng ký. Vui lòng đăng nhập!");
+            redirectAttributes.addFlashAttribute("error", message("auth.register.error.emailUsed"));
             return "redirect:/auth/register";
         }
 
@@ -79,7 +137,18 @@ public class AuthPageController {
         userService.register(firstName, lastName, email, phone, password);
 
         // Redirect về trang đăng nhập với thông báo thành công
-        redirectAttributes.addFlashAttribute("success", "Tạo tài khoản thành công! Vui lòng đăng nhập.");
+        redirectAttributes.addFlashAttribute("success", message("auth.register.success"));
         return "redirect:/auth/login";
+    }
+
+    private void addOAuth2Model(Model model) {
+        boolean configured = googleOAuthEnabled && clientRegistrationRepository.getIfAvailable() != null;
+        model.addAttribute("googleOAuthConfigured", configured);
+        model.addAttribute("googleOAuthDisabledReason",
+                configured ? "" : message("auth.google.disabledReason"));
+    }
+
+    private String message(String code) {
+        return messageSource.getMessage(code, null, LocaleContextHolder.getLocale());
     }
 }

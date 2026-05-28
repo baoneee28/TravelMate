@@ -12,13 +12,13 @@ import com.travelmate.entity.PartnerWithdrawalRequest;
 import com.travelmate.entity.PartnerSettlement;
 import com.travelmate.entity.Review;
 import com.travelmate.entity.Room;
+import com.travelmate.entity.RoomVoucherAssignment;
 import com.travelmate.entity.SupportTicket;
 import com.travelmate.entity.User;
 import com.travelmate.entity.Voucher;
 import com.travelmate.entity.enums.ApprovalStatus;
 import com.travelmate.entity.enums.BookingSource;
 import com.travelmate.entity.enums.BookingStatus;
-import com.travelmate.entity.enums.DiscountType;
 import com.travelmate.entity.enums.PartnerBookingStatus;
 import com.travelmate.entity.enums.PropertyType;
 import com.travelmate.entity.enums.RoomCategory;
@@ -47,7 +47,6 @@ import com.travelmate.entity.AdminActionLog;
 import com.travelmate.entity.enums.PaymentOption;
 import com.travelmate.entity.enums.RemainingPaymentStatus;
 import com.travelmate.repository.AdminActionLogRepository;
-import com.travelmate.repository.BookingRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -79,7 +78,6 @@ public class PartnerPageController {
     private final ReviewService reviewService;
     private final VoucherService voucherService;
     private final SettlementService settlementService;
-    private final BookingRepository bookingRepository;
     private final SupportTicketService supportTicketService;
     private final FileStorageService fileStorageService;
     private final AvailabilityService availabilityService;
@@ -94,7 +92,6 @@ public class PartnerPageController {
                                  ReviewService reviewService,
                                  VoucherService voucherService,
                                  SettlementService settlementService,
-                                 BookingRepository bookingRepository,
                                  SupportTicketService supportTicketService,
                                  FileStorageService fileStorageService,
                                  AvailabilityService availabilityService,
@@ -108,7 +105,6 @@ public class PartnerPageController {
         this.reviewService = reviewService;
         this.voucherService = voucherService;
         this.settlementService = settlementService;
-        this.bookingRepository = bookingRepository;
         this.supportTicketService = supportTicketService;
         this.fileStorageService = fileStorageService;
         this.availabilityService = availabilityService;
@@ -126,25 +122,48 @@ public class PartnerPageController {
 
     /**
      * Helper: thêm dynamic UI labels vào Model theo loại lưu trú của partner.
-     * VILLA  → unitLabel = "căn", addUnitLabel = "Thêm căn", ...
-     * Others → unitLabel = "phòng", addUnitLabel = "Thêm phòng", ...
+     * VILLA  → quản lý theo căn.
+     * RESORT → quản lý theo loại phòng / suite.
+     * Others → quản lý theo phòng.
      */
     private void addUnitLabels(Model model, User partner) {
         PropertyType propType = partner.getPartnerPropertyType();
         boolean isVilla = propType == PropertyType.VILLA;
+        boolean isResort = propType == PropertyType.RESORT;
         model.addAttribute("partnerPropertyType", propType);
         model.addAttribute("isVillaPartner",  isVilla);
+        model.addAttribute("isResortPartner", isResort);
         model.addAttribute("unitLabel",       isVilla ? "căn"        : "phòng");
         model.addAttribute("unitLabelCap",    isVilla ? "Căn"        : "Phòng");
-        model.addAttribute("unitTypeLabel",   isVilla ? "loại căn"   : "loại phòng");
-        model.addAttribute("addUnitLabel",    isVilla ? "Thêm căn"   : "Thêm phòng");
+        model.addAttribute("unitTypeLabel",   isVilla ? "loại căn"   : (isResort ? "loại phòng / suite" : "loại phòng"));
+        model.addAttribute("unitTypeLabelCap", isVilla ? "Căn villa" : (isResort ? "Phòng / suite" : "Phòng"));
+        model.addAttribute("inventoryLabel",  isVilla ? "căn villa" : (isResort ? "phòng / suite Resort" : "phòng"));
+        model.addAttribute("addUnitLabel",    isVilla ? "Thêm căn"   : (isResort ? "Thêm loại phòng / suite" : "Thêm phòng"));
+        model.addAttribute("amenityMenuLabel", isVilla ? "Tiện nghi căn" : (isResort ? "Tiện nghi phòng / suite" : "Tiện nghi phòng"));
         model.addAttribute("blockUnitLabel",  isVilla ? "Chặn căn"   : "Chặn phòng");
+        model.addAttribute("bookingUnitLabel", isVilla ? "đặt căn"   : "đặt phòng");
         model.addAttribute("unitStatusTitle", isVilla ? "Tình trạng căn hôm nay"    : "Tình trạng phòng hôm nay");
-        model.addAttribute("quotaLabel",      isVilla ? "Tổng quota căn TravelMate" : "Tổng quota TravelMate");
+        model.addAttribute("quotaLabel",      isVilla ? "Tổng quota căn TravelMate" : "Tổng quota phòng TravelMate");
         model.addAttribute("checkinLabel",    isVilla ? "Chờ nhận căn"              : "Chờ check-in");
         model.addAttribute("propertyWord",    isVilla ? "villa"
                 : (propType == PropertyType.HOMESTAY ? "homestay"
                 : (propType == PropertyType.RESORT   ? "resort" : "cơ sở")));
+    }
+
+    private String getUnitLabel(User partner) {
+        return partner.getPartnerPropertyType() == PropertyType.VILLA ? "căn" : "phòng";
+    }
+
+    private String getAccommodationNamePlaceholder(PropertyType propertyType) {
+        if (propertyType == null) {
+            return "VD: LATA Hotel & Apartments";
+        }
+        return switch (propertyType) {
+            case RESORT -> "VD: Vinpearl Resort & Spa Nha Trang";
+            case VILLA -> "VD: The Anam Villa Nha Trang";
+            case HOMESTAY -> "VD: Mộc Nhiên Garden Homestay";
+            case HOTEL -> "VD: LATA Hotel & Apartments";
+        };
     }
 
     // ─── Lấy partner hiện tại từ Security context ────────────────────────────
@@ -325,12 +344,15 @@ public class PartnerPageController {
         User partner = getCurrentPartner(userDetails);
         model.addAttribute("partnerName", partner.getName());
         model.addAttribute("partnerPropertyType", partner.getPartnerPropertyType());
+        addUnitLabels(model, partner);
+        model.addAttribute("accommodationNamePlaceholder",
+                getAccommodationNamePlaceholder(partner.getPartnerPropertyType()));
         return "partner/accommodation-form";
     }
 
     /**
      * POST /partner/accommodations/new — Xử lý submit form tạo mới accommodation.
-     * approvalStatus = PENDING → chờ admin duyệt.
+     * approvalStatus = PENDING → chờ quản trị viên duyệt.
      */
     @PostMapping("/accommodations/new")
     public String createAccommodation(
@@ -384,13 +406,13 @@ public class PartnerPageController {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cơ sở lưu trú!"));
 
         // Ownership check
-        if (acc.getOwner() == null || !acc.getOwner().getId().equals(partner.getId())) {
+        if (!accommodationService.canManageAccommodation(partner, acc)) {
             return "redirect:/partner/accommodations";
         }
         // Phải APPROVED mới cho thêm phòng
         if (acc.getApprovalStatus() != ApprovalStatus.APPROVED) {
             model.addAttribute("errorMessage",
-                "Chỉ có thể thêm phòng cho cơ sở đã được Admin duyệt!");
+                "Chỉ có thể thêm " + getUnitLabel(partner) + " cho cơ sở đã được Admin duyệt!");
             return "redirect:/partner/accommodations";
         }
 
@@ -443,7 +465,7 @@ public class PartnerPageController {
             accommodationService.createRoom(partner, id, roomCode, roomName, bedType,
                     capacity, pricePerNight, availableQuantity, imageUrl, description,
                     category, commissionRateOverride, amenityIds);
-            ra.addFlashAttribute("successMessage", "✅ Đã thêm phòng " + roomName + " thành công!");
+            ra.addFlashAttribute("successMessage", "✅ Đã thêm " + getUnitLabel(partner) + " " + roomName + " thành công!");
         } catch (RuntimeException e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
         }
@@ -501,8 +523,14 @@ public class PartnerPageController {
         User partner = getCurrentPartner(userDetails);
         try {
             Room updated = accommodationService.updateRoomAmenities(partner, roomId, amenityIds);
-            ra.addFlashAttribute("successMessage",
-                    "✅ Đã cập nhật tiện nghi cho phòng " + updated.getRoomName() + " thành công!");
+            if (updated.getApprovalStatus() != null && updated.getApprovalStatus().name().equals("PENDING")) {
+                ra.addFlashAttribute("successMessage",
+                        "✅ Đã ghi nhận thay đổi tiện nghi quan trọng cho " + getUnitLabel(partner) + " "
+                                + updated.getRoomName() + ". TravelMate đã chuyển sang trạng thái chờ Admin xem xét lại trước khi hiển thị cho khách.");
+            } else {
+                ra.addFlashAttribute("successMessage",
+                        "✅ Đã cập nhật tiện nghi cho " + getUnitLabel(partner) + " " + updated.getRoomName() + " thành công!");
+            }
         } catch (RuntimeException e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
         }
@@ -512,6 +540,30 @@ public class PartnerPageController {
     @GetMapping("/rooms/pending")
     public String pendingRooms() {
         return "redirect:/partner/accommodations";
+    }
+
+    @PostMapping("/rooms/{roomId}/toggle-selling")
+    public String toggleRoomSelling(@PathVariable Long roomId,
+                                    @AuthenticationPrincipal CustomUserDetails userDetails,
+                                    RedirectAttributes ra) {
+        User partner = getCurrentPartner(userDetails);
+        try {
+            Room room = accommodationService.toggleRoomBookingAvailability(partner, roomId);
+            boolean open = Boolean.TRUE.equals(room.getAvailableForBooking());
+            logPartnerAction(partner,
+                    open ? "PARTNER_REOPEN_ROOM_SELLING" : "PARTNER_STOP_ROOM_SELLING",
+                    "ROOM", room.getId(),
+                    (open ? "Partner mở bán lại " : "Partner tạm ngừng bán ")
+                            + getUnitLabel(partner) + ": " + room.getRoomName(),
+                    null);
+            ra.addFlashAttribute("successMessage",
+                    (open ? "✅ Đã mở bán lại " : "⏸️ Đã tạm ngừng bán ")
+                            + getUnitLabel(partner) + " " + room.getRoomName()
+                            + ". Quota gốc không bị thay đổi.");
+        } catch (RuntimeException e) {
+            ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
+        }
+        return "redirect:/partner/room-status";
     }
 
     // ─── Bookings ─────────────────────────────────────────────────────────────
@@ -530,7 +582,7 @@ public class PartnerPageController {
         // Lấy TẤT CẢ booking của partner (kể cả DIRECT, BLOCK)
         List<Booking> allBookings = bookingService.getAllBookingsForPartner(partner);
 
-        // Booking online (từ admin duyệt) — loại trừ PENDING_ADMIN_APPROVAL - computed inline below
+        // Booking online VNPAY hợp lệ; loại trừ giao dịch ngoại lệ đang cần đối soát.
 
         // Booking trực tiếp
         List<Booking> directBookings = allBookings.stream()
@@ -584,7 +636,7 @@ public class PartnerPageController {
     }
 
     /**
-     * POST /partner/bookings/{id}/confirm-hold — Partner xác nhận giữ phòng.
+     * POST /partner/bookings/{id}/confirm-hold — Đối tác xác nhận giữ phòng.
      */
     @PostMapping("/bookings/{id}/confirm-hold")
     public String confirmHold(@PathVariable Long id,
@@ -594,8 +646,8 @@ public class PartnerPageController {
         try {
             Booking b = bookingService.confirmBookingHoldByPartner(id, partner);
             logPartnerAction(partner, "PARTNER_CONFIRM_HOLD", "BOOKING", id,
-                    "Partner xác nhận giữ phòng: " + b.getBookingCode(), null);
-            ra.addFlashAttribute("successMessage", "✅ Đã xác nhận giữ phòng thành công!");
+                    "Đối tác xác nhận giữ " + getUnitLabel(partner) + ": " + b.getBookingCode(), null);
+            ra.addFlashAttribute("successMessage", "✅ Đã xác nhận giữ " + getUnitLabel(partner) + " thành công!");
         } catch (RuntimeException e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
         }
@@ -660,8 +712,8 @@ public class PartnerPageController {
             boolean isDeposit = b.getPaymentOption() != null
                     && b.getPaymentOption() == com.travelmate.entity.enums.PaymentOption.DEPOSIT_30;
             String msg = isDeposit
-                    ? "✅ Đã ghi nhận khách không đến (No-show). Cọc 30% bị giữ lại theo chính sách và quota phòng đã được mở lại trên TravelMate."
-                    : "✅ Đã ghi nhận khách không đến (No-show). Booking đã được cập nhật và quota phòng đã được mở lại trên TravelMate.";
+                    ? "✅ Đã ghi nhận khách không đến (No-show). Cọc 30% bị giữ lại theo chính sách và quota " + getUnitLabel(partner) + " đã được mở lại trên TravelMate."
+                    : "✅ Đã ghi nhận khách không đến (No-show). Booking đã được cập nhật và quota " + getUnitLabel(partner) + " đã được mở lại trên TravelMate.";
             ra.addFlashAttribute("successMessage", msg);
         } catch (RuntimeException e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
@@ -677,12 +729,10 @@ public class PartnerPageController {
                                 @AuthenticationPrincipal CustomUserDetails userDetails,
                                 Model model) {
         User partner = getCurrentPartner(userDetails);
-        Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn đặt phòng!"));
-        // Security check: booking phải thuộc accommodation của partner
-        if (booking.getAccommodation() == null
-                || booking.getAccommodation().getOwner() == null
-                || !booking.getAccommodation().getOwner().getId().equals(partner.getId())) {
+        Booking booking;
+        try {
+            booking = bookingService.getVisibleBookingForPartner(id, partner);
+        } catch (RuntimeException ex) {
             return "redirect:/partner/bookings";
         }
         model.addAttribute("booking", booking);
@@ -741,7 +791,7 @@ public class PartnerPageController {
         try {
             Booking b = bookingService.cancelByPartner(id, partner);
             logPartnerAction(partner, "PARTNER_REJECT_HOLD", "BOOKING", id,
-                    "Partner hủy giữ phòng: " + b.getBookingCode(), null);
+                    "Partner hủy giữ " + getUnitLabel(partner) + ": " + b.getBookingCode(), null);
             ra.addFlashAttribute("successMessage", "⚠️ Đã hủy xác nhận. Admin sẽ xem xét đơn này.");
         } catch (RuntimeException e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
@@ -786,96 +836,49 @@ public class PartnerPageController {
     @GetMapping("/vouchers")
     public String vouchers(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
         User partner = getCurrentPartner(userDetails);
-        List<Voucher> vouchers = voucherService.getVouchersForPartner(partner);
-        List<Accommodation> myAccommodations = accommodationService.getAccommodationsByOwner(partner)
-                .stream()
-                .filter(a -> a.getApprovalStatus() == ApprovalStatus.APPROVED)
-                .collect(Collectors.toList());
         List<Room> myRooms = accommodationService.getApprovedRoomsForPartner(partner);
+        List<Voucher> catalog = voucherService.getPartnerRoomCatalog(partner);
+        List<RoomVoucherAssignment> assignments = voucherService.getAssignmentsForPartner(partner);
         addUnitLabels(model, partner);
-        model.addAttribute("vouchers",        vouchers);
-        model.addAttribute("accommodations",  myAccommodations);
-        model.addAttribute("rooms",           myRooms);
-        model.addAttribute("partnerName",     partner.getName());
+        model.addAttribute("catalog", catalog);
+        model.addAttribute("assignments", assignments);
+        model.addAttribute("rooms", myRooms);
+        model.addAttribute("partnerName", partner.getName());
         return "partner/vouchers";
     }
 
-    /** POST /partner/vouchers/create-for-accommodation */
-    @PostMapping("/vouchers/create-for-accommodation")
-    public String createVoucherForAccommodation(
-            @RequestParam Long accommodationId,
-            @RequestParam String code,
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String description,
-            @RequestParam String discountType,
-            @RequestParam BigDecimal discountValue,
-            @RequestParam(required = false) BigDecimal maxDiscountAmount,
-            @RequestParam(required = false) BigDecimal minOrderAmount,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate,
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            RedirectAttributes ra) {
-        User partner = getCurrentPartner(userDetails);
-        try {
-            LocalDate start = (startDate != null && !startDate.isBlank()) ? LocalDate.parse(startDate) : null;
-            LocalDate end   = (endDate   != null && !endDate.isBlank())   ? LocalDate.parse(endDate)   : null;
-            voucherService.createPartnerVoucherForAccommodation(partner, accommodationId,
-                    code, name, description,
-                    DiscountType.valueOf(discountType), discountValue,
-                    maxDiscountAmount, minOrderAmount, start, end);
-            ra.addFlashAttribute("successMessage", "✅ Tạo voucher '" + code + "' thành công!");
-        } catch (Exception e) {
-            ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
-        }
-        return "redirect:/partner/vouchers";
-    }
-
-    /** POST /partner/vouchers/create-for-room */
-    @PostMapping("/vouchers/create-for-room")
-    public String createVoucherForRoom(
+    /** Partner chỉ chọn voucher do Admin cấp và gắn vào phòng/căn được duyệt của mình. */
+    @PostMapping("/vouchers/assign")
+    public String assignVoucher(
+            @RequestParam Long voucherId,
             @RequestParam Long roomId,
-            @RequestParam String code,
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String description,
-            @RequestParam String discountType,
-            @RequestParam BigDecimal discountValue,
-            @RequestParam(required = false) BigDecimal maxDiscountAmount,
-            @RequestParam(required = false) BigDecimal minOrderAmount,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             RedirectAttributes ra) {
         User partner = getCurrentPartner(userDetails);
         try {
-            LocalDate start = (startDate != null && !startDate.isBlank()) ? LocalDate.parse(startDate) : null;
-            LocalDate end   = (endDate   != null && !endDate.isBlank())   ? LocalDate.parse(endDate)   : null;
-            voucherService.createPartnerVoucherForRoom(partner, roomId,
-                    code, name, description,
-                    DiscountType.valueOf(discountType), discountValue,
-                    maxDiscountAmount, minOrderAmount, start, end);
-            ra.addFlashAttribute("successMessage", "✅ Tạo voucher theo phòng '" + code + "' thành công!");
+            RoomVoucherAssignment assignment = voucherService.assignVoucherToRoom(partner, voucherId, roomId);
+            logPartnerAction(partner, "ASSIGN_VOUCHER", "ROOM", roomId,
+                    "Gắn voucher " + assignment.getVoucher().getCode() + " vào " + assignment.getRoom().getRoomName(), null);
+            ra.addFlashAttribute("successMessage", "Đã gắn voucher vào " + getUnitLabel(partner) + " thành công.");
         } catch (Exception e) {
-            ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
+            ra.addFlashAttribute("errorMessage", e.getMessage());
         }
         return "redirect:/partner/vouchers";
     }
 
-    /** POST /partner/vouchers/{id}/toggle */
-    @PostMapping("/vouchers/{id}/toggle")
-    public String togglePartnerVoucher(@PathVariable Long id,
-                                        @AuthenticationPrincipal CustomUserDetails userDetails,
-                                        RedirectAttributes ra) {
+    @PostMapping("/vouchers/assignments/{id}/remove")
+    public String removeVoucherAssignment(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            RedirectAttributes ra) {
         User partner = getCurrentPartner(userDetails);
         try {
-            // Security: chỉ toggle voucher của mình
-            Voucher v = voucherService.getVouchersForPartner(partner).stream()
-                    .filter(voucher -> voucher.getId().equals(id))
-                    .findFirst()
-                    .orElseThrow(() -> new SecurityException("Bạn không có quyền sửa voucher này!"));
-            voucherService.toggleActive(v.getId());
-            ra.addFlashAttribute("successMessage", "✅ Đã cập nhật trạng thái voucher!");
+            voucherService.removeAssignment(partner, id);
+            logPartnerAction(partner, "REMOVE_VOUCHER_ASSIGNMENT", "VOUCHER_ASSIGNMENT", id,
+                    "Ngừng áp dụng voucher trên phòng/căn", null);
+            ra.addFlashAttribute("successMessage", "Đã ngừng áp dụng voucher cho " + getUnitLabel(partner) + ".");
         } catch (Exception e) {
-            ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
+            ra.addFlashAttribute("errorMessage", e.getMessage());
         }
         return "redirect:/partner/vouchers";
     }
@@ -918,9 +921,11 @@ public class PartnerPageController {
 
         // Dùng chung logic với Admin — đồng bộ dữ liệu tài chính
         var breakdown = settlementService.getBreakdownForSettlement(settlement);
+        var detailTotals = settlementService.calculateBreakdownTotals(breakdown);
 
         model.addAttribute("settlement",     settlement);
         model.addAttribute("breakdown",      breakdown);
+        model.addAttribute("detailTotals",   detailTotals);
         model.addAttribute("partnerName",    partner.getName());
         return "partner/settlement-detail";
     }
@@ -1080,17 +1085,49 @@ public class PartnerPageController {
     }
 
     @GetMapping("/support")
-    public String support(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
+    public String support(@AuthenticationPrincipal CustomUserDetails userDetails,
+                          @RequestParam(required = false) String action,
+                          @RequestParam(required = false) Long accommodationId,
+                          Model model) {
         User partner = getCurrentPartner(userDetails);
         List<SupportTicket> tickets = supportTicketService.getTicketsForPartner(partner);
         long openCount      = tickets.stream().filter(t -> "OPEN".equals(t.getStatus())).count();
         long respondedCount = tickets.stream().filter(t -> "RESPONDED".equals(t.getStatus())).count();
         long closedCount    = tickets.stream().filter(t -> "CLOSED".equals(t.getStatus())).count();
+
+        String supportCategory = "";
+        String supportSubject = "";
+        String supportPriority = "Trung bình";
+        String supportDescription = "";
+        if ("listing-change".equals(action) && accommodationId != null) {
+            Optional<Accommodation> accOpt = accommodationService.getById(accommodationId);
+            if (accOpt.isPresent()
+                    && accommodationService.canManageAccommodation(partner, accOpt.get())) {
+                Accommodation acc = accOpt.get();
+                String unitLabel = getUnitLabel(partner);
+                supportCategory = "Kỹ thuật";
+                supportSubject = "Yêu cầu chỉnh sửa/ngừng bán: " + acc.getName();
+                supportDescription =
+                        "Nơi lưu trú: " + acc.getName() + " (#" + acc.getId() + ")\n" +
+                        "Loại lưu trú: " + (acc.getPropertyType() != null ? acc.getPropertyType().name() : "N/A") + "\n\n" +
+                        "Nội dung cần Admin hỗ trợ:\n" +
+                        "- Chỉnh sửa thông tin đã duyệt / hoặc ngừng bán dài hạn.\n" +
+                        "- Lý do và thời gian áp dụng:\n\n" +
+                        "Lưu ý: TravelMate không xóa cứng nơi lưu trú/" + unitLabel +
+                        " đã có lịch sử booking để giữ đúng dữ liệu vận hành và quyết toán.";
+            }
+        }
+
         model.addAttribute("tickets",        tickets);
         model.addAttribute("openCount",      openCount);
         model.addAttribute("respondedCount", respondedCount);
         model.addAttribute("closedCount",    closedCount);
         model.addAttribute("partnerName",    partner.getName());
+        addUnitLabels(model, partner);
+        model.addAttribute("supportCategory", supportCategory);
+        model.addAttribute("supportSubject", supportSubject);
+        model.addAttribute("supportPriority", supportPriority);
+        model.addAttribute("supportDescription", supportDescription);
         return "partner/support";
     }
 
@@ -1135,7 +1172,7 @@ public class PartnerPageController {
                 ciDate = java.time.LocalDate.parse(checkIn);
                 coDate = java.time.LocalDate.parse(checkOut);
                 if (!coDate.isAfter(ciDate)) {
-                    errorMsg = "Ngày trả phòng phải sau ngày nhận phòng!";
+                    errorMsg = "Ngày trả " + getUnitLabel(partner) + " phải sau ngày nhận " + getUnitLabel(partner) + "!";
                 } else {
                     results = availabilityService.checkAvailabilityForPartner(partner, ciDate, coDate);
                     summary = availabilityService.buildSummary(results);
@@ -1169,7 +1206,7 @@ public class PartnerPageController {
         try {
             Booking b = bookingService.confirmRemainingPaymentByPartner(id, partner, paymentNote);
             logPartnerAction(partner, "PARTNER_CONFIRM_REMAINING", "BOOKING", id,
-                    "Partner xác nhận thu 70% tại cơ sở: " + b.getBookingCode(), paymentNote);
+                    "Đối tác xác nhận thu 70% tại cơ sở: " + b.getBookingCode(), paymentNote);
             ra.addFlashAttribute("successMessage",
                     "✅ Đã xác nhận thu đủ khoản còn lại cho đơn " + b.getBookingCode() + "!");
         } catch (RuntimeException e) {
@@ -1280,7 +1317,7 @@ public class PartnerPageController {
             Accommodation accommodation = accommodationService.getById(accommodationId)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy cơ sở lưu trú!"));
             Room room = accommodationService.getRoomById(roomId)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng!"));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng/căn!"));
             LocalDate ciDate = LocalDate.parse(checkIn);
             LocalDate coDate = LocalDate.parse(checkOut);
 
@@ -1291,7 +1328,7 @@ public class PartnerPageController {
             logPartnerAction(partner, "PARTNER_CREATE_DIRECT_BOOKING", "BOOKING", b.getId(),
                     "Partner tạo booking trực tiếp: " + b.getBookingCode(), note);
             ra.addFlashAttribute("successMessage",
-                    "✅ Đã tạo booking trực tiếp " + b.getBookingCode() + " thành công! Lịch phòng đã được cập nhật.");
+                    "✅ Đã tạo booking trực tiếp " + b.getBookingCode() + " thành công! Lịch " + getUnitLabel(partner) + " đã được cập nhật.");
         } catch (RuntimeException e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
         }
@@ -1316,7 +1353,7 @@ public class PartnerPageController {
             Accommodation accommodation = accommodationService.getById(accommodationId)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy cơ sở lưu trú!"));
             Room room = accommodationService.getRoomById(roomId)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng!"));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng/căn!"));
             LocalDate ciDate = LocalDate.parse(checkIn);
             LocalDate coDate = LocalDate.parse(checkOut);
 
@@ -1324,10 +1361,10 @@ public class PartnerPageController {
                     ciDate, coDate, roomQuantity, blockReason);
 
             logPartnerAction(partner, "PARTNER_BLOCK_ROOM", "BOOKING", b.getId(),
-                    "Partner chặn phòng: " + b.getBookingCode()
-                    + " — " + room.getRoomName() + " (" + roomQuantity + " phòng)", blockReason);
+                    "Partner chặn " + getUnitLabel(partner) + ": " + b.getBookingCode()
+                    + " — " + room.getRoomName() + " (" + roomQuantity + " " + getUnitLabel(partner) + ")", blockReason);
             ra.addFlashAttribute("successMessage",
-                    "✅ Đã chặn " + roomQuantity + " phòng " + room.getRoomName()
+                    "✅ Đã chặn " + roomQuantity + " " + getUnitLabel(partner) + " " + room.getRoomName()
                     + " từ " + checkIn + " đến " + checkOut + " thành công!");
         } catch (RuntimeException e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
@@ -1346,8 +1383,8 @@ public class PartnerPageController {
         try {
             Booking b = bookingService.cancelBlock(id, partner);
             logPartnerAction(partner, "PARTNER_CANCEL_BLOCK", "BOOKING", id,
-                    "Partner hủy chặn phòng: " + b.getBookingCode(), null);
-            ra.addFlashAttribute("successMessage", "✅ Đã hủy chặn phòng thành công!");
+                    "Partner hủy chặn " + getUnitLabel(partner) + ": " + b.getBookingCode(), null);
+            ra.addFlashAttribute("successMessage", "✅ Đã hủy chặn " + getUnitLabel(partner) + " thành công!");
         } catch (RuntimeException e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
         }

@@ -252,10 +252,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     if (imagesPreview) {
-      const seed = Array.from(String(room.roomName || 'A')).reduce((sum, c) => sum + c.charCodeAt(0), 0);
-      const img1 = `https://images.unsplash.com/photo-${1500000000000 + (seed * 1000)}?w=320&q=70`;
-      const img2 = `https://images.unsplash.com/photo-${1500000000000 + (seed * 1001)}?w=320&q=70`;
-      const img3 = `https://images.unsplash.com/photo-${1500000000000 + (seed * 1002)}?w=320&q=70`;
+      const previewByType = {
+        hotel: [
+          '/assets/images/accommodations/amenities/hotel/bedroom.jpg',
+          '/assets/images/accommodations/amenities/hotel/pool.jpg',
+          '/assets/images/accommodations/amenities/hotel/lobby.jpg'
+        ],
+        villa: [
+          '/assets/images/accommodations/amenities/villa/bedroom.jpg',
+          '/assets/images/accommodations/amenities/villa/private-pool.jpg',
+          '/assets/images/accommodations/amenities/villa/kitchen.jpg'
+        ],
+        homestay: [
+          '/assets/images/accommodations/amenities/homestay/bedroom.jpg',
+          '/assets/images/accommodations/amenities/homestay/garden.jpg',
+          '/assets/images/accommodations/amenities/homestay/shared-kitchen.jpg'
+        ],
+        resort: [
+          '/assets/images/accommodations/catalog/resort-room.jpg',
+          '/assets/images/accommodations/amenities/resort/infinity-pool.jpg',
+          '/assets/images/accommodations/amenities/resort/spa.jpg'
+        ]
+      };
+      const [img1, img2, img3] = previewByType[(room.roomType || 'hotel').toLowerCase()] || previewByType.hotel;
       const imgStyle = "width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--color-border-light);";
       
       imagesPreview.innerHTML = `

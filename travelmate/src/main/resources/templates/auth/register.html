@@ -1,10 +1,10 @@
 ﻿<!doctype html>
-<html lang="vi">
+<html lang="vi" th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Đăng ký – TravelMate</title>
+    <title th:text="#{auth.register.pageTitle}">Đăng ký - TravelMate</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&subset=vietnamese&display=swap"
@@ -20,21 +20,21 @@
         <div class="lp-img">
             <img src="/assets/images/HaGiang.jpg" alt="TravelMate" />
             <div class="lp-copy">
-                <div class="badge">✦ miễn phí – tham gia ngay hôm nay</div>
-                <h2>Tham gia cộng đồng<br /><em>TravelMate</em></h2>
-                <p>Đăng ký miễn phí và bắt đầu hành trình khám phá những địa điểm tuyệt vời nhất Việt Nam.</p>
+                <div class="badge" th:text="#{auth.register.heroBadge}">✦ miễn phí - tham gia ngay hôm nay</div>
+                <h2 th:utext="#{auth.register.heroTitle}">Tham gia cộng đồng<br /><em>TravelMate</em></h2>
+                <p th:text="#{auth.register.heroDescription}">Đăng ký miễn phí và bắt đầu hành trình khám phá những địa điểm tuyệt vời nhất Việt Nam.</p>
                 <div class="lp-feat">
                     <div class="lp-feat-item">
                         <div class="lp-feat-icon">🆓</div>
-                        <span>Đăng ký và sử dụng hoàn toàn miễn phí</span>
+                        <span th:text="#{auth.register.heroFeatureFree}">Đăng ký và sử dụng hoàn toàn miễn phí</span>
                     </div>
                     <div class="lp-feat-item">
                         <div class="lp-feat-icon">🎁</div>
-                        <span>Nhận ưu đãi đặc biệt cho thành viên mới</span>
+                        <span th:text="#{auth.register.heroFeatureOffer}">Nhận ưu đãi đặc biệt cho thành viên mới</span>
                     </div>
                     <div class="lp-feat-item">
                         <div class="lp-feat-icon">📋</div>
-                        <span>Theo dõi toàn bộ lịch sử đặt phòng</span>
+                        <span th:text="#{auth.register.heroFeatureHistory}">Theo dõi toàn bộ lịch sử đặt phòng</span>
                     </div>
                 </div>
             </div>
@@ -46,8 +46,9 @@
                 <span class="lb">TRAVEL</span><span class="ly">MATE</span>
             </a>
 
-            <h1 class="ff-title">Tạo tài khoản</h1>
-            <p class="ff-sub">Đã có tài khoản? <a href="/auth/login">Đăng nhập ngay →</a></p>
+            <h1 class="ff-title" th:text="#{auth.register.heading}">Tạo tài khoản</h1>
+            <p class="ff-sub"><span th:text="#{auth.register.hasAccount}">Đã có tài khoản?</span>
+                <a href="/auth/login" th:text="#{auth.register.loginNow}">Đăng nhập ngay →</a></p>
 
             <!-- Hiển thị thông báo lỗi (từ server redirect) -->
             <div id="reg-error" th:if="${error}"
@@ -62,11 +63,12 @@
                 - method="post"          : gửi dữ liệu bằng POST
                 - name attributes phải khớp với @RequestParam trong controller
             -->
-            <form id="register-form" action="/auth/register" method="post" novalidate>
+            <form id="register-form" action="/auth/register" method="post" novalidate
+                th:attr="data-error-password-mismatch=#{auth.register.error.passwordMismatch},data-error-password-length=#{auth.register.error.passwordLength},data-error-terms=#{auth.register.error.terms},data-loading-text=#{auth.register.loading}">
 
                 <div class="ff-row">
                     <div class="ff-col ff-field">
-                        <label class="ff-label" for="first-name">Họ <span class="req">*</span></label>
+                        <label class="ff-label" for="first-name"><span th:text="#{auth.field.firstName}">Họ</span> <span class="req">*</span></label>
                         <div class="ff-wrap">
                             <input id="first-name" name="firstName" type="text" class="ff-input"
                                 placeholder="Nguyễn" required autocomplete="given-name" />
@@ -74,7 +76,7 @@
                         </div>
                     </div>
                     <div class="ff-col ff-field">
-                        <label class="ff-label" for="last-name">Tên <span class="req">*</span></label>
+                        <label class="ff-label" for="last-name"><span th:text="#{auth.field.lastName}">Tên</span> <span class="req">*</span></label>
                         <div class="ff-wrap">
                             <input id="last-name" name="lastName" type="text" class="ff-input"
                                 placeholder="Văn An" required autocomplete="family-name" />
@@ -84,7 +86,7 @@
                 </div>
 
                 <div class="ff-field">
-                    <label class="ff-label" for="reg-email">Email <span class="req">*</span></label>
+                    <label class="ff-label" for="reg-email"><span th:text="#{auth.field.email}">Email</span> <span class="req">*</span></label>
                     <div class="ff-wrap">
                         <input id="reg-email" name="email" type="email" class="ff-input"
                             placeholder="example@email.com" required autocomplete="email" />
@@ -93,7 +95,7 @@
                 </div>
 
                 <div class="ff-field">
-                    <label class="ff-label" for="phone">Số điện thoại <span class="req">*</span></label>
+                    <label class="ff-label" for="phone"><span th:text="#{auth.field.phone}">Số điện thoại</span> <span class="req">*</span></label>
                     <div class="ff-wrap">
                         <input id="phone" name="phone" type="tel" class="ff-input"
                             placeholder="0901 234 567" required autocomplete="tel" />
@@ -103,18 +105,18 @@
 
                 <div class="ff-row">
                     <div class="ff-col ff-field">
-                        <label class="ff-label" for="reg-password">Mật khẩu <span class="req">*</span></label>
+                        <label class="ff-label" for="reg-password"><span th:text="#{auth.field.password}">Mật khẩu</span> <span class="req">*</span></label>
                         <div class="ff-wrap">
                             <input id="reg-password" name="password" type="password" class="ff-input"
-                                placeholder="Tối thiểu 8 ký tự" required autocomplete="new-password" />
+                                placeholder="Tối thiểu 8 ký tự" th:placeholder="#{auth.register.passwordPlaceholder}" required autocomplete="new-password" />
                             <i class="fa-solid fa-lock"></i>
                         </div>
                     </div>
                     <div class="ff-col ff-field">
-                        <label class="ff-label" for="confirm-password">Xác nhận MK <span class="req">*</span></label>
+                        <label class="ff-label" for="confirm-password"><span th:text="#{auth.field.confirmPassword}">Xác nhận mật khẩu</span> <span class="req">*</span></label>
                         <div class="ff-wrap">
                             <input id="confirm-password" name="confirmPassword" type="password" class="ff-input"
-                                placeholder="Nhập lại" required autocomplete="new-password" />
+                                placeholder="Nhập lại" th:placeholder="#{auth.register.confirmPlaceholder}" required autocomplete="new-password" />
                             <i class="fa-solid fa-shield-halved"></i>
                         </div>
                     </div>
@@ -122,17 +124,19 @@
 
                 <div class="ff-chk-terms">
                     <input type="checkbox" id="terms" required />
-                    <label for="terms">Tôi đồng ý với <a href="#">Điều khoản sử dụng</a> và <a href="#">Chính sách bảo
-                            mật</a> của
-                        TravelMate</label>
+                    <label for="terms"><span th:text="#{auth.terms.registerPrefix}">Tôi đồng ý với</span>
+                        <a href="#" th:text="#{auth.terms.use}">Điều khoản sử dụng</a>
+                        <span th:text="#{auth.terms.and}">và</span>
+                        <a href="#" th:text="#{auth.terms.privacy}">Chính sách bảo mật</a></label>
                 </div>
 
-                <button type="submit" id="register-btn" class="btn-cta">Tạo tài khoản</button>
+                <button type="submit" id="register-btn" class="btn-cta" th:text="#{auth.register.submit}">Tạo tài khoản</button>
             </form>
 
-            <div class="ff-divider">hoặc tiếp tục với</div>
+            <div class="ff-divider" th:text="#{auth.divider}">hoặc tiếp tục với</div>
 
-            <button class="btn-google">
+            <a th:if="${googleOAuthConfigured}" th:href="@{/oauth2/authorization/google}" class="btn-google"
+                title="Đăng ký hoặc đăng nhập bằng Google. Hệ thống chỉ tạo tài khoản USER.">
                 <svg width="18" height="18" viewBox="0 0 48 48">
                     <path fill="#EA4335"
                         d="M24 9.5c3.14 0 5.95 1.08 8.17 2.86l6.07-6.07C34.52 3.05 29.57 1 24 1 14.84 1 7.04 6.59 3.74 14.45l7.05 5.47C12.47 13.37 17.74 9.5 24 9.5z" />
@@ -143,10 +147,26 @@
                     <path fill="#34A853"
                         d="M24 47c5.57 0 10.23-1.84 13.64-5l-7.05-5.47c-1.84 1.23-4.19 1.97-6.59 1.97-6.26 0-11.53-3.87-13.21-9.42l-7.07 5.47C7.04 41.41 14.84 47 24 47z" />
                 </svg>
-                Đăng ký bằng Google
+                <span th:text="#{auth.google.continue}">Tiếp tục với Google</span>
+            </a>
+
+            <button th:unless="${googleOAuthConfigured}" class="btn-google btn-google-disabled" type="button" disabled
+                th:title="${googleOAuthDisabledReason}">
+                <svg width="18" height="18" viewBox="0 0 48 48">
+                    <path fill="#EA4335"
+                        d="M24 9.5c3.14 0 5.95 1.08 8.17 2.86l6.07-6.07C34.52 3.05 29.57 1 24 1 14.84 1 7.04 6.59 3.74 14.45l7.05 5.47C12.47 13.37 17.74 9.5 24 9.5z" />
+                    <path fill="#4285F4"
+                        d="M46.08 24.5c0-1.48-.13-2.88-.36-4.25H24v8.04h12.43c-.53 2.88-2.16 5.32-4.6 6.96l7.05 5.47C42.8 37.02 46.08 31.22 46.08 24.5z" />
+                    <path fill="#FBBC05"
+                        d="M10.79 28.58C10.29 27.12 10 25.6 10 24s.29-3.12.79-4.58L3.2 13.98A22.89 22.89 0 0 0 1 24c0 3.58.86 6.96 2.38 9.95l7.41-5.37z" />
+                    <path fill="#34A853"
+                        d="M24 47c5.57 0 10.23-1.84 13.64-5l-7.05-5.47c-1.84 1.23-4.19 1.97-6.59 1.97-6.26 0-11.53-3.87-13.21-9.42l-7.07 5.47C7.04 41.41 14.84 47 24 47z" />
+                </svg>
+                <span th:text="#{auth.google.disabled}">Google Login - cần cấu hình</span>
             </button>
 
-            <p class="ff-note">Đã có tài khoản? <a href="/auth/login">Đăng nhập tại đây</a></p>
+            <p class="ff-note"><span th:text="#{auth.register.hasAccount}">Đã có tài khoản?</span>
+                <a href="/auth/login" th:text="#{auth.register.loginHere}">Đăng nhập tại đây</a></p>
         </div>
     </div>
 
@@ -160,24 +180,24 @@
 
                 if (pwd !== cpwd) {
                     e.preventDefault();
-                    showError("Mật khẩu xác nhận không khớp!");
+                    showError(form.dataset.errorPasswordMismatch);
                     return;
                 }
                 if (pwd.length < 8) {
                     e.preventDefault();
-                    showError("Mật khẩu phải có ít nhất 8 ký tự!");
+                    showError(form.dataset.errorPasswordLength);
                     return;
                 }
                 if (!terms) {
                     e.preventDefault();
-                    showError("Vui lòng đồng ý với điều khoản sử dụng!");
+                    showError(form.dataset.errorTerms);
                     return;
                 }
 
                 // Hiệu ứng loading — form sẽ submit thật lên server
                 const btn = document.getElementById("register-btn");
                 btn.innerHTML =
-                    '<i class="fa-solid fa-circle-notch fa-spin" style="margin-right:8px;"></i>Đang tạo tài khoản...';
+                    '<i class="fa-solid fa-circle-notch fa-spin" style="margin-right:8px;"></i>' + form.dataset.loadingText;
                 btn.disabled = true;
             });
 

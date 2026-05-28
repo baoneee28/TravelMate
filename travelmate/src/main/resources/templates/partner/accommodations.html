@@ -14,6 +14,15 @@
     <link rel="stylesheet" href="/assets/css/partners.css" />
     <link rel="stylesheet" href="/assets/css/responsive.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        .admin-content { overflow-x: hidden; }
+        @media (min-width: 1025px) {
+            .admin-main {
+                zoom: 0.9 !important;
+                margin-left: 260px !important;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -25,7 +34,10 @@
             <header class="admin-topbar">
                 <div style="display: flex; align-items: center; gap: var(--space-4)">
                     <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
-                    <h1 class="admin-topbar__title">🏨 Nơi lưu trú của tôi</h1>
+                    <h1 class="admin-topbar__title"
+                        th:text="${partnerPropertyType != null && partnerPropertyType.name() == 'RESORT' ? '🌴 Nơi lưu trú của tôi' :
+                                  partnerPropertyType != null && partnerPropertyType.name() == 'VILLA'  ? '⛰️ Nơi lưu trú của tôi' :
+                                  partnerPropertyType != null && partnerPropertyType.name() == 'HOMESTAY' ? '🏠 Nơi lưu trú của tôi' : '🏨 Nơi lưu trú của tôi'}">🏨 Nơi lưu trú của tôi</h1>
                 </div>
                 <div class="admin-topbar__actions">
                     <a href="/partner/accommodations/new" class="btn btn--primary btn--sm">+ Đăng ký mới</a>
@@ -37,10 +49,13 @@
             <main class="admin-content">
                 <div class="page-header">
                     <div>
-                        <h2 class="page-header__title">🏨 Danh sách nơi lưu trú của bạn</h2>
+                        <h2 class="page-header__title"
+                            th:text="${partnerPropertyType != null && partnerPropertyType.name() == 'RESORT' ? '🌴 Danh sách Resort của bạn' :
+                                      partnerPropertyType != null && partnerPropertyType.name() == 'VILLA'  ? '⛰️ Danh sách Villa của bạn' :
+                                      partnerPropertyType != null && partnerPropertyType.name() == 'HOMESTAY' ? '🏠 Danh sách Homestay của bạn' : '🏨 Danh sách nơi lưu trú của bạn'}">🏨 Danh sách nơi lưu trú của bạn</h2>
                         <p class="page-header__subtitle">
                             Loại đăng ký: <strong th:text="${partnerPropertyType != null ? partnerPropertyType.name() : 'Chưa đăng ký'}">HOTEL</strong>
-                            · Chỉ listing APPROVED mới hiển thị cho khách hàng đặt phòng.
+                            · <span th:text="${'Chỉ listing APPROVED mới hiển thị cho khách hàng ' + (bookingUnitLabel ?: 'đặt phòng') + '.'}">Chỉ listing APPROVED mới hiển thị cho khách hàng đặt phòng.</span>
                         </p>
                     </div>
                 </div>
@@ -87,23 +102,23 @@
 
                 <!-- Table -->
                 <div class="table-wrap">
-                    <table class="table data-table">
+                    <table class="table data-table" style="min-width: 1350px;">
                         <thead>
                             <tr>
-                                <th>Tên nơi lưu trú</th>
-                                <th>Loại</th>
-                                <th>Thành phố</th>
-                                <th>Sao</th>
-                                <th th:text="${'Số ' + (unitLabelCap ?: 'Phòng')}">Số Phòng</th>
-                                <th>Trạng thái duyệt</th>
-                                <th>Ngày tạo</th>
-                                <th>Thao tác</th>
+                                <th style="white-space: nowrap; min-width: 250px;">Tên nơi lưu trú</th>
+                                <th style="white-space: nowrap; min-width: 100px;">Loại</th>
+                                <th style="white-space: nowrap; min-width: 100px;">Thành phố</th>
+                                <th style="white-space: nowrap; min-width: 80px;">Sao</th>
+                                <th th:text="${'Số ' + (unitLabelCap ?: 'Phòng')}" style="white-space: nowrap; min-width: 100px;">Số Phòng</th>
+                                <th style="white-space: nowrap; min-width: 220px;">Trạng thái duyệt</th>
+                                <th style="white-space: nowrap; min-width: 100px;">Ngày tạo</th>
+                                <th style="width: 390px; min-width: 390px; white-space: nowrap;">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
                             <!-- Không có data -->
                             <tr th:if="${#lists.isEmpty(accommodations)}">
-                                <td colspan="7" style="text-align:center;padding:40px;color:var(--color-text-muted);">
+                                <td colspan="8" style="text-align:center;padding:40px;color:var(--color-text-muted);">
                                     <div style="font-size:48px;margin-bottom:12px;">🏗</div>
                                     <p style="font-weight:600;margin-bottom:8px;">Bạn chưa đăng ký nơi lưu trú nào</p>
                                     <p style="font-size:13px;margin-bottom:16px;">Nhấn nút bên dưới để bắt đầu đăng ký và chờ Admin duyệt.</p>
@@ -113,11 +128,11 @@
                             <!-- Render từng row từ MySQL -->
                             <tr th:each="acc : ${accommodations}">
                                 <td>
-                                    <div style="font-weight:600;" th:text="${acc.name}">Tên</div>
-                                    <div style="font-size:11px;color:var(--color-text-muted);"
+                                    <div style="font-weight:600; white-space: nowrap;" th:text="${acc.name}">Tên</div>
+                                    <div style="font-size:11px;color:var(--color-text-muted); white-space: nowrap;"
                                          th:text="${acc.address ?: '--'}">Địa chỉ</div>
                                 </td>
-                                <td>
+                                <td style="white-space: nowrap;">
                                     <span class="badge badge--primary"
                                           th:text="${acc.propertyType.name() == 'HOTEL' ? '🏨 Hotel' :
                                                     acc.propertyType.name() == 'VILLA' ? '⛰ Villa' :
@@ -125,16 +140,16 @@
                                         Loại
                                     </span>
                                 </td>
-                                <td th:text="${acc.city ?: '--'}">TP</td>
-                                <td>
+                                <td style="white-space: nowrap;" th:text="${acc.city ?: '--'}">TP</td>
+                                <td style="white-space: nowrap;">
                                     <span th:if="${acc.starRating != null}" th:text="${acc.starRating} + '⭐'">4⭐</span>
                                     <span th:if="${acc.starRating == null}">--</span>
                                 </td>
-                                <td style="text-align:center;font-weight:600;color:var(--color-primary);">
+                                <td style="text-align:center;font-weight:600;color:var(--color-primary); white-space: nowrap;">
                                     <span th:text="${roomCountMap[acc.id] ?: 0}">0</span>
                                     <span style="font-size:11px;font-weight:400;color:var(--color-text-muted);" th:text="${' ' + (unitLabel ?: 'phòng')}"> phòng</span>
                                 </td>
-                                <td>
+                                <td style="white-space: nowrap;">
                                     <span class="badge"
                                           th:classappend="${acc.approvalStatus.name() == 'PENDING' ? 'badge--warning' :
                                                           acc.approvalStatus.name() == 'APPROVED' ? 'badge--success' : 'badge--danger'}"
@@ -144,22 +159,22 @@
                                     </span>
                                     <!-- Giải thích khi bị từ chối -->
                                     <div th:if="${acc.approvalStatus.name() == 'REJECTED'}"
-                                         style="font-size:11px;color:#dc2626;margin-top:4px;">
+                                         style="font-size:11px;color:#dc2626;margin-top:4px; white-space: nowrap;">
                                         Liên hệ Admin để biết lý do.
                                     </div>
                                     <!-- Giải thích khi đang pending -->
                                     <div th:if="${acc.approvalStatus.name() == 'PENDING'}"
-                                         style="font-size:11px;color:#d97706;margin-top:4px;">
+                                         style="font-size:11px;color:#d97706;margin-top:4px; white-space: nowrap;">
                                         Khách hàng chưa thấy listing này.
                                     </div>
                                 </td>
-                                <td style="font-size:12px;color:var(--color-text-muted);">
+                                <td style="font-size:12px;color:var(--color-text-muted); white-space: nowrap;">
                                     <span th:if="${acc.createdAt != null}"
                                           th:text="${#temporals.format(acc.createdAt, 'dd/MM/yyyy')}">--</span>
                                     <span th:if="${acc.createdAt == null}">--</span>
                                 </td>
                                 <td>
-                                    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                    <div style="display:flex;gap:6px;flex-wrap:nowrap;align-items:center;white-space:nowrap;">
                                         <!-- Xem trang public nếu APPROVED -->
                                         <a th:if="${acc.approvalStatus.name() == 'APPROVED'}"
                                            th:href="@{/accommodations/{id}(id=${acc.id})}"
@@ -168,16 +183,30 @@
                                             🔗 Xem
                                         </a>
                                         <!-- Thêm phòng/căn CHỈ khi APPROVED -->
+                                         <a th:if="${acc.approvalStatus.name() == 'APPROVED'}"
+                                            th:href="@{/partner/accommodations/{id}/rooms/new(id=${acc.id})}"
+                                            class="btn btn--sm"
+                                            style="background:#2563eb;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;"
+                                            th:text="${(isVillaPartner ? '🏡 ' : '🛏 ') + (addUnitLabel ?: 'Thêm phòng')}">
+                                             🛏 Thêm phòng
+                                         </a>
                                         <a th:if="${acc.approvalStatus.name() == 'APPROVED'}"
-                                           th:href="@{/partner/accommodations/{id}/rooms/new(id=${acc.id})}"
-                                           class="btn btn--sm"
-                                           style="background:#2563eb;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;"
-                                           th:text="${'🛏 ' + (addUnitLabel ?: 'Thêm phòng')}">
-                                            🛏 Thêm phòng
+                                           th:href="@{/partner/support(action='listing-change',accommodationId=${acc.id})}"
+                                           class="btn btn--ghost btn--sm"
+                                           style="font-size:12px;padding:5px 10px;color:#0f766e;border-color:#99f6e4;background:#f0fdfa;">
+                                            <i class="fa-solid fa-pen-to-square" style="margin-right:4px;"></i>
+                                            Yêu cầu chỉnh sửa/ngừng bán
                                         </a>
-                                        <!-- Nếu PENDING: hiển thị badge chờ -->
-                                        <span th:if="${acc.approvalStatus.name() == 'PENDING'}"
-                                              class="badge badge--warning" style="font-size:11px;">⏳ Chờ Admin duyệt</span>
+                                        <a th:if="${acc.approvalStatus.name() == 'APPROVED'}"
+                                           th:href="@{/partner/room-status}"
+                                           class="btn btn--ghost btn--sm"
+                                           style="font-size:12px;padding:5px 10px;color:#c2410c;border-color:#fed7aa;background:#fff7ed;">
+                                            <i class="fa-solid fa-pause" style="margin-right:4px;"></i>
+                                            Ngừng bán nhanh
+                                        </a>
+                                         <!-- Nếu PENDING: hiển thị badge chờ -->
+                                         <span th:if="${acc.approvalStatus.name() == 'PENDING'}"
+                                               class="badge badge--warning" style="font-size:11px;">⏳ Chờ Admin duyệt</span>
                                         <!-- Nếu REJECTED: gợi ý liên hệ admin -->
                                         <span th:if="${acc.approvalStatus.name() == 'REJECTED'}"
                                               class="badge badge--danger" style="font-size:11px;">❌ Liên hệ Admin</span>
@@ -189,21 +218,46 @@
                 </div>
 
                 <!-- Info box -->
-                <div style="margin-top: var(--space-5); padding: 16px; background: #eff6ff; border-radius: 8px; border: 1px solid #bfdbfe; font-size: 13px; color: #1d4ed8;">
+                <!-- Resort ownership rule banner (chỉ hiện với partner RESORT) -->
+                <div th:if="${propertyWord == 'resort'}"
+                     style="margin-top: var(--space-5); padding: 14px 18px; background: linear-gradient(135deg,#fdf2f8,#ede9fe); border-radius: 10px; border: 2px solid #c084fc; font-size: 13px; color: #6b21a8; display:flex; align-items:flex-start; gap:12px;">
+                    <span style="font-size:22px;flex-shrink:0;">🌴</span>
+                    <div>
+                        <strong style="font-size:13.5px;">Quy tắc sở hữu tài khoản RESORT:</strong>
+                        <span> Tài khoản RESORT chỉ quản lý các cơ sở loại Resort. Nếu cần đăng ký loại lưu trú khác (Hotel, Villa, Homestay), vui lòng liên hệ Admin để tạo tài khoản Partner phù hợp.</span>
+                        <div style="margin-top:6px; font-size:12px; color:#9333ea;">
+                            <i class="fa-solid fa-circle-info" style="margin-right:4px;"></i>
+                            Resort quản lý nhiều <strong>loại phòng/suite</strong> (không phải thuê nguyên căn như Villa). Mỗi loại phòng sẽ cần Admin duyệt riêng trước khi khách đặt.
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: var(--space-4); padding: 16px; background: #eff6ff; border-radius: 8px; border: 1px solid #bfdbfe; font-size: 13px; color: #1d4ed8;">
                     <strong>💡 Lưu ý:</strong>
                     <ul style="margin: 8px 0 0 16px; line-height: 1.6;">
                         <li>Listing mới sẽ ở trạng thái <strong>Chờ Admin duyệt listing</strong> sau khi bạn đăng ký.</li>
-                        <li>Sau khi Admin duyệt, khách hàng mới thấy và có thể đặt phòng.</li>
+                        <li th:text="${'Sau khi Admin duyệt, khách hàng mới thấy và có thể ' + (bookingUnitLabel ?: 'đặt phòng') + '.'}">Sau khi Admin duyệt, khách hàng mới thấy và có thể đặt phòng.</li>
                         <li th:text="${'Bạn chỉ có thể thêm ' + (unitLabel ?: 'phòng') + ' cho listing đã được Admin duyệt.'}">Bạn chỉ có thể thêm phòng cho listing đã được Admin duyệt.</li>
+                        <li>
+                            Tài khoản <strong th:text="${partnerPropertyType != null ? partnerPropertyType.name() : 'chưa đăng ký'}">RESORT</strong>
+                            chỉ quản lý các cơ sở cùng loại. Nếu cần đăng loại khác, vui lòng liên hệ Admin để tạo tài khoản Partner phù hợp.
+                        </li>
+                        <li>Không xóa cứng nơi lưu trú/phòng/căn đã có lịch sử booking. Bạn có thể vào <strong>Tình trạng phòng</strong> để tạm ngừng/mở bán online từng phòng/căn; nếu cần chỉnh sửa lớn hoặc ngừng bán dài hạn, hãy gửi yêu cầu hỗ trợ để Admin xử lý.</li>
                         <li>Loại lưu trú đăng ký: <strong th:text="${partnerPropertyType != null ? partnerPropertyType.name() : 'Chưa đăng ký'}">HOTEL</strong> (không thể thay đổi).</li>
                         <li th:if="${isVillaPartner}" style="color:#059669;font-weight:600;">
                             🏡 <strong>Villa được đặt theo căn.</strong>
                             Khi một căn đã được giữ trong khoảng ngày, toàn bộ căn đó sẽ không còn trống cho booking khác.
                         </li>
                         <li th:if="${propertyWord == 'homestay'}" style="color:#0d9488;font-weight:600;">
-                            🏠 <strong>Homestay cho thuê nguyên căn:</strong>
-                            Nếu cơ sở cho thuê toàn bộ nhà, hãy tạo một loại phòng tên <strong>"Nguyên căn homestay"</strong>
-                            và đặt số lượng mở bán là <strong>1</strong> để tránh overbooking.
+                            🏠 <strong>Demo Homestay theo phòng:</strong>
+                            Không bán đồng thời phòng riêng và nguyên căn trong phiên bản hiện tại.
+                            Nghiệp vụ nguyên căn chỉ nên bật khi có logic tự chặn toàn bộ phòng cùng cơ sở trong kỳ đặt.
+                        </li>
+                        <li th:if="${propertyWord == 'resort'}" style="color:#7c3aed;font-weight:600;">
+                            🌴 <strong>Resort quản lý theo loại phòng/suite:</strong>
+                            Resort có thể có nhiều loại phòng (Deluxe, Suite, Pool Villa Suite...). "Pool Villa" hay "Garden Villa Suite" trong Resort là
+                            <em>tên loại phòng nội khu</em>, khác với loại hình <strong>Villa độc lập</strong> trong hệ thống.
+                            Commission mặc định cho Resort: <strong>18%</strong>.
                         </li>
                     </ul>
                 </div>

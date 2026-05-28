@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * AccommodationService — Xử lý nghiệp vụ liên quan đến nơi lưu trú.
@@ -32,6 +33,19 @@ import java.util.Optional;
 @SuppressWarnings("null")
 @Service
 public class AccommodationService {
+
+    private static final Set<String> STAR_REVIEW_AMENITIES = Set.of(
+            "WiFi miễn phí",
+            "Máy lạnh",
+            "Phòng tắm riêng",
+            "Thang máy",
+            "Bãi đỗ xe",
+            "Nhà hàng",
+            "Hồ bơi chung",
+            "Hồ bơi riêng",
+            "Spa / Massage",
+            "Két an toàn"
+    );
 
     private final AccommodationRepository accommodationRepository;
     private final RoomRepository roomRepository;
@@ -49,10 +63,48 @@ public class AccommodationService {
         return accommodation.getOwner() == null || "ACTIVE".equals(accommodation.getOwner().getStatus());
     }
 
+    public boolean canManageAccommodation(User partner, Accommodation accommodation) {
+        return isManagedByPartner(accommodation, partner);
+    }
+
+    private static boolean isManagedByPartner(Accommodation accommodation, User partner) {
+        if (accommodation == null || partner == null || partner.getId() == null) {
+            return false;
+        }
+        if (partner.getPartnerPropertyType() == null || accommodation.getPropertyType() == null) {
+            return false;
+        }
+        return accommodation.getOwner() != null
+                && accommodation.getOwner().getId() != null
+                && accommodation.getOwner().getId().equals(partner.getId())
+                && accommodation.getPropertyType() == partner.getPartnerPropertyType();
+    }
+
+    private static void validateManagedAccommodation(User partner, Accommodation accommodation) {
+        if (accommodation == null || accommodation.getOwner() == null
+                || partner == null || partner.getId() == null
+                || !accommodation.getOwner().getId().equals(partner.getId())) {
+            throw new RuntimeException("Bạn không có quyền thao tác cơ sở lưu trú này!");
+        }
+        if (partner.getPartnerPropertyType() == null) {
+            throw new RuntimeException("Tài khoản partner chưa đăng ký loại lưu trú. Liên hệ Admin.");
+        }
+        if (accommodation.getPropertyType() != partner.getPartnerPropertyType()) {
+            throw new RuntimeException("Tài khoản " + partner.getPartnerPropertyType().name()
+                    + " chỉ được quản lý cơ sở loại " + partner.getPartnerPropertyType().name()
+                    + ". Cơ sở này đang là "
+                    + (accommodation.getPropertyType() != null ? accommodation.getPropertyType().name() : "N/A") + ".");
+        }
+    }
+
     private static boolean matchesKeyword(Accommodation accommodation, String keyword) {
         return DestinationAliasUtil.matchesTextOrDestination(accommodation.getName(), keyword)
                 || DestinationAliasUtil.matchesTextOrDestination(accommodation.getCity(), keyword)
                 || DestinationAliasUtil.matchesTextOrDestination(accommodation.getAddress(), keyword);
+    }
+
+    private static boolean isRoomOpenForOnlineBooking(Room room) {
+        return room != null && Boolean.TRUE.equals(room.getAvailableForBooking());
     }
 
     // ─── AMENITIES ────────────────────────────────────────────────────────────
@@ -67,15 +119,32 @@ public class AccommodationService {
     public Room updateRoomAmenities(User partner, Long roomId, List<Long> amenityIds) {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng!"));
-        // Ownership check
-        if (room.getAccommodation().getOwner() == null
-                || !room.getAccommodation().getOwner().getId().equals(partner.getId())) {
-            throw new RuntimeException("Bạn không có quyền cập nhật phòng này!");
-        }
+        validateManagedAccommodation(partner, room.getAccommodation());
+        Set<String> oldAmenityNames = room.getAmenities() == null ? Set.of()
+                : room.getAmenities().stream()
+                        .map(Amenity::getName)
+                        .filter(name -> name != null && !name.isBlank())
+                        .collect(java.util.stream.Collectors.toSet());
         List<Amenity> amenities = amenityIds == null ? new ArrayList<>()
                 : amenityRepository.findAllById(amenityIds);
+        boolean needsAdminReview = room.getApprovalStatus() == ApprovalStatus.APPROVED
+                && removesImportantAmenity(oldAmenityNames, amenities);
         room.setAmenities(amenities);
+        if (needsAdminReview) {
+            room.setApprovalStatus(ApprovalStatus.PENDING);
+            room.setAvailableForBooking(false);
+        }
         return roomRepository.save(room);
+    }
+
+    private boolean removesImportantAmenity(Set<String> oldAmenityNames, List<Amenity> newAmenities) {
+        Set<String> newAmenityNames = newAmenities == null ? Set.of()
+                : newAmenities.stream()
+                        .map(Amenity::getName)
+                        .filter(name -> name != null && !name.isBlank())
+                        .collect(java.util.stream.Collectors.toSet());
+        return STAR_REVIEW_AMENITIES.stream()
+                .anyMatch(name -> oldAmenityNames.contains(name) && !newAmenityNames.contains(name));
     }
 
     // ─── USER: Tìm kiếm & xem accommodation ─────────────────────────────────
@@ -103,14 +172,20 @@ public class AccommodationService {
     public List<Room> getAvailableRooms(Accommodation accommodation) {
         // Chỉ trả phòng APPROVED còn slot — user không thấy phòng chờ duyệt
         return roomRepository.findByAccommodationAndAvailableQuantityGreaterThanAndApprovalStatus(
-                accommodation, 0, ApprovalStatus.APPROVED);
+                accommodation, 0, ApprovalStatus.APPROVED)
+                .stream()
+                .filter(AccommodationService::isRoomOpenForOnlineBooking)
+                .toList();
     }
 
     /**
      * Lấy tất cả phòng APPROVED của 1 accommodation — dùng khi user đã chọn ngày (hiện cả phòng FULL).
      */
     public List<Room> getAllApprovedRooms(Accommodation accommodation) {
-        return roomRepository.findByAccommodationAndApprovalStatus(accommodation, ApprovalStatus.APPROVED);
+        return roomRepository.findByAccommodationAndApprovalStatus(accommodation, ApprovalStatus.APPROVED)
+                .stream()
+                .filter(AccommodationService::isRoomOpenForOnlineBooking)
+                .toList();
     }
 
     /**
@@ -121,10 +196,31 @@ public class AccommodationService {
     }
 
     /**
-     * Lấy tất cả phòng APPROVED của partner — dùng cho form tạo voucher theo phòng.
+     * Lấy tất cả phòng APPROVED của partner — dùng khi gắn voucher Admin phát hành.
      */
     public List<Room> getApprovedRoomsForPartner(User partner) {
-        return roomRepository.findByAccommodation_OwnerAndApprovalStatus(partner, ApprovalStatus.APPROVED);
+        return roomRepository.findByAccommodation_OwnerAndApprovalStatus(partner, ApprovalStatus.APPROVED)
+                .stream()
+                .filter(room -> isManagedByPartner(room.getAccommodation(), partner))
+                .toList();
+    }
+
+    /**
+     * Partner bật/tắt nhanh trạng thái mở bán online của phòng/căn.
+     * Không thay đổi availableQuantity để tránh sai lịch sử quota và quyết toán.
+     */
+    @Transactional
+    public Room toggleRoomBookingAvailability(User partner, Long roomId) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng/căn!"));
+        validateManagedAccommodation(partner, room.getAccommodation());
+        if (room.getApprovalStatus() != ApprovalStatus.APPROVED) {
+            throw new RuntimeException("Chỉ phòng/căn đã được Admin duyệt mới có thể bật/tắt mở bán.");
+        }
+
+        boolean currentlyOpen = Boolean.TRUE.equals(room.getAvailableForBooking());
+        room.setAvailableForBooking(!currentlyOpen);
+        return roomRepository.save(room);
     }
 
     /**
@@ -154,14 +250,16 @@ public class AccommodationService {
      * Partner xem toàn bộ listing của mình (PENDING, APPROVED, REJECTED).
      */
     public List<Accommodation> getAccommodationsByOwner(User partner) {
-        return accommodationRepository.findByOwner(partner);
+        return accommodationRepository.findByOwner(partner).stream()
+                .filter(accommodation -> isManagedByPartner(accommodation, partner))
+                .toList();
     }
 
     /**
      * Partner tạo mới Accommodation.
      *
      * Rule:
-     *   - approvalStatus = PENDING (chờ admin duyệt)
+     *   - approvalStatus = PENDING (chờ quản trị viên duyệt)
      *   - propertyType phải khớp với partner.partnerPropertyType
      *   - owner = partner hiện tại
      *
@@ -193,7 +291,7 @@ public class AccommodationService {
         acc.setDescription(description != null ? description.trim() : "");
         acc.setThumbnailUrl(thumbnailUrl != null ? thumbnailUrl.trim() : "");
         acc.setPropertyType(propertyType);
-        acc.setApprovalStatus(ApprovalStatus.PENDING); // chờ admin duyệt
+        acc.setApprovalStatus(ApprovalStatus.PENDING); // chờ quản trị viên duyệt
         acc.setOwner(partner);
         acc.setStarRating(starRating);
         acc.setRating(0.0);
@@ -225,6 +323,7 @@ public class AccommodationService {
         Accommodation acc = accommodationRepository.findByIdAndOwner(accommodationId, partner)
                 .orElseThrow(() -> new RuntimeException(
                     "Không tìm thấy cơ sở lưu trú hoặc bạn không có quyền thêm phòng!"));
+        validateManagedAccommodation(partner, acc);
 
         // Accommodation phải APPROVED mới được thêm phòng
         if (acc.getApprovalStatus() != ApprovalStatus.APPROVED) {
@@ -346,7 +445,24 @@ public class AccommodationService {
      * Admin lấy tất cả phòng (mọi trạng thái).
      */
     public List<Room> getAllRoomsForAdmin() {
-        return roomRepository.findAllWithAccommodationOrderByIdDesc();
+        return roomRepository.findAllWithAccommodationOrderByIdDesc().stream()
+                .filter(room -> !isLegacySeedRoom(room))
+                .toList();
+    }
+
+    private boolean isLegacySeedRoom(Room room) {
+        if (room == null) {
+            return false;
+        }
+        String roomCode = room.getRoomCode() != null ? room.getRoomCode().toUpperCase() : "";
+        String roomName = room.getRoomName() != null ? room.getRoomName().toUpperCase() : "";
+        Accommodation accommodation = room.getAccommodation();
+        String accName = accommodation != null && accommodation.getName() != null
+                ? accommodation.getName().toUpperCase() : "";
+        return roomCode.contains("SEED-WALLET")
+                || roomName.contains("SEED STANDARD SETTLEMENT ROOM")
+                || accName.contains("[SEED WALLET]")
+                || accName.contains("SETTLEMENT HOTEL");
     }
 
     /**
@@ -368,6 +484,7 @@ public class AccommodationService {
                 "Cơ sở '" + room.getAccommodation().getName() + "' hiện chưa được duyệt.");
         }
         room.setApprovalStatus(ApprovalStatus.APPROVED);
+        room.setAvailableForBooking(true);
         return roomRepository.save(room);
     }
 

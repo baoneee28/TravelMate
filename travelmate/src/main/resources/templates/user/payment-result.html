@@ -219,7 +219,7 @@
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
                 <h1 class="pr-title">Thanh toán thành công!</h1>
-                <p class="pr-subtitle" th:text="${message}">Đơn đặt phòng của bạn đang chờ TravelMate xác nhận.</p>
+                <p class="pr-subtitle" th:text="${message}">Thanh toán đã được xác nhận, đơn đang chờ đối tác giữ phòng.</p>
             </div>
 
             <div class="pr-body">
@@ -259,8 +259,8 @@
 
                 <div class="pr-note">
                     <i class="fa-solid fa-lightbulb" style="margin-right:6px;"></i>
-                    <strong>Bước tiếp theo:</strong> TravelMate sẽ kiểm tra và xác nhận thanh toán của bạn trong vòng vài phút.
-                    Sau khi xác nhận, đơn sẽ được chuyển đến đối tác để giữ phòng. Bạn có thể theo dõi trạng thái tại trang <strong>Đặt phòng của tôi</strong>.
+                    <strong>Bước tiếp theo:</strong> Thanh toán đã được VNPAY xác minh và TravelMate tự động ghi nhận.
+                    Đơn đang được gửi đến đối tác để xác nhận giữ phòng/căn. Bạn có thể theo dõi trạng thái tại trang <strong>Đặt phòng của tôi</strong>.
                 </div>
 
                 <div class="pr-note" th:if="${travelDestinationLabel != null and !#strings.isEmpty(travelDestinationLabel)}">
@@ -272,7 +272,7 @@
                 <div class="pr-divider"></div>
 
                 <div class="pr-actions">
-                    <a href="/my-bookings?tab=PENDING_ADMIN_APPROVAL" class="pr-btn pr-btn--primary">
+                    <a href="/my-bookings?tab=CONFIRMED" class="pr-btn pr-btn--primary">
                         <i class="fa-solid fa-clipboard-list"></i> Xem đơn đặt phòng
                     </a>
                     <a th:if="${travelDestinationLabel != null and !#strings.isEmpty(travelDestinationLabel)}"

@@ -1,8 +1,11 @@
 package com.travelmate.service;
 
+import com.travelmate.dto.RoomAvailabilityDto;
 import com.travelmate.entity.Accommodation;
+import com.travelmate.entity.Room;
 import com.travelmate.entity.enums.ApprovalStatus;
 import com.travelmate.entity.enums.PropertyType;
+import com.travelmate.entity.enums.VoucherScope;
 import com.travelmate.repository.AccommodationRepository;
 import com.travelmate.repository.BookingRepository;
 import com.travelmate.repository.TravelPostRepository;
@@ -13,10 +16,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
@@ -40,6 +47,9 @@ class ChatbotServiceTest {
     @Mock
     private VoucherRepository voucherRepository;
 
+    @Mock
+    private AvailabilityService availabilityService;
+
     private ChatbotService chatbotService;
 
     @BeforeEach
@@ -49,7 +59,8 @@ class ChatbotServiceTest {
                 travelPostRepository,
                 userRepository,
                 bookingRepository,
-                voucherRepository
+                voucherRepository,
+                availabilityService
         );
         lenient().when(travelPostRepository.findTop3ByDestinationSlugInAndStatusOrderByCreatedAtDesc(
                 anyCollection(), eq(com.travelmate.entity.TravelPost.Status.VISIBLE)))
@@ -65,11 +76,14 @@ class ChatbotServiceTest {
 
     @Test
     void budgetPlanUnderstandsMoneyAndDestinationBeforeFallback() {
+        Accommodation homestay = accommodation(1L, "Sapa Valley Homestay", "Sa Pa", PropertyType.HOMESTAY, 380_000D);
+        Accommodation hotel = accommodation(2L, "Sapa Cloud Valley Hotel", "Sa Pa", PropertyType.HOTEL, 720_000D);
         when(accommodationRepository.findByApprovalStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED))
-                .thenReturn(List.of(
-                        accommodation(1L, "Sapa Valley Homestay", "Sa Pa", PropertyType.HOMESTAY, 380_000D),
-                        accommodation(2L, "Sapa Cloud Valley Hotel", "Sa Pa", PropertyType.HOTEL, 720_000D)
-                ));
+                .thenReturn(List.of(homestay, hotel));
+        when(availabilityService.checkAvailabilityForAccommodation(eq(homestay), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(List.of(availableRoom(5L, homestay, "Phòng Tiêu Chuẩn", 380_000, 4)));
+        when(availabilityService.checkAvailabilityForAccommodation(eq(hotel), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(List.of(availableRoom(6L, hotel, "Phòng Deluxe", 720_000, 3)));
 
         ChatbotService.ChatbotResponse response =
                 chatbotService.processMessage("Tôi có khoảng 3 triệu và muốn đi Sa Pa", null);
@@ -85,13 +99,20 @@ class ChatbotServiceTest {
 
     @Test
     void budgetPlanSuggestsBeachDestinationsVisibly() {
+        Accommodation nhaTrang = accommodation(3L, "InterContinental Nha Trang", "Nha Trang", PropertyType.HOTEL, 1_850_000D);
+        Accommodation daNang = accommodation(4L, "Novotel Đà Nẵng Premier", "Đà Nẵng", PropertyType.HOTEL, 1_100_000D);
+        Accommodation phuQuoc = accommodation(5L, "Sunset Pearl Resort Phú Quốc", "Phú Quốc", PropertyType.RESORT, 2_100_000D);
+        Accommodation vungTau = accommodation(6L, "Pullman Vũng Tàu", "Vũng Tàu", PropertyType.HOTEL, 1_650_000D);
         when(accommodationRepository.findByApprovalStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED))
-                .thenReturn(List.of(
-                        accommodation(3L, "InterContinental Nha Trang", "Nha Trang", PropertyType.HOTEL, 1_850_000D),
-                        accommodation(4L, "Novotel Đà Nẵng Premier", "Đà Nẵng", PropertyType.HOTEL, 1_100_000D),
-                        accommodation(5L, "Sunset Pearl Resort Phú Quốc", "Phú Quốc", PropertyType.RESORT, 2_100_000D),
-                        accommodation(6L, "Pullman Vũng Tàu", "Vũng Tàu", PropertyType.HOTEL, 1_650_000D)
-                ));
+                .thenReturn(List.of(nhaTrang, daNang, phuQuoc, vungTau));
+        when(availabilityService.checkAvailabilityForAccommodation(eq(nhaTrang), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(List.of(availableRoom(7L, nhaTrang, "Deluxe Biển", 1_850_000, 2)));
+        when(availabilityService.checkAvailabilityForAccommodation(eq(daNang), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(List.of(availableRoom(8L, daNang, "Superior", 1_100_000, 5)));
+        when(availabilityService.checkAvailabilityForAccommodation(eq(phuQuoc), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(List.of(availableRoom(9L, phuQuoc, "Bungalow", 2_100_000, 2)));
+        when(availabilityService.checkAvailabilityForAccommodation(eq(vungTau), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(List.of(availableRoom(10L, vungTau, "Pool View", 1_650_000, 2)));
 
         ChatbotService.ChatbotResponse response =
                 chatbotService.processMessage("4 triệu muốn đi biển", null);
@@ -108,6 +129,100 @@ class ChatbotServiceTest {
     }
 
     @Test
+    void roomPriceSearchChecksDatesAndLinksDirectlyToAvailableRoom() {
+        Accommodation homestay = accommodation(1L, "LATA Hotel & Apartments", "Đà Lạt", PropertyType.HOMESTAY, 650_000D);
+        when(accommodationRepository.findByPropertyTypeAndApprovalStatus(PropertyType.HOMESTAY, ApprovalStatus.APPROVED))
+                .thenReturn(List.of(homestay));
+        when(availabilityService.checkAvailabilityForAccommodation(
+                homestay, LocalDate.of(2026, 5, 28), LocalDate.of(2026, 5, 31)))
+                .thenReturn(List.of(availableRoom(5L, homestay, "Phòng Tiêu Chuẩn Giường King", 650_000, 3)));
+
+        ChatbotService.ChatbotResponse response = chatbotService.processMessage(
+                "Homestay Đà Lạt dưới 2 triệu từ 28/05/2026 đến 31/05/2026, 2 người", null);
+
+        assertThat(response.intent()).isEqualTo("BUDGET_TRAVEL_PLAN");
+        assertThat(response.reply())
+                .contains("Mức giá phòng/đêm bạn yêu cầu")
+                .contains("Phòng Tiêu Chuẩn Giường King")
+                .contains("còn 3 phòng")
+                .contains("checkIn=2026-05-28")
+                .contains("#room-5")
+                .contains("Xem phòng này");
+    }
+
+    @Test
+    void roomSearchFiltersRoomsThatCannotHostRequestedGuests() {
+        Accommodation small = accommodation(11L, "Nhà Nhỏ Đà Lạt", "Đà Lạt", PropertyType.HOMESTAY, 650_000D);
+        Accommodation suitable = accommodation(12L, "Pine Family Homestay", "Đà Lạt", PropertyType.HOMESTAY, 1_400_000D);
+        addRoomCapacity(small, 111L, 2);
+        addRoomCapacity(suitable, 112L, 4);
+        when(accommodationRepository.findByPropertyTypeAndApprovalStatus(PropertyType.HOMESTAY, ApprovalStatus.APPROVED))
+                .thenReturn(List.of(small, suitable));
+        when(availabilityService.checkAvailabilityForAccommodation(eq(small), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(List.of(availableRoom(111L, small, "Phòng đôi nhỏ", 650_000, 2)));
+        when(availabilityService.checkAvailabilityForAccommodation(eq(suitable), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(List.of(availableRoom(112L, suitable, "Phòng gia đình", 1_400_000, 1)));
+
+        ChatbotService.ChatbotResponse response =
+                chatbotService.processMessage("Homestay Đà Lạt dưới 2 triệu cho 4 người", null);
+
+        assertThat(response.intent()).isEqualTo("BUDGET_TRAVEL_PLAN");
+        assertThat(response.reply())
+                .contains("Pine Family Homestay", "#room-112")
+                .doesNotContain("Nhà Nhỏ Đà Lạt", "#room-111");
+    }
+
+    @Test
+    void villaSearchReturnsDatabaseRoomForRequestedDestinationAndCapacity() {
+        Accommodation villa = accommodation(20L, "Biển Xanh Villa", "Nha Trang", PropertyType.VILLA, 3_200_000D);
+        addRoomCapacity(villa, 201L, 6);
+        when(accommodationRepository.findByPropertyTypeAndApprovalStatus(PropertyType.VILLA, ApprovalStatus.APPROVED))
+                .thenReturn(List.of(villa));
+        when(availabilityService.checkAvailabilityForAccommodation(eq(villa), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(List.of(availableRoom(201L, villa, "Villa nguyên căn", 3_200_000, 1)));
+
+        ChatbotService.ChatbotResponse response =
+                chatbotService.processMessage("Tìm villa Nha Trang cho 6 người", null);
+
+        assertThat(response.reply())
+                .contains("Biển Xanh Villa", "Villa nguyên căn", "#room-201")
+                .contains("6 khách");
+    }
+
+    @Test
+    void unavailableRoomIsNotRecommendedForSelectedDates() {
+        Accommodation hotel = accommodation(30L, "River Hotel Đà Nẵng", "Đà Nẵng", PropertyType.HOTEL, 800_000D);
+        addRoomCapacity(hotel, 301L, 2);
+        when(accommodationRepository.findByPropertyTypeAndApprovalStatus(PropertyType.HOTEL, ApprovalStatus.APPROVED))
+                .thenReturn(List.of(hotel));
+        when(availabilityService.checkAvailabilityForAccommodation(eq(hotel), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(List.of(availableRoom(301L, hotel, "Superior", 800_000, 0)));
+
+        ChatbotService.ChatbotResponse response =
+                chatbotService.processMessage("Khách sạn Đà Nẵng 2 người 1 phòng", null);
+
+        assertThat(response.reply())
+                .contains("Hiện chưa còn")
+                .doesNotContain("#room-301");
+    }
+
+    @Test
+    void groqContextUsesCurrentCancellationPolicyAndCannotReviveOldRefundWording() {
+        when(accommodationRepository.findByApprovalStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED))
+                .thenReturn(List.of());
+        when(voucherRepository.findByVoucherScopeOrderByCreatedAtDesc(VoucherScope.USER_GLOBAL))
+                .thenReturn(List.of());
+
+        String context = ReflectionTestUtils.invokeMethod(
+                chatbotService, "buildGroqBusinessContext",
+                "Tôi đang thất tình", "toi dang that tinh", null);
+
+        assertThat(context)
+                .contains("mat toan bo tien coc", "du kien hoan 70%", "giu 30% phi huy")
+                .doesNotContain("hoan toan bo", "24 gio", "tung co so");
+    }
+
+    @Test
     void bookingAndPaymentWordingMatchesActualFlow() {
         ChatbotService.ChatbotResponse policy =
                 chatbotService.processMessage("Chính sách cọc 30%", null);
@@ -116,7 +231,7 @@ class ChatbotServiceTest {
 
         assertThat(policy.reply())
                 .doesNotContain("phòng được giữ ngay lập tức")
-                .contains("chuyển TravelMate/Partner xác nhận giữ phòng");
+                .contains("chuyển đối tác xác nhận giữ phòng");
         assertThat(payment.reply())
                 .doesNotContain("MoMo")
                 .doesNotContain("ZaloPay")
@@ -175,5 +290,21 @@ class ChatbotServiceTest {
         accommodation.setRating(8.8D);
         accommodation.setMinPrice(minPrice);
         return accommodation;
+    }
+
+    private RoomAvailabilityDto availableRoom(
+            Long roomId, Accommodation accommodation, String roomName, long price, int available) {
+        return new RoomAvailabilityDto(
+                roomId, "R-" + roomId, roomName, "STANDARD",
+                accommodation.getId(), accommodation.getName(), accommodation.getCity(),
+                accommodation.getPropertyType().name(), "Đối tác",
+                BigDecimal.valueOf(price), available + 1, 1, available);
+    }
+
+    private void addRoomCapacity(Accommodation accommodation, Long roomId, int capacity) {
+        Room room = new Room();
+        room.setId(roomId);
+        room.setCapacity(capacity);
+        accommodation.setRooms(List.of(room));
     }
 }

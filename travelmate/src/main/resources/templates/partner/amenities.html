@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title th:text="${isVillaPartner} ? 'Tiện nghi căn villa – Partner TravelMate' : 'Tiện nghi phòng – Partner TravelMate'">Tiện nghi phòng – Partner TravelMate</title>
+    <title th:text="${isVillaPartner} ? 'Tiện nghi căn villa – Partner TravelMate' : (${isResortPartner} ? 'Tiện nghi phòng / suite Resort – Partner TravelMate' : 'Tiện nghi phòng – Partner TravelMate')">Tiện nghi phòng – Partner TravelMate</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&subset=vietnamese&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/assets/css/base.css" />
@@ -63,6 +63,34 @@
             background: #eff6ff; color: #1d4ed8; border-color: #93c5fd;
         }
         .room-chip.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+        #room-search-input:focus {
+            border-color: #2563eb !important;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+        #room-list {
+            max-height: 480px;
+            overflow-y: auto;
+        }
+        #room-list::-webkit-scrollbar {
+            width: 5px;
+        }
+        #room-list::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        #room-list::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        #room-list::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        @media (min-width: 1025px) {
+            .admin-main {
+                zoom: 0.9 !important;
+                margin-left: 260px !important;
+            }
+        }
     </style>
 </head>
 
@@ -77,8 +105,8 @@
             <div style="display: flex; align-items: center; gap: var(--space-4)">
                 <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
                 <h1 class="admin-topbar__title"
-                    th:text="${isVillaPartner} ? '🏡 Tiện nghi căn villa' : '🏷 Tiện nghi phòng / căn'">
-                    🏷 Tiện nghi phòng / căn
+                    th:text="${isVillaPartner} ? '🏡 Tiện nghi căn villa' : (${isResortPartner} ? '🌴 Tiện nghi phòng / suite Resort' : '🏷 Tiện nghi phòng')">
+                    🏷 Tiện nghi phòng
                 </h1>
             </div>
             <div class="admin-topbar__actions">
@@ -93,11 +121,11 @@
             <div class="page-header">
                 <div>
                     <h2 class="page-header__title"
-                        th:text="${isVillaPartner} ? '🏡 Quản lý tiện nghi căn villa' : '🏷 Quản lý tiện nghi phòng / căn lưu trú'">
-                        🏷 Quản lý tiện nghi phòng / căn lưu trú
+                        th:text="${isVillaPartner} ? '🏡 Quản lý tiện nghi căn villa' : (${isResortPartner} ? '🌴 Quản lý tiện nghi phòng / suite Resort' : '🏷 Quản lý tiện nghi phòng')">
+                        🏷 Quản lý tiện nghi phòng
                     </h2>
                     <p class="page-header__subtitle"
-                       th:text="${isVillaPartner} ? 'Chọn căn → tích tiện nghi → Lưu cập nhật. Tiện nghi căn villa sẽ hiển thị cho khách khi xem chi tiết.' : 'Chọn phòng → tích tiện nghi → Lưu cập nhật. Tiện nghi sẽ hiển thị cho khách khi xem chi tiết phòng.'">
+                       th:text="${isVillaPartner} ? 'Chọn căn → tích tiện nghi → Lưu cập nhật. Tiện nghi căn villa sẽ hiển thị cho khách khi xem chi tiết.' : (${isResortPartner} ? 'Chọn phòng hoặc suite → tích tiện nghi → Lưu cập nhật. Tiện nghi Resort sẽ hiển thị cho khách khi xem chi tiết.' : 'Chọn phòng → tích tiện nghi → Lưu cập nhật. Tiện nghi sẽ hiển thị cho khách khi xem chi tiết phòng.')">
                     </p>
                 </div>
             </div>
@@ -110,16 +138,25 @@
                 <span th:text="${errorMessage}"></span>
             </div>
 
+            <div style="margin-bottom:var(--space-4);padding:14px 16px;background:#fff7ed;border-radius:8px;border:1px solid #fed7aa;font-size:13px;color:#9a3412;line-height:1.6;">
+                <strong>
+                    <i class="fa-solid fa-circle-info" style="margin-right:6px;"></i>
+                    Lưu ý nghiệp vụ:
+                </strong>
+                <span th:text="${'Cập nhật tiện nghi ' + (unitLabel ?: 'phòng') + ' chỉ ảnh hưởng thông tin hiển thị của ' + (unitLabel ?: 'phòng') + ', không tự động thay đổi hạng sao của nơi lưu trú.'}">Cập nhật tiện nghi phòng chỉ ảnh hưởng thông tin hiển thị của phòng, không tự động thay đổi hạng sao của nơi lưu trú.</span>
+                Nếu cần thay đổi hạng sao hoặc thông tin cấp cơ sở, vui lòng gửi yêu cầu hỗ trợ để Admin xem xét.
+            </div>
+
             <!-- Empty state -->
             <div th:if="${myRooms == null or #lists.isEmpty(myRooms)}"
                  style="text-align:center;padding:60px 20px;color:#64748b;">
                 <div style="font-size:48px;margin-bottom:12px;" th:text="${isVillaPartner} ? '🏡' : '🛏'">🛏</div>
                 <div style="font-weight:600;font-size:16px;margin-bottom:8px;"
-                     th:text="${isVillaPartner} ? 'Chưa có căn villa nào được duyệt' : 'Chưa có phòng nào được duyệt'">
+                     th:text="${isVillaPartner} ? 'Chưa có căn villa nào được duyệt' : (${isResortPartner} ? 'Chưa có phòng / suite Resort nào được duyệt' : 'Chưa có phòng nào được duyệt')">
                     Chưa có phòng nào được duyệt
                 </div>
                 <p style="font-size:13px;"
-                   th:text="${isVillaPartner} ? 'Căn villa phải được Admin duyệt (APPROVED) mới cập nhật tiện nghi được.' : 'Phòng / căn phải được Admin duyệt (APPROVED) mới cập nhật tiện nghi được.'">
+                   th:text="${isVillaPartner} ? 'Căn villa phải được Admin duyệt (APPROVED) mới cập nhật tiện nghi được.' : (${isResortPartner} ? 'Phòng / suite Resort phải được Admin duyệt (APPROVED) mới cập nhật tiện nghi được.' : 'Phòng phải được Admin duyệt (APPROVED) mới cập nhật tiện nghi được.')">
                     Phòng phải được Admin duyệt (APPROVED) mới cập nhật tiện nghi được.
                 </p>
                 <a href="/partner/accommodations" class="btn btn--primary" style="margin-top:16px;">
@@ -131,15 +168,25 @@
             <div th:if="${myRooms != null and !#lists.isEmpty(myRooms)}"
                  style="display:grid;grid-template-columns:280px 1fr;gap:var(--space-5);align-items:start;">
 
-                <!-- Cột trái: danh sách phòng -->
                 <div class="chart-card" style="position:sticky;top:20px;">
                     <div class="chart-card__header">
                         <h3 class="chart-card__title" style="font-size:14px;"
-                            th:text="${isVillaPartner} ? '🏡 Căn villa của bạn' : '🛏 Phòng của bạn'">
+                            th:text="${isVillaPartner} ? '🏡 Căn villa của bạn' : (${isResortPartner} ? '🌴 Phòng / suite Resort của bạn' : '🛏 Phòng của bạn')">
                             🛏 Phòng của bạn
                         </h3>
                     </div>
+                    <!-- Thanh bộ lọc tìm kiếm nhanh -->
+                    <div style="padding: 10px 12px 6px 12px; border-bottom: 1px solid #f1f5f9; position: relative;">
+                        <input type="text" id="room-search-input" placeholder="🔍 Tìm theo mã hoặc tên..." 
+                               style="width: 100%; padding: 8px 12px 8px 30px; border: 1.5px solid #cbd5e1; border-radius: 20px; font-size: 12px; outline: none; transition: border-color 0.15s;"
+                               oninput="filterRoomsList()"/>
+                        <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 22px; top: 20px; font-size: 12px; color: #94a3b8;"></i>
+                    </div>
                     <div style="padding:12px;display:flex;flex-direction:column;gap:6px;" id="room-list">
+                        <!-- Placeholder không tìm thấy kết quả -->
+                        <div id="no-rooms-found" style="display:none; text-align:center; padding:20px; color:#94a3b8; font-size:12px; font-style:italic;">
+                            🔍 Không tìm thấy kết quả
+                        </div>
                         <div th:each="room, stat : ${myRooms}"
                              class="room-chip"
                              th:classappend="${stat.first} ? 'active' : ''"
@@ -237,13 +284,13 @@
             <!-- Hướng dẫn -->
             <div style="margin-top:var(--space-4);padding:12px 16px;background:#f0f9ff;border-radius:8px;font-size:12px;color:#0369a1;border:1px solid #bae6fd;">
                 <strong>📌 Lưu ý:</strong>
-                <span th:text="${isVillaPartner} ? 'Tiện nghi bạn khai báo sẽ hiển thị trong trang chi tiết căn villa khi khách hàng xem và đặt.' : 'Tiện nghi bạn khai báo sẽ hiển thị trong trang chi tiết phòng khi khách hàng xem và đặt phòng.'">
+                <span th:text="${isVillaPartner} ? 'Tiện nghi bạn khai báo sẽ hiển thị trong trang chi tiết căn villa khi khách hàng xem và đặt.' : (${isResortPartner} ? 'Tiện nghi bạn khai báo sẽ hiển thị tại trang chi tiết phòng / suite Resort khi khách hàng đặt phòng.' : 'Tiện nghi bạn khai báo sẽ hiển thị trong trang chi tiết phòng khi khách hàng xem và đặt phòng.')">
                     Tiện nghi bạn khai báo sẽ hiển thị trong trang chi tiết phòng khi khách hàng xem và đặt phòng.
                 </span>
-                Khai báo đúng thực tế giúp tăng uy tín và số lượng đặt phòng.
+                <span th:text="${'Khai báo đúng thực tế giúp tăng uy tín và số lượng ' + (bookingUnitLabel ?: 'đặt phòng') + '. Nếu gỡ tiện nghi quan trọng như WiFi, máy lạnh, phòng tắm riêng, thang máy, bãi đỗ xe, nhà hàng, hồ bơi hoặc spa, ' + (unitLabel ?: 'phòng') + ' sẽ chờ Admin xem xét lại trước khi hiển thị cho khách.'}">Khai báo đúng thực tế giúp tăng uy tín và số lượng đặt phòng. Nếu gỡ tiện nghi quan trọng, phòng sẽ chờ Admin xem xét lại trước khi hiển thị cho khách.</span>
                 Bạn cũng có thể khai báo tiện nghi ngay khi
                 <a href="/partner/accommodations" style="color:#2563eb;font-weight:600;"
-                   th:text="${isVillaPartner} ? 'thêm căn villa mới' : 'thêm phòng mới'">thêm phòng mới</a>.
+                   th:text="${isVillaPartner} ? 'thêm căn villa mới' : (${isResortPartner} ? 'thêm loại phòng / suite mới' : 'thêm phòng mới')">thêm phòng mới</a>.
             </div>
         </main>
     </div>
@@ -252,6 +299,23 @@
 <script src="/assets/js/main.js"></script>
 <script src="/assets/js/admin.js"></script>
 <script>
+    function filterRoomsList() {
+        const query = document.getElementById('room-search-input').value.toLowerCase().trim();
+        const chips = document.querySelectorAll('#room-list .room-chip');
+        let hasResults = false;
+        chips.forEach(chip => {
+            const code = chip.querySelector('span:first-child').textContent.toLowerCase();
+            const name = chip.querySelector('span:nth-child(2)').textContent.toLowerCase();
+            if (code.includes(query) || name.includes(query)) {
+                chip.style.setProperty('display', 'inline-flex', 'important');
+                hasResults = true;
+            } else {
+                chip.style.setProperty('display', 'none', 'important');
+            }
+        });
+        document.getElementById('no-rooms-found').style.display = hasResults ? 'none' : 'block';
+    }
+
     function selectRoom(chip, roomId) {
         // Ẩn tất cả form
         document.querySelectorAll('#amenity-form-area > div').forEach(function(d) {

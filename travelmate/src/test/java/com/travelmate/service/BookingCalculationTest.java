@@ -1,7 +1,19 @@
 package com.travelmate.service;
 
+import com.travelmate.config.VnpayConfigProperties;
+import com.travelmate.entity.Accommodation;
+import com.travelmate.entity.Booking;
+import com.travelmate.entity.Payment;
 import com.travelmate.entity.Room;
+import com.travelmate.entity.User;
+import com.travelmate.entity.enums.ApprovalStatus;
+import com.travelmate.entity.enums.BookingSource;
+import com.travelmate.entity.enums.BookingStatus;
 import com.travelmate.entity.enums.PaymentOption;
+import com.travelmate.entity.enums.PaymentStatus;
+import com.travelmate.entity.enums.PartnerBookingStatus;
+import com.travelmate.entity.enums.PropertyType;
+import com.travelmate.entity.enums.RemainingPaymentStatus;
 import com.travelmate.repository.AccommodationRepository;
 import com.travelmate.repository.BookingRepository;
 import com.travelmate.repository.PaymentRepository;
@@ -15,8 +27,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Kiểm thử logic tính tiền booking: tổng tiền, cọc 30%, thanh toán 100%.
@@ -40,7 +59,9 @@ class BookingCalculationTest {
     void setUp() {
         bookingService = new BookingService(
                 bookingRepository, paymentRepository, roomRepository,
-                accommodationRepository, voucherService, notificationService
+                accommodationRepository, voucherService, notificationService,
+                new CommissionService(),
+                new VnpayConfigProperties()
         );
     }
 
@@ -151,7 +172,7 @@ class BookingCalculationTest {
         assertThat(remaining).isEqualByComparingTo(BigDecimal.ZERO);
     }
 
-    // ─── Kịch bản thực tế (dữ liệu seed) ────────────────────────────────────
+    // ─── Kịch bản thực tế (dữ liệu mẫu) ────────────────────────────────────
 
     @Test
     @DisplayName("BK-TLP-STD-0001: 2 đêm × 480.000đ × 1 phòng — cọc 30% = 288.000đ")
@@ -179,5 +200,666 @@ class BookingCalculationTest {
 
         assertThat(total).isEqualByComparingTo("4950000");
         assertThat(paid).isEqualByComparingTo("4950000");
+    }
+
+    @Test
+    @DisplayName("Partner RESORT không được tạo booking trực tiếp cho listing HOTEL dù owner bị gán nhầm")
+    void createDirectBooking_rejectsWrongPropertyTypeEvenWhenOwnerMatches() {
+        User resortPartner = partner(4L, PropertyType.RESORT);
+        Accommodation wrongHotel = accommodation(20L, "InterContinental Nha Trang", PropertyType.HOTEL, resortPartner);
+        Room room = room(30L, "ICN-STD", wrongHotel);
+
+        assertThatThrownBy(() -> bookingService.createDirectBooking(
+                resortPartner, room, wrongHotel,
+                "Khách test", "0901234567", "guest@example.com",
+                LocalDate.now().plusDays(1), LocalDate.now().plusDays(2),
+                1, 0, 1, null))
+                .hasMessageContaining("Tài khoản RESORT");
+    }
+
+    @Test
+    @DisplayName("Danh sách booking Partner chỉ giữ booking đúng loại lưu trú đã đăng ký")
+    void getAllBookingsForPartner_filtersWrongPropertyType() {
+        User resortPartner = partner(4L, PropertyType.RESORT);
+        Accommodation wrongHotel = accommodation(20L, "Sofitel Legend Metropole Hà Nội", PropertyType.HOTEL, resortPartner);
+        Accommodation resort = accommodation(21L, "Vinpearl Resort & Spa Nha Trang", PropertyType.RESORT, resortPartner);
+        Booking hotelBooking = booking(wrongHotel);
+        Booking resortBooking = booking(resort);
+
+        when(bookingRepository.findAllByAccommodationOwnerOrderByCreatedAtDesc(resortPartner))
+                .thenReturn(List.of(hotelBooking, resortBooking));
+
+        assertThat(bookingService.getAllBookingsForPartner(resortPartner))
+                .containsExactly(resortBooking);
+    }
+
+    @Test
+    @DisplayName("Partner không được xác nhận giữ booking khác partnerPropertyType dù owner khớp")
+    void confirmBookingHold_rejectsWrongPropertyTypeEvenWhenOwnerMatches() {
+        User resortPartner = partner(4L, PropertyType.RESORT);
+        Accommodation wrongVilla = accommodation(22L, "The Anam Villa Nha Trang", PropertyType.VILLA, resortPartner);
+        Booking booking = booking(wrongVilla);
+        booking.setId(55L);
+        booking.setPaymentStatus(PaymentStatus.APPROVED);
+        booking.setPartnerStatus(PartnerBookingStatus.PENDING_PARTNER_CONFIRMATION);
+
+        when(bookingRepository.findById(55L)).thenReturn(Optional.of(booking));
+
+        assertThatThrownBy(() -> bookingService.confirmBookingHoldByPartner(55L, resortPartner))
+                .hasMessageContaining("Tài khoản RESORT");
+    }
+
+    @Test
+    @DisplayName("Partner Resort không thể gọi check-in thường để bỏ qua xác nhận thu 70% của đơn cọc")
+    void checkInByPartner_rejectsOnlineDepositWithoutRemainingConfirmation() {
+        User resortPartner = partner(4L, PropertyType.RESORT);
+        Accommodation resort = accommodation(21L, "Vinpearl Resort & Spa Nha Trang", PropertyType.RESORT, resortPartner);
+        Booking booking = booking(resort);
+        booking.setId(61L);
+        booking.setRoom(room(31L, "VNT-DLX", resort));
+        booking.setPaymentOption(PaymentOption.DEPOSIT_30);
+        booking.setPaymentStatus(PaymentStatus.APPROVED);
+        booking.setPartnerStatus(PartnerBookingStatus.PARTNER_CONFIRMED);
+        booking.setBookingSource(BookingSource.ONLINE);
+        booking.setRemainingPaymentStatus(RemainingPaymentStatus.UNPAID);
+
+        when(bookingRepository.findById(61L)).thenReturn(Optional.of(booking));
+
+        assertThatThrownBy(() -> bookingService.checkInByPartner(61L, resortPartner))
+                .hasMessageContaining("xác nhận đã thu đủ 70%");
+        assertThat(booking.getBookingStatus()).isEqualTo(BookingStatus.CONFIRMED);
+        verify(bookingRepository, never()).save(any(Booking.class));
+    }
+
+    @Test
+    @DisplayName("Partner Resort check-in đơn cọc qua xác nhận sẽ ghi nhận đã thu 70% tại cơ sở")
+    void checkInWithRemainingConfirm_recordsDepositCollectionForResort() {
+        User resortPartner = partner(4L, PropertyType.RESORT);
+        Accommodation resort = accommodation(21L, "Vinpearl Resort & Spa Nha Trang", PropertyType.RESORT, resortPartner);
+        Booking booking = booking(resort);
+        booking.setId(62L);
+        booking.setRoom(room(31L, "VNT-DLX", resort));
+        booking.setPaymentOption(PaymentOption.DEPOSIT_30);
+        booking.setPaymentStatus(PaymentStatus.APPROVED);
+        booking.setPartnerStatus(PartnerBookingStatus.PARTNER_CONFIRMED);
+        booking.setBookingSource(BookingSource.ONLINE);
+        booking.setRemainingPaymentStatus(RemainingPaymentStatus.UNPAID);
+
+        when(bookingRepository.findById(62L)).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Booking result = bookingService.checkInWithRemainingConfirmByPartner(
+                62L, resortPartner, true, "Đã thu bằng thẻ tại quầy Resort");
+
+        assertThat(result.getBookingStatus()).isEqualTo(BookingStatus.CHECKED_IN);
+        assertThat(result.getRemainingPaymentStatus()).isEqualTo(RemainingPaymentStatus.PAID_AT_PROPERTY);
+        assertThat(result.getRemainingPaymentNote()).contains("thẻ");
+        assertThat(result.getNote()).contains("Đã thu đủ khoản còn lại");
+    }
+
+    @Test
+    @DisplayName("Partner Resort không bị yêu cầu thu lại 70% khi khoản còn lại đã ghi nhận")
+    void checkInWithRemainingConfirm_doesNotRequireCollectionAgainWhenAlreadyPaid() {
+        User resortPartner = partner(4L, PropertyType.RESORT);
+        Accommodation resort = accommodation(21L, "Vinpearl Resort & Spa Nha Trang", PropertyType.RESORT, resortPartner);
+        Booking booking = booking(resort);
+        booking.setId(63L);
+        booking.setRoom(room(31L, "VNT-DLX", resort));
+        booking.setPaymentOption(PaymentOption.DEPOSIT_30);
+        booking.setPaymentStatus(PaymentStatus.APPROVED);
+        booking.setPartnerStatus(PartnerBookingStatus.PARTNER_CONFIRMED);
+        booking.setBookingSource(BookingSource.ONLINE);
+        booking.setRemainingPaymentStatus(RemainingPaymentStatus.PAID_AT_PROPERTY);
+        booking.setRemainingPaymentNote("Đã thu trước khi khách đến");
+
+        when(bookingRepository.findById(63L)).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Booking result = bookingService.checkInWithRemainingConfirmByPartner(
+                63L, resortPartner, false, null);
+
+        assertThat(result.getBookingStatus()).isEqualTo(BookingStatus.CHECKED_IN);
+        assertThat(result.getRemainingPaymentStatus()).isEqualTo(RemainingPaymentStatus.PAID_AT_PROPERTY);
+        assertThat(result.getRemainingPaymentNote()).isEqualTo("Đã thu trước khi khách đến");
+    }
+
+    @Test
+    @DisplayName("Partner Homestay không thấy đơn online đang chờ Admin duyệt nhưng vẫn thấy lịch tự tạo")
+    void getAllBookingsForPartner_hidesPendingOnlineHomestayAndKeepsOperations() {
+        User homestayPartner = partner(8L, PropertyType.HOMESTAY);
+        Accommodation homestay = accommodation(7L, "Mộc Nhiên Garden Homestay Đà Lạt",
+                PropertyType.HOMESTAY, homestayPartner);
+        Booking pendingAdmin = booking(homestay);
+        pendingAdmin.setBookingStatus(BookingStatus.PENDING_ADMIN_APPROVAL);
+        pendingAdmin.setBookingSource(BookingSource.ONLINE);
+        Booking approvedOnline = booking(homestay);
+        approvedOnline.setBookingSource(BookingSource.ONLINE);
+        Booking direct = booking(homestay);
+        direct.setBookingSource(BookingSource.DIRECT);
+        Booking block = booking(homestay);
+        block.setBookingSource(BookingSource.MANUAL_BLOCK);
+
+        when(bookingRepository.findAllByAccommodationOwnerOrderByCreatedAtDesc(homestayPartner))
+                .thenReturn(List.of(pendingAdmin, approvedOnline, direct, block));
+
+        assertThat(bookingService.getAllBookingsForPartner(homestayPartner))
+                .containsExactly(approvedOnline, direct, block)
+                .doesNotContain(pendingAdmin);
+    }
+
+    @Test
+    @DisplayName("Partner Homestay không mở được chi tiết giao dịch ngoại lệ chưa đối soát")
+    void getVisibleBookingForPartner_rejectsPendingOnlineHomestayDetail() {
+        User homestayPartner = partner(8L, PropertyType.HOMESTAY);
+        Accommodation homestay = accommodation(7L, "Mộc Nhiên Garden Homestay Đà Lạt",
+                PropertyType.HOMESTAY, homestayPartner);
+        Booking pendingAdmin = booking(homestay);
+        pendingAdmin.setId(64L);
+        pendingAdmin.setBookingStatus(BookingStatus.PENDING_ADMIN_APPROVAL);
+        pendingAdmin.setBookingSource(BookingSource.ONLINE);
+
+        when(bookingRepository.findById(64L)).thenReturn(Optional.of(pendingAdmin));
+
+        assertThatThrownBy(() -> bookingService.getVisibleBookingForPartner(64L, homestayPartner))
+                .hasMessageContaining("sau khi VNPAY xác nhận");
+    }
+
+    @Test
+    @DisplayName("Partner Homestay check-in đơn cọc phải ghi nhận thu 70% tại cơ sở")
+    void checkInWithRemainingConfirm_recordsDepositCollectionForHomestay() {
+        User homestayPartner = partner(8L, PropertyType.HOMESTAY);
+        Accommodation homestay = accommodation(7L, "Mộc Nhiên Garden Homestay Đà Lạt",
+                PropertyType.HOMESTAY, homestayPartner);
+        Booking booking = booking(homestay);
+        booking.setId(65L);
+        booking.setRoom(room(23L, "MND-ATT", homestay));
+        booking.setPaymentOption(PaymentOption.DEPOSIT_30);
+        booking.setPaymentStatus(PaymentStatus.APPROVED);
+        booking.setPartnerStatus(PartnerBookingStatus.PARTNER_CONFIRMED);
+        booking.setBookingSource(BookingSource.ONLINE);
+        booking.setRemainingPaymentStatus(RemainingPaymentStatus.UNPAID);
+
+        when(bookingRepository.findById(65L)).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Booking result = bookingService.checkInWithRemainingConfirmByPartner(
+                65L, homestayPartner, true, "Thu tiền mặt tại Homestay");
+
+        assertThat(result.getBookingStatus()).isEqualTo(BookingStatus.CHECKED_IN);
+        assertThat(result.getRemainingPaymentStatus()).isEqualTo(RemainingPaymentStatus.PAID_AT_PROPERTY);
+        assertThat(result.getRemainingPaymentNote()).contains("Homestay");
+    }
+
+    @Test
+    @DisplayName("Partner Homestay check-in đơn thanh toán 100% không yêu cầu thu thêm 70%")
+    void checkInByPartner_allowsFullPaymentHomestayWithoutRemainingCollection() {
+        User homestayPartner = partner(8L, PropertyType.HOMESTAY);
+        Accommodation homestay = accommodation(7L, "Mộc Nhiên Garden Homestay Đà Lạt",
+                PropertyType.HOMESTAY, homestayPartner);
+        Booking booking = booking(homestay);
+        booking.setId(66L);
+        booking.setRoom(room(23L, "MND-ATT", homestay));
+        booking.setPaymentOption(PaymentOption.FULL_PAYMENT);
+        booking.setPaymentStatus(PaymentStatus.APPROVED);
+        booking.setPartnerStatus(PartnerBookingStatus.PARTNER_CONFIRMED);
+        booking.setBookingSource(BookingSource.ONLINE);
+        booking.setRemainingPaymentStatus(RemainingPaymentStatus.NOT_REQUIRED);
+
+        when(bookingRepository.findById(66L)).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Booking result = bookingService.checkInByPartner(66L, homestayPartner);
+
+        assertThat(result.getBookingStatus()).isEqualTo(BookingStatus.CHECKED_IN);
+        assertThat(result.getRemainingPaymentStatus()).isEqualTo(RemainingPaymentStatus.NOT_REQUIRED);
+    }
+
+    @Test
+    @DisplayName("Partner Homestay báo no-show đơn cọc chỉ giữ cọc và mở lại quota phòng")
+    void markNoShowByPartner_homestayDepositForfeitsDepositAndRestoresQuota() {
+        User homestayPartner = partner(8L, PropertyType.HOMESTAY);
+        Accommodation homestay = accommodation(6L, "Hoa Lư Riverside Homestay",
+                PropertyType.HOMESTAY, homestayPartner);
+        Room room = room(19L, "HLR-STD", homestay);
+        room.setAvailableQuantity(2);
+        Booking booking = booking(homestay);
+        booking.setId(67L);
+        booking.setRoom(room);
+        booking.setRoomQuantity(1);
+        booking.setPaymentOption(PaymentOption.DEPOSIT_30);
+        booking.setPaymentStatus(PaymentStatus.APPROVED);
+        booking.setPaidAmount(new BigDecimal("192000"));
+        booking.setPartnerStatus(PartnerBookingStatus.PARTNER_CONFIRMED);
+        booking.setBookingSource(BookingSource.ONLINE);
+        Payment payment = new Payment();
+        payment.setPaymentStatus(PaymentStatus.APPROVED);
+
+        when(bookingRepository.findById(67L)).thenReturn(Optional.of(booking));
+        when(paymentRepository.findByBooking(booking)).thenReturn(Optional.of(payment));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Booking result = bookingService.markNoShowByPartner(67L, homestayPartner);
+
+        assertThat(result.getBookingStatus()).isEqualTo(BookingStatus.NO_SHOW);
+        assertThat(result.getRefundAmount()).isEqualByComparingTo("0");
+        assertThat(result.getCancellationFee()).isEqualByComparingTo("192000");
+        assertThat(result.getOnsiteAmountSnapshot()).isEqualByComparingTo("0");
+        assertThat(payment.getPaymentStatus()).isEqualTo(PaymentStatus.DEPOSIT_FORFEITED);
+        assertThat(room.getAvailableQuantity()).isEqualTo(3);
+        verify(roomRepository).save(room);
+    }
+
+    @Test
+    @DisplayName("Tổng doanh thu hệ thống không cộng payment legacy của booking trực tiếp")
+    void calculateApprovedRevenue_excludesDirectPaymentRecords() {
+        Booking onlineBooking = new Booking();
+        onlineBooking.setBookingSource(BookingSource.ONLINE);
+        Payment onlinePayment = new Payment();
+        onlinePayment.setBooking(onlineBooking);
+        onlinePayment.setAmount(new BigDecimal("960000"));
+        Booking directBooking = new Booking();
+        directBooking.setBookingSource(BookingSource.DIRECT);
+        Payment directPayment = new Payment();
+        directPayment.setBooking(directBooking);
+        directPayment.setAmount(new BigDecimal("780000"));
+
+        when(paymentRepository.findByPaymentStatusIn(any()))
+                .thenReturn(List.of(onlinePayment, directPayment));
+
+        assertThat(bookingService.calculateApprovedRevenue()).isEqualByComparingTo("960000");
+    }
+
+    @Test
+    @DisplayName("User sửa URL đặt phòng chưa approved → backend chặn")
+    void createBooking_rejectsPendingRoomEvenIfUserKnowsRoomId() {
+        Accommodation accommodation = accommodation(1L, "LATA Hotel & Apartments", PropertyType.HOTEL, null);
+        Room pendingRoom = room(1L, "LATA-PENDING", accommodation);
+        pendingRoom.setApprovalStatus(ApprovalStatus.PENDING);
+
+        assertThatThrownBy(() -> bookingService.createBooking(
+                new User(), pendingRoom, accommodation,
+                "Nguyen Van A", "0901234567", "a@example.com",
+                LocalDate.now().plusDays(3), LocalDate.now().plusDays(4),
+                1, 0, 1, PaymentOption.FULL_PAYMENT))
+                .hasMessageContaining("chưa được Admin duyệt");
+
+        verify(bookingRepository, never()).save(any(Booking.class));
+        verify(paymentRepository, never()).save(any(Payment.class));
+    }
+
+    @Test
+    @DisplayName("User sửa URL roomId của cơ sở khác → backend chặn")
+    void createBooking_rejectsRoomThatDoesNotBelongToSelectedAccommodation() {
+        Accommodation selectedAccommodation = accommodation(1L, "LATA Hotel & Apartments", PropertyType.HOTEL, null);
+        Accommodation otherAccommodation = accommodation(2L, "Tulip City Hotel", PropertyType.HOTEL, null);
+        Room otherRoom = room(2L, "TLP-STD", otherAccommodation);
+
+        assertThatThrownBy(() -> bookingService.createBooking(
+                new User(), otherRoom, selectedAccommodation,
+                "Nguyen Van A", "0901234567", "a@example.com",
+                LocalDate.now().plusDays(3), LocalDate.now().plusDays(4),
+                1, 0, 1, PaymentOption.FULL_PAYMENT))
+                .hasMessageContaining("không thuộc nơi lưu trú");
+
+        verify(bookingRepository, never()).save(any(Booking.class));
+        verify(paymentRepository, never()).save(any(Payment.class));
+    }
+
+    @Test
+    @DisplayName("Overbooking: phòng cuối đã bị giữ trong khoảng ngày → booking mới bị chặn")
+    void createBooking_rechecksAvailabilityBeforeCreatingPayment() {
+        Accommodation accommodation = accommodation(1L, "LATA Hotel & Apartments", PropertyType.HOTEL, null);
+        Room room = room(1L, "LATA-STD", accommodation);
+        room.setAvailableQuantity(0);
+        when(roomRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(room));
+        when(bookingRepository.sumActiveQtyForRoom(
+                org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyList())).thenReturn(1);
+        when(bookingRepository.sumOverlappingQtyForRoom(
+                org.mockito.ArgumentMatchers.anyLong(), any(), any(), org.mockito.ArgumentMatchers.anyList())).thenReturn(1);
+
+        assertThatThrownBy(() -> bookingService.createBooking(
+                new User(), room, accommodation,
+                "Nguyen Van A", "0901234567", "a@example.com",
+                LocalDate.now().plusDays(3), LocalDate.now().plusDays(4),
+                1, 0, 1, PaymentOption.FULL_PAYMENT))
+                .hasMessageContaining("vừa hết chỗ");
+
+        verify(bookingRepository, never()).save(any(Booking.class));
+        verify(paymentRepository, never()).save(any(Payment.class));
+    }
+
+    @Test
+    @DisplayName("User hủy đơn chưa thanh toán: hủy thẳng và mở lại quota")
+    void cancelBooking_pendingPaymentCancelsWithoutRefund() {
+        User user = user(101L);
+        Room room = room(71L, "LATA-STD", accommodation(1L, "LATA Hotel & Apartments", PropertyType.HOTEL, null));
+        room.setAvailableQuantity(1);
+        Booking booking = booking(room.getAccommodation());
+        booking.setId(71L);
+        booking.setUser(user);
+        booking.setRoom(room);
+        booking.setRoomQuantity(2);
+        booking.setBookingStatus(BookingStatus.PENDING_PAYMENT);
+        booking.setPaymentStatus(PaymentStatus.PENDING_PAYMENT);
+        booking.setPaidAmount(BigDecimal.ZERO);
+        Payment payment = new Payment();
+        payment.setPaymentStatus(PaymentStatus.PENDING_PAYMENT);
+
+        when(bookingRepository.findById(71L)).thenReturn(Optional.of(booking));
+        when(paymentRepository.findByBooking(booking)).thenReturn(Optional.of(payment));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Booking result = bookingService.cancelBooking(71L, user);
+
+        assertThat(result.getBookingStatus()).isEqualTo(BookingStatus.CANCELLED);
+        assertThat(result.getPaymentStatus()).isEqualTo(PaymentStatus.CANCELLED);
+        assertThat(payment.getPaymentStatus()).isEqualTo(PaymentStatus.CANCELLED);
+        assertThat(room.getAvailableQuantity()).isEqualTo(3);
+        verify(roomRepository).save(room);
+        verify(paymentRepository).save(payment);
+    }
+
+    @Test
+    @DisplayName("User hủy đơn đã thanh toán 100%: hoàn 70% và giữ 30% phí hủy")
+    void cancelBooking_confirmedFullPaymentMovesToRefundPending() {
+        User user = user(102L);
+        Room room = room(72L, "TLP-SUP", accommodation(2L, "Tulip City Hotel", PropertyType.HOTEL, null));
+        room.setAvailableQuantity(0);
+        Booking booking = booking(room.getAccommodation());
+        booking.setId(72L);
+        booking.setUser(user);
+        booking.setRoom(room);
+        booking.setRoomQuantity(1);
+        booking.setPaymentOption(PaymentOption.FULL_PAYMENT);
+        booking.setBookingStatus(BookingStatus.CONFIRMED);
+        booking.setPaymentStatus(PaymentStatus.APPROVED);
+        booking.setPaidAmount(new BigDecimal("1560000"));
+        Payment payment = new Payment();
+        payment.setPaymentStatus(PaymentStatus.APPROVED);
+
+        when(bookingRepository.findById(72L)).thenReturn(Optional.of(booking));
+        when(paymentRepository.findByBooking(booking)).thenReturn(Optional.of(payment));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Booking result = bookingService.cancelBooking(72L, user);
+
+        assertThat(result.getBookingStatus()).isEqualTo(BookingStatus.CANCELLED);
+        assertThat(result.getPaymentStatus()).isEqualTo(PaymentStatus.REFUND_PENDING);
+        assertThat(payment.getPaymentStatus()).isEqualTo(PaymentStatus.REFUND_PENDING);
+        assertThat(result.getRefundAmount()).isEqualByComparingTo("1092000");
+        assertThat(result.getCancellationFee()).isEqualByComparingTo("468000");
+        assertThat(room.getAvailableQuantity()).isEqualTo(1);
+        verify(roomRepository).save(room);
+        verify(paymentRepository).save(payment);
+    }
+
+    @Test
+    @DisplayName("User hủy đơn đã cọc 30%: mất cọc và không tạo yêu cầu hoàn tiền")
+    void cancelBooking_confirmedDepositForfeitsDeposit() {
+        User user = user(103L);
+        Room room = room(73L, "HLR-STD", accommodation(6L, "Hoa Lu Riverside Homestay", PropertyType.HOMESTAY, null));
+        room.setAvailableQuantity(2);
+        Booking booking = booking(room.getAccommodation());
+        booking.setId(73L);
+        booking.setUser(user);
+        booking.setRoom(room);
+        booking.setRoomQuantity(1);
+        booking.setPaymentOption(PaymentOption.DEPOSIT_30);
+        booking.setBookingStatus(BookingStatus.CONFIRMED);
+        booking.setPaymentStatus(PaymentStatus.APPROVED);
+        booking.setPaidAmount(new BigDecimal("288000"));
+        booking.setRemainingAmount(new BigDecimal("672000"));
+        Payment payment = new Payment();
+        payment.setPaymentStatus(PaymentStatus.APPROVED);
+
+        when(bookingRepository.findById(73L)).thenReturn(Optional.of(booking));
+        when(paymentRepository.findByBooking(booking)).thenReturn(Optional.of(payment));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Booking result = bookingService.cancelBooking(73L, user);
+
+        assertThat(result.getBookingStatus()).isEqualTo(BookingStatus.CANCELLED);
+        assertThat(result.getPaymentStatus()).isEqualTo(PaymentStatus.DEPOSIT_FORFEITED);
+        assertThat(payment.getPaymentStatus()).isEqualTo(PaymentStatus.DEPOSIT_FORFEITED);
+        assertThat(result.getPaidAmount()).isEqualByComparingTo("288000");
+        assertThat(result.getRefundAmount()).isEqualByComparingTo("0");
+        assertThat(result.getCancellationFee()).isEqualByComparingTo("288000");
+        assertThat(result.getOnsiteAmountSnapshot()).isEqualByComparingTo("0");
+        assertThat(room.getAvailableQuantity()).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("User hủy đơn có paidAmount > 0: vẫn chuyển hoàn tiền dù trạng thái payment cũ bị lệch")
+    void cancelBooking_paidAmountGuardMovesToRefundPending() {
+        User user = user(105L);
+        Room room = room(76L, "ANM-GDN", accommodation(4L, "The Anam Villa Nha Trang", PropertyType.VILLA, null));
+        room.setAvailableQuantity(0);
+        Booking booking = booking(room.getAccommodation());
+        booking.setId(76L);
+        booking.setUser(user);
+        booking.setRoom(room);
+        booking.setRoomQuantity(1);
+        booking.setPaymentOption(PaymentOption.FULL_PAYMENT);
+        booking.setBookingStatus(BookingStatus.CONFIRMED);
+        booking.setPaymentStatus(PaymentStatus.PENDING_PAYMENT);
+        booking.setPaidAmount(new BigDecimal("3200000"));
+        Payment payment = new Payment();
+        payment.setPaymentStatus(PaymentStatus.PENDING_PAYMENT);
+
+        when(bookingRepository.findById(76L)).thenReturn(Optional.of(booking));
+        when(paymentRepository.findByBooking(booking)).thenReturn(Optional.of(payment));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Booking result = bookingService.cancelBooking(76L, user);
+
+        assertThat(result.getBookingStatus()).isEqualTo(BookingStatus.CANCELLED);
+        assertThat(result.getPaymentStatus()).isEqualTo(PaymentStatus.REFUND_PENDING);
+        assertThat(payment.getPaymentStatus()).isEqualTo(PaymentStatus.REFUND_PENDING);
+        assertThat(room.getAvailableQuantity()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("User bấm hủy lần hai: không cập nhật lại booking/payment/quota")
+    void cancelBooking_alreadyCancelledIsRejectedWithoutSideEffects() {
+        User user = user(104L);
+        Room room = room(74L, "VNT-DLX", accommodation(8L, "Vinpearl Resort", PropertyType.RESORT, null));
+        room.setAvailableQuantity(1);
+        Booking booking = booking(room.getAccommodation());
+        booking.setId(74L);
+        booking.setUser(user);
+        booking.setRoom(room);
+        booking.setRoomQuantity(1);
+        booking.setBookingStatus(BookingStatus.CANCELLED);
+        booking.setPaymentStatus(PaymentStatus.REFUND_PENDING);
+
+        when(bookingRepository.findById(74L)).thenReturn(Optional.of(booking));
+
+        assertThatThrownBy(() -> bookingService.cancelBooking(74L, user))
+                .hasMessageContaining("Chỉ có thể hủy đơn");
+        assertThat(room.getAvailableQuantity()).isEqualTo(1);
+        verify(roomRepository, never()).save(any(Room.class));
+        verify(paymentRepository, never()).findByBooking(any(Booking.class));
+        verify(bookingRepository, never()).save(any(Booking.class));
+    }
+
+    @Test
+    @DisplayName("Booking đã hủy không cho Partner xác nhận, check-in hoặc báo no-show")
+    void partnerActions_rejectCancelledBooking() {
+        User partner = partner(44L, PropertyType.HOTEL);
+        Accommodation accommodation = accommodation(44L, "An Nam Boutique Hotel", PropertyType.HOTEL, partner);
+        Booking booking = booking(accommodation);
+        booking.setId(75L);
+        booking.setBookingStatus(BookingStatus.CANCELLED);
+        booking.setPaymentStatus(PaymentStatus.REFUND_PENDING);
+        booking.setPartnerStatus(PartnerBookingStatus.PENDING_PARTNER_CONFIRMATION);
+
+        when(bookingRepository.findById(75L)).thenReturn(Optional.of(booking));
+
+        assertThatThrownBy(() -> bookingService.confirmBookingHoldByPartner(75L, partner))
+                .hasMessageContaining("CONFIRMED");
+        assertThatThrownBy(() -> bookingService.checkInByPartner(75L, partner))
+                .hasMessageContaining("CONFIRMED");
+        assertThatThrownBy(() -> bookingService.markNoShowByPartner(75L, partner))
+                .hasMessageContaining("CONFIRMED");
+        verify(bookingRepository, never()).save(any(Booking.class));
+    }
+
+    @Test
+    @DisplayName("Admin xác nhận hoàn đơn FULL_PAYMENT: payment REFUNDED, booking vẫn CANCELLED")
+    void markRefundedByAdmin_keepsCancelledBookingAndUpdatesPayment() {
+        Booking booking = new Booking();
+        booking.setId(77L);
+        booking.setBookingStatus(BookingStatus.CANCELLED);
+        booking.setPaymentStatus(PaymentStatus.REFUND_PENDING);
+        booking.setRefundAmount(new BigDecimal("1092000"));
+        Payment payment = new Payment();
+        payment.setPaymentStatus(PaymentStatus.REFUND_PENDING);
+        payment.setNote("Chờ hoàn 70% theo chính sách.");
+
+        when(bookingRepository.findById(77L)).thenReturn(Optional.of(booking));
+        when(paymentRepository.findByBooking(booking)).thenReturn(Optional.of(payment));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Booking result = bookingService.markRefundedByAdmin(77L, "Đã đối soát chuyển khoản");
+
+        assertThat(result.getBookingStatus()).isEqualTo(BookingStatus.CANCELLED);
+        assertThat(result.getPaymentStatus()).isEqualTo(PaymentStatus.REFUNDED);
+        assertThat(result.getRefundAmount()).isEqualByComparingTo("1092000");
+        assertThat(result.getNote()).contains("Đã đối soát chuyển khoản");
+        assertThat(payment.getPaymentStatus()).isEqualTo(PaymentStatus.REFUNDED);
+        assertThat(payment.getNote()).contains("Đã hoàn tiền");
+        verify(paymentRepository).save(payment);
+    }
+
+    @Test
+    @DisplayName("User không thể hủy booking sau check-in hoặc sau khi hoàn tất")
+    void cancelBooking_rejectsCheckedInAndCompletedBookings() {
+        User user = user(106L);
+        Booking checkedIn = new Booking();
+        checkedIn.setUser(user);
+        checkedIn.setBookingStatus(BookingStatus.CHECKED_IN);
+        Booking completed = new Booking();
+        completed.setUser(user);
+        completed.setBookingStatus(BookingStatus.COMPLETED);
+
+        when(bookingRepository.findById(78L)).thenReturn(Optional.of(checkedIn));
+        when(bookingRepository.findById(79L)).thenReturn(Optional.of(completed));
+
+        assertThatThrownBy(() -> bookingService.cancelBooking(78L, user))
+                .hasMessageContaining("đã check-in");
+        assertThatThrownBy(() -> bookingService.cancelBooking(79L, user))
+                .hasMessageContaining("đã hoàn tất");
+        verify(roomRepository, never()).save(any(Room.class));
+    }
+
+    @Test
+    @DisplayName("User không thể hủy booking thuộc tài khoản khác")
+    void cancelBooking_rejectsBookingOwnedByAnotherUser() {
+        Booking booking = new Booking();
+        booking.setUser(user(107L));
+        booking.setBookingStatus(BookingStatus.CONFIRMED);
+        when(bookingRepository.findById(80L)).thenReturn(Optional.of(booking));
+
+        assertThatThrownBy(() -> bookingService.cancelBooking(80L, user(108L)))
+                .hasMessageContaining("không có quyền");
+        verify(roomRepository, never()).save(any(Room.class));
+    }
+
+    @Test
+    @DisplayName("Partner không thể báo no-show đơn FULL_PAYMENT và không thể báo trước khi giữ phòng")
+    void markNoShowByPartner_enforcesDepositAndPartnerConfirmationRules() {
+        User hotelPartner = partner(45L, PropertyType.HOTEL);
+        Accommodation hotel = accommodation(45L, "TravelMate Grand Hotel", PropertyType.HOTEL, hotelPartner);
+        Booking fullPayment = booking(hotel);
+        fullPayment.setId(81L);
+        fullPayment.setPaymentOption(PaymentOption.FULL_PAYMENT);
+        fullPayment.setPaymentStatus(PaymentStatus.APPROVED);
+        fullPayment.setPartnerStatus(PartnerBookingStatus.PARTNER_CONFIRMED);
+        fullPayment.setBookingSource(BookingSource.ONLINE);
+        Booking unconfirmedDeposit = booking(hotel);
+        unconfirmedDeposit.setId(82L);
+        unconfirmedDeposit.setPaymentOption(PaymentOption.DEPOSIT_30);
+        unconfirmedDeposit.setPartnerStatus(PartnerBookingStatus.PENDING_PARTNER_CONFIRMATION);
+
+        when(bookingRepository.findById(81L)).thenReturn(Optional.of(fullPayment));
+        when(bookingRepository.findById(82L)).thenReturn(Optional.of(unconfirmedDeposit));
+
+        assertThatThrownBy(() -> bookingService.markNoShowByPartner(81L, hotelPartner))
+                .hasMessageContaining("thanh toán 100%");
+        assertThatThrownBy(() -> bookingService.markNoShowByPartner(82L, hotelPartner))
+                .hasMessageContaining("xác nhận giữ");
+    }
+
+    @Test
+    @DisplayName("Partner check-out đơn cọc đã thu tại cơ sở: hoàn tất và mở lại quota")
+    void markCompletedByPartner_completesPaidDepositAndRestoresRoomQuota() {
+        User partner = partner(46L, PropertyType.HOMESTAY);
+        Accommodation homestay = accommodation(46L, "Green Hills Homestay", PropertyType.HOMESTAY, partner);
+        Room room = room(83L, "GHH-FAM", homestay);
+        room.setAvailableQuantity(1);
+        Booking booking = booking(homestay);
+        booking.setId(83L);
+        booking.setRoom(room);
+        booking.setRoomQuantity(1);
+        booking.setBookingStatus(BookingStatus.CHECKED_IN);
+        booking.setPaymentOption(PaymentOption.DEPOSIT_30);
+        booking.setBookingSource(BookingSource.ONLINE);
+        booking.setPartnerStatus(PartnerBookingStatus.PARTNER_CONFIRMED);
+        booking.setRemainingPaymentStatus(RemainingPaymentStatus.PAID_AT_PROPERTY);
+
+        when(bookingRepository.findById(83L)).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Booking result = bookingService.markCompletedByPartner(83L, partner);
+
+        assertThat(result.getBookingStatus()).isEqualTo(BookingStatus.COMPLETED);
+        assertThat(result.getPartnerStatus()).isEqualTo(PartnerBookingStatus.PARTNER_COMPLETED);
+        assertThat(room.getAvailableQuantity()).isEqualTo(2);
+        verify(roomRepository).save(room);
+    }
+
+    private static User user(Long id) {
+        User user = new User();
+        user.setId(id);
+        user.setRole(User.Role.USER);
+        return user;
+    }
+
+    private static User partner(Long id, PropertyType propertyType) {
+        User partner = new User();
+        partner.setId(id);
+        partner.setRole(User.Role.PARTNER);
+        partner.setPartnerPropertyType(propertyType);
+        return partner;
+    }
+
+    private static Accommodation accommodation(Long id, String name, PropertyType propertyType, User owner) {
+        Accommodation accommodation = new Accommodation();
+        accommodation.setId(id);
+        accommodation.setName(name);
+        accommodation.setPropertyType(propertyType);
+        accommodation.setApprovalStatus(ApprovalStatus.APPROVED);
+        accommodation.setOwner(owner);
+        return accommodation;
+    }
+
+    private static Room room(Long id, String roomCode, Accommodation accommodation) {
+        Room room = new Room();
+        room.setId(id);
+        room.setRoomCode(roomCode);
+        room.setRoomName(roomCode);
+        room.setAccommodation(accommodation);
+        room.setApprovalStatus(ApprovalStatus.APPROVED);
+        room.setCapacity(2);
+        room.setPricePerNight(new BigDecimal("1000000"));
+        room.setAvailableQuantity(5);
+        return room;
+    }
+
+    private static Booking booking(Accommodation accommodation) {
+        Booking booking = new Booking();
+        booking.setAccommodation(accommodation);
+        booking.setBookingStatus(BookingStatus.CONFIRMED);
+        return booking;
     }
 }

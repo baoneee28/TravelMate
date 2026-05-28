@@ -1,10 +1,10 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard – Partner TravelMate</title>
+    <title>Bảng điều khiển – Đối tác TravelMate</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&subset=vietnamese&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/assets/css/base.css" />
@@ -14,6 +14,87 @@
     <link rel="stylesheet" href="/assets/css/partners.css" />
     <link rel="stylesheet" href="/assets/css/responsive.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        .admin-content { overflow-x: hidden; }
+        .dash-op-grid {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .dash-op-card {
+            flex: 1;
+            min-width: 100px;
+            text-align: center;
+            border-radius: 12px;
+            padding: 16px 12px;
+            border: 1.5px solid transparent;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+            transition: all 0.2s ease;
+        }
+        .dash-op-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+        }
+        .dash-op-card--free { background: #f0fdf4; border-color: #dcfce7; }
+        .dash-op-card--free:hover { border-color: #16a34a; }
+
+        .dash-op-card--busy { background: #eff6ff; border-color: #dbeafe; }
+        .dash-op-card--busy:hover { border-color: #2563eb; }
+
+        .dash-op-card--online { background: #fff7ed; border-color: #ffedd5; }
+        .dash-op-card--online:hover { border-color: #d97706; }
+
+        .dash-op-card--blocked { background: #fef2f2; border-color: #fee2e2; }
+        .dash-op-card--blocked:hover { border-color: #dc2626; }
+
+        .dash-op-card--total { background: #f5f3ff; border-color: #f3e8ff; }
+        .dash-op-card--total:hover { border-color: #7c3aed; }
+
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .action-tile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: var(--color-surface, #fff);
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--color-text, #0f172a);
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+        .action-tile:hover {
+            border-color: var(--color-primary, #1a6b9a);
+            background: var(--color-primary-bg, #eff6ff);
+            color: var(--color-primary, #1a6b9a);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(26, 107, 154, 0.1);
+        }
+        .action-tile__icon {
+            font-size: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .action-tile:hover .action-tile__icon {
+            background: var(--color-primary, #1a6b9a);
+            color: #fff;
+        }
+    </style>
 </head>
 
 <body>
@@ -26,7 +107,7 @@
             <header class="admin-topbar">
                 <div style="display: flex; align-items: center; gap: var(--space-4)">
                     <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
-                    <h1 class="admin-topbar__title">Dashboard Partner</h1>
+                    <h1 class="admin-topbar__title">Bảng điều khiển đối tác</h1>
                 </div>
                 <div class="admin-topbar__actions">
                     <form th:action="@{/auth/logout}" method="post" style="display:inline;">                        <button type="submit" class="btn btn--ghost btn--sm">🚪 Đăng xuất</button>
@@ -38,7 +119,7 @@
                 <div class="page-header">
                     <div>
                         <h2 class="page-header__title">
-                            👋 Xin chào, <span th:text="${partnerName}">Partner</span>!
+                            👋 Xin chào, <span th:text="${partnerName}">Đối tác</span>!
                         </h2>
                         <p class="page-header__subtitle">
                             Loại lưu trú đăng ký:
@@ -61,8 +142,8 @@
                             <div class="stats-card__label">Tổng booking vận hành</div>
                             <div style="font-size:11px;color:var(--color-text-muted);margin-top:5px;display:flex;gap:8px;flex-wrap:wrap;line-height:1.6;">
                                 <span title="Khách đặt qua TravelMate">🌐 Online: <strong th:text="${onlineBookingCount}">0</strong></span>
-                                <span title="Partner tự tạo tại quầy">🏃 Trực tiếp: <strong th:text="${directBookingCount}">0</strong></span>
-                                <span title="Chặn phòng / bảo trì">🔒 Chặn: <strong th:text="${blockCount}">0</strong></span>
+                                <span title="Bạn tự tạo tại quầy">🏃 Trực tiếp: <strong th:text="${directBookingCount}">0</strong></span>
+                                <span title="Chặn bán / bảo trì">🔒 Chặn: <strong th:text="${blockCount}">0</strong></span>
                             </div>
                         </div>
                     </div>
@@ -203,43 +284,67 @@
                     🛏️ <span th:text="${'Vận hành ' + (unitLabel ?: 'phòng') + ' hôm nay'}">Vận hành phòng hôm nay</span>
                 </h3>
                 <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:20px;margin-bottom:var(--space-5);">
-                    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
-                        <div style="flex:1;min-width:100px;text-align:center;background:#f0fdf4;border-radius:12px;padding:14px 10px;">
+                    <div class="dash-op-grid">
+                        <div class="dash-op-card dash-op-card--free">
                             <div style="font-size:28px;font-weight:800;color:#16a34a;" th:text="${dashFreeRooms}">0</div>
                             <div style="font-size:12px;color:#6b7280;font-weight:500;margin-top:2px;">Còn trống</div>
                         </div>
-                        <div style="flex:1;min-width:100px;text-align:center;background:#eff6ff;border-radius:12px;padding:14px 10px;">
+                        <div class="dash-op-card dash-op-card--busy">
                             <div style="font-size:28px;font-weight:800;color:#2563eb;" th:text="${dashCheckedIn}">0</div>
                             <div style="font-size:12px;color:#6b7280;font-weight:500;margin-top:2px;">Đang có khách</div>
                         </div>
-                        <div style="flex:1;min-width:100px;text-align:center;background:#fff7ed;border-radius:12px;padding:14px 10px;">
+                        <div class="dash-op-card dash-op-card--online">
                             <div style="font-size:28px;font-weight:800;color:#d97706;" th:text="${dashHeldOnline}">0</div>
                             <div style="font-size:12px;color:#6b7280;font-weight:500;margin-top:2px;">Đặt online</div>
                         </div>
-                        <div style="flex:1;min-width:100px;text-align:center;background:#fef2f2;border-radius:12px;padding:14px 10px;">
+                        <div class="dash-op-card dash-op-card--blocked">
                             <div style="font-size:28px;font-weight:800;color:#dc2626;" th:text="${dashBlocked}">0</div>
                             <div style="font-size:12px;color:#6b7280;font-weight:500;margin-top:2px;">Chặn / Trực tiếp</div>
                         </div>
-                        <div style="flex:1;min-width:100px;text-align:center;background:#f5f3ff;border-radius:12px;padding:14px 10px;">
+                        <div class="dash-op-card dash-op-card--total">
                             <div style="font-size:28px;font-weight:800;color:#7c3aed;" th:text="${dashTotalRooms}">0</div>
-                            <div style="font-size:12px;color:#6b7280;font-weight:500;margin-top:2px;">Tổng quota TM</div>
+                            <div style="font-size:12px;color:#6b7280;font-weight:500;margin-top:2px;" th:text="${quotaLabel ?: 'Tổng quota TM'}">Tổng quota TM</div>
                         </div>
                     </div>
                     <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                        <a href="/partner/room-status" class="btn btn--primary btn--sm">🛏️ Xem chi tiết vận hành</a>
+                        <a href="/partner/room-status" class="btn btn--primary btn--sm"><span th:text="${'🛏️ Xem chi tiết vận hành ' + (unitLabel ?: 'phòng')}">🛏️ Xem chi tiết vận hành</span></a>
                         <a href="/partner/direct-booking" class="btn btn--ghost btn--sm">🏃 Tạo booking trực tiếp</a>
                     </div>
                 </div>
 
                 <!-- Quick actions -->
-                <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;margin-bottom:var(--space-5);">
-                    <a href="/partner/accommodations" class="btn btn--primary">🏨 Quản lý nơi lưu trú</a>
-                    <a href="/partner/accommodations/new" class="btn btn--ghost">+ Đăng ký listing mới</a>
-                    <a href="/partner/bookings" class="btn btn--ghost"><span th:text="${'📋 Xem đơn đặt ' + (unitLabel ?: 'phòng')}">📋 Xem đơn đặt phòng</span></a>
-                    <a href="/partner/room-status" class="btn btn--ghost"><span th:text="${'🛏️ Vận hành ' + (unitLabel ?: 'phòng')}">🛏️ Vận hành phòng</span></a>
-                    <a href="/partner/revenue" class="btn btn--ghost">💰 Xem doanh thu</a>
-                    <a href="/partner/settlements" class="btn btn--ghost">🏦 Xem quyết toán</a>
-                    <a href="/partner/profile" class="btn btn--ghost">👤 Hồ sơ của tôi</a>
+                <h3 style="font-size:14px;font-weight:600;color:var(--color-text-muted);margin-bottom:var(--space-3);text-transform:uppercase;letter-spacing:.05em;">
+                    ⚡ Thao tác nhanh
+                </h3>
+                <div class="quick-actions-grid">
+                    <a href="/partner/accommodations" class="action-tile">
+                        <span class="action-tile__icon">🏨</span>
+                        <span>Quản lý nơi lưu trú</span>
+                    </a>
+                    <a href="/partner/accommodations/new" class="action-tile">
+                        <span class="action-tile__icon">＋</span>
+                        <span>Đăng ký listing mới</span>
+                    </a>
+                    <a href="/partner/bookings" class="action-tile">
+                        <span class="action-tile__icon">📋</span>
+                        <span th:text="${'Xem đơn đặt ' + (unitLabel ?: 'phòng')}">Xem đơn đặt phòng</span>
+                    </a>
+                    <a href="/partner/room-status" class="action-tile">
+                        <span class="action-tile__icon">🛏️</span>
+                        <span th:text="${'Vận hành ' + (unitLabel ?: 'phòng')}">Vận hành phòng</span>
+                    </a>
+                    <a href="/partner/revenue" class="action-tile">
+                        <span class="action-tile__icon">💰</span>
+                        <span>Xem doanh thu</span>
+                    </a>
+                    <a href="/partner/settlements" class="action-tile">
+                        <span class="action-tile__icon">🏦</span>
+                        <span>Xem quyết toán</span>
+                    </a>
+                    <a href="/partner/profile" class="action-tile">
+                        <span class="action-tile__icon">👤</span>
+                        <span>Hồ sơ của tôi</span>
+                    </a>
                 </div>
 
                 <!-- Recent bookings -->
@@ -286,9 +391,11 @@
                                     <td>
                                         <span th:if="${b.partnerStatus == null}" class="badge badge--muted" style="font-size:11px;">—</span>
                                         <span th:if="${b.partnerStatus != null && b.partnerStatus.name() == 'PENDING_PARTNER_CONFIRMATION'}"
-                                              class="badge badge--warning" style="font-size:11px;">⏳ Chờ xác nhận giữ phòng</span>
+                                              class="badge badge--warning" style="font-size:11px;"
+                                              th:text="${'⏳ Chờ xác nhận giữ ' + (unitLabel ?: 'phòng')}">⏳ Chờ xác nhận giữ phòng</span>
                                         <span th:if="${b.partnerStatus != null && b.partnerStatus.name() == 'PARTNER_CONFIRMED'}"
-                                              class="badge badge--success" style="font-size:11px;">✅ Đã xác nhận giữ phòng</span>
+                                              class="badge badge--success" style="font-size:11px;"
+                                              th:text="${'✅ Đã xác nhận giữ ' + (unitLabel ?: 'phòng')}">✅ Đã xác nhận giữ phòng</span>
                                     </td>
                                 </tr>
                             </tbody>
@@ -301,7 +408,7 @@
 
                 <div th:if="${#lists.isEmpty(recentBookings)}" style="text-align:center;padding:40px;color:var(--color-text-muted);">
                     <div style="font-size:48px;margin-bottom:12px;">📭</div>
-                    <p th:text="${'Chưa có đơn đặt ' + (unitLabel ?: 'phòng') + ' nào được Admin duyệt.'}">Chưa có đơn đặt phòng nào được Admin duyệt.</p>
+                    <p th:text="${'Chưa có đơn đặt ' + (unitLabel ?: 'phòng') + ' online nào đã được VNPAY xác nhận.'}">Chưa có đơn đặt phòng online nào đã được VNPAY xác nhận.</p>
                     <p style="font-size:13px;" th:text="${'Đảm bảo nơi lưu trú của bạn đã được Admin duyệt để khách hàng có thể đặt ' + (unitLabel ?: 'phòng') + '.'}">Đảm bảo nơi lưu trú của bạn đã được Admin duyệt để khách hàng có thể đặt phòng.</p>
                 </div>
             </main>

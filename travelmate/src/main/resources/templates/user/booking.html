@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TravelMate – Đặt phòng</title>
+    <title th:text="${isVilla ? 'TravelMate – Đặt căn' : 'TravelMate – Đặt phòng'}">TravelMate – Đặt phòng</title>
 
     <!-- Font Google -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -81,6 +81,19 @@
         /* Alert messages */
         .bk-alert { padding: 14px 18px; border-radius: 10px; font-size: 0.9rem; font-weight: 600; margin-bottom: 16px; }
         .bk-alert-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .booking-preview { display:grid; grid-template-columns:180px 1fr; gap:18px; align-items:start; }
+        .booking-preview-main { width:180px; height:135px; object-fit:cover; border-radius:10px; border:1px solid #e2e8f0; }
+        .booking-preview-thumbs { display:flex; gap:6px; margin-top:8px; }
+        .booking-preview-thumb { width:38px; height:30px; object-fit:cover; border-radius:5px; border:1px solid #cbd5e1; }
+        .booking-preview-tags { display:flex; flex-wrap:wrap; gap:7px; margin:10px 0; }
+        .booking-preview-tag { background:#eff6ff; color:#0369a1; padding:5px 9px; border-radius:14px; font-size:.75rem; font-weight:650; }
+        .voucher-catalog { margin-bottom:14px; display:flex; flex-direction:column; gap:8px; }
+        .voucher-suggestion { display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; background:#fffbeb; border:1px dashed #fbbf24; border-radius:9px; padding:9px 11px; cursor:pointer; text-align:left; font-family:inherit; }
+        .voucher-suggestion:hover { background:#fef3c7; }
+        .voucher-suggestion strong { display:block; color:#b45309; font-size:.82rem; }
+        .voucher-suggestion span { color:#64748b; font-size:.74rem; }
+        .voucher-use { color:#2563eb !important; font-weight:700; white-space:nowrap; }
+        @media (max-width:680px) { .booking-preview { grid-template-columns:1fr; } .booking-preview-main { width:100%; height:200px; } }
     </style>
 </head>
 
@@ -106,11 +119,11 @@
                     <div style="font-size:0.875rem;color:#7f1d1d;">
                         <th:block th:text="${isVilla ? 'Căn' : 'Phòng'}"></th:block> <strong th:text="${room.roomName}"></strong> không còn chỗ trống trong khoảng
                         <strong th:text="${checkInFormatted}"></strong> → <strong th:text="${checkOutFormatted}"></strong>.
-                        Vui lòng quay lại và chọn ngày khác hoặc phòng khác.
+                        <span th:text="${isVilla ? 'Vui lòng quay lại và chọn ngày khác hoặc căn khác.' : 'Vui lòng quay lại và chọn ngày khác hoặc phòng khác.'}">Vui lòng quay lại và chọn ngày khác hoặc phòng khác.</span>
                     </div>
                     <a th:href="@{/accommodations/{id}(id=${hotel.id})}"
                        style="display:inline-block;margin-top:10px;padding:8px 18px;background:#dc2626;color:#fff;border-radius:8px;font-weight:700;font-size:0.875rem;text-decoration:none;">
-                        <i class="fa-solid fa-arrow-left"></i> Chọn phòng khác
+                        <i class="fa-solid fa-arrow-left"></i> <span th:text="${isVilla ? 'Chọn căn khác' : 'Chọn phòng khác'}">Chọn phòng khác</span>
                     </a>
                 </div>
             </div>
@@ -135,6 +148,35 @@
                 <i class="fa-solid fa-circle-check" style="font-size:1.2rem;color:#16a34a;flex-shrink:0;"></i>
                 <div style="font-size:0.875rem;font-weight:600;color:#166534;">
                     Còn <strong th:text="${roomAvailability.availableQuantity}"></strong> <th:block th:text="${isVilla ? 'căn trống cho khoảng ngày bạn chọn' : 'phòng trống cho khoảng ngày bạn chọn'}"></th:block>
+                </div>
+            </div>
+
+            <div class="bk-card">
+                <h2 class="bk-card-title"><i class="fa-solid fa-image"></i> <span th:text="${isVilla ? 'Căn bạn đã chọn' : 'Phòng bạn đã chọn'}">Phòng bạn đã chọn</span></h2>
+                <div class="booking-preview">
+                    <div>
+                        <img class="booking-preview-main"
+                             th:src="${roomImages != null and !#lists.isEmpty(roomImages) ? roomImages[0].imageUrl : (room.imageUrl != null ? room.imageUrl : '/assets/images/homestay-o-da-lat.jpg')}"
+                             th:alt="${room.roomName}"
+                             onerror="this.onerror=null;this.src='/assets/images/homestay-o-da-lat.jpg'" />
+                        <div class="booking-preview-thumbs" th:if="${roomImages != null and roomImages.size() > 1}">
+                            <img class="booking-preview-thumb" th:each="photo : ${roomImages}" th:src="${photo.imageUrl}"
+                                 th:alt="${photo.caption != null ? photo.caption : room.roomName}" />
+                        </div>
+                    </div>
+                    <div>
+                        <div class="bk-hotel-name" th:text="${hotel.name}">Nơi lưu trú</div>
+                        <div style="font-size:1rem;font-weight:750;color:#0f172a;" th:text="${room.roomName}">Loại phòng</div>
+                        <div class="booking-preview-tags">
+                            <span class="booking-preview-tag"><i class="fa-solid fa-user-group"></i> <span th:text="${room.capacity} + ' khách'">2 khách</span></span>
+                            <span class="booking-preview-tag" th:if="${room.bedType != null}"><i class="fa-solid fa-bed"></i> <span th:text="${room.bedType}">Giường</span></span>
+                            <span class="booking-preview-tag"><i class="fa-solid fa-camera"></i> Ảnh đã duyệt</span>
+                        </div>
+                        <div style="font-size:.82rem;color:#64748b;line-height:1.55;"
+                             th:text="${room.description != null ? room.description : 'Thông tin và ảnh phòng/căn được TravelMate kiểm duyệt trước khi hiển thị.'}">
+                            Chi tiết phòng
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -172,7 +214,7 @@
                         <input type="radio" name="paymentOptionUI" value="FULL_PAYMENT" checked />
                         <div class="payment-opt-info">
                             <div class="payment-opt-title">Thanh toán 100%</div>
-                            <div class="payment-opt-desc">Thanh toán toàn bộ, không cần trả thêm</div>
+                            <div class="payment-opt-desc">Đã thanh toán 100% qua VNPAY — chờ đối tác xác nhận giữ phòng/căn</div>
                         </div>
                         <div class="payment-opt-amount" id="amount-full" th:text="${#numbers.formatDecimal(paidFull, 0, 'POINT', 0, 'COMMA')} + '₫'">0₫</div>
                     </label>
@@ -180,7 +222,7 @@
                         <input type="radio" name="paymentOptionUI" value="DEPOSIT_30" />
                         <div class="payment-opt-info">
                             <div class="payment-opt-title">Cọc trước 30%</div>
-                            <div class="payment-opt-desc">Chỉ trả 30% bây giờ, còn lại thanh toán sau</div>
+                            <div class="payment-opt-desc">Đã cọc 30% qua VNPAY — 70% còn lại thanh toán tại cơ sở</div>
                         </div>
                         <div class="payment-opt-amount" id="amount-deposit" th:text="${#numbers.formatDecimal(paidDeposit, 0, 'POINT', 0, 'COMMA')} + '₫'">0₫</div>
                     </label>
@@ -191,6 +233,20 @@
             <div class="bk-card">
                 <h2 class="bk-card-title"><i class="fa-solid fa-ticket"></i> Mã Giảm Giá (Tuỳ chọn)</h2>
                 <div class="bk-form-group" style="margin-bottom:0;">
+                    <div class="voucher-catalog" th:if="${applicableVouchers != null and !#lists.isEmpty(applicableVouchers)}">
+                        <div style="font-size:.8rem;font-weight:700;color:#334155;">
+                            Voucher đang áp dụng cho phòng/căn này
+                        </div>
+                        <button class="voucher-suggestion" type="button" th:each="voucher : ${applicableVouchers}"
+                                th:attr="data-code=${voucher.code}"
+                                onclick="chooseVoucher(this.dataset.code)">
+                            <span>
+                                <strong th:text="${voucher.code}">CODE</strong>
+                                <span th:text="${voucher.name}">Tên voucher</span>
+                            </span>
+                            <span class="voucher-use">Dùng mã</span>
+                        </button>
+                    </div>
                     <label class="bk-label">Nhập mã voucher nếu bạn có</label>
                     <div style="display:flex;gap:10px;">
                         <input type="text" class="bk-input" id="voucherCodeInput"
@@ -207,18 +263,21 @@
                 </div>
             </div>
 
-            <!-- Chính sách & Hủy phòng -->
+            <!-- Chính sách & Hủy phòng/căn -->
             <div class="bk-card">
-                <h2 class="bk-card-title"><i class="fa-solid fa-shield-halved"></i> Chính sách Chỗ ở & Hủy phòng</h2>
+                <h2 class="bk-card-title">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span th:text="${isVilla ? 'Chính sách Chỗ ở & Hủy căn' : 'Chính sách Chỗ ở & Hủy phòng'}">Chính sách Chỗ ở & Hủy phòng</span>
+                </h2>
 
                 <!-- Nhận/trả phòng -->
                 <div style="background:#f8fafc;border-radius:10px;padding:14px 18px;margin-bottom:14px;border:1px solid #e2e8f0;">
                     <div style="font-weight:700;font-size:0.875rem;color:#0f172a;margin-bottom:8px;">
-                        <i class="fa-regular fa-clock" style="color:#2563eb;margin-right:6px;"></i> Thời gian nhận/trả phòng
+                        <i class="fa-regular fa-clock" style="color:#2563eb;margin-right:6px;"></i> <span th:text="${isVilla ? 'Thời gian nhận/trả căn' : 'Thời gian nhận/trả phòng'}">Thời gian nhận/trả phòng</span>
                     </div>
                     <div style="display:flex;gap:30px;font-size:0.8125rem;color:#475569;">
-                        <span><i class="fa-solid fa-arrow-right-to-bracket" style="color:#16a34a;margin-right:4px;"></i> Nhận phòng: <strong>từ 14:00</strong></span>
-                        <span><i class="fa-solid fa-arrow-right-from-bracket" style="color:#dc2626;margin-right:4px;"></i> Trả phòng: <strong>trước 12:00</strong></span>
+                        <span><i class="fa-solid fa-arrow-right-to-bracket" style="color:#16a34a;margin-right:4px;"></i> <span th:text="${isVilla ? 'Nhận căn' : 'Nhận phòng'}">Nhận phòng</span>: <strong>từ 14:00</strong></span>
+                        <span><i class="fa-solid fa-arrow-right-from-bracket" style="color:#dc2626;margin-right:4px;"></i> <span th:text="${isVilla ? 'Trả căn' : 'Trả phòng'}">Trả phòng</span>: <strong>trước 12:00</strong></span>
                     </div>
                     <div style="margin-top:8px;font-size:0.8rem;color:#64748b;">
                         <i class="fa-solid fa-child-reaching" style="margin-right:4px;"></i>
@@ -237,15 +296,15 @@
                         <div style="display:flex;gap:10px;margin-bottom:10px;padding:10px 14px;background:#dcfce7;border-radius:8px;border:1px solid #86efac;">
                             <i class="fa-solid fa-circle-check" style="color:#16a34a;margin-top:2px;flex-shrink:0;"></i>
                             <div style="font-size:0.8125rem;color:#14532d;">
-                                <strong>Trường hợp 1: Admin chưa duyệt (Chờ xét duyệt)</strong><br/>
-                                Bạn có thể <strong>hủy ngay</strong> và hệ thống sẽ <strong>hoàn tiền toàn bộ 100%</strong> vào tài khoản trong vòng 1–3 ngày làm việc.
+                                <strong>Trước khi hoàn tất thanh toán VNPAY:</strong><br/>
+                                Bạn có thể dừng giao dịch; phòng/căn tạm giữ sẽ được mở lại tự động và không phát sinh thu tiền.
                             </div>
                         </div>
                         <div style="display:flex;gap:10px;padding:10px 14px;background:#fef9c3;border-radius:8px;border:1px solid #fde047;">
                             <i class="fa-solid fa-headset" style="color:#b45309;margin-top:2px;flex-shrink:0;"></i>
                             <div style="font-size:0.8125rem;color:#713f12;">
-                                <strong>Trường hợp 2: TravelMate đã xác nhận (Đã xác nhận)</strong><br/>
-                                Sau khi TravelMate xác nhận, bạn <strong>không thể tự hủy</strong>. Vui lòng <a href="/contact" style="color:#b45309;font-weight:700;">liên hệ hỗ trợ</a> để được xử lý theo từng trường hợp cụ thể.
+                                <strong>Sau khi VNPAY xác nhận thanh toán:</strong><br/>
+                                Đơn được chuyển ngay cho đối tác giữ phòng/căn. Yêu cầu hủy và hoàn tiền sẽ được xử lý qua <a href="/contact" style="color:#b45309;font-weight:700;">liên hệ hỗ trợ</a>.
                             </div>
                         </div>
                     </div>
@@ -262,8 +321,8 @@
                         <div style="display:flex;gap:10px;margin-bottom:10px;padding:10px 14px;background:#dcfce7;border-radius:8px;border:1px solid #86efac;">
                             <i class="fa-solid fa-circle-check" style="color:#16a34a;margin-top:2px;flex-shrink:0;"></i>
                             <div style="font-size:0.8125rem;color:#14532d;">
-                                <strong>Khi hủy trước khi TravelMate xác nhận:</strong><br/>
-                                Hoàn lại toàn bộ tiền cọc 30% — không mất phí.
+                                <strong>Trước khi hoàn tất cọc VNPAY:</strong><br/>
+                                Bạn có thể dừng thanh toán mà không phát sinh tiền cọc.
                             </div>
                         </div>
                         <div style="display:flex;gap:10px;margin-bottom:10px;padding:10px 14px;background:#fef2f2;border-radius:8px;border:1px solid #fca5a5;">
@@ -277,7 +336,7 @@
                             <i class="fa-solid fa-wallet" style="color:#16a34a;margin-top:2px;flex-shrink:0;"></i>
                             <div style="font-size:0.8125rem;color:#14532d;">
                                 <strong>Số tiền còn lại (70%):</strong><br/>
-                                Thanh toán trực tiếp tại lễ tân khi nhận phòng. Vui lòng chuẩn bị sẵn tiền mặt hoặc thẻ.
+                                <span th:text="${isVilla ? 'Thanh toán trực tiếp tại cơ sở khi nhận căn. Vui lòng chuẩn bị sẵn tiền mặt hoặc thẻ.' : 'Thanh toán trực tiếp tại lễ tân khi nhận phòng. Vui lòng chuẩn bị sẵn tiền mặt hoặc thẻ.'}">Thanh toán trực tiếp tại lễ tân khi nhận phòng. Vui lòng chuẩn bị sẵn tiền mặt hoặc thẻ.</span>
                             </div>
                         </div>
                     </div>
@@ -297,12 +356,12 @@
 
                 <div class="bk-info-grid">
                     <div>
-                        <div class="bk-info-lbl">Nhận phòng</div>
+                        <div class="bk-info-lbl" th:text="${isVilla ? 'Nhận căn' : 'Nhận phòng'}">Nhận phòng</div>
                         <div class="bk-info-val" th:text="${checkInFormatted}">--/--</div>
                         <div class="bk-info-lbl" style="margin-top: 4px">Từ 14:00</div>
                     </div>
                     <div>
-                        <div class="bk-info-lbl">Trả phòng</div>
+                        <div class="bk-info-lbl" th:text="${isVilla ? 'Trả căn' : 'Trả phòng'}">Trả phòng</div>
                         <div class="bk-info-val" th:text="${checkOutFormatted}">--/--</div>
                         <div class="bk-info-lbl" style="margin-top: 4px">Trước 12:00</div>
                     </div>
@@ -344,7 +403,7 @@
                 </div>
                 <!-- Còn lại khi check-in (chỉ hiện khi chọn Cọc 30%) -->
                 <div id="remaining-deposit-row" style="display:none;justify-content:space-between;font-size:0.8rem;color:#dc2626;font-weight:700;padding:6px 0;border-top:1px dashed #fca5a5;margin-top:4px;">
-                    <span><i class="fa-solid fa-clock" style="margin-right:4px;"></i>Còn lại tại lễ tân</span>
+                    <span><i class="fa-solid fa-clock" style="margin-right:4px;"></i><th:block th:text="${isVilla ? 'Còn lại tại cơ sở' : 'Còn lại tại lễ tân'}">Còn lại tại lễ tân</th:block></span>
                     <span id="remaining-deposit-amount"
                           th:text="${#numbers.formatDecimal(totalAmount - paidDeposit, 0, 'POINT', 0, 'COMMA')} + ' VND'">0 VND</span>
                 </div>
@@ -359,7 +418,7 @@
                             Tôi đã đọc và đồng ý với
                             <a href="#policies" style="color:#2563eb;font-weight:700;text-decoration:underline;">Điều khoản dịch vụ</a>
                             và
-                            <a href="#cancel-policy-full" id="terms-cancel-link" style="color:#2563eb;font-weight:700;text-decoration:underline;" onclick="scrollToCancelPolicy(event)">Chính sách hủy phòng</a>
+                            <a href="#cancel-policy-full" id="terms-cancel-link" style="color:#2563eb;font-weight:700;text-decoration:underline;" onclick="scrollToCancelPolicy(event)" th:text="${isVilla ? 'Chính sách hủy căn' : 'Chính sách hủy phòng'}">Chính sách hủy phòng</a>
                             của TravelMate.
                         </span>
                     </label>
@@ -395,15 +454,16 @@
             <p class="modal-title">Xác nhận chuyển sang cổng thanh toán VNPAY</p>
 
             <div style="margin-bottom: 16px">
-                <img src="https://sandbox.vnpayment.vn/images/vnpay-logo.png"
-                     onerror="this.style.display='none'"
-                     style="height:36px;margin-bottom:8px;" alt="VNPAY">
+                <div aria-label="VNPAY"
+                     style="display:inline-flex;align-items:center;height:36px;padding:0 14px;margin-bottom:8px;border-radius:8px;background:#f0f7ff;color:#0064c8;font-size:1.25rem;font-weight:800;letter-spacing:.05em;">
+                    VNPAY
+                </div>
                 <p style="margin-top: 8px; font-size: 0.85rem; color: #334155; font-weight: 600;">
                     Thanh toán qua cổng VNPAY
                 </p>
                 <p style="font-size: 0.78rem; color: #64748b;">
                     Bạn sẽ được chuyển sang cổng thanh toán VNPAY để hoàn tất giao dịch.
-                    Phòng sẽ được giữ tạm <strong>15 phút</strong>.
+                    <span th:text="${isVilla ? 'Căn sẽ được giữ tạm' : 'Phòng sẽ được giữ tạm'}">Phòng sẽ được giữ tạm</span> <strong>3 phút</strong>.
                 </p>
             </div>
 
@@ -445,7 +505,7 @@
 
             <div class="modal-note" style="background:#e8f4fd;border-left:3px solid #2563eb;color:#1e3a5f;">
                 Sau khi xác nhận, bạn sẽ được chuyển sang cổng thanh toán VNPAY.
-                Hoàn tất thanh toán để đơn được gửi cho TravelMate xác nhận.
+                Khi VNPAY báo thành công, hệ thống tự xác nhận khoản thanh toán và gửi đơn cho đối tác giữ phòng/căn.
             </div>
 
             <div class="modal-btns">
@@ -705,6 +765,13 @@
             }
         }
 
+        function chooseVoucher(code) {
+            const input = document.getElementById('voucherCodeInput');
+            input.value = code || '';
+            resetVoucherOnInput();
+            applyVoucher();
+        }
+
         // === Remove voucher ===
         function removeVoucher() {
             document.getElementById('voucherCodeInput').value    = '';
@@ -768,6 +835,3 @@
 </body>
 
 </html>
-
-
-

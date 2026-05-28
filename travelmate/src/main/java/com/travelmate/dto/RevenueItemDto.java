@@ -35,14 +35,16 @@ public class RevenueItemDto {
     private String paymentStatus;     // APPROVED / DEPOSIT_FORFEITED
 
     // ─── Financial breakdown ─────────────────────────────────
+    private BigDecimal totalOrderAmount;         // Tong gia tri don khach dat
     private BigDecimal grossAmount;              // Tiền admin thu online (30% cọc hoặc 100%)
-    private BigDecimal commissionBase;           // Cơ sở tính CK (totalAmount cho DEPOSIT_30 COMPLETED, paidAmount còn lại)
+    private BigDecimal onsiteAmount;              // Phan khach thanh toan truc tiep tai co so
+    private BigDecimal commissionBase;           // Cơ sở tính CK: khoản TravelMate đã thu online
     private String     commissionBaseLabel;      // Nhãn hiển thị cơ sở CK
     private BigDecimal commissionRate;           // Tỷ lệ CK hiệu lực (thập phân, VD: 0.15)
     private BigDecimal effectiveCommissionRate;  // Tỷ lệ CK hiệu lực (giống commissionRate, tường minh hơn)
     private BigDecimal commissionAmount;         // = commissionBase × commissionRate
     private BigDecimal voucherDeductionAmount;   // Giảm giá voucher do partner chịu
-    private BigDecimal partnerNetAmount;         // = grossAmount - commission - voucherDeduction (từ admin trả partner)
+    private BigDecimal partnerNetAmount;         // = grossAmount - commission - voucherDeduction (tu TravelMate tra partner)
 
     // ─── Commission source ───────────────────────────────────
     /**
@@ -63,7 +65,7 @@ public class RevenueItemDto {
 
     public String getPaymentStatusVN() {
         if ("APPROVED".equals(paymentStatus))           return "Đã thanh toán";
-        if ("DEPOSIT_FORFEITED".equals(paymentStatus))  return "Giữ cọc (no-show)";
+        if ("DEPOSIT_FORFEITED".equals(paymentStatus))  return "Giữ cọc (hủy/no-show)";
         return paymentStatus;
     }
 

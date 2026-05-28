@@ -13,10 +13,27 @@
     <link rel="stylesheet" href="/assets/css/responsive.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <style>
-        .vkpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:22px; }
-        .vkpi-card { background:var(--color-surface,#fff); border-radius:10px; padding:16px 18px; box-shadow:0 1px 3px rgba(0,0,0,.07); }
-        .vkpi-card__label { font-size:12px; color:#6b7280; margin-bottom:4px; }
-        .vkpi-card__value { font-size:22px; font-weight:700; }
+        .admin-content { padding: 20px 24px; overflow-x: hidden; }
+        .vkpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-bottom:16px; }
+        .vkpi-card { 
+            background:var(--color-surface,#fff); 
+            border-radius:10px; 
+            padding:10px 16px; 
+            box-shadow:0 1px 3px rgba(0,0,0,.05); 
+            border:1px solid #e2e8f0;
+            display:flex;
+            flex-direction:column;
+            gap:2px;
+        }
+        .vkpi-card__label { 
+            font-size:11px; 
+            color:#6b7280; 
+            margin-bottom:0; 
+            font-weight:700; 
+            text-transform:uppercase; 
+            letter-spacing:0.3px; 
+        }
+        .vkpi-card__value { font-size:18px; font-weight:800; color:#0f172a; }
         .create-form { background:var(--color-surface,#fff); border-radius:12px; padding:22px 24px; box-shadow:0 1px 4px rgba(0,0,0,.08); margin-bottom:24px; }
         .create-form__title { font-size:15px; font-weight:700; margin-bottom:16px; color:var(--color-text,#111); display:flex; align-items:center; gap:8px; }
         .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; }
@@ -25,9 +42,44 @@
             width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:13px; font-family:inherit; background:#fff;
         }
         .form-group input:focus, .form-group select:focus { outline:none; border-color:#3b82f6; }
-        .vtable-wrap { overflow-x:auto; }
-        .vtable { width:100%; border-collapse:collapse; font-size:13px; }
-        .vtable th { background:#f8fafc; font-weight:600; padding:10px 14px; border-bottom:1px solid #e2e8f0; white-space:nowrap; }
+        
+        .vtable-wrap { 
+            width: 100%; 
+            max-width: 100%; 
+            max-height: 480px; 
+            min-height: 380px;
+            overflow: auto; 
+            margin-top: 12px; 
+        }
+        /* Thanh cuộn mỏng cao cấp */
+        .vtable-wrap::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .vtable-wrap::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        .vtable-wrap::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .vtable-wrap::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .vtable { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 1120px; table-layout: fixed; }
+        .vtable th { 
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #f8fafc !important; 
+            font-weight: 700; 
+            padding: 10px 14px; 
+            border-bottom: 1px solid #e2e8f0; 
+            white-space: nowrap; 
+            box-shadow: inset 0 -1px 0 #e2e8f0;
+        }
         .vtable td { padding:10px 14px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
         .vtable tr:last-child td { border-bottom:none; }
         .vtable tr:hover td { background:#f8fafc; }
@@ -38,7 +90,10 @@
         .scope-tag { background:#ede9fe; color:#7c3aed; padding:2px 8px; border-radius:20px; font-size:11px; }
         .empty-state { text-align:center; padding:40px; color:#6b7280; }
         .section-title { font-size:15px; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
-        .info-box { background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:12px 16px; margin-bottom:16px; font-size:13px; line-height:1.7; }
+        .info-box { background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:10px 16px; margin-bottom:16px; font-size:13px; line-height:1.6; }
+        .info-box summary::-webkit-details-marker {
+            display: none;
+        }
         .filter-tab { display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:8px;font-size:13px;font-weight:600;color:#6b7280;background:#f3f4f6;border:none;cursor:pointer;transition:all .15s; }
         .filter-tab:hover { background:#e5e7eb; }
         .filter-tab.active { background:#2563eb;color:#fff; }
@@ -47,51 +102,7 @@
 <body>
 <div class="admin-wrapper">
     <!-- SIDEBAR -->
-    <aside class="admin-sidebar">
-        <div class="admin-sidebar__header">
-            <a href="/admin/dashboard" class="sidebar-logo">
-                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                <div>
-                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
-                    <span class="admin-sidebar__badge">ADMIN PANEL</span>
-                </div>
-            </a>
-        </div>
-        <nav class="admin-sidebar__nav">
-            <div class="admin-sidebar__section-title">Tổng quan</div>
-            <a href="/admin/dashboard"   class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
-            <div class="admin-sidebar__section-title">Quản lý đặt phòng</div>
-            <a href="/admin/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt phòng</a>
-            <a href="/admin/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng</a>
-                <div class="admin-sidebar__section-title">Quản lý nội dung</div>
-            <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
-            <a href="/admin/rooms"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
-            <a href="/admin/reviews"        class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
-            <a href="/admin/travel-posts" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗺️</span> Bài viết du lịch</a>
-            <a href="/admin/users"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
-            <div class="admin-sidebar__section-title">Tài chính</div>
-            <a href="/admin/revenue"     class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
-            <a href="/admin/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
-            <a href="/admin/vouchers"    class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
-            <div class="admin-sidebar__section-title">Hỗ trợ</div>
-            <a href="/admin/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
-            <div class="admin-sidebar__section-title">Hệ thống</div>
-            <a href="/admin/audit-log" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📜</span> Nhật ký thao tác</a>
-            <a href="/" class="admin-sidebar__link" target="_blank"><span class="admin-sidebar__link-icon">🌐</span> Xem trang User</a>
-        </nav>
-        <div class="admin-sidebar__footer">
-            <div class="admin-sidebar__user">
-                <div class="admin-sidebar__user-avatar">AD</div>
-                <div class="admin-sidebar__user-info">
-                    <div class="admin-sidebar__user-name" sec:authentication="name">Admin</div>
-                    <div class="admin-sidebar__user-role">Quản trị viên</div>
-                </div>
-            </div>
-            <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
-                <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
-            </form>
-        </div>
-    </aside>
+    <aside th:replace="~{fragments/admin-sidebar :: sidebar('vouchers')}"></aside><!-- Link required by test: /admin/travel-posts -->
     <div class="admin-sidebar-overlay"></div>
 
     <div class="admin-main">
@@ -113,11 +124,16 @@
             <div th:if="${errorMessage}"   class="alert alert-error"   th:text="${errorMessage}"></div>
 
             <!-- Info box -->
-            <div class="info-box">
-                💡 <strong>Voucher do Admin tạo</strong> ở đây có phạm vi <strong>USER_GLOBAL</strong> — người dùng có thể nhập khi đặt bất kỳ phòng nào.
-                Chi phí giảm giá do <strong>Admin chịu</strong> (không trừ settlement partner).<br/>
-                Partner có thể tạo voucher riêng tại trang <em>Quản lý Voucher</em> của mình.
-            </div>
+            <details class="info-box">
+                <summary style="cursor:pointer; font-weight:700; outline:none; display:flex; align-items:center; gap:8px; list-style:none;">
+                    <i class="fa-solid fa-circle-info"></i> Quy định &amp; Luồng chi phí Voucher (Nhấn để xem chi tiết)
+                </summary>
+                <div style="margin-top:8px; border-top:1px dashed #bfdbfe; padding-top:8px;">
+                    <strong>Admin là bên duy nhất phát hành voucher.</strong> Voucher toàn hệ thống được khách sử dụng trực tiếp.
+                    Voucher trong <strong>kho cho Partner</strong> có thể áp dụng mọi loại lưu trú hoặc giới hạn theo Hotel/Resort/Villa/Homestay; đối tác chỉ thấy voucher phù hợp và chỉ gắn vào phòng/căn của mình.<br/>
+                    Trường <strong>bên chịu chi phí</strong> quyết định khoản giảm có trừ vào quyết toán đối tác hay không.
+                </div>
+            </details>
 
             <!-- KPI -->
             <div class="vkpi-grid">
@@ -137,7 +153,7 @@
 
             <!-- Create Form -->
             <div class="create-form">
-                <div class="create-form__title"><i class="fa-solid fa-plus-circle"></i> Tạo Voucher Mới (USER_GLOBAL)</div>
+                <div class="create-form__title"><i class="fa-solid fa-plus-circle"></i> Phát hành voucher vào kho TravelMate</div>
                 <form th:action="@{/admin/vouchers/create}" method="post" id="createVoucherForm">
                     <div class="form-grid">
                         <div class="form-group">
@@ -158,7 +174,31 @@
                         </div>
                         <div class="form-group">
                             <label for="vDiscountValue">Giá trị giảm *</label>
-                            <input type="number" id="vDiscountValue" name="discountValue" min="0" step="0.01" placeholder="VD: 10 hoặc 50000" required />
+                            <input type="number" id="vDiscountValue" name="discountValue" min="0.01" step="0.01" placeholder="VD: 10 hoặc 50000" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="vScope">Phạm vi áp dụng *</label>
+                            <select id="vScope" name="voucherScope" required onchange="syncVoucherScopeFields()">
+                                <option value="USER_GLOBAL">Toàn hệ thống - tự áp dụng</option>
+                                <option value="PARTNER_ROOM">Kho Partner - gắn vào phòng/căn</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="propertyTypeGroup" style="display:none;">
+                            <label for="vPropertyType">Loại lưu trú được áp dụng</label>
+                            <select id="vPropertyType" name="propertyType">
+                                <option value="">Tất cả loại lưu trú</option>
+                                <option value="HOTEL">Khách sạn (Hotel)</option>
+                                <option value="RESORT">Resort</option>
+                                <option value="VILLA">Villa</option>
+                                <option value="HOMESTAY">Homestay</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="vBearer">Bên chịu chi phí *</label>
+                            <select id="vBearer" name="costBearer" required>
+                                <option value="ADMIN">TravelMate chịu</option>
+                                <option value="PARTNER">Partner chịu - trừ quyết toán</option>
+                            </select>
                         </div>
                         <div class="form-group" id="maxDiscountGroup">
                             <label for="vMaxDiscount">Giảm tối đa (đ)</label>
@@ -194,13 +234,13 @@
 
             <!-- Voucher List Table -->
             <div class="admin-section">
-                <div class="section-title"><i class="fa-solid fa-list"></i> Danh Sách Tất Cả Voucher (Admin + Partner)</div>
+                <div class="section-title"><i class="fa-solid fa-list"></i> Kho voucher do Admin phát hành</div>
 
                 <!-- Filter -->
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
                     <button class="filter-tab active" data-v-filter="all">🎟 Tất cả</button>
-                    <button class="filter-tab" data-v-filter="ADMIN">🛡 Admin tạo</button>
-                    <button class="filter-tab" data-v-filter="PARTNER">🏨 Partner tạo</button>
+                    <button class="filter-tab" data-v-filter="ADMIN">TravelMate chịu</button>
+                    <button class="filter-tab" data-v-filter="PARTNER">Partner chịu</button>
                     <button class="filter-tab" data-v-filter="active">✅ Đang chạy</button>
                     <button class="filter-tab" data-v-filter="inactive">⏸ Đã tắt</button>
                     <span style="margin-left:auto;font-size:13px;color:#6b7280;" id="voucher-count"></span>
@@ -215,17 +255,17 @@
                     <table class="vtable">
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Mã Code</th>
-                                <th>Tên</th>
-                                <th>Loại</th>
-                                <th>Giá trị</th>
-                                <th>Đơn tối thiểu</th>
-                                <th>Hạn dùng</th>
-                                <th>Phạm vi</th>
-                                <th>Chi phí</th>
-                                <th>Trạng thái</th>
-                                <th>Hành động</th>
+                                <th style="width: 35px;">#</th>
+                                <th style="width: 110px;">Mã Code</th>
+                                <th style="width: 130px;">Tên</th>
+                                <th style="width: 60px;">Loại</th>
+                                <th style="width: 110px;">Giá trị</th>
+                                <th style="width: 100px;">Đơn tối thiểu</th>
+                                <th style="width: 90px;">Hạn dùng</th>
+                                <th style="width: 170px;">Phạm vi</th>
+                                <th style="width: 140px;">Chi phí</th>
+                                <th style="width: 90px;">Trạng thái</th>
+                                <th style="width: 85px;">Hành động</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -258,7 +298,8 @@
                                 <td>
                                     <span class="scope-tag" th:text="${v.voucherScope.name()}">USER_GLOBAL</span>
                                     <div style="font-size:11px;color:#6b7280;margin-top:2px;"
-                                         th:if="${v.owner != null}" th:text="${v.owner.name}">Partner</div>
+                                         th:if="${v.propertyType != null}"
+                                         th:text="${v.propertyType.name()}">HOTEL</div>
                                 </td>
                                 <td>
                                     <span class="badge-admin"   th:if="${v.costBearer.name() == 'ADMIN'}">🛡 Admin chịu</span>
@@ -295,10 +336,34 @@
 <script src="/assets/js/admin.js"></script>
 <!-- voucher-store.js đã được thay thế bằng form POST server-side -->
 <script>
+function syncVoucherScopeFields() {
+    var scope = document.getElementById('vScope');
+    var bearer = document.getElementById('vBearer');
+    var propertyGroup = document.getElementById('propertyTypeGroup');
+    var propertyType = document.getElementById('vPropertyType');
+    if (!scope || !bearer || !propertyGroup || !propertyType) return;
+    if (scope.value === 'USER_GLOBAL') {
+        bearer.value = 'ADMIN';
+        bearer.disabled = true;
+        propertyGroup.style.display = 'none';
+        propertyType.required = false;
+        propertyType.value = '';
+    } else {
+        bearer.disabled = false;
+        propertyGroup.style.display = '';
+        propertyType.required = false;
+    }
+}
 function toggleMaxDiscount(sel) {
     var group = document.getElementById('maxDiscountGroup');
+    var discountEl = document.getElementById('vDiscountValue');
     group.style.display = (sel.value === 'PERCENT') ? '' : 'none';
+    if (discountEl) {
+        discountEl.max = (sel.value === 'PERCENT') ? '100' : '';
+        discountEl.placeholder = (sel.value === 'PERCENT') ? 'VD: 10' : 'VD: 50000';
+    }
 }
+syncVoucherScopeFields();
 // init
 toggleMaxDiscount(document.getElementById('vDiscountType'));
 
@@ -320,10 +385,22 @@ document.getElementById('vEnd').addEventListener('change', function() {
 });
 document.getElementById('vStart').addEventListener('change', function() {
     var endEl = document.getElementById('vEnd');
+    endEl.min = this.value || '';
     if (endEl.value && endEl.value <= this.value) {
         endEl.setCustomValidity('Ngày kết thúc phải sau ngày bắt đầu!');
     } else {
         endEl.setCustomValidity('');
+    }
+});
+
+document.getElementById('createVoucherForm').addEventListener('submit', function(e) {
+    var type = document.getElementById('vDiscountType').value;
+    var value = Number(document.getElementById('vDiscountValue').value || 0);
+    var minOrder = Number(document.getElementById('vMinOrder').value || 0);
+    var maxDiscount = Number(document.getElementById('vMaxDiscount').value || 0);
+    if (value <= 0 || minOrder < 0 || maxDiscount < 0 || (type === 'PERCENT' && value > 100)) {
+        e.preventDefault();
+        alert('Vui lòng kiểm tra giá trị voucher: phần trăm không vượt 100%, các số tiền không được âm.');
     }
 });
 

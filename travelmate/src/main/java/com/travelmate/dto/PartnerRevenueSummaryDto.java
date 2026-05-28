@@ -28,6 +28,12 @@ public class PartnerRevenueSummaryDto {
     /** Tổng doanh thu gộp (số tiền user đã trả) */
     private BigDecimal totalGross = BigDecimal.ZERO;
 
+    /** Tong gia tri cac don co doanh thu. */
+    private BigDecimal totalOrderAmount = BigDecimal.ZERO;
+
+    /** Tong phan khach thanh toan tai co so (thong ke van hanh, khong vao vi TravelMate). */
+    private BigDecimal totalOnsiteAmount = BigDecimal.ZERO;
+
     /** Tổng chiết khấu nền tảng trừ đi */
     private BigDecimal totalCommission = BigDecimal.ZERO;
 

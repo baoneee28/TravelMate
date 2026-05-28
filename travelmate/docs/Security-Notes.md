@@ -68,21 +68,21 @@ Không cần thêm hidden field thủ công — Thymeleaf + Spring Security tự
 
 ### Tình trạng hiện tại
 ```properties
-# Sandbox/Demo — KHÔNG phải production
-vnpay.tmn-code=JQLMS7O0
-vnpay.hash-secret=...       # VNPAY Sandbox
+# Sandbox local — lấy từ biến môi trường, không hardcode secret trong source
+vnpay.tmn-code=${VNPAY_TMN_CODE:}
+vnpay.hash-secret=${VNPAY_HASH_SECRET:}
 spring.datasource.password=root
 ```
 
 ### Chính sách
 - Đây là **Sandbox + local dev** — không phải production
 - Không commit secret thật lên GitHub public
-- Production: load từ biến môi trường (`System.getenv("VNPAY_HASH_SECRET")`)
+- Production: load từ biến môi trường hoặc secret manager
 
 ### Câu trả lời bảo vệ
-> *"Cấu hình trong `application.properties` là VNPAY Sandbox và MySQL local —  
-> chỉ dùng cho demo. Trong production, các secret sẽ được load từ biến môi trường  
-> hoặc Spring Cloud Config, không hardcode trong source code."*
+> *"Cấu hình VNPAY trong `application.properties` chỉ giữ key dạng placeholder.  
+> Khi chạy demo local, nhóm set biến môi trường theo `docs/demo-env.example`;  
+> khi triển khai thật, secret sẽ đi qua secret manager hoặc cấu hình môi trường."*
 
 ---
 

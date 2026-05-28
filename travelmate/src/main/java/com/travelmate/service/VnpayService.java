@@ -47,6 +47,7 @@ public class VnpayService {
     public String createPaymentUrl(String vnpTxnRef, long amountVnd,
                                    String orderInfo, String ipAddr,
                                    LocalDateTime expireAt) {
+        validateGatewayConfig();
 
         // Tất cả params phải sort theo key — dùng TreeMap để tự động sort
         Map<String, String> params = new TreeMap<>();
@@ -103,6 +104,8 @@ public class VnpayService {
      * @return true nếu chữ ký hợp lệ
      */
     public boolean verifySignature(Map<String, String> params) {
+        validateGatewayConfig();
+
         String receivedHash = params.get("vnp_SecureHash");
         if (receivedHash == null || receivedHash.isBlank()) {
             log.warn("VNPAY: vnp_SecureHash không có trong request");
@@ -170,6 +173,18 @@ public class VnpayService {
         } catch (Exception e) {
             throw new RuntimeException("Lỗi HMAC SHA512: " + e.getMessage(), e);
         }
+    }
+
+    private void validateGatewayConfig() {
+        if (isBlank(config.getTmnCode()) || isBlank(config.getHashSecret())
+                || isBlank(config.getReturnUrl()) || isBlank(config.getPayUrl())) {
+            throw new IllegalStateException(
+                    "Chưa cấu hình đủ VNPAY. Vui lòng set VNPAY_TMN_CODE và VNPAY_HASH_SECRET trước khi thanh toán.");
+        }
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 
     /** Loại bỏ ký tự đặc biệt trong order info (VNPAY yêu cầu ASCII) */

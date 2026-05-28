@@ -332,7 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
         alertClass: 'alert--info',
         icon: '⏳',
         message: 'Hồ sơ phòng đã được gửi thành công. Admin sẽ rà soát và có thể chỉnh lại thông tin trước khi mở bán.',
-        statusText: 'Đang chờ admin duyệt hồ sơ và xác nhận loại phòng.',
+        statusText: 'Đang chờ quản trị viên duyệt hồ sơ và xác nhận loại phòng.',
       },
       'Đã duyệt': {
         alertClass: 'alert--success',
@@ -578,7 +578,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (typeof showToast === 'function') {
-        showToast(`Đã cập nhật "${roomName}" — chờ admin duyệt lại.`, 'success');
+        showToast(`Đã cập nhật "${roomName}" — chờ quản trị viên duyệt lại.`, 'success');
       }
 
       setTimeout(() => { window.location.href = 'rooms.html'; }, 800);

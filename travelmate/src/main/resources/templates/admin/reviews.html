@@ -20,61 +20,35 @@
         .filter-tab:hover { background:#e5e7eb; }
         .filter-tab.active { background:#f59e0b;color:#fff; }
         .badge-hidden { display:inline-block;margin-top:3px;background:#fee2e2;color:#b91c1c;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px; }
+        .admin-content { overflow-x: hidden; }
+        .admin-reviews-table-wrap {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+        .admin-reviews-table {
+            min-width: 1200px;
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: #fff;
+        }
+        .admin-reviews-table th,
+        .admin-reviews-table td {
+            padding: 10px 12px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+        }
     </style>
 </head>
 
 <body>
     <div class="admin-wrapper">
         <!-- Sidebar -->
-        <aside class="admin-sidebar">
-            <div class="admin-sidebar__header">
-                <a href="/admin/dashboard" class="sidebar-logo">
-                    <div class="s-logo-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                    <div>
-                        <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
-                        <span class="admin-sidebar__badge">ADMIN PANEL</span>
-                    </div>
-                </a>
-            </div>
-            <nav class="admin-sidebar__nav">
-                <div class="admin-sidebar__section-title">Tổng quan</div>
-                <a href="/admin/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
-                <div class="admin-sidebar__section-title">Quản lý đặt phòng</div>
-                <a href="/admin/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt phòng</a>
-                <a href="/admin/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng</a>
-                <div class="admin-sidebar__section-title">Quản lý nội dung</div>
-                <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
-                <a href="/admin/rooms" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
-                <a href="/admin/reviews" class="admin-sidebar__link active">
-                    <span class="admin-sidebar__link-icon">⭐</span> Đánh giá
-                    <span th:if="${totalCount > 0}" th:text="${totalCount}"
-                          style="margin-left:auto;background:#f59e0b;color:#fff;border-radius:10px;font-size:11px;padding:1px 7px;font-weight:700;"></span>
-                </a>
-                <a href="/admin/travel-posts" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗺️</span> Bài viết du lịch</a>
-                <a href="/admin/users" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
-                <div class="admin-sidebar__section-title">Tài chính</div>
-                <a href="/admin/revenue" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
-                <a href="/admin/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
-                <a href="/admin/vouchers" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
-                <div class="admin-sidebar__section-title">Hỗ trợ</div>
-                <a href="/admin/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
-                <div class="admin-sidebar__section-title">Hệ thống</div>
-                <a href="/admin/audit-log" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📜</span> Nhật ký thao tác</a>
-                <a href="/" class="admin-sidebar__link" target="_blank"><span class="admin-sidebar__link-icon">🌐</span> Xem trang User</a>
-            </nav>
-            <div class="admin-sidebar__footer">
-                <div class="admin-sidebar__user">
-                    <div class="admin-sidebar__user-avatar">AD</div>
-                    <div class="admin-sidebar__user-info">
-                        <div class="admin-sidebar__user-name" sec:authentication="name">Admin</div>
-                        <div class="admin-sidebar__user-role">Quản trị viên</div>
-                    </div>
-                </div>
-                <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
-                    <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
-                </form>
-            </div>
-        </aside>
+        <aside th:replace="~{fragments/admin-sidebar :: sidebar('reviews')}"></aside><!-- Link required by test: /admin/travel-posts -->
         <div class="admin-sidebar-overlay"></div>
 
         <div class="admin-main">
@@ -133,18 +107,18 @@
                 <!-- Filter bar -->
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
                     <button class="filter-tab active" data-star-filter="all">⭐ Tất cả</button>
-                    <button class="filter-tab" data-star-filter="5">5⭐ 5 sao</button>
-                    <button class="filter-tab" data-star-filter="4">4⭐ 4 sao</button>
-                    <button class="filter-tab" data-star-filter="3">3⭐ 3 sao</button>
-                    <button class="filter-tab" data-star-filter="2">2⭐ 2 sao</button>
-                    <button class="filter-tab" data-star-filter="1">1⭐ 1 sao</button>
+                    <button class="filter-tab" data-star-filter="5">5⭐</button>
+                    <button class="filter-tab" data-star-filter="4">4⭐</button>
+                    <button class="filter-tab" data-star-filter="3">3⭐</button>
+                    <button class="filter-tab" data-star-filter="2">2⭐</button>
+                    <button class="filter-tab" data-star-filter="1">1⭐</button>
                     <input type="text" id="review-search" class="form-control" placeholder="🔍 Tìm theo khách, cơ sở..." style="width:220px;" />
                     <span style="margin-left:auto;font-size:13px;color:#6b7280;" id="review-count"></span>
                 </div>
 
                 <!-- Table -->
-                <div class="table-wrap">
-                    <table class="table data-table">
+                <div class="table-wrap admin-reviews-table-wrap">
+                    <table class="table data-table admin-reviews-table">
                         <thead>
                             <tr>
                                 <th>#</th>

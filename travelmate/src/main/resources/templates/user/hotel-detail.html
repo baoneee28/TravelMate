@@ -19,6 +19,18 @@
     <link rel="stylesheet" href="/assets/css/style.css" />
 
     <style>
+        .room-type:target {
+            border: 2px solid #2563eb !important;
+            box-shadow: 0 0 16px rgba(37, 99, 235, 0.4);
+            animation: highlight-pulse 2s ease-in-out;
+            scroll-margin-top: 150px; /* Prevent room header from being covered by sticky top bar */
+        }
+        @keyframes highlight-pulse {
+            0% { border-color: #2563eb; box-shadow: 0 0 16px rgba(37, 99, 235, 0.4); }
+            50% { border-color: #16a34a; box-shadow: 0 0 24px rgba(22, 163, 74, 0.6); }
+            100% { border-color: #e2e8f0; box-shadow: none; }
+        }
+
         /* CSS from hotels.html for Search nav (thanh màu xanh dính chặt) */
         .search-nav {
             background: #fff;
@@ -905,6 +917,13 @@
         }
         .gallery-modal-thumbs img.active,
         .gallery-modal-thumbs img:hover { opacity: 1; border-color: #3b82f6; }
+        @media (max-width: 760px) {
+            .gallery-grid {
+                grid-template-columns: 1fr;
+                grid-template-rows: 236px 204px;
+            }
+            .gallery-thumbs { grid-template-rows: repeat(2, 1fr); }
+        }
 
         /* Ẩn chấm pagination nếu có (swiper/slick) */
         .swiper-pagination,
@@ -919,6 +938,30 @@
             white-space: nowrap;
             min-width: 100px;
         }
+        .room-detail-trigger { width:100%; margin-top:8px; padding:8px 10px; border:1px solid #bfdbfe; border-radius:8px; background:#eff6ff; color:#2563eb; font-size:.8125rem; font-weight:700; cursor:pointer; }
+        .room-detail-trigger:hover { background:#dbeafe; }
+        .room-detail-modal { display:none; position:fixed; inset:0; z-index:10020; padding:30px 16px; background:rgba(15,23,42,.68); align-items:center; justify-content:center; }
+        .room-detail-modal.open { display:flex; }
+        .room-detail-panel { background:#fff; width:min(950px,100%); max-height:92vh; overflow-y:auto; border-radius:18px; box-shadow:0 24px 72px rgba(15,23,42,.28); position:relative; padding:26px; }
+        .room-detail-close { position:absolute; top:14px; right:14px; width:38px; height:38px; border:0; border-radius:50%; background:#f1f5f9; color:#334155; cursor:pointer; font-size:1.05rem; }
+        .room-detail-title { margin:0 48px 5px 0; font-size:1.38rem; font-weight:800; color:#0f172a; }
+        .room-detail-sub { color:#64748b; font-size:.86rem; margin-bottom:20px; }
+        .room-detail-grid { display:grid; grid-template-columns:minmax(270px, .95fr) minmax(300px, 1.05fr); gap:24px; }
+        .room-modal-main-img { width:100%; height:265px; object-fit:cover; border-radius:12px; border:1px solid #e2e8f0; display:block; }
+        .room-modal-thumbs { display:flex; gap:8px; margin-top:10px; overflow-x:auto; }
+        .room-modal-thumb { width:68px; height:54px; padding:0; border:2px solid transparent; border-radius:8px; background:#fff; cursor:pointer; overflow:hidden; }
+        .room-modal-thumb.active, .room-modal-thumb:hover { border-color:#2563eb; }
+        .room-modal-thumb img { width:100%; height:100%; object-fit:cover; }
+        .room-detail-badges { display:flex; flex-wrap:wrap; gap:8px; margin:13px 0; }
+        .room-detail-chip { display:inline-flex; align-items:center; gap:6px; padding:7px 11px; border-radius:18px; background:#f1f5f9; color:#334155; font-size:.78rem; font-weight:650; }
+        .room-detail-description { color:#475569; font-size:.9rem; line-height:1.6; margin:12px 0; }
+        .room-detail-amenities { display:flex; flex-wrap:wrap; gap:7px; margin-top:13px; }
+        .room-detail-amenity { background:#eff6ff; color:#0369a1; border:1px solid #bae6fd; border-radius:15px; padding:5px 10px; font-size:.76rem; font-weight:650; }
+        .room-detail-footer { margin-top:20px; border-top:1px solid #e2e8f0; padding-top:18px; display:flex; align-items:center; justify-content:space-between; gap:14px; }
+        .room-detail-price strong { color:#f97316; font-size:1.35rem; display:block; }
+        .room-detail-book { border:0; border-radius:9px; padding:13px 21px; background:#2563eb; color:#fff; font-weight:750; text-decoration:none; white-space:nowrap; }
+        .room-detail-book.disabled { background:#cbd5e1; cursor:not-allowed; }
+        @media (max-width:760px) { .room-detail-panel { padding:20px; } .room-detail-grid { grid-template-columns:1fr; } }
     </style>
 </head>
 
@@ -961,11 +1004,13 @@
                             <div style="font-size:0.8rem;font-weight:700;color:#334155;margin-bottom:12px;">Chọn ngày lưu trú</div>
                             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
                                 <div>
-                                    <label style="display:block;font-size:0.7rem;font-weight:600;color:#64748b;margin-bottom:4px;text-transform:uppercase;">Nhận phòng</label>
+                                    <label style="display:block;font-size:0.7rem;font-weight:600;color:#64748b;margin-bottom:4px;text-transform:uppercase;"
+                                           th:text="${hotel.propertyType?.name() == 'VILLA' ? 'Nhận căn' : 'Nhận phòng'}">Nhận phòng</label>
                                     <input type="date" id="msbCheckInPicker" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.8125rem;font-family:inherit;box-sizing:border-box;" />
                                 </div>
                                 <div>
-                                    <label style="display:block;font-size:0.7rem;font-weight:600;color:#64748b;margin-bottom:4px;text-transform:uppercase;">Trả phòng</label>
+                                    <label style="display:block;font-size:0.7rem;font-weight:600;color:#64748b;margin-bottom:4px;text-transform:uppercase;"
+                                           th:text="${hotel.propertyType?.name() == 'VILLA' ? 'Trả căn' : 'Trả phòng'}">Trả phòng</label>
                                     <input type="date" id="msbCheckOutPicker" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.8125rem;font-family:inherit;box-sizing:border-box;" />
                                 </div>
                             </div>
@@ -981,7 +1026,8 @@
                     <div class="msb-field msb-guest-wrap" id="msbGuestField" style="flex: 1; position: relative; cursor: pointer;">
                         <i class="fa-solid fa-user"></i>
                         <input type="text" id="msbGuestDisplay" readonly style="cursor:pointer;"
-                               th:value="${adults != null ? (adults + children) + ' khách, ' + rooms + ' phòng' : '1 khách, 1 phòng'}"
+                               th:value="${adults != null ? (adults + children) + ' khách, ' + rooms + (hotel.propertyType?.name() == 'VILLA' ? ' căn' : ' phòng') : (hotel.propertyType?.name() == 'VILLA' ? '1 khách, 1 căn' : '1 khách, 1 phòng')}"
+                               th:placeholder="${hotel.propertyType?.name() == 'VILLA' ? 'Khách & Căn' : 'Khách & Phòng'}"
                                placeholder="Khách & Phòng" />
                         <!-- Guest popup -->
                         <div class="msb-guest-popup" id="msbGuestPopup" style="display:none;position:absolute;top:calc(100% + 8px);left:0;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.12);padding:16px 18px;z-index:2000;min-width:240px;">
@@ -1002,7 +1048,8 @@
                                 </div>
                             </div>
                             <div class="msb-guest-row" style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;">
-                                <div><div style="font-size:0.85rem;font-weight:600;color:#0f172a;">Số phòng</div></div>
+                                <div><div style="font-size:0.85rem;font-weight:600;color:#0f172a;"
+                                          th:text="${hotel.propertyType?.name() == 'VILLA' ? 'Số căn' : 'Số phòng'}">Số phòng</div></div>
                                 <div style="display:flex;align-items:center;gap:10px;">
                                     <button type="button" data-msb-target="rooms" data-msb-op="dec" style="width:28px;height:28px;border:1.5px solid #e2e8f0;background:#fff;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;color:#475569;">−</button>
                                     <span id="msbCountRooms" style="font-weight:700;min-width:20px;text-align:center;">1</span>
@@ -1025,8 +1072,10 @@
             </form>
         </div>
     </div>
-    <script>
+    <script th:inline="javascript">
     (function () {
+        var msbUnitLabel = /*[[${hotel.propertyType?.name() == 'VILLA' ? 'căn' : 'phòng'}]]*/ 'phòng';
+
         // ── Helpers ──
         function fmtISO(d) {
             return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
@@ -1100,7 +1149,7 @@
             document.getElementById('msbCountAdults').textContent   = msbState.adults;
             document.getElementById('msbCountChildren').textContent = msbState.children;
             document.getElementById('msbCountRooms').textContent    = msbState.rooms;
-            guestDisplay.value = (msbState.adults + msbState.children) + ' khách, ' + msbState.rooms + ' phòng';
+            guestDisplay.value = (msbState.adults + msbState.children) + ' khách, ' + msbState.rooms + ' ' + msbUnitLabel;
             hidAdults.value   = msbState.adults;
             hidChildren.value = msbState.children;
             hidRooms.value    = msbState.rooms;
@@ -1168,52 +1217,39 @@
                 <!-- Ảnh chính -->
                 <div class="gallery-main" onclick="openGallery(0)">
                     <img id="galleryMainImg"
-                         th:src="${hotel.thumbnailUrl}"
-                         th:alt="${hotel.name}"
+                         th:src="${galleryImages != null and !#lists.isEmpty(galleryImages) ? galleryImages[0].src : hotel.thumbnailUrl}"
+                         th:alt="${galleryImages != null and !#lists.isEmpty(galleryImages) ? galleryImages[0].alt : hotel.name}"
                          onerror="this.onerror=null; this.src='/assets/images/resort.jpg'" />
                     <div class="gallery-main-overlay">
                         <i class="fa-solid fa-expand"></i>
                     </div>
                 </div>
-                <!-- 4 ảnh phụ — thay đổi theo property type -->
-                <div class="gallery-thumbs" th:with="
-                    img1=${hotel.propertyType?.name() == 'VILLA'    ? 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&q=80' :
-                           hotel.propertyType?.name() == 'HOMESTAY' ? 'https://images.unsplash.com/photo-1586375300773-8384e3e4916f?w=600&q=80' :
-                           hotel.propertyType?.name() == 'RESORT'   ? 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600&q=80' :
-                                                                       'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&q=80'},
-                    img2=${hotel.propertyType?.name() == 'VILLA'    ? 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=600&q=80' :
-                           hotel.propertyType?.name() == 'HOMESTAY' ? 'https://images.unsplash.com/photo-1449234984810-fdcf2ee532f0?w=600&q=80' :
-                           hotel.propertyType?.name() == 'RESORT'   ? 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=600&q=80' :
-                                                                       'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&q=80'},
-                    img3=${hotel.propertyType?.name() == 'VILLA'    ? 'https://images.unsplash.com/photo-1544984243-ec57ea16fe25?w=600&q=80' :
-                           hotel.propertyType?.name() == 'HOMESTAY' ? 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=600&q=80' :
-                           hotel.propertyType?.name() == 'RESORT'   ? 'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=600&q=80' :
-                                                                       'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80'},
-                    img4=${hotel.propertyType?.name() == 'VILLA'    ? 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=600&q=80' :
-                           hotel.propertyType?.name() == 'HOMESTAY' ? 'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=600&q=80' :
-                           hotel.propertyType?.name() == 'RESORT'   ? 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80' :
-                                                                       'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=600&q=80'}">
-                    <div class="gallery-thumb" onclick="openGallery(1)">
-                        <img th:src="${img1}" alt="Ảnh 2" onerror="this.onerror=null;this.src='/assets/images/resort.jpg'" />
-                        <div class="gallery-thumb-overlay"><i class="fa-solid fa-expand"></i></div>
-                    </div>
-                    <div class="gallery-thumb" onclick="openGallery(2)">
-                        <img th:src="${img2}" alt="Ảnh 3" onerror="this.onerror=null;this.src='/assets/images/resort.jpg'" />
-                        <div class="gallery-thumb-overlay"><i class="fa-solid fa-expand"></i></div>
-                    </div>
-                    <div class="gallery-thumb" onclick="openGallery(3)">
-                        <img th:src="${img3}" alt="Ảnh 4" onerror="this.onerror=null;this.src='/assets/images/resort.jpg'" />
-                        <div class="gallery-thumb-overlay"><i class="fa-solid fa-expand"></i></div>
-                    </div>
-                    <!-- Ảnh thứ 4 với overlay "Xem tất cả" -->
-                    <div class="gallery-thumb gallery-thumb-last" onclick="openGallery(4)">
-                        <img th:src="${img4}" alt="Ảnh 5" onerror="this.onerror=null;this.src='/assets/images/resort.jpg'" />
-                        <div class="gallery-see-all">
+                <!-- Ảnh phụ: ưu tiên room.imageUrl của các phòng đã duyệt, thiếu thì dùng fallback theo loại lưu trú -->
+                <div class="gallery-thumbs">
+                    <div class="gallery-thumb"
+                         th:each="image, stat : ${galleryImages}"
+                         th:if="${stat.index > 0 and stat.index < 5}"
+                         th:classappend="${stat.index == 4} ? ' gallery-thumb-last' : ''"
+                         th:onclick="|openGallery(${stat.index})|">
+                        <img th:src="${image.src}"
+                             th:alt="${image.alt}"
+                             onerror="this.onerror=null;this.src='/assets/images/resort.jpg'" />
+                        <div class="gallery-thumb-overlay"
+                             th:if="${stat.index < 4}">
+                            <i class="fa-solid fa-expand"></i>
+                        </div>
+                        <div class="gallery-see-all"
+                             th:if="${stat.index == 4}">
                             <i class="fa-solid fa-images"></i>
-                            <span>Xem tất cả ảnh</span>
+                            <span>Xem tất cả hình ảnh</span>
                         </div>
                     </div>
                 </div>
+            </div>
+            <div id="galleryImageSources" hidden>
+                <span class="gallery-image-source"
+                      th:each="image : ${galleryImages}"
+                      th:attr="data-src=${image.src},data-alt=${image.alt}"></span>
             </div>
         </div>
 
@@ -1292,13 +1328,15 @@
                 </div>
                 <form th:action="@{/accommodations/{id}(id=${hotel.id})}" method="get" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
                     <div style="display:flex;flex-direction:column;gap:4px;">
-                        <label style="font-size:0.75rem;color:#64748b;font-weight:600;">Ngày nhận phòng</label>
+                        <label style="font-size:0.75rem;color:#64748b;font-weight:600;"
+                               th:text="${isVilla ? 'Ngày nhận căn' : 'Ngày nhận phòng'}">Ngày nhận phòng</label>
                         <input type="date" name="checkIn" th:value="${checkIn}"
                                style="padding:9px 14px;border:1.5px solid #cbd5e1;border-radius:9px;font-size:0.875rem;font-weight:600;color:#0f172a;outline:none;cursor:pointer;"
                                th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}" />
                     </div>
                     <div style="display:flex;flex-direction:column;gap:4px;">
-                        <label style="font-size:0.75rem;color:#64748b;font-weight:600;">Ngày trả phòng</label>
+                        <label style="font-size:0.75rem;color:#64748b;font-weight:600;"
+                               th:text="${isVilla ? 'Ngày trả căn' : 'Ngày trả phòng'}">Ngày trả phòng</label>
                         <input type="date" name="checkOut" th:value="${checkOut}"
                                style="padding:9px 14px;border:1.5px solid #cbd5e1;border-radius:9px;font-size:0.875rem;font-weight:600;color:#0f172a;outline:none;cursor:pointer;"
                                th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}" />
@@ -1317,14 +1355,14 @@
             <div th:if="${datesSelected}"
                  style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;margin-bottom:16px;font-size:0.8125rem;font-weight:600;color:#166534;">
                 <i class="fa-solid fa-circle-check"></i>
-                Hiển thị tình trạng phòng cho ngày
+                <span th:text="${isVilla ? 'Hiển thị tình trạng căn cho ngày' : 'Hiển thị tình trạng phòng cho ngày'}">Hiển thị tình trạng phòng cho ngày</span>
                 <strong th:text="${checkInDisplay}">dd/mm/yyyy</strong>
                 →
                 <strong th:text="${checkOutDisplay}">dd/mm/yyyy</strong>
                 <span style="margin-left:8px;display:inline-flex;gap:8px;">
                     <span style="padding:2px 8px;border-radius:5px;background:#dcfce7;color:#15803d;font-size:0.75rem;">● Còn trống</span>
                     <span style="padding:2px 8px;border-radius:5px;background:#fef3c7;color:#b45309;font-size:0.75rem;">● Sắp hết</span>
-                    <span style="padding:2px 8px;border-radius:5px;background:#fee2e2;color:#b91c1c;font-size:0.75rem;">● Hết phòng</span>
+                    <span style="padding:2px 8px;border-radius:5px;background:#fee2e2;color:#b91c1c;font-size:0.75rem;" th:text="${isVilla ? '● Hết căn' : '● Hết phòng'}">● Hết phòng</span>
                 </span>
             </div>
 
@@ -1346,7 +1384,11 @@
             <div th:each="room : ${availableRooms}"
                  th:with="avail=${availabilityMap != null ? availabilityMap[room.id] : null},
                           isFull=${avail != null and avail.status == 'FULL'},
-                          isLimited=${avail != null and avail.status == 'LIMITED'}"
+                          isLimited=${avail != null and avail.status == 'LIMITED'},
+                          roomPhotos=${roomImagesMap != null ? roomImagesMap[room.id] : null},
+                          primaryPhoto=${roomPhotos != null and !#lists.isEmpty(roomPhotos) ? roomPhotos[0].imageUrl : room.imageUrl}"
+                 th:id="'room-' + ${room.id}"
+                 th:attr="data-room-id=${room.id}"
                  class="room-type"
                  th:style="${isFull ? 'opacity:0.72;border-color:#fca5a5;' : ''}">
 
@@ -1372,14 +1414,15 @@
 
                 <div class="rt-body">
                     <div class="rt-img-col">
-                        <img th:src="${room.imageUrl != null ? room.imageUrl : '/assets/images/homestay-o-da-lat.jpg'}"
+                        <img th:src="${primaryPhoto != null ? primaryPhoto : '/assets/images/homestay-o-da-lat.jpg'}"
                             th:alt="${room.roomName}"
                             onerror="this.onerror=null; this.src='/assets/images/homestay-o-da-lat.jpg'"
                             th:style="${isFull ? 'filter:grayscale(40%);' : ''}" />
-                        <div style="font-size: 0.8125rem; color: #2563eb; font-weight: 600; cursor: pointer">
+                        <button type="button" class="room-detail-trigger"
+                                th:onclick="'openRoomDetailModal(' + ${room.id} + ')'">
                             <i class="fa-solid fa-image"></i>
                             <th:block th:text="${isVilla ? 'Xem chi tiết căn' : 'Xem chi tiết phòng'}"></th:block>
-                        </div>
+                        </button>
 
                         <!-- Progress bar tình trạng khi đã chọn ngày -->
                         <div th:if="${avail != null}" style="margin-top:12px;">
@@ -1505,6 +1548,89 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Modal chi tiết sử dụng bộ ảnh phòng/căn đã được lưu trong DB -->
+            <div th:each="room : ${availableRooms}"
+                 th:id="'room-detail-modal-' + ${room.id}"
+                 class="room-detail-modal"
+                 th:onclick="'closeRoomDetailModal(' + ${room.id} + ')'">
+                <div class="room-detail-panel" onclick="event.stopPropagation()"
+                     th:with="photos=${roomImagesMap != null ? roomImagesMap[room.id] : null},
+                              avail=${availabilityMap != null ? availabilityMap[room.id] : null},
+                              isFull=${avail != null and avail.status == 'FULL'},
+                              primaryPhoto=${photos != null and !#lists.isEmpty(photos) ? photos[0].imageUrl : room.imageUrl}">
+                    <button type="button" class="room-detail-close"
+                            th:onclick="'closeRoomDetailModal(' + ${room.id} + ')'">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <h3 class="room-detail-title" th:text="${room.roomName}">Tên phòng</h3>
+                    <div class="room-detail-sub">
+                        <i class="fa-solid fa-building"></i>
+                        <span th:text="${hotel.name}">Nơi lưu trú</span>
+                        <span> • Ảnh hiển thị đã được duyệt bởi TravelMate</span>
+                    </div>
+                    <div class="room-detail-grid">
+                        <div>
+                            <img class="room-modal-main-img"
+                                 th:id="'room-modal-main-' + ${room.id}"
+                                 th:src="${primaryPhoto != null ? primaryPhoto : '/assets/images/homestay-o-da-lat.jpg'}"
+                                 th:alt="${room.roomName}"
+                                 onerror="this.onerror=null;this.src='/assets/images/homestay-o-da-lat.jpg'" />
+                            <div class="room-modal-thumbs" th:if="${photos != null and !#lists.isEmpty(photos)}">
+                                <button th:each="photo, photoStat : ${photos}" th:if="${photoStat.index lt 3}" type="button"
+                                        th:class="${photoStat.first ? 'room-modal-thumb active' : 'room-modal-thumb'}"
+                                        th:attr="data-photo-src=${photo.imageUrl}"
+                                        th:onclick="'selectRoomPhoto(' + ${room.id} + ', this)'">
+                                    <img th:src="${photo.imageUrl}" th:alt="${photo.caption != null ? photo.caption : room.roomName}" />
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="room-detail-badges">
+                                <span class="room-detail-chip" th:if="${room.bedType != null}">
+                                    <i class="fa-solid fa-bed"></i><span th:text="${room.bedType}">Giường</span>
+                                </span>
+                                <span class="room-detail-chip">
+                                    <i class="fa-solid fa-user-group"></i><span th:text="${room.capacity} + ' khách'">2 khách</span>
+                                </span>
+                                <span class="room-detail-chip" th:if="${avail != null and !isFull}" style="background:#dcfce7;color:#15803d;">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                    Còn <span th:text="${avail.availableQuantity}">1</span> <span th:text="${isVilla ? 'căn' : 'phòng'}">phòng</span>
+                                </span>
+                                <span class="room-detail-chip" th:if="${isFull}" style="background:#fee2e2;color:#b91c1c;">
+                                    <i class="fa-solid fa-ban"></i><span th:text="${isVilla ? 'Hết căn' : 'Hết phòng'}">Hết phòng</span>
+                                </span>
+                            </div>
+                            <p class="room-detail-description"
+                               th:text="${room.description != null and !#strings.isEmpty(room.description) ? room.description : (isVilla ? 'Căn nghỉ dưỡng được chuẩn bị đầy đủ tiện nghi cho kỳ lưu trú của bạn.' : 'Phòng được chuẩn bị đầy đủ tiện nghi cho kỳ lưu trú của bạn.')}">
+                                Mô tả phòng
+                            </p>
+                            <div style="font-size:.82rem;font-weight:700;color:#334155;margin-top:14px;">Tiện nghi trong phòng/căn</div>
+                            <div class="room-detail-amenities" th:if="${room.amenities != null and !#lists.isEmpty(room.amenities)}">
+                                <span class="room-detail-amenity" th:each="amenity : ${room.amenities}">
+                                    <span th:text="${amenity.icon}"></span>
+                                    <span th:text="${amenity.name}">Tiện nghi</span>
+                                </span>
+                            </div>
+                            <div class="room-detail-amenities" th:if="${room.amenities == null or #lists.isEmpty(room.amenities)}">
+                                <span class="room-detail-amenity"><i class="fa-solid fa-wifi"></i> WiFi miễn phí</span>
+                                <span class="room-detail-amenity"><i class="fa-solid fa-snowflake"></i> Điều hòa</span>
+                            </div>
+                            <div class="room-detail-footer">
+                                <div class="room-detail-price">
+                                    <span style="font-size:.78rem;color:#64748b;" th:text="${isVilla ? 'Giá mỗi căn / đêm' : 'Giá mỗi đêm'}">Giá mỗi đêm</span>
+                                    <strong th:text="${#numbers.formatDecimal(room.pricePerNight, 1, 'POINT', 0, 'COMMA')} + ' VND'">0 VND</strong>
+                                </div>
+                                <a th:if="${!isFull}" class="room-detail-book"
+                                   th:href="@{/booking(roomId=${room.id},checkIn=${checkIn},checkOut=${checkOut},adults=${adults},children=${children},rooms=1)}"
+                                   th:text="${isVilla ? 'Đặt căn này' : 'Đặt phòng này'}">Đặt phòng này</a>
+                                <span th:if="${isFull}" class="room-detail-book disabled"
+                                      th:text="${isVilla ? 'Căn đã hết' : 'Phòng đã hết'}">Phòng đã hết</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- ===== AVAILABILITY CALENDAR SECTION ===== -->
@@ -1534,11 +1660,13 @@
                 </span>
                 <span style="margin-left:auto;display:flex;flex-direction:column;gap:4px;text-align:right;">
                     <span style="font-size:0.75rem;color:#94a3b8;font-style:italic;">
-                        <i class="fa-solid fa-circle-info"></i> Hover vào ngày để xem chi tiết số phòng
+                        <i class="fa-solid fa-circle-info"></i>
+                        <th:block th:text="${isVilla ? 'Hover vào ngày để xem chi tiết số căn' : 'Hover vào ngày để xem chi tiết số phòng'}"></th:block>
                     </span>
                     <span style="font-size:0.72rem;color:#f97316;font-weight:600;">
                         <i class="fa-solid fa-triangle-exclamation"></i>
-                        Ngày check-out <u>không</u> tính là ngày giữ phòng — khách phải trả phòng trước 12:00
+                        <th:block th:if="${isVilla}">Ngày check-out <u>không</u> tính là ngày giữ căn — khách phải trả căn trước 12:00</th:block>
+                        <th:block th:unless="${isVilla}">Ngày check-out <u>không</u> tính là ngày giữ phòng — khách phải trả phòng trước 12:00</th:block>
                     </span>
                 </span>
             </div>
@@ -1548,6 +1676,7 @@
                 /*<![CDATA[*/
                 var BOOKED_RANGES   = /*[[${bookedRanges}]]*/ {};
                 var ROOM_TOTAL_QTY  = /*[[${roomTotalQtyMap}]]*/ {};
+                var CAL_UNIT_LABEL  = /*[[${isVilla ? 'căn' : 'phòng'}]]*/ 'phòng';
                 /*]]>*/
             </script>
 
@@ -1568,7 +1697,7 @@
             <div th:if="${availableRooms == null or #lists.isEmpty(availableRooms)}"
                  style="text-align:center;padding:30px;color:#94a3b8;">
                 <i class="fa-regular fa-calendar-xmark" style="font-size:2rem;display:block;margin-bottom:10px;"></i>
-                Không có phòng để hiển thị lịch.
+                <span th:text="${isVilla ? 'Không có căn để hiển thị lịch.' : 'Không có phòng để hiển thị lịch.'}">Không có phòng để hiển thị lịch.</span>
             </div>
         </div>
 
@@ -1578,12 +1707,19 @@
 
             <!-- ═══ HOTEL AMENITIES ═══ -->
             <th:block th:if="${hotel.propertyType == null or hotel.propertyType.name() == 'HOTEL'}">
-                <div class="am-gallery">
-                    <div class="am-img-box"><img src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=300&q=70" onerror="this.src='/assets/images/resort.jpg'"/><div class="am-lbl">Sảnh lễ tân</div></div>
-                    <div class="am-img-box"><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=300&q=70" onerror="this.src='/assets/images/resort.jpg'"/><div class="am-lbl">Nhà hàng</div></div>
-                    <div class="am-img-box"><img src="https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=300&q=70" onerror="this.src='/assets/images/resort.jpg'"/><div class="am-lbl">Phòng gym</div></div>
-                    <div class="am-img-box"><img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=300&q=70" onerror="this.src='/assets/images/resort.jpg'"/><div class="am-lbl">Hồ bơi</div></div>
-                    <div class="am-img-box"><img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=300&q=70" onerror="this.src='/assets/images/resort.jpg'"/><div class="am-lbl">Phòng ngủ</div></div>
+                <div class="am-gallery" th:if="${hotel.name == 'LATA Hotel & Apartments'}">
+                    <div class="am-img-box"><img src="/assets/images/accommodations/lata/shared/main-lounge.jpg" alt="Khu lounge tại LATA Hotel &amp; Apartments"/><div class="am-lbl">Khu lounge</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/lata/shared/dining-area.jpg" alt="Khu ăn uống tại LATA Hotel &amp; Apartments"/><div class="am-lbl">Khu ăn uống</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/lata/shared/open-kitchen.jpg" alt="Bếp chung tại LATA Hotel &amp; Apartments"/><div class="am-lbl">Bếp tiện nghi</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/lata/rooms/standard-king/bathroom.jpg" alt="Phòng tắm tại LATA Hotel &amp; Apartments"/><div class="am-lbl">Phòng tắm</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/lata/cover/room-hero.jpg" alt="Phòng ngủ tại LATA Hotel &amp; Apartments"/><div class="am-lbl">Phòng ngủ</div></div>
+                </div>
+                <div class="am-gallery" th:unless="${hotel.name == 'LATA Hotel & Apartments'}">
+                    <div class="am-img-box"><img src="/assets/images/accommodations/amenities/hotel/lobby.jpg" alt="Sảnh lễ tân khách sạn"/><div class="am-lbl">Sảnh lễ tân</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/amenities/hotel/restaurant.jpg" alt="Nhà hàng khách sạn"/><div class="am-lbl">Nhà hàng</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/amenities/hotel/gym.jpg" alt="Phòng gym khách sạn"/><div class="am-lbl">Phòng gym</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/amenities/hotel/pool.jpg" alt="Hồ bơi khách sạn"/><div class="am-lbl">Hồ bơi</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/amenities/hotel/bedroom.jpg" alt="Phòng ngủ khách sạn"/><div class="am-lbl">Phòng ngủ</div></div>
                 </div>
                 <div class="am-lists">
                     <div>
@@ -1612,7 +1748,16 @@
                     </div>
                     <div>
                         <h3 class="am-col-title"><i class="fa-solid fa-dumbbell"></i> Tiện ích chung</h3>
-                        <ul class="am-list">
+                        <ul class="am-list" th:if="${hotel.name == 'LATA Hotel & Apartments'}">
+                            <li>Khu lounge thư giãn</li>
+                            <li>Khu ăn uống &amp; bếp tiện nghi</li>
+                            <li>Phòng tắm riêng hiện đại</li>
+                            <li>Không gian gác lửng theo hạng phòng</li>
+                            <li>Bàn làm việc trong phòng</li>
+                            <li>Thang máy &amp; hành lang sáng thoáng</li>
+                            <li>Bãi đỗ xe miễn phí</li>
+                        </ul>
+                        <ul class="am-list" th:unless="${hotel.name == 'LATA Hotel & Apartments'}">
                             <li>Hồ bơi ngoài trời/trong nhà</li>
                             <li>Phòng gym hiện đại</li>
                             <li>Nhà hàng & Quầy bar</li>
@@ -1628,11 +1773,11 @@
             <!-- ═══ VILLA AMENITIES ═══ -->
             <th:block th:if="${hotel.propertyType != null and hotel.propertyType.name() == 'VILLA'}">
                 <div class="am-gallery">
-                    <div class="am-img-box"><img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=300&q=70" onerror="this.src='/assets/images/resort.jpg'"/><div class="am-lbl">Hồ bơi riêng</div></div>
-                    <div class="am-img-box"><img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=300&q=70" onerror="this.src='/assets/images/resort.jpg'"/><div class="am-lbl">Bếp hiện đại</div></div>
-                    <div class="am-img-box"><img src="https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=300&q=70" onerror="this.src='/assets/images/resort.jpg'"/><div class="am-lbl">View toàn cảnh</div></div>
-                    <div class="am-img-box"><img src="https://images.unsplash.com/photo-1544984243-ec57ea16fe25?w=300&q=70" onerror="this.src='/assets/images/resort.jpg'"/><div class="am-lbl">Khu BBQ</div></div>
-                    <div class="am-img-box"><img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=300&q=70" onerror="this.src='/assets/images/resort.jpg'"/><div class="am-lbl">Phòng ngủ sang trọng</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/amenities/villa/private-pool.jpg" alt="Hồ bơi riêng của villa"/><div class="am-lbl">Hồ bơi riêng</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/amenities/villa/kitchen.jpg" alt="Bếp hiện đại của villa"/><div class="am-lbl">Bếp hiện đại</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/amenities/villa/panoramic-view.jpg" alt="View toàn cảnh từ villa"/><div class="am-lbl">View toàn cảnh</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/amenities/villa/bbq-area.jpg" alt="Khu BBQ của villa"/><div class="am-lbl">Khu BBQ</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/amenities/villa/bedroom.jpg" alt="Phòng ngủ sang trọng của villa"/><div class="am-lbl">Phòng ngủ sang trọng</div></div>
                 </div>
                 <div class="am-lists">
                     <div>
@@ -1677,11 +1822,11 @@
             <!-- ═══ HOMESTAY AMENITIES ═══ -->
             <th:block th:if="${hotel.propertyType != null and hotel.propertyType.name() == 'HOMESTAY'}">
                 <div class="am-gallery">
-                    <div class="am-img-box"><img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&q=70" onerror="this.src='/assets/images/homestay-o-da-lat.jpg'"/><div class="am-lbl">Bếp chung ấm cúng</div></div>
-                    <div class="am-img-box"><img src="https://images.unsplash.com/photo-1586375300773-8384e3e4916f?w=300&q=70" onerror="this.src='/assets/images/homestay-o-da-lat.jpg'"/><div class="am-lbl">Sân vườn</div></div>
-                    <div class="am-img-box"><img src="https://images.unsplash.com/photo-1449234984810-fdcf2ee532f0?w=300&q=70" onerror="this.src='/assets/images/homestay-o-da-lat.jpg'"/><div class="am-lbl">Xe đạp miễn phí</div></div>
-                    <div class="am-img-box"><img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=300&q=70" onerror="this.src='/assets/images/homestay-o-da-lat.jpg'"/><div class="am-lbl">Phòng ngủ ấm áp</div></div>
-                    <div class="am-img-box"><img src="https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=300&q=70" onerror="this.src='/assets/images/homestay-o-da-lat.jpg'"/><div class="am-lbl">Bữa sáng tự nấu</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/amenities/homestay/shared-kitchen.jpg" alt="Bếp chung ấm cúng tại homestay"/><div class="am-lbl">Bếp chung ấm cúng</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/amenities/homestay/garden.jpg" alt="Sân vườn homestay"/><div class="am-lbl">Sân vườn</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/amenities/homestay/bicycles.jpg" alt="Xe đạp miễn phí tại homestay"/><div class="am-lbl">Xe đạp miễn phí</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/amenities/homestay/bedroom.jpg" alt="Phòng ngủ ấm áp tại homestay"/><div class="am-lbl">Phòng ngủ ấm áp</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/amenities/homestay/breakfast.jpg" alt="Bữa sáng tự nấu tại homestay"/><div class="am-lbl">Bữa sáng tự nấu</div></div>
                 </div>
                 <div class="am-lists">
                     <div>
@@ -1726,11 +1871,11 @@
             <!-- ═══ RESORT AMENITIES ═══ -->
             <th:block th:if="${hotel.propertyType != null and hotel.propertyType.name() == 'RESORT'}">
                 <div class="am-gallery">
-                    <div class="am-img-box"><img src="https://images.unsplash.com/photo-1602002418082-a4443e081dd1?w=300&q=70" onerror="this.src='/assets/images/resort.jpg'"/><div class="am-lbl">Bãi biển riêng</div></div>
-                    <div class="am-img-box"><img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=300&q=70" onerror="this.src='/assets/images/resort.jpg'"/><div class="am-lbl">Spa cao cấp</div></div>
-                    <div class="am-img-box"><img src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=300&q=70" onerror="this.src='/assets/images/resort.jpg'"/><div class="am-lbl">Hồ bơi vô cực</div></div>
-                    <div class="am-img-box"><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=300&q=70" onerror="this.src='/assets/images/resort.jpg'"/><div class="am-lbl">Nhà hàng fine dining</div></div>
-                    <div class="am-img-box"><img src="https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=300&q=70" onerror="this.src='/assets/images/resort.jpg'"/><div class="am-lbl">Trung tâm thể thao</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/amenities/resort/private-beach.jpg" alt="Bãi biển riêng của resort"/><div class="am-lbl">Bãi biển riêng</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/amenities/resort/spa.jpg" alt="Spa cao cấp tại resort"/><div class="am-lbl">Spa cao cấp</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/amenities/resort/infinity-pool.jpg" alt="Hồ bơi vô cực của resort"/><div class="am-lbl">Hồ bơi vô cực</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/amenities/resort/fine-dining.jpg" alt="Nhà hàng fine dining tại resort"/><div class="am-lbl">Nhà hàng fine dining</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/amenities/resort/sports-center.jpg" alt="Trung tâm thể thao tại resort"/><div class="am-lbl">Trung tâm thể thao</div></div>
                 </div>
                 <div class="am-lists">
                     <div>
@@ -1804,8 +1949,9 @@
                     <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-credit-card" style="color:#2563eb;"></i> Thanh toán</p>
                     <ul style="padding-left:20px;color:#475569;">
                         <li>Thanh toán 100% hoặc đặt cọc 30%</li>
-                        <li>Hủy trước 48h: hoàn cọc 100%</li>
-                        <li>Hủy trong 48h: mất cọc 30%</li>
+                        <li>Cọc 30%: trả 70% còn lại tại cơ sở khi check-in</li>
+                        <li>Đã cọc mà hủy/no-show: không hoàn tiền cọc</li>
+                        <li>Thanh toán 100% hủy trước check-in: dự kiến hoàn 70%, phí hủy 30%</li>
                     </ul>
                 </div>
             </div>
@@ -1814,10 +1960,10 @@
             <div th:if="${hotel.propertyType != null and hotel.propertyType.name() == 'VILLA'}"
                  style="font-size:0.9rem;line-height:1.7;color:#334155;display:grid;grid-template-columns:1fr 1fr;gap:24px;">
                 <div>
-                    <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-regular fa-clock" style="color:#2563eb;"></i> Giờ nhận/trả phòng</p>
+                    <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-regular fa-clock" style="color:#2563eb;"></i> Giờ nhận/trả căn</p>
                     <ul style="padding-left:20px;color:#475569;margin-bottom:16px;">
-                        <li>Nhận phòng: Từ <strong>15:00</strong> (linh hoạt theo thỏa thuận)</li>
-                        <li>Trả phòng: Trước <strong>11:00</strong></li>
+                        <li>Nhận căn: Từ <strong>15:00</strong> (linh hoạt theo thỏa thuận)</li>
+                        <li>Trả căn: Trước <strong>11:00</strong></li>
                         <li>Ở lại muộn: Phụ thu tùy thỏa thuận với chủ villa</li>
                     </ul>
                     <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-users" style="color:#2563eb;"></i> Số khách & Quy định</p>
@@ -1828,11 +1974,12 @@
                     </ul>
                 </div>
                 <div>
-                    <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-shield-halved" style="color:#2563eb;"></i> Đặt cọc bảo đảm</p>
+                    <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-shield-halved" style="color:#2563eb;"></i> Thanh toán & Hủy căn</p>
                     <ul style="padding-left:20px;color:#475569;margin-bottom:16px;">
-                        <li>Yêu cầu đặt cọc để đảm bảo villa</li>
-                        <li>Cọc hoàn trả sau checkout nếu không hư hại</li>
-                        <li>Hủy trước 72h: hoàn cọc đầy đủ</li>
+                        <li>Chọn thanh toán 100% hoặc cọc 30% qua TravelMate</li>
+                        <li>Cọc 30%: trả 70% còn lại tại cơ sở khi nhận căn</li>
+                        <li>Đã cọc mà hủy/no-show: không hoàn tiền cọc</li>
+                        <li>Thanh toán 100% hủy trước check-in: dự kiến hoàn 70%, phí hủy 30%</li>
                     </ul>
                     <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-paw" style="color:#2563eb;"></i> Thú cưng & Hút thuốc</p>
                     <ul style="padding-left:20px;color:#475569;">
@@ -1869,9 +2016,9 @@
                     <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-credit-card" style="color:#2563eb;"></i> Thanh toán & Hủy phòng</p>
                     <ul style="padding-left:20px;color:#475569;">
                         <li>Thanh toán 100% hoặc đặt cọc 30%</li>
-                        <li>Hủy trước 48h: hoàn cọc đầy đủ</li>
-                        <li>Không hoàn tiền nếu hủy trong vòng 48h</li>
-                        <li>No-show: mất toàn bộ tiền đặt cọc</li>
+                        <li>Cọc 30%: trả 70% còn lại tại cơ sở khi check-in</li>
+                        <li>Đã cọc mà hủy/no-show: mất toàn bộ tiền đặt cọc</li>
+                        <li>Thanh toán 100% hủy trước check-in: dự kiến hoàn 70%, phí hủy 30%</li>
                     </ul>
                 </div>
             </div>
@@ -1904,8 +2051,9 @@
                     <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-credit-card" style="color:#2563eb;"></i> Đặt phòng & Hủy</p>
                     <ul style="padding-left:20px;color:#475569;">
                         <li>Thanh toán 100% hoặc đặt cọc 30%</li>
-                        <li>Hủy trước 72h: hoàn cọc đầy đủ</li>
-                        <li>Hủy trong 72h: mất cọc 30%</li>
+                        <li>Cọc 30%: trả 70% còn lại tại cơ sở khi check-in</li>
+                        <li>Đã cọc mà hủy/no-show: không hoàn tiền cọc</li>
+                        <li>Thanh toán 100% hủy trước check-in: dự kiến hoàn 70%, phí hủy 30%</li>
                         <li>Đưa đón sân bay: Cần đặt trước 24h</li>
                     </ul>
                 </div>
@@ -2125,7 +2273,7 @@
                 if (isPast) {
                     bg = '#f1f5f9'; color = '#cbd5e1'; statusLabel = 'Quá khứ';
                 } else if (occ.pct === 0) {
-                    bg = '#fecaca'; color = '#b91c1c'; fw = '700'; dotColor = '#ef4444'; statusLabel = 'Hết phòng';
+                    bg = '#fecaca'; color = '#b91c1c'; fw = '700'; dotColor = '#ef4444'; statusLabel = 'Hết ' + (window.CAL_UNIT_LABEL || 'phòng');
                 } else if (occ.pct <= 30) {
                     bg = '#fef9c3'; color = '#854d0e'; fw = '700'; dotColor = '#eab308'; statusLabel = 'Sắp hết';
                 } else {
@@ -2155,7 +2303,7 @@
             const avail = el.dataset.tipAvail;
 
             let icon = '📅';
-            if (label === 'Hết phòng')  icon = '🔴';
+            if (label === 'Hết phòng' || label === 'Hết căn')  icon = '🔴';
             else if (label === 'Sắp hết') icon = '🟡';
             else if (label === 'Còn trống') icon = '🟢';
             else icon = '⬜';
@@ -2164,7 +2312,7 @@
                         <div style="color:#94a3b8;font-size:11px;margin-bottom:4px;">${label}</div>`;
             if (total !== undefined) {
                 body += `<div style="border-top:1px solid #334155;padding-top:6px;margin-top:4px;">
-                    <div>Tổng phòng: <strong style="color:#fff">${total}</strong></div>
+                    <div>Tổng ${window.CAL_UNIT_LABEL || 'phòng'}: <strong style="color:#fff">${total}</strong></div>
                     <div>Đã giữ:&nbsp;&nbsp;&nbsp;<strong style="color:#f87171">${occ}</strong></div>
                     <div>Còn trống: <strong style="color:#4ade80">${avail}</strong></div>
                 </div>`;
@@ -2250,7 +2398,7 @@
             const priceEl = row.querySelector('.price-new');
             if (!priceEl) return;
 
-            // Lưu giá đơn 1 phòng vào data-single nếu chưa có
+            // Lưu giá đơn 1 phòng/căn vào data-single nếu chưa có
             if (!priceEl.dataset.single) {
                 priceEl.dataset.single = priceEl.textContent.replace(/[^0-9]/g, '');
             }
@@ -2258,7 +2406,7 @@
             const total = single * qty;
             priceEl.textContent = total.toLocaleString('vi-VN') + ' VND';
 
-            // Cập nhật note số phòng
+            // Cập nhật note số phòng/căn
             let qtyNote = row.querySelector('.qty-note');
             if (!qtyNote) {
                 qtyNote = document.createElement('div');
@@ -2266,7 +2414,7 @@
                 qtyNote.style.cssText = 'font-size:0.72rem;color:#64748b;margin-top:2px;text-align:center;';
                 priceEl.parentNode.insertBefore(qtyNote, priceEl.nextSibling);
             }
-            qtyNote.textContent = qty > 1 ? '(' + qty + ' phòng x ' + single.toLocaleString('vi-VN') + ')' : '';
+            qtyNote.textContent = qty > 1 ? '(' + qty + ' ' + (window.CAL_UNIT_LABEL || 'phòng') + ' x ' + single.toLocaleString('vi-VN') + ')' : '';
         }
 
         // Khởi tạo giá đơn và số lượng theo tham số rooms trên URL
@@ -2309,7 +2457,43 @@
             window.location.href = baseUrl + '&rooms=' + qty;
         }
 
-        // ── Validation ngày cho form "Kiểm tra phòng" ──
+        function openRoomDetailModal(roomId) {
+            const modal = document.getElementById('room-detail-modal-' + roomId);
+            if (!modal) return;
+            modal.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeRoomDetailModal(roomId) {
+            const modal = document.getElementById('room-detail-modal-' + roomId);
+            if (!modal) return;
+            modal.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        function selectRoomPhoto(roomId, button) {
+            const img = document.getElementById('room-modal-main-' + roomId);
+            if (!img || !button || !button.dataset.photoSrc) return;
+            img.src = button.dataset.photoSrc;
+            const strip = button.closest('.room-modal-thumbs');
+            if (strip) {
+                strip.querySelectorAll('.room-modal-thumb').forEach(thumb => thumb.classList.remove('active'));
+            }
+            button.classList.add('active');
+        }
+
+        // TravelBot deep link: đưa người dùng thẳng tới phòng/căn được gợi ý và mở gallery.
+        window.addEventListener('load', function () {
+            const match = (window.location.hash || '').match(/^#room-(\d+)$/);
+            if (!match) return;
+            const roomId = match[1];
+            const roomCard = document.querySelector('.room-type[data-room-id="' + roomId + '"]');
+            if (!roomCard) return;
+            roomCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            openRoomDetailModal(roomId);
+        });
+
+        // ── Validation ngày cho form "Kiểm tra phòng/căn" ──
         (function () {
             const availForm = document.querySelector('form[action*="/accommodations/"]');
             if (!availForm) return;
@@ -2332,12 +2516,12 @@
                 const today = new Date().toISOString().split('T')[0];
                 if (ciInput.value && ciInput.value < today) {
                     e.preventDefault();
-                    alert('⚠️ Ngày nhận phòng không được là ngày trong quá khứ!');
+                    alert('⚠️ Ngày nhận ' + (window.CAL_UNIT_LABEL || 'phòng') + ' không được là ngày trong quá khứ!');
                     return;
                 }
                 if (ciInput.value && coInput.value && coInput.value <= ciInput.value) {
                     e.preventDefault();
-                    alert('⚠️ Ngày trả phòng phải sau ngày nhận phòng!');
+                    alert('⚠️ Ngày trả ' + (window.CAL_UNIT_LABEL || 'phòng') + ' phải sau ngày nhận ' + (window.CAL_UNIT_LABEL || 'phòng') + '!');
                 }
             });
         })();
@@ -2350,6 +2534,10 @@
 
             function collectImages() {
                 galleryImages = [];
+                document.querySelectorAll('.gallery-image-source').forEach(source => {
+                    galleryImages.push({ src: source.dataset.src, alt: source.dataset.alt || '' });
+                });
+                if (galleryImages.length > 0) return;
                 // Ảnh chính
                 const mainImg = document.getElementById('galleryMainImg');
                 if (mainImg) galleryImages.push({ src: mainImg.src, alt: mainImg.alt });
@@ -2409,10 +2597,19 @@
             // Keyboard navigation
             document.addEventListener('keydown', function(e) {
                 const modal = document.getElementById('galleryModal');
-                if (!modal.classList.contains('open')) return;
-                if (e.key === 'ArrowLeft')  galleryNav(-1);
-                if (e.key === 'ArrowRight') galleryNav(1);
-                if (e.key === 'Escape')     closeGallery();
+                if (modal.classList.contains('open')) {
+                    if (e.key === 'ArrowLeft')  galleryNav(-1);
+                    if (e.key === 'ArrowRight') galleryNav(1);
+                    if (e.key === 'Escape')     closeGallery();
+                    return;
+                }
+                if (e.key === 'Escape') {
+                    const roomModal = document.querySelector('.room-detail-modal.open');
+                    if (roomModal) {
+                        roomModal.classList.remove('open');
+                        document.body.style.overflow = '';
+                    }
+                }
             });
 
             // Preload images on page load

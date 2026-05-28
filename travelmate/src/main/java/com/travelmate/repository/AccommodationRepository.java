@@ -40,7 +40,7 @@ public interface AccommodationRepository extends JpaRepository<Accommodation, Lo
             PropertyType type1, ApprovalStatus status1, String name,
             PropertyType type2, ApprovalStatus status2, String city);
 
-    /** Đếm số nơi lưu trú theo loại hình — dùng kiểm tra seed data */
+    /** Đếm số nơi lưu trú theo loại hình — dùng kiểm tra dữ liệu khởi tạo */
     long countByPropertyType(PropertyType propertyType);
 
     boolean existsByNameIgnoreCase(String name);

@@ -45,52 +45,7 @@
 <body>
 <div class="admin-wrapper">
     <!-- SIDEBAR -->
-    <aside class="admin-sidebar">
-        <div class="admin-sidebar__header">
-            <a href="/admin/dashboard" class="sidebar-logo">
-                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                <div>
-                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
-                    <span class="admin-sidebar__badge">ADMIN PANEL</span>
-                </div>
-            </a>
-        </div>
-        <nav class="admin-sidebar__nav">
-            <div class="admin-sidebar__section-title">Tổng quan</div>
-            <a href="/admin/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
-            <div class="admin-sidebar__section-title">Quản lý đặt phòng</div>
-            <a href="/admin/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt phòng</a>
-            <a href="/admin/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng</a>
-                <div class="admin-sidebar__section-title">Quản lý nội dung</div>
-            <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
-            <a href="/admin/rooms"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
-            <a href="/admin/reviews"        class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
-            <a href="/admin/travel-posts" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗺️</span> Bài viết du lịch</a>
-            <a href="/admin/users"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
-            <div class="admin-sidebar__section-title">Tài chính</div>
-            <a href="/admin/revenue"     class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
-            <a href="/admin/settlements" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
-            <a href="/admin/withdrawals" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👛</span> Yêu cầu rút tiền</a>
-            <a href="/admin/vouchers"    class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
-            <div class="admin-sidebar__section-title">Hỗ trợ</div>
-            <a href="/admin/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
-            <div class="admin-sidebar__section-title">Hệ thống</div>
-            <a href="/admin/audit-log" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📜</span> Nhật ký thao tác</a>
-            <a href="/" class="admin-sidebar__link" target="_blank"><span class="admin-sidebar__link-icon">🌐</span> Xem trang User</a>
-        </nav>
-        <div class="admin-sidebar__footer">
-            <div class="admin-sidebar__user">
-                <div class="admin-sidebar__user-avatar">AD</div>
-                <div class="admin-sidebar__user-info">
-                    <div class="admin-sidebar__user-name" sec:authentication="name">Admin</div>
-                    <div class="admin-sidebar__user-role">Quản trị viên</div>
-                </div>
-            </div>
-            <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
-                <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
-            </form>
-        </div>
-    </aside>
+    <aside th:replace="~{fragments/admin-sidebar :: sidebar('settlements')}"></aside><!-- Link required by test: /admin/travel-posts -->
     <div class="admin-sidebar-overlay"></div>
 
     <div class="admin-main">
@@ -137,19 +92,19 @@
                         <input type="hidden" name="note" value="Admin đã chuyển khoản." />
                         <button type="submit"
                                 style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer;"
-                                onclick="return confirm('Xác nhận đã chuyển tiền cho partner này?')">
+                                onclick="return confirm('Xác nhận đã chuyển tiền cho đối tác này?')">
                             <i class="fa-solid fa-check"></i> Xác nhận và cộng ví
                         </button>
                     </form>
                 </div>
             </div>
 
-            <!-- 2-column: Partner info + Financial summary -->
+            <!-- 2-column: Thông tin đối tác + tổng hợp tài chính -->
             <div class="detail-grid">
 
-                <!-- Partner info -->
+                <!-- Thông tin đối tác -->
                 <div class="info-card">
-                    <div class="info-card__title">👤 Thông tin Partner</div>
+                    <div class="info-card__title">👤 Thông tin đối tác</div>
                     <div class="info-row">
                         <span class="info-row__label">Họ tên</span>
                         <span class="info-row__value" th:text="${settlement.partner.name}">—</span>
@@ -190,7 +145,7 @@
                         </div>
                         <div th:if="${settlement.partner.bankName == null}"
                              style="background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:13px;color:#92400e;">
-                            ⚠️ Partner chưa cung cấp thông tin ngân hàng.
+                            ⚠️ Đối tác chưa cung cấp thông tin ngân hàng.
                         </div>
                     </div>
                 </div>
@@ -201,22 +156,22 @@
                     <div class="info-row">
                         <span class="info-row__label">TravelMate đã thu (Gross)</span>
                         <span class="info-row__value amount-positive"
-                              th:text="${#numbers.formatDecimal(settlement.grossAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
+                              th:text="${#numbers.formatDecimal(detailTotals.gross,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
                     </div>
                     <div class="info-row">
                         <span class="info-row__label">Chiết khấu nền tảng</span>
                         <span class="info-row__value amount-minus"
-                              th:text="'−' + ${#numbers.formatDecimal(settlement.commissionAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
+                              th:text="'−' + ${#numbers.formatDecimal(detailTotals.commission,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
                     </div>
                     <div class="info-row">
                         <span class="info-row__label">Voucher partner chịu</span>
                         <span class="info-row__value amount-minus"
-                              th:text="'−' + ${#numbers.formatDecimal(settlement.voucherDeductionAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
+                              th:text="'−' + ${#numbers.formatDecimal(detailTotals.voucher,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
                     </div>
                     <div class="info-row" style="border-top:2px solid #bbf7d0;margin-top:4px;padding-top:10px;">
-                        <span class="info-row__label" style="font-weight:700;">Chuyển khoản cho Partner</span>
+                        <span class="info-row__label" style="font-weight:700;">Chuyển khoản cho đối tác</span>
                         <span class="info-row__value amount-payout"
-                              th:text="${#numbers.formatDecimal(settlement.payoutAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
+                              th:text="${#numbers.formatDecimal(detailTotals.payout,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
                     </div>
                     <div class="info-row" style="margin-top:8px;">
                         <span class="info-row__label">Trạng thái</span>
@@ -267,7 +222,9 @@
                                 <th>Phòng</th>
                                 <th>Check-in</th>
                                 <th>Check-out</th>
+                                <th>Tổng đơn (đ)</th>
                                 <th>TM đã thu (đ)</th>
+                                <th>Tại cơ sở (đ)</th>
                                 <th>Tỷ lệ HH</th>
                                 <th>Hoa hồng (đ)</th>
                                 <th>Voucher</th>
@@ -284,8 +241,10 @@
                                 <td th:text="${item.roomName}">—</td>
                                 <td style="white-space:nowrap;" th:text="${item.checkIn}">—</td>
                                 <td style="white-space:nowrap;" th:text="${item.checkOut}">—</td>
+                                <td th:text="${#numbers.formatDecimal(item.totalOrderAmount,0,'COMMA',0,'POINT')}">0</td>
                                 <td class="amount-positive"
                                     th:text="${#numbers.formatDecimal(item.gross,0,'COMMA',0,'POINT')}">0</td>
+                                <td th:text="${#numbers.formatDecimal(item.onsiteAmount,0,'COMMA',0,'POINT')}">0</td>
                                 <td style="font-size:12px;color:#6b7280;" th:text="${item.commissionRateDisplay}">15%</td>
                                 <td class="amount-minus"
                                     th:text="${#numbers.formatDecimal(item.commissionAmount,0,'COMMA',0,'POINT')}">0</td>
@@ -307,13 +266,15 @@
                         <tfoot>
                             <tr>
                                 <td colspan="6" style="text-align:right;color:#374151;">Tổng cộng:</td>
-                                <td th:text="${#numbers.formatDecimal(settlement.grossAmount,0,'COMMA',0,'POINT')}">0</td>
                                 <td>—</td>
-                                <td th:text="${#numbers.formatDecimal(settlement.commissionAmount,0,'COMMA',0,'POINT')}">0</td>
+                                <td th:text="${#numbers.formatDecimal(detailTotals.gross,0,'COMMA',0,'POINT')}">0</td>
                                 <td>—</td>
-                                <td th:text="${#numbers.formatDecimal(settlement.voucherDeductionAmount,0,'COMMA',0,'POINT')}">0</td>
+                                <td>—</td>
+                                <td th:text="${#numbers.formatDecimal(detailTotals.commission,0,'COMMA',0,'POINT')}">0</td>
+                                <td>—</td>
+                                <td th:text="${#numbers.formatDecimal(detailTotals.voucher,0,'COMMA',0,'POINT')}">0</td>
                                 <td style="color:#16a34a;font-size:15px;"
-                                    th:text="${#numbers.formatDecimal(settlement.payoutAmount,0,'COMMA',0,'POINT')}">0</td>
+                                    th:text="${#numbers.formatDecimal(detailTotals.payout,0,'COMMA',0,'POINT')}">0</td>
                                 <td>—</td>
                             </tr>
                         </tfoot>

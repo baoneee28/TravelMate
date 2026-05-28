@@ -67,22 +67,18 @@ public class NotificationService {
         return notificationRepository.save(n);
     }
 
-    /**
-     * Notification sau khi VNPAY thu tiền thành công — booking chuyển PENDING_ADMIN_APPROVAL.
-     * Khác với createBookingConfirmed: đây là bước "TravelMate đã nhận tiền, chờ xác nhận",
-     * KHÔNG phải "đặt phòng đã được xác nhận".
-     */
+    /** Notification sau khi giao dịch VNPAY đã được xác minh và chuyển cho partner giữ chỗ. */
     @Transactional
     public Notification createPaymentReceived(User user, String bookingCode,
                                               Accommodation accommodation, String paymentOptionLabel) {
         Notification n = new Notification();
         n.setUser(user);
         n.setType(Notification.Type.BOOKING_CONFIRMED);
-        n.setTitle("TravelMate đã nhận " + paymentOptionLabel + " cho booking " + bookingCode);
-        n.setMessage("TravelMate đã ghi nhận khoản " + paymentOptionLabel
+        n.setTitle("Đã xác nhận " + paymentOptionLabel + " qua VNPAY - " + bookingCode);
+        n.setMessage("TravelMate đã tự động xác nhận khoản " + paymentOptionLabel
                 + " của bạn cho đặt phòng tại " + accommodation.getName()
-                + ". Đơn đang chờ TravelMate xác nhận trước khi chuyển cho đối tác giữ phòng.");
-        n.setTargetUrl("/my-bookings?tab=PENDING_ADMIN_APPROVAL");
+                + ". Đơn đang chờ đối tác xác nhận giữ phòng.");
+        n.setTargetUrl("/my-bookings?tab=CONFIRMED");
         n.setIsRead(false);
         return notificationRepository.save(n);
     }

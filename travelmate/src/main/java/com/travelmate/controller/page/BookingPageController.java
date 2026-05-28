@@ -12,6 +12,8 @@ import com.travelmate.service.AccommodationService;
 import com.travelmate.service.AvailabilityService;
 import com.travelmate.service.BookingService;
 import com.travelmate.service.ReviewService;
+import com.travelmate.service.RoomImageService;
+import com.travelmate.service.VoucherService;
 import com.travelmate.security.CustomUserDetails;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -45,17 +47,23 @@ public class BookingPageController {
     private final ReviewService reviewService;
     private final UserRepository userRepository;
     private final AvailabilityService availabilityService;
+    private final RoomImageService roomImageService;
+    private final VoucherService voucherService;
 
     public BookingPageController(AccommodationService accommodationService,
                                   BookingService bookingService,
                                   ReviewService reviewService,
                                   UserRepository userRepository,
-                                  AvailabilityService availabilityService) {
+                                  AvailabilityService availabilityService,
+                                  RoomImageService roomImageService,
+                                  VoucherService voucherService) {
         this.accommodationService = accommodationService;
         this.bookingService = bookingService;
         this.reviewService = reviewService;
         this.userRepository = userRepository;
         this.availabilityService = availabilityService;
+        this.roomImageService = roomImageService;
+        this.voucherService = voucherService;
     }
 
     /**
@@ -142,6 +150,8 @@ public class BookingPageController {
         model.addAttribute("totalAmount", totalAmount);
         model.addAttribute("paidFull", paidFull);
         model.addAttribute("paidDeposit", paidDeposit);
+        model.addAttribute("roomImages", roomImageService.getImages(room));
+        model.addAttribute("applicableVouchers", voucherService.getApplicableVouchers(room));
 
         // isVilla dùng cả trong <main> lẫn modal QR (ngoài <main>) nên cần thêm vào model
         boolean isVilla = hotel.getPropertyType() != null
@@ -163,7 +173,7 @@ public class BookingPageController {
      *
      * Luồng mới (VNPAY thật):
      *   1. Validate + tạo booking PENDING_PAYMENT + payment PENDING_PAYMENT
-     *   2. Phòng được giữ tạm 15 phút
+     *   2. Phòng được giữ tạm 3 phút
      *   3. Redirect sang GET /payment/vnpay/create/{bookingId}
      *   4. VNPAY xử lý → trả kết quả qua IPN + Return URL
      */
@@ -199,7 +209,7 @@ public class BookingPageController {
             LocalDate checkOutDate = LocalDate.parse(checkOut);
             PaymentOption option   = PaymentOption.valueOf(paymentOption);
 
-            // Tạo booking PENDING_PAYMENT + payment PENDING_PAYMENT (giữ phòng 15 phút)
+            // Tạo booking PENDING_PAYMENT + payment PENDING_PAYMENT (giữ phòng 3 phút)
             Booking booking = bookingService.createBooking(
                     user, room, accommodation,
                     customerName, customerPhone, customerEmail,
@@ -260,7 +270,7 @@ public class BookingPageController {
     }
 
     /**
-     * Hủy đặt phòng — chỉ user sở hữu và đang PENDING_ADMIN_APPROVAL mới được hủy.
+     * Hủy đặt phòng — chỉ user sở hữu và đơn chưa check-in/hoàn tất mới được hủy.
      *
      * POST /my-bookings/{id}/cancel
      */
@@ -283,12 +293,15 @@ public class BookingPageController {
             // Gọi service hủy booking (service validate quyền + trạng thái, trả về booking đã hủy)
             com.travelmate.entity.Booking cancelled = bookingService.cancelBooking(id, user);
 
-            if (cancelled.getPaymentStatus() == com.travelmate.entity.enums.PaymentStatus.REFUND_PENDING) {
+            if (cancelled.getPaymentStatus() == com.travelmate.entity.enums.PaymentStatus.DEPOSIT_FORFEITED) {
                 redirectAttributes.addFlashAttribute("successMessage",
-                        "✅ Đã ghi nhận yêu cầu hủy. TravelMate đã nhận tiền thanh toán của bạn và sẽ xử lý hoàn tiền theo chính sách trong 3–5 ngày làm việc.");
+                        "Đã hủy đặt chỗ và mở lại phòng/căn. Theo chính sách cọc 30%, khoản cọc đã thanh toán không được hoàn lại.");
+            } else if (cancelled.getPaymentStatus() == com.travelmate.entity.enums.PaymentStatus.REFUND_PENDING) {
+                redirectAttributes.addFlashAttribute("successMessage",
+                        "Đã gửi yêu cầu hủy. Số tiền dự kiến hoàn là 70% tổng đơn; phí hủy là 30%. TravelMate sẽ xử lý hoàn tiền theo quy trình đối soát.");
             } else {
                 redirectAttributes.addFlashAttribute("successMessage",
-                        "✅ Đã hủy đặt phòng thành công! Phòng đã được giải phóng.");
+                        "Đã hủy đặt phòng thành công. Phòng/căn đã được mở lại.");
             }
 
         } catch (Exception e) {

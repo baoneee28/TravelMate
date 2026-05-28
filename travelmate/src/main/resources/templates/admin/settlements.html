@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quyết Toán Partner – Admin TravelMate</title>
-    <meta name="description" content="Trang quyết toán hàng tháng cho partner – Admin TravelMate." />
+    <title>Quyết Toán Đối Tác – Admin TravelMate</title>
+    <meta name="description" content="Trang quyết toán hàng tháng cho đối tác – Admin TravelMate." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&subset=vietnamese&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/assets/css/base.css" />
@@ -14,87 +14,194 @@
     <link rel="stylesheet" href="/assets/css/responsive.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <style>
-        .set-kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:24px; }
-        .set-kpi-card { background:var(--color-surface,#fff); border-radius:12px; padding:18px 20px; box-shadow:0 1px 4px rgba(0,0,0,.07); }
-        .set-kpi-card__label { font-size:12px; color:#6b7280; margin-bottom:4px; }
-        .set-kpi-card__value { font-size:22px; font-weight:700; }
-        .set-table-wrap { overflow-x:auto; }
-        .set-table { width:100%; border-collapse:collapse; font-size:13px; }
-        .set-table th { background:#f8fafc; font-weight:600; padding:10px 14px; border-bottom:1px solid #e2e8f0; white-space:nowrap; }
-        .set-table td { padding:10px 14px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
-        .set-table tr:last-child td { border-bottom:none; }
-        .set-table tr:hover td { background:#f8fafc; }
-        .badge-pending { background:#fef9c3; color:#a16207; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
-        .badge-paid    { background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+        .admin-main { min-width: 0; }
+        .admin-content { padding: 20px 24px; overflow-x: hidden; }
+        
+        /* Collapsible Flow Info Banner */
+        .flow-info { 
+            background: #eff6ff; 
+            border: 1px solid #bfdbfe; 
+            border-radius: 10px; 
+            padding: 10px 16px; 
+            margin-bottom: 16px; 
+            font-size: 13px; 
+            line-height: 1.6; 
+        }
+        .flow-info summary::-webkit-details-marker {
+            display: none;
+        }
+        .flow-info summary {
+            list-style: none;
+            outline: none;
+            cursor: pointer;
+        }
+        
+        .formula-box { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; font-family:monospace; font-size:13px; margin-top:8px; color:#374151; }
+
+        /* KPI Cards */
+        .set-kpi-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+            gap: 12px; 
+            margin-bottom: 16px; 
+        }
+        .set-kpi-card { 
+            background: var(--color-surface,#fff); 
+            border-radius: 10px; 
+            padding: 10px 16px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,.05); 
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .set-kpi-card__label { 
+            font-size: 11px; 
+            font-weight: 700;
+            color: #64748b; 
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 0; 
+        }
+        .set-kpi-card__value { 
+            font-size: 18px; 
+            font-weight: 800; 
+            color: #0f172a;
+        }
+
+        /* Table Wrapper and Styling */
+        .set-table-wrap { 
+            width: 100%; 
+            max-width: 100%; 
+            max-height: calc(100vh - 230px); 
+            min-height: 520px;
+            overflow: auto; 
+            margin-top: 12px; 
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #fff;
+        }
+        /* Thanh cuộn mỏng cao cấp */
+        .set-table-wrap::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .set-table-wrap::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        .set-table-wrap::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .set-table-wrap::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .set-table { width: 100%; border-collapse: collapse; font-size: 12.75px; min-width: 1320px; table-layout: fixed; }
+        .set-table th { 
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #f8fafc !important; 
+            font-weight: 700; 
+            padding: 9px 6px; 
+            border-bottom: 1px solid #e2e8f0; 
+            box-shadow: inset 0 -1px 0 #e2e8f0;
+            white-space: normal; 
+            line-height: 1.3;
+            vertical-align: bottom;
+            color: #1e293b;
+        }
+        .set-table td { padding: 9px 6px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; color: #334155; }
+        .set-table tr:last-child td { border-bottom: none; }
+        .set-table tr:hover td { background: #f8fafc; }
+        
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        
+        /* Column Width Enforcements */
+        .col-set-partner {
+            white-space: normal;
+            line-height: 1.4;
+        }
+        .col-set-partner strong {
+            font-size: 15px;
+            color: #0f172a;
+        }
+        .bank-info-box {
+            margin-top: 4px;
+            font-size: 11.5px;
+            color: #1e3a8a;
+            background: #f0f9ff;
+            border-radius: 6px;
+            padding: 4px 8px;
+            border: 1px solid #e0f2fe;
+            display: block;
+            word-break: break-word;
+            line-height: 1.45;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .bank-info-box:hover {
+            background: #e0f2fe;
+            border-color: #bae6fd;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(30,58,138,0.06);
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .col-set-note {
+            white-space: normal;
+            line-height: 1.4;
+            font-size: 14.5px;
+            color: #334155;
+            word-break: break-word;
+        }
+        .col-set-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: stretch;
+            width: 100%;
+        }
+        .col-set-actions a, .col-set-actions button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+            white-space: nowrap;
+        }
+
+        .badge-pending { background:#fef9c3; color:#a16207; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; white-space: nowrap; }
+        .badge-paid    { background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; white-space: nowrap; }
         .btn-mark-paid { background:#2563eb; color:#fff; border:none; border-radius:8px; padding:6px 14px; font-size:12px; cursor:pointer; font-weight:600; }
         .btn-mark-paid:hover { background:#1d4ed8; }
-        .section-title { font-size:15px; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+        .btn-mark-paid i { margin-right: 6px; }
+        .section-title { font-size:14px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
         .empty-state { text-align:center; padding:40px 20px; color:#6b7280; }
-        .flow-info { background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:14px 18px; margin-bottom:20px; font-size:13px; line-height:1.7; }
-        .formula-box { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; font-family:monospace; font-size:13px; margin-top:8px; color:#374151; }
     </style>
 </head>
 <body>
 <div class="admin-wrapper">
     <!-- SIDEBAR -->
-    <aside class="admin-sidebar">
-        <div class="admin-sidebar__header">
-            <a href="/admin/dashboard" class="sidebar-logo">
-                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                <div>
-                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
-                    <span class="admin-sidebar__badge">ADMIN PANEL</span>
-                </div>
-            </a>
-        </div>
-        <nav class="admin-sidebar__nav">
-            <div class="admin-sidebar__section-title">Tổng quan</div>
-            <a href="/admin/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
-            <div class="admin-sidebar__section-title">Quản lý đặt phòng</div>
-            <a href="/admin/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt phòng</a>
-            <a href="/admin/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng</a>
-                <div class="admin-sidebar__section-title">Quản lý nội dung</div>
-            <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
-            <a href="/admin/rooms"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
-            <a href="/admin/reviews"        class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
-            <a href="/admin/travel-posts" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗺️</span> Bài viết du lịch</a>
-            <a href="/admin/users"          class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
-            <div class="admin-sidebar__section-title">Tài chính</div>
-            <a href="/admin/revenue"     class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
-            <a href="/admin/settlements" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
-            <a href="/admin/withdrawals" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👛</span> Yêu cầu rút tiền</a>
-            <a href="/admin/vouchers"    class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
-            <div class="admin-sidebar__section-title">Hỗ trợ</div>
-            <a href="/admin/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
-            <div class="admin-sidebar__section-title">Hệ thống</div>
-            <a href="/admin/audit-log" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📜</span> Nhật ký thao tác</a>
-            <a href="/" class="admin-sidebar__link" target="_blank"><span class="admin-sidebar__link-icon">🌐</span> Xem trang User</a>
-        </nav>
-        <div class="admin-sidebar__footer">
-            <div class="admin-sidebar__user">
-                <div class="admin-sidebar__user-avatar">AD</div>
-                <div class="admin-sidebar__user-info">
-                    <div class="admin-sidebar__user-name" sec:authentication="name">Admin</div>
-                    <div class="admin-sidebar__user-role">Quản trị viên</div>
-                </div>
-            </div>
-            <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
-                <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">🚪 Đăng xuất</button>
-            </form>
-        </div>
-    </aside>
+    <aside th:replace="~{fragments/admin-sidebar :: sidebar('settlements')}"></aside><!-- Link required by test: /admin/travel-posts -->
     <div class="admin-sidebar-overlay"></div>
 
     <div class="admin-main">
         <header class="admin-topbar">
             <div style="display:flex;align-items:center;gap:var(--space-4)">
                 <button class="admin-topbar__hamburger"><span></span><span></span><span></span></button>
-                <h1 class="admin-topbar__title">🏦 Quyết Toán Partner</h1>
+                <h1 class="admin-topbar__title">🏦 Quyết Toán Đối Tác</h1>
             </div>
             <div class="admin-topbar__actions">
                 <form th:action="@{/admin/settlements/generate-monthly}" method="post" style="display:inline;">
                     <button type="submit" class="btn btn--primary btn--sm"
-                            onclick="return confirm('Tạo quyết toán cho tháng trước? Chỉ booking COMPLETED hoặc NO_SHOW (giữ cọc) mới được tính. Partner đã có settlement trong kỳ sẽ bị bỏ qua.')">
+                            onclick="return confirm('Tạo quyết toán cho tháng trước? Booking COMPLETED hoặc đơn cọc bị giữ do hủy/no-show mới được tính. Đối tác đã có settlement trong kỳ sẽ bị bỏ qua.')">
                         <i class="fa-solid fa-wand-magic-sparkles"></i> Tạo quyết toán tháng trước
                     </button>
                 </form>
@@ -114,30 +221,38 @@
             <div th:if="${errorMessage}"   class="alert alert-error"   th:text="${errorMessage}"></div>
 
             <!-- Luồng quyết toán -->
-            <div class="flow-info">
-                <strong>📌 Quy trình quyết toán hàng tháng:</strong><br/>
-                1. <strong>Đầu mỗi tháng</strong>, Admin bấm <strong>"Tạo quyết toán tháng trước"</strong>
-                   → Hệ thống gom toàn bộ booking đủ điều kiện từ <strong>ngày 01 đến cuối tháng trước</strong> cho từng partner → Tạo bản ghi PENDING.<br/>
-                2. Ngày chi trả dự kiến là <strong>mùng 10 của tháng hiện tại</strong>. Khi Admin bấm <strong>"Xác nhận đã chuyển khoản"</strong>, hệ thống chuyển settlement sang PAID và <strong>cộng payout vào ví quyết toán Partner</strong>.<br/>
-                3. Partner có thể gửi yêu cầu rút tiền từ ví; Admin xử lý chuyển khoản ngoài hệ thống tại trang <strong>Yêu cầu rút tiền</strong>.<br/>
-                &nbsp;&nbsp;<em style="font-size:12px;color:#6b7280;">⚠️ Mỗi partner + mỗi kỳ tháng = 1 settlement duy nhất. Bấm lại sẽ không tạo trùng.</em><br/>
-                &nbsp;&nbsp;<em style="font-size:12px;color:#6b7280;">⚠️ Chỉ booking <strong>COMPLETED</strong> hoặc <strong>NO_SHOW</strong> (giữ cọc) mới đủ điều kiện quyết toán.</em>
-                <br/>&nbsp;&nbsp;<em style="font-size:12px;color:#1d4ed8;">Demo mode đang dùng cấu hình <strong>travelmate.demo-mode</strong> để có thể mô phỏng chi trả trước ngày mùng 10.</em>
-                <div class="formula-box">
-                    <strong>Công thức quyết toán cho Partner (Kỳ tháng trước: 01 → cuối tháng):</strong><br/>
-                    Số tiền chuyển khoản cho Partner = Tiền TravelMate thu online − Hoa hồng nền tảng − Voucher partner chịu<br/>
-                    <span style="font-size:12px;color:#374151;">
-                        &nbsp;&nbsp;▸ <strong>Tiền TravelMate thu online</strong>: Số tiền đã thu qua hệ thống (booking COMPLETED hoặc NO_SHOW giữ cọc).<br/>
-                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;• FULL_PAYMENT: 100% tổng giá trị booking<br/>
-                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;• DEPOSIT_30: chỉ 30% cọc online (70% khách trả tại cơ sở không tính vào đây)<br/>
-                        &nbsp;&nbsp;▸ <strong>Commission nền tảng</strong>: Tỷ lệ commission &times; Số tiền TravelMate thu online<br/>
-                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Tỷ lệ mặc định: Khách sạn 15% · Biệt thự 12% · Homestay 10% · Resort 18%<br/>
-                        &nbsp;&nbsp;▸ <strong>Voucher partner chịu</strong>: Giảm giá từ voucher do partner tự tạo (trừ vào payout)<br/>
-                        &nbsp;&nbsp;▸ <strong>Voucher admin chịu</strong>: Giảm giá từ voucher admin tạo (KHÔNG trừ vào payout partner)<br/>
-                        &nbsp;&nbsp;▸ <strong>DIRECT / MANUAL_BLOCK</strong>: Không phát sinh payment online — không tính doanh thu &amp; không quyết toán<br/>
+            <details class="flow-info">
+                <summary class="policy-banner__summary">
+                    <span class="policy-banner__summary-content" style="color: #1e40af; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-circle-info"></i>
+                        Quy trình &amp; Công thức quyết toán hàng tháng (Nhấn để xem chi tiết)
                     </span>
+                </summary>
+                <div style="margin-top: 10px; border-top: 1px dashed #bfdbfe; padding-top: 10px;">
+                    <strong>📌 Quy trình quyết toán hàng tháng:</strong><br/>
+                    1. <strong>Đầu mỗi tháng</strong>, Admin bấm <strong>"Tạo quyết toán tháng trước"</strong>
+                       → Hệ thống gom toàn bộ booking đủ điều kiện từ <strong>ngày 01 đến cuối tháng trước</strong> cho từng partner → Tạo bản ghi PENDING.<br/>
+                    2. Ngày chi trả dự kiến là <strong>mùng 10 của tháng hiện tại</strong>. Khi Admin bấm <strong>"Xác nhận đã chuyển khoản"</strong>, hệ thống chuyển settlement sang PAID và <strong>cộng payout vào ví quyết toán đối tác</strong>.<br/>
+                    3. Đối tác có thể gửi yêu cầu rút tiền từ ví; Admin xử lý chuyển khoản ngoài hệ thống tại trang <strong>Yêu cầu rút tiền</strong>.<br/>
+                    &nbsp;&nbsp;<em style="font-size:12px;color:#6b7280;">⚠️ Mỗi partner + mỗi kỳ tháng = 1 settlement duy nhất. Bấm lại sẽ không tạo trùng.</em><br/>
+                    &nbsp;&nbsp;<em style="font-size:12px;color:#6b7280;">⚠️ Booking <strong>COMPLETED</strong> hoặc đơn cọc bị giữ do <strong>hủy/no-show</strong> mới đủ điều kiện quyết toán.</em>
+                    <br/>&nbsp;&nbsp;<em style="font-size:12px;color:#1d4ed8;">Môi trường local đang dùng cấu hình <strong>travelmate.demo-mode</strong> để có thể mô phỏng chi trả trước ngày mùng 10.</em>
+                    <div class="formula-box">
+                        <strong>Công thức quyết toán cho đối tác (Kỳ tháng trước: 01 → cuối tháng):</strong><br/>
+                        Số tiền chuyển khoản cho đối tác = Tiền TravelMate thu online − Hoa hồng nền tảng − Voucher đối tác chịu<br/>
+                        <span style="font-size:12px;color:#374151;">
+                            &nbsp;&nbsp;▸ <strong>Tiền TravelMate thu online</strong>: Số tiền đã thu qua hệ thống (booking hoàn tất hoặc cọc bị giữ do hủy/no-show).<br/>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;• FULL_PAYMENT: 100% tổng giá trị booking<br/>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;• DEPOSIT_30: TravelMate giữ 30% cọc online; 70% tại cơ sở không nằm trong khoản chuyển<br/>
+                            &nbsp;&nbsp;▸ <strong>Commission nền tảng</strong>: chỉ tính trên tiền đã thu online; đơn cọc 30% tính trên cọc online, kể cả khi hoàn tất hoặc bị giữ do hủy/no-show; tỷ lệ dùng snapshot lúc đặt<br/>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Tỷ lệ mặc định: Khách sạn 15% · Biệt thự 12% · Homestay 10% · Resort 18%<br/>
+                            &nbsp;&nbsp;▸ <strong>Voucher đối tác chịu</strong>: Voucher do Admin phát hành cho kho đối tác, khi đối tác gắn vào phòng/căn thì phần giảm giá được trừ vào payout<br/>
+                            &nbsp;&nbsp;▸ <strong>Voucher admin chịu</strong>: Voucher do TravelMate chịu chi phí, KHÔNG trừ vào payout partner<br/>
+                            &nbsp;&nbsp;▸ <strong>DIRECT / MANUAL_BLOCK</strong>: Không phát sinh payment online — không tính doanh thu &amp; không quyết toán<br/>
+                        </span>
+                    </div>
                 </div>
-            </div>
+            </details>
 
             <!-- KPI -->
             <div class="set-kpi-grid">
@@ -168,61 +283,75 @@
                     <table class="set-table">
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Partner</th>
-                                <th>Kỳ quyết toán</th>
-                                <th>Tiền TravelMate thu online (đ)</th>
-                                <th>Commission nền tảng (đ)</th>
-                                <th>Voucher partner chịu (đ)</th>
-                                <th>Thanh toán cho Partner (đ)</th>
-                                <th>Ngày chi trả dự kiến</th>
-                                <th>Trạng thái</th>
-                                <th>Ngày chuyển khoản</th>
-                                <th>Ghi chú</th>
-                                <th>Hành động</th>
+                                <th style="width: 35px;">#</th>
+                                <th style="width: 230px;">Đối tác / Ngân hàng</th>
+                                <th style="width: 100px;">Kỳ quyết toán</th>
+                                <th style="width: 110px;" class="text-right">Thu online<br/>(đ)</th>
+                                <th style="width: 100px;" class="text-right">Commission<br/>(đ)</th>
+                                <th style="width: 90px;" class="text-right">Voucher<br/>PT (đ)</th>
+                                <th style="width: 115px;" class="text-right">Thanh toán<br/>partner (đ)</th>
+                                <th style="width: 100px;">Hạn chi trả</th>
+                                <th style="width: 120px;">Trạng thái</th>
+                                <th style="width: 90px;">Ngày chuyển</th>
+                                <th style="width: 210px;">Ghi chú</th>
+                                <th style="width: 150px;">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr th:each="s, stat : ${settlements}">
                                 <td th:text="${stat.index + 1}">1</td>
                                 <td>
-                                    <strong th:text="${s.partner.name}">Partner</strong>
-                                    <div style="font-size:11px;color:#6b7280;"
-                                         th:text="${s.partner.partnerPropertyType != null ? s.partner.partnerPropertyType.name() : ''}">HOTEL</div>
-                                    <!-- Thông tin ngân hàng -->
-                                    <div th:if="${s.partner.bankName != null}" style="margin-top:4px;font-size:11px;color:#374151;background:#f0f9ff;border-radius:5px;padding:3px 7px;display:inline-block;">
-                                        🏦 <span th:text="${s.partner.bankName}">Bank</span>
-                                        <span th:if="${s.partner.bankAccountNumber != null}">
-                                            – <span th:text="${s.partner.bankAccountNumber}">0123</span>
-                                        </span>
-                                        <span th:if="${s.partner.bankAccountHolder != null}">
-                                            (<span th:text="${s.partner.bankAccountHolder}">Holder</span>)
-                                        </span>
+                                    <div class="col-set-partner">
+                                        <strong th:text="${s.partner.name}">Đối tác</strong>
+                                        <div style="font-size:11.5px;color:#6b7280;margin:2px 0;"
+                                             th:text="${s.partner.partnerPropertyType != null ? s.partner.partnerPropertyType.name() : ''}">HOTEL</div>
+                                        <!-- Thông tin ngân hàng -->
+                                        <div th:if="${s.partner.bankName != null}"
+                                             class="bank-info-box"
+                                             th:data-partner="${s.partner.name}"
+                                             th:data-bank="${s.partner.bankName}"
+                                             th:data-account="${s.partner.bankAccountNumber}"
+                                             th:data-holder="${s.partner.bankAccountHolder}"
+                                             onclick="showBankDetailModal(this)"
+                                             title="Nhấn để xem chi tiết & sao chép">
+                                            🏦 <span th:text="${s.partner.bankName}">Bank</span><br/>
+                                            <span th:if="${s.partner.bankAccountNumber != null}" style="font-weight:600;font-family:monospace;font-size:11px;">
+                                                Số TK: <span th:text="${s.partner.bankAccountNumber}">0123</span>
+                                            </span>
+                                            <span th:if="${s.partner.bankAccountHolder != null}" style="display:block;color:#475569;font-size:10.5px;">
+                                                Chủ TK: <span th:text="${s.partner.bankAccountHolder}">Holder</span>
+                                            </span>
+                                        </div>
+                                        <div th:if="${s.partner.bankName == null}" style="font-size:11px;color:#f59e0b;margin-top:3px;">⚠️ Chưa có ngân hàng</div>
                                     </div>
-                                    <div th:if="${s.partner.bankName == null}" style="font-size:11px;color:#f59e0b;margin-top:3px;">⚠️ Chưa có TT ngân hàng</div>
                                 </td>
-                                <td style="white-space:nowrap;">
-                                    <span th:text="${#temporals.format(s.periodStart,'dd/MM/yyyy')}">01/01</span>
-                                    <span> – </span>
-                                    <span th:text="${#temporals.format(s.periodEnd,'dd/MM/yyyy')}">07/01</span>
+                                <td style="white-space:nowrap; line-height:1.35; font-size:13px;">
+                                    <span th:text="${#temporals.format(s.periodStart,'dd/MM/yyyy')}">01/01</span><br/>
+                                    <span style="color:#94a3b8; font-size:11px;">đến</span> <span th:text="${#temporals.format(s.periodEnd,'dd/MM/yyyy')}">07/01</span>
                                 </td>
-                                <td th:text="${#numbers.formatDecimal(s.grossAmount,0,'COMMA',0,'POINT')}">0</td>
-                                <td th:text="${#numbers.formatDecimal(s.commissionAmount,0,'COMMA',0,'POINT')}">0</td>
-                                <td th:text="${#numbers.formatDecimal(s.voucherDeductionAmount,0,'COMMA',0,'POINT')}">0</td>
-                                <td style="font-weight:700;color:#1d4ed8;"
+                                <td class="text-right" style="font-weight:600;" th:text="${#numbers.formatDecimal(s.grossAmount,0,'COMMA',0,'POINT')}">0</td>
+                                <td class="text-right" th:text="${#numbers.formatDecimal(s.commissionAmount,0,'COMMA',0,'POINT')}">0</td>
+                                <td class="text-right" th:text="${#numbers.formatDecimal(s.voucherDeductionAmount,0,'COMMA',0,'POINT')}">0</td>
+                                <td class="text-right" style="font-weight:700;color:#1d4ed8;"
                                     th:text="${#numbers.formatDecimal(s.payoutAmount,0,'COMMA',0,'POINT')}">0</td>
-                                <td style="white-space:nowrap;font-size:12px;color:#1d4ed8;font-weight:700;"
+                                <td style="white-space:nowrap;font-size:13px;color:#1d4ed8;font-weight:700;"
                                     th:text="${s.scheduledPayoutDate != null ? #temporals.format(s.scheduledPayoutDate,'dd/MM/yyyy') : '—'}">—</td>
                                 <td>
-                                    <span class="badge-pending" th:if="${s.settlementStatus.name() == 'PENDING'}">⏳ Chờ chuyển khoản</span>
-                                    <span class="badge-paid"    th:if="${s.settlementStatus.name() == 'PAID'}">✅ Đã chuyển khoản</span>
+                                    <span class="badge-pending" style="font-size: 11.5px;" th:if="${s.settlementStatus.name() == 'PENDING'}">⏳ Chờ chi trả</span>
+                                    <span class="badge-paid"    style="font-size: 11.5px;" th:if="${s.settlementStatus.name() == 'PAID'}">✅ Đã chi trả</span>
                                 </td>
-                                <td style="font-size:12px;color:#6b7280;"
-                                    th:text="${s.settlementDate != null ? #temporals.format(s.settlementDate,'dd/MM/yyyy HH:mm') : '—'}">—</td>
-                                <td style="font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;"
-                                    th:text="${s.note != null ? s.note : '—'}">—</td>
+                                <td style="font-size:13px;color:#6b7280;line-height:1.35;">
+                                    <div th:if="${s.settlementDate != null}">
+                                        <span th:text="${#temporals.format(s.settlementDate,'dd/MM/yyyy')}">10/05/2026</span><br/>
+                                        <span style="font-size:10.5px;color:#94a3b8;" th:text="${#temporals.format(s.settlementDate,'HH:mm')}">09:15</span>
+                                    </div>
+                                    <span th:if="${s.settlementDate == null}">—</span>
+                                </td>
                                 <td>
-                                    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                                    <div class="col-set-note" th:text="${s.note != null ? s.note : '—'}">—</div>
+                                </td>
+                                <td>
+                                    <div class="col-set-actions">
                                         <a th:href="@{'/admin/settlements/' + ${s.id}}"
                                            style="background:#6b7280;color:#fff;border-radius:7px;padding:5px 12px;font-size:12px;font-weight:600;text-decoration:none;">
                                             🔍 Chi tiết
@@ -253,7 +382,7 @@
     <div style="background:#fff;border-radius:18px;width:min(480px,100%);box-shadow:0 24px 64px rgba(0,0,0,.22);overflow:hidden;">
         <div style="padding:22px 28px 16px;border-bottom:1px solid #f1f5f9;background:linear-gradient(135deg,#f0fdf4,#ecfdf5);">
             <h3 style="margin:0 0 4px;font-size:17px;font-weight:800;color:#0f172a;">✅ Xác nhận chi trả quyết toán</h3>
-            <p style="margin:0;font-size:13px;color:#64748b;">Settlement sẽ chuyển PAID và payout được cộng vào ví quyết toán Partner.</p>
+            <p style="margin:0;font-size:13px;color:#64748b;">Settlement sẽ chuyển PAID và payout được cộng vào ví quyết toán đối tác.</p>
         </div>
         <div style="padding:20px 28px 28px;">
             <form id="form-mark-paid" method="post">
@@ -290,7 +419,89 @@
     </div>
 </div>
 
+<!-- ─── Modal: Chi tiết tài khoản ngân hàng ─── -->
+<div id="modal-bank-detail" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);z-index:1010;align-items:center;justify-content:center;padding:16px;">
+    <div style="background:#fff;border-radius:18px;width:min(440px,100%);box-shadow:0 24px 64px rgba(0,0,0,.22);overflow:hidden;animation: modalFadeIn 0.25s ease;">
+        <div style="padding:22px 28px 16px;border-bottom:1px solid #f1f5f9;background:linear-gradient(135deg,#eff6ff,#dbeafe);">
+            <h3 style="margin:0 0 4px;font-size:17px;font-weight:800;color:#1e3a8a;">🏦 Thông tin tài khoản đối tác</h3>
+            <p style="margin:0;font-size:12.5px;color:#64748b;">Chi tiết tài khoản nhận quyết toán của partner.</p>
+        </div>
+        <div style="padding:24px 28px 28px;">
+            <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:24px;">
+                <div>
+                    <span style="font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Đối tác</span>
+                    <div id="bank-modal-partner" style="font-size:16px;font-weight:700;color:#0f172a;margin-top:2px;">—</div>
+                </div>
+                <div>
+                    <span style="font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Ngân hàng</span>
+                    <div id="bank-modal-name" style="font-size:15px;font-weight:700;color:#1e3a8a;margin-top:2px;">—</div>
+                </div>
+                <div>
+                    <span style="font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Số tài khoản</span>
+                    <div style="display:flex;align-items:center;justify-content:space-between;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:8px 14px;margin-top:4px;">
+                        <span id="bank-modal-account" style="font-size:18px;font-weight:800;font-family:monospace;color:#0f172a;letter-spacing:0.5px;">—</span>
+                        <button type="button" id="btn-copy-account" onclick="copyBankAccount()"
+                                style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s ease;">
+                            <i class="fa-solid fa-copy"></i> Sao chép
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <span style="font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Chủ tài khoản</span>
+                    <div id="bank-modal-holder" style="font-size:15px;font-weight:700;color:#475569;margin-top:2px;text-transform:uppercase;">—</div>
+                </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;">
+                <button type="button" onclick="closeBankModal()"
+                        style="padding:10px 24px;border-radius:10px;border:1.5px solid #e2e8f0;background:#f8fafc;color:#475569;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.15s ease;">
+                    Đóng lại
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+    function showBankDetailModal(el) {
+        const partner = el.getAttribute('data-partner') || '';
+        const bank = el.getAttribute('data-bank') || '';
+        const account = el.getAttribute('data-account') || '';
+        const holder = el.getAttribute('data-holder') || '';
+        
+        document.getElementById('bank-modal-partner').innerText = partner;
+        document.getElementById('bank-modal-name').innerText = bank;
+        document.getElementById('bank-modal-account').innerText = account;
+        document.getElementById('bank-modal-holder').innerText = holder;
+        
+        // Reset copy button
+        const copyBtn = document.getElementById('btn-copy-account');
+        copyBtn.innerHTML = '<i class="fa-solid fa-copy"></i> Sao chép';
+        copyBtn.style.background = '#2563eb';
+        
+        document.getElementById('modal-bank-detail').style.display = 'flex';
+    }
+    
+    function closeBankModal() {
+        document.getElementById('modal-bank-detail').style.display = 'none';
+    }
+    
+    function copyBankAccount() {
+        const account = document.getElementById('bank-modal-account').innerText;
+        if (account && account !== '—') {
+            navigator.clipboard.writeText(account).then(() => {
+                const copyBtn = document.getElementById('btn-copy-account');
+                copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Đã sao chép!';
+                copyBtn.style.background = '#16a34a';
+            }).catch(err => {
+                console.error('Không thể sao chép: ', err);
+            });
+        }
+    }
+    
+    document.getElementById('modal-bank-detail').addEventListener('click', function(e) {
+        if (e.target === this) closeBankModal();
+    });
+
     function openPayModal(id) {
         const modal = document.getElementById('modal-mark-paid');
         const form  = document.getElementById('form-mark-paid');

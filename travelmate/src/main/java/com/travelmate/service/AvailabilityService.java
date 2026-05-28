@@ -55,6 +55,23 @@ public class AvailabilityService {
         this.roomRepository = roomRepository;
     }
 
+    private boolean isManagedByPartner(Accommodation accommodation, User partner) {
+        if (accommodation == null || partner == null || partner.getId() == null) {
+            return false;
+        }
+        if (partner.getPartnerPropertyType() == null || accommodation.getPropertyType() == null) {
+            return false;
+        }
+        return accommodation.getOwner() != null
+                && accommodation.getOwner().getId() != null
+                && accommodation.getOwner().getId().equals(partner.getId())
+                && accommodation.getPropertyType() == partner.getPartnerPropertyType();
+    }
+
+    private boolean isRoomOpenForOnlineBooking(Room room) {
+        return room != null && !Boolean.FALSE.equals(room.getAvailableForBooking());
+    }
+
     /**
      * Kiểm tra tình trạng phòng toàn hệ thống — dùng cho Admin.
      *
@@ -83,11 +100,15 @@ public class AvailabilityService {
             User partner, LocalDate checkIn, LocalDate checkOut) {
 
         List<Accommodation> partnerAccommodations =
-                accommodationRepository.findByOwnerAndApprovalStatus(partner, ApprovalStatus.APPROVED);
+                accommodationRepository.findByOwnerAndApprovalStatus(partner, ApprovalStatus.APPROVED)
+                        .stream()
+                        .filter(acc -> isManagedByPartner(acc, partner))
+                        .collect(Collectors.toList());
 
         List<Room> rooms = partnerAccommodations.stream()
                 .flatMap(acc -> acc.getRooms().stream()
-                        .filter(r -> r.getApprovalStatus() == ApprovalStatus.APPROVED))
+                        .filter(r -> r.getApprovalStatus() == ApprovalStatus.APPROVED)
+                        .filter(this::isRoomOpenForOnlineBooking))
                 .collect(Collectors.toList());
 
         return buildAvailabilityList(rooms, checkIn, checkOut);
@@ -103,7 +124,10 @@ public class AvailabilityService {
     public List<RoomAvailabilityDto> checkAvailabilityForAccommodation(
             Accommodation accommodation, LocalDate checkIn, LocalDate checkOut) {
         List<Room> rooms = roomRepository.findByAccommodationAndApprovalStatus(
-                accommodation, ApprovalStatus.APPROVED);
+                accommodation, ApprovalStatus.APPROVED)
+                .stream()
+                .filter(this::isRoomOpenForOnlineBooking)
+                .toList();
         return buildAvailabilityList(rooms, checkIn, checkOut);
     }
 
@@ -111,6 +135,9 @@ public class AvailabilityService {
      * Tính tình trạng phòng cho một room cụ thể — dùng cho User booking form.
      */
     public RoomAvailabilityDto checkSingleRoom(Room room, LocalDate checkIn, LocalDate checkOut) {
+        if (!isRoomOpenForOnlineBooking(room)) {
+            return null;
+        }
         List<Room> single = List.of(room);
         List<RoomAvailabilityDto> result = buildAvailabilityList(single, checkIn, checkOut);
         return result.isEmpty() ? null : result.get(0);
@@ -254,7 +281,10 @@ public class AvailabilityService {
         LocalDate tomorrow = today.plusDays(1);
 
         List<Accommodation> partnerAccommodations =
-                accommodationRepository.findByOwnerAndApprovalStatus(partner, ApprovalStatus.APPROVED);
+                accommodationRepository.findByOwnerAndApprovalStatus(partner, ApprovalStatus.APPROVED)
+                        .stream()
+                        .filter(acc -> isManagedByPartner(acc, partner))
+                        .collect(Collectors.toList());
 
         List<Room> rooms = partnerAccommodations.stream()
                 .flatMap(acc -> acc.getRooms().stream()
@@ -298,14 +328,17 @@ public class AvailabilityService {
                     .mapToInt(Booking::getRoomQuantity).sum();
 
             // freeToday = quota - heldOnline - checkedInOnline - directOccupied - blocked
-            int freeToday = Math.max(0, platformQty - heldOnline - checkedIn - directOccupied - blocked);
+            boolean openForBooking = isRoomOpenForOnlineBooking(room);
+            int freeToday = openForBooking
+                    ? Math.max(0, platformQty - heldOnline - checkedIn - directOccupied - blocked)
+                    : 0;
 
             result.add(new RoomStatusDto(
                     room.getId(), room.getRoomCode(), room.getRoomName(),
                     room.getAccommodation().getId(), room.getAccommodation().getName(),
                     room.getAccommodation().getPropertyType() != null
                             ? room.getAccommodation().getPropertyType().name() : "HOTEL",
-                    platformQty, heldOnline, checkedIn, directOccupied, blocked, freeToday,
+                    platformQty, heldOnline, checkedIn, directOccupied, blocked, freeToday, openForBooking,
                     room.getPricePerNight()
             ));
         }
@@ -333,12 +366,13 @@ public class AvailabilityService {
         public final int directOccupied;
         public final int blocked;
         public final int freeToday;
+        public final boolean availableForBooking;
         public final java.math.BigDecimal pricePerNight;
 
         public RoomStatusDto(Long roomId, String roomCode, String roomName,
                              Long accommodationId, String accommodationName, String propertyType,
                              int platformQuantity, int heldOnline, int checkedIn,
-                             int directOccupied, int blocked, int freeToday,
+                             int directOccupied, int blocked, int freeToday, boolean availableForBooking,
                              java.math.BigDecimal pricePerNight) {
             this.roomId = roomId;
             this.roomCode = roomCode;
@@ -352,10 +386,12 @@ public class AvailabilityService {
             this.directOccupied = directOccupied;
             this.blocked = blocked;
             this.freeToday = freeToday;
+            this.availableForBooking = availableForBooking;
             this.pricePerNight = pricePerNight;
         }
 
         public String getStatusLabel() {
+            if (!availableForBooking) return "STOPPED";
             if (freeToday == 0) return "FULL";
             if (freeToday <= Math.ceil(platformQuantity * 0.3)) return "LIMITED";
             return "AVAILABLE";

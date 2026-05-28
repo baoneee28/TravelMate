@@ -1,5 +1,6 @@
 package com.travelmate.service;
 
+import com.travelmate.config.VnpayConfigProperties;
 import com.travelmate.entity.*;
 import com.travelmate.entity.enums.*;
 import com.travelmate.entity.enums.BookingSource;
@@ -24,7 +25,7 @@ import java.util.List;
  *
  * Chức năng:
  *   1. Tính tiền booking (số đêm × giá × số phòng)
- *   2. Tạo booking + payment demo
+ *   2. Tạo booking + payment VNPAY
  *   3. Sinh booking code: BK-<roomCode>-<sequence>
  *   4. Lấy danh sách booking của user
  */
@@ -38,19 +39,25 @@ public class BookingService {
     private final AccommodationRepository accommodationRepository;
     private final VoucherService voucherService;
     private final NotificationService notificationService;
+    private final CommissionService commissionService;
+    private final VnpayConfigProperties vnpayConfig;
 
     public BookingService(BookingRepository bookingRepository,
                           PaymentRepository paymentRepository,
                           RoomRepository roomRepository,
                           AccommodationRepository accommodationRepository,
                           VoucherService voucherService,
-                          NotificationService notificationService) {
+                          NotificationService notificationService,
+                          CommissionService commissionService,
+                          VnpayConfigProperties vnpayConfig) {
         this.bookingRepository = bookingRepository;
         this.paymentRepository = paymentRepository;
         this.roomRepository = roomRepository;
         this.accommodationRepository = accommodationRepository;
         this.voucherService = voucherService;
         this.notificationService = notificationService;
+        this.commissionService = commissionService;
+        this.vnpayConfig = vnpayConfig;
     }
 
     /**
@@ -104,14 +111,14 @@ public class BookingService {
     }
 
     /**
-     * Tạo booking + payment demo.
+     * Tạo booking + payment VNPAY.
      *
      * Luồng:
      *   1. Validate room còn đủ phòng
      *   2. Tính tiền
      *   3. Sinh booking code
-     *   4. Tạo Booking (status = PENDING_ADMIN_APPROVAL)
-     *   5. Tạo Payment demo (status = SUBMITTED)
+     *   4. Tạo Booking (status = PENDING_PAYMENT)
+     *   5. Tạo Payment VNPAY (status = PENDING_PAYMENT)
      *   6. Giảm availableQuantity của room
      *
      * @return Booking vừa tạo
@@ -128,15 +135,15 @@ public class BookingService {
     }
 
     /**
-     * Tạo booking + payment demo (hỗ trợ voucher).
+     * Tạo booking + payment VNPAY (hỗ trợ voucher).
      *
      * Luồng:
      *   1. Validate ngày nhận/trả phòng
      *   2. Validate voucher (nếu có) và tính giảm giá
      *   3. Tính tiền (sau giảm)
      *   4. Sinh booking code
-     *   5. Tạo Booking (status = PENDING_ADMIN_APPROVAL)
-     *   6. Tạo Payment demo
+     *   5. Tạo Booking (status = PENDING_PAYMENT)
+     *   6. Tạo Payment chờ kết quả VNPAY
      *   7. Giảm availableQuantity của room
      *
      * @param voucherCode Mã voucher user nhập (có thể null)
@@ -149,31 +156,34 @@ public class BookingService {
                                   int adults, int children, int roomQuantity,
                                   PaymentOption paymentOption, String voucherCode) {
 
+        String unitLabel = unitLabelFor(room);
+        String unitLabelCap = unitLabelCapFor(room);
+
         // === 0. Validate ngày nhận/trả phòng ===
         // checkIn và checkOut không được null
         if (checkIn == null || checkOut == null) {
-            throw new RuntimeException("Vui lòng chọn ngày nhận và trả phòng!");
+            throw new RuntimeException("Vui lòng chọn ngày nhận và trả " + unitLabel + "!");
         }
         // checkOut phải sau checkIn
         if (!checkOut.isAfter(checkIn)) {
-            throw new RuntimeException("Ngày trả phòng phải sau ngày nhận phòng!");
+            throw new RuntimeException("Ngày trả " + unitLabel + " phải sau ngày nhận " + unitLabel + "!");
         }
         // checkIn không được là ngày trong quá khứ
         if (checkIn.isBefore(LocalDate.now())) {
-            throw new RuntimeException("Ngày nhận phòng không được nhỏ hơn ngày hiện tại!");
+            throw new RuntimeException("Ngày nhận " + unitLabel + " không được nhỏ hơn ngày hiện tại!");
         }
 
         // === 0.0a. Validate số phòng ===
         if (roomQuantity < 1) {
-            throw new RuntimeException("Số phòng đặt phải ít nhất là 1!");
+            throw new RuntimeException("Số " + unitLabel + " đặt phải ít nhất là 1!");
         }
         if (roomQuantity > 20) {
-            throw new RuntimeException("Số phòng đặt không vượt quá 20 phòng mỗi lần!");
+            throw new RuntimeException("Số " + unitLabel + " đặt không vượt quá 20 " + unitLabel + " mỗi lần!");
         }
 
         // === 0.0b. Validate số người ===
         if (adults < 1) {
-            throw new RuntimeException("Cần ít nhất 1 người lớn khi đặt phòng!");
+            throw new RuntimeException("Cần ít nhất 1 người lớn khi đặt " + unitLabel + "!");
         }
         if (children < 0) {
             throw new RuntimeException("Số trẻ em không được âm!");
@@ -201,12 +211,12 @@ public class BookingService {
         // === 0.1. Validate accommodation phải được duyệt (APPROVED) ===
         // Tránh trường hợp user hack URL đặt phòng ở listing chưa duyệt
         if (accommodation.getApprovalStatus() != ApprovalStatus.APPROVED) {
-            throw new RuntimeException("Nơi lưu trú này chưa được duyệt để đặt phòng!");
+            throw new RuntimeException("Nơi lưu trú này chưa được duyệt để đặt!");
         }
 
         // === 0.1b. Validate room phải được duyệt (APPROVED) ===
         if (room.getApprovalStatus() != ApprovalStatus.APPROVED) {
-            throw new RuntimeException("Phòng này chưa được Admin duyệt. Vui lòng chọn phòng khác!");
+            throw new RuntimeException(unitLabelCap + " này chưa được Admin duyệt. Vui lòng chọn " + unitLabel + " khác!");
         }
 
         // === 0.1c. Validate partner (owner) phải đang ACTIVE ===
@@ -220,7 +230,7 @@ public class BookingService {
         // Ngăn user can thiệp URL để đặt phòng của accommodation khác
         if (room.getAccommodation() == null ||
             !room.getAccommodation().getId().equals(accommodation.getId())) {
-            throw new RuntimeException("Phòng này không thuộc nơi lưu trú đã chọn. Vui lòng đặt lại!");
+            throw new RuntimeException(unitLabelCap + " này không thuộc nơi lưu trú đã chọn. Vui lòng đặt lại!");
         }
 
         // === 0.2. Validate sức chứa phòng ===
@@ -229,15 +239,18 @@ public class BookingService {
         int maxGuests = room.getCapacity() * roomQuantity;
         if (totalGuests > maxGuests) {
             throw new RuntimeException(
-                "Số khách vượt quá sức chứa của phòng! " +
-                "Tối đa " + maxGuests + " khách cho " + roomQuantity + " phòng."
+                "Số khách vượt quá sức chứa của " + unitLabel + "! " +
+                "Tối đa " + maxGuests + " khách cho " + roomQuantity + " " + unitLabel + "."
             );
         }
 
         // === 1. Validate phòng còn đủ theo khoảng ngày yêu cầu (anti-overbooking) ===
         // Dùng PESSIMISTIC_WRITE lock để chặn 2 request cùng lúc vào cùng 1 phòng
+        String missingUnitLabelCap = unitLabelCap;
         room = roomRepository.findByIdForUpdate(room.getId())
-                .orElseThrow(() -> new RuntimeException("Phòng không tồn tại!"));
+                .orElseThrow(() -> new RuntimeException(missingUnitLabelCap + " không tồn tại!"));
+        unitLabel = unitLabelFor(room);
+        unitLabelCap = unitLabelCapFor(room);
 
         List<BookingStatus> occupyStatuses = List.of(
                 BookingStatus.PENDING_PAYMENT,        // đang giữ phòng tạm khi user thanh toán VNPAY
@@ -257,14 +270,14 @@ public class BookingService {
             String coStr = checkOut.format(fmt);
             if (availableForRange <= 0) {
                 throw new RuntimeException(
-                    "⚠️ Rất tiếc! Phòng \"" + room.getRoomName() + "\" vừa hết chỗ cho khoảng ngày "
+                    "⚠️ Rất tiếc! " + unitLabelCap + " \"" + room.getRoomName() + "\" vừa hết chỗ cho khoảng ngày "
                     + ciStr + " → " + coStr
-                    + ". Vui lòng chọn ngày khác hoặc chọn phòng khác!");
+                    + ". Vui lòng chọn ngày khác hoặc chọn " + unitLabel + " khác!");
             } else {
                 throw new RuntimeException(
-                    "⚠️ Phòng \"" + room.getRoomName() + "\" chỉ còn " + availableForRange
-                    + " phòng trống cho khoảng ngày " + ciStr + " → " + coStr
-                    + ". Bạn đang yêu cầu " + roomQuantity + " phòng — vui lòng giảm số phòng hoặc chọn ngày khác!");
+                    "⚠️ " + unitLabelCap + " \"" + room.getRoomName() + "\" chỉ còn " + availableForRange
+                    + " " + unitLabel + " trống cho khoảng ngày " + ciStr + " → " + coStr
+                    + ". Bạn đang yêu cầu " + roomQuantity + " " + unitLabel + " — vui lòng giảm số lượng hoặc chọn ngày khác!");
             }
         }
 
@@ -332,8 +345,10 @@ public class BookingService {
         booking.setBookingStatus(BookingStatus.PENDING_PAYMENT);
         booking.setPaymentStatus(PaymentStatus.PENDING_PAYMENT);
         booking.setBookingSource(BookingSource.ONLINE);
-        // Phòng được giữ tạm 15 phút — Scheduler sẽ hủy nếu user không thanh toán
-        booking.setExpireAt(LocalDateTime.now().plusMinutes(15));
+        captureFinancialSnapshot(booking, false);
+        // Phòng được giữ tạm theo cấu hình VNPAY, mặc định 3 phút để dễ quan sát trong môi trường local.
+        int holdMinutes = Math.max(1, vnpayConfig.getExpireMinutes());
+        booking.setExpireAt(LocalDateTime.now().plusMinutes(holdMinutes));
         // Với cọc 30%: phần còn lại chưa thu → UNPAID
         // Với thanh toán 100%: không cần thu thêm → NOT_REQUIRED
         booking.setRemainingPaymentStatus(
@@ -373,9 +388,9 @@ public class BookingService {
 
         // === 6. Giảm số phòng trống ===
         // ⚠️ ĐƠN GIẢN HÓA CHO ĐỒ ÁN:
-        // Giảm availableQuantity ngay sau khi user xác nhận thanh toán demo.
+        // Giảm availableQuantity ngay sau khi user xác nhận thanh toán.
         // Trong production thực tế cần cơ chế reserve/lock phức tạp hơn,
-        // ví dụ: chỉ giảm sau khi admin duyệt, hoặc dùng "hold" tạm 15 phút.
+        // ví dụ: chỉ giảm sau khi thanh toán được ghi nhận, hoặc dùng "hold" tạm thời.
         room.setAvailableQuantity(room.getAvailableQuantity() - roomQuantity);
         roomRepository.save(room);
 
@@ -393,9 +408,10 @@ public class BookingService {
      * Hủy đặt phòng — chỉ user sở hữu booking mới được hủy.
      *
      * Rule:
-     *   - Chỉ hủy được nếu status đang PENDING_ADMIN_APPROVAL
-     *   - A1: Trả lại availableQuantity cho room
-     *   - A2: Set PaymentStatus = CANCELLED (cả booking lẫn payment entity)
+     *   - FULL_PAYMENT da thanh toan: cho hoan 70%, giu 30% phi huy.
+     *   - DEPOSIT_30 da thanh toan: mat toan bo tien coc, khong hoan.
+     *   - Don chua thanh toan: huy truc tiep, khong phat sinh hoan tien.
+     *   - Moi truong hop huy truoc check-in deu mo lai quota.
      */
     @Transactional
     public Booking cancelBooking(Long bookingId, User user) {
@@ -415,11 +431,18 @@ public class BookingService {
         if (booking.getBookingStatus() != BookingStatus.PENDING_ADMIN_APPROVAL
                 && booking.getBookingStatus() != BookingStatus.PENDING_PAYMENT
                 && booking.getBookingStatus() != BookingStatus.CONFIRMED) {
-            throw new RuntimeException("Chỉ có thể hủy đơn đang chờ thanh toán, chờ TravelMate xác nhận, hoặc đã xác nhận (chưa check-in)!");
+            throw new RuntimeException("Chỉ có thể hủy đơn đang chờ thanh toán, cần đối soát, hoặc đã thanh toán (chưa check-in)!");
         }
 
-        // Capture trạng thái gốc trước khi hủy
-        boolean alreadyPaid = booking.getBookingStatus() == BookingStatus.PENDING_ADMIN_APPROVAL;
+        Payment payment = paymentRepository.findByBooking(booking).orElse(null);
+        boolean exceptionalReview = booking.getPaymentStatus() == PaymentStatus.PENDING_ADMIN_APPROVAL;
+        boolean alreadyPaid = booking.getPaymentStatus() == PaymentStatus.APPROVED
+                || exceptionalReview
+                || booking.getPaymentStatus() == PaymentStatus.DEPOSIT_FORFEITED
+                || booking.getBookingStatus() == BookingStatus.CONFIRMED
+                || (payment != null && (payment.getPaymentStatus() == PaymentStatus.APPROVED
+                        || payment.getPaymentStatus() == PaymentStatus.PENDING_ADMIN_APPROVAL
+                        || payment.getPaymentStatus() == PaymentStatus.DEPOSIT_FORFEITED));
 
         // A1: Trả lại số phòng trống
         Room room = booking.getRoom();
@@ -428,22 +451,45 @@ public class BookingService {
 
         booking.setBookingStatus(BookingStatus.CANCELLED);
 
-        if (alreadyPaid) {
-            // Đã thanh toán/cọc qua VNPAY → cần Admin xử lý hoàn tiền
-            booking.setPaymentStatus(PaymentStatus.REFUND_PENDING);
-            paymentRepository.findByBooking(booking).ifPresent(payment -> {
-                payment.setPaymentStatus(PaymentStatus.REFUND_PENDING);
-                payment.setNote("User hủy sau khi đã thanh toán qua VNPAY — Admin cần xử lý hoàn tiền.");
+        if (alreadyPaid && booking.getPaymentOption() == PaymentOption.DEPOSIT_30
+                && !exceptionalReview) {
+            booking.setPaymentStatus(PaymentStatus.DEPOSIT_FORFEITED);
+            booking.setRefundAmount(BigDecimal.ZERO);
+            booking.setCancellationFee(zeroIfNull(booking.getPaidAmount()));
+            captureFinancialSnapshot(booking, true);
+            appendNote(booking, "Khach huy sau khi da coc; toan bo tien coc bi giu theo chinh sach.");
+            if (payment != null) {
+                payment.setPaymentStatus(PaymentStatus.DEPOSIT_FORFEITED);
+                payment.setNote("Khach huy sau khi da coc 30%; khong hoan tien coc theo chinh sach.");
+                payment.setApprovedAt(LocalDateTime.now());
                 paymentRepository.save(payment);
-            });
+            }
+        } else if (alreadyPaid) {
+            booking.setPaymentStatus(PaymentStatus.REFUND_PENDING);
+            if (booking.getPaymentOption() == PaymentOption.FULL_PAYMENT && !exceptionalReview) {
+                BigDecimal paid = zeroIfNull(booking.getPaidAmount());
+                booking.setRefundAmount(paid.multiply(new BigDecimal("0.70")).setScale(0, RoundingMode.HALF_UP));
+                booking.setCancellationFee(paid.subtract(booking.getRefundAmount()));
+                appendNote(booking, "Khach huy don thanh toan 100%; du kien hoan 70% va giu 30% phi huy.");
+            } else {
+                booking.setRefundAmount(zeroIfNull(booking.getPaidAmount()));
+                booking.setCancellationFee(BigDecimal.ZERO);
+            }
+            if (payment != null) {
+                payment.setPaymentStatus(PaymentStatus.REFUND_PENDING);
+                payment.setNote("User huy sau khi da thanh toan qua VNPAY - TravelMate can xu ly hoan tien theo chinh sach.");
+                paymentRepository.save(payment);
+            }
         } else {
             // Chưa thanh toán qua VNPAY (PENDING_PAYMENT) → hủy thẳng
             booking.setPaymentStatus(PaymentStatus.CANCELLED);
-            paymentRepository.findByBooking(booking).ifPresent(payment -> {
+            booking.setRefundAmount(BigDecimal.ZERO);
+            booking.setCancellationFee(BigDecimal.ZERO);
+            if (payment != null) {
                 payment.setPaymentStatus(PaymentStatus.CANCELLED);
                 payment.setNote("User hủy khi chưa hoàn tất thanh toán VNPAY.");
                 paymentRepository.save(payment);
-            });
+            }
         }
 
         return bookingRepository.save(booking);
@@ -481,11 +527,11 @@ public class BookingService {
 
         paymentRepository.findByBooking(booking).ifPresent(payment -> {
             payment.setPaymentStatus(PaymentStatus.APPROVED);
-            payment.setApprovedAt(LocalDateTime.now()); // ghi lại thời điểm admin duyệt
+            payment.setApprovedAt(LocalDateTime.now()); // ghi lại thời điểm TravelMate ghi nhận
             paymentRepository.save(payment);
         });
 
-        // Gửi notification xác nhận cho user sau khi admin duyệt
+        // Gửi notification xác nhận cho user sau khi TravelMate ghi nhận
         notificationService.createBookingConfirmed(
                 booking.getUser(),
                 booking.getBookingCode(),
@@ -543,6 +589,44 @@ public class BookingService {
     }
 
     /**
+     * Admin hủy booking đang giữ phòng tạm vì khách chưa hoàn tất thanh toán VNPAY.
+     * Dùng khi cần xử lý thủ công phiên thanh toán hết hạn.
+     */
+    @Transactional
+    public Booking expirePendingPaymentByAdmin(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn đặt phòng!"));
+
+        if (booking.getBookingStatus() != BookingStatus.PENDING_PAYMENT) {
+            throw new RuntimeException("Chỉ có thể hủy giữ phòng với đơn đang chờ khách thanh toán VNPAY!");
+        }
+
+        booking.setBookingStatus(BookingStatus.CANCELLED);
+        booking.setPaymentStatus(PaymentStatus.EXPIRED);
+        booking.setExpireAt(null);
+        booking.setNote("Admin hủy giữ phòng tạm: khách chưa hoàn tất thanh toán VNPAY trong thời gian cho phép.");
+
+        paymentRepository.findByBooking(booking).ifPresent(payment -> {
+            if (payment.getPaymentStatus() == PaymentStatus.PENDING_PAYMENT) {
+                payment.setPaymentStatus(PaymentStatus.EXPIRED);
+                payment.setExpireAt(null);
+                payment.setNote("Admin hủy giữ phòng tạm do phiên thanh toán VNPAY hết hạn.");
+                paymentRepository.save(payment);
+            }
+        });
+
+        Room room = booking.getRoom();
+        if (room != null) {
+            int currentAvailable = room.getAvailableQuantity() != null ? room.getAvailableQuantity() : 0;
+            int quantityToRestore = booking.getRoomQuantity() != null ? booking.getRoomQuantity() : 1;
+            room.setAvailableQuantity(currentAvailable + quantityToRestore);
+            roomRepository.save(room);
+        }
+
+        return bookingRepository.save(booking);
+    }
+
+    /**
      * [ADMIN OVERRIDE] Admin ghi đè check-in — dùng khi Partner không thao tác được hoặc can thiệp khẩn.
      *
      * Thao tác check-in bình thường nên do PARTNER thực hiện (checkInByPartner).
@@ -567,7 +651,7 @@ public class BookingService {
         }
         if (booking.getPartnerStatus() == PartnerBookingStatus.PARTNER_CANCELLED) {
             throw new RuntimeException(
-                "❌ Partner đã hủy giữ phòng! Vui lòng xử lý hủy đơn trước khi check-in.");
+                "❌ Đối tác đã hủy giữ phòng! Vui lòng xử lý hủy đơn trước khi check-in.");
         }
 
         booking.setBookingStatus(BookingStatus.CHECKED_IN);
@@ -619,7 +703,7 @@ public class BookingService {
     /**
      * Admin đánh dấu khách không đến (mô phỏng no-show/quá hạn check-in).
      *
-     * Chỉ áp dụng với booking đang CONFIRMED (đã admin duyệt).
+     * Chỉ áp dụng với booking đang CONFIRMED (đã được ghi nhận).
      *
      * Nghiệp vụ theo paymentOption:
      *
@@ -642,7 +726,7 @@ public class BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn đặt phòng!"));
 
-        // Chỉ cho phép no-show với booking đã được admin duyệt (CONFIRMED)
+        // Chỉ cho phép no-show với booking đã được ghi nhận (CONFIRMED)
         if (booking.getBookingStatus() != BookingStatus.CONFIRMED) {
             throw new RuntimeException(
                 "Chỉ có thể đánh dấu no-show với đơn đã được duyệt (CONFIRMED)! " +
@@ -655,6 +739,9 @@ public class BookingService {
             booking.setBookingStatus(BookingStatus.NO_SHOW);
             booking.setPaymentStatus(PaymentStatus.DEPOSIT_FORFEITED);
             booking.setNote("Khách không đến check-in. Cọc 30% bị giữ lại theo chính sách.");
+            booking.setRefundAmount(BigDecimal.ZERO);
+            booking.setCancellationFee(zeroIfNull(booking.getPaidAmount()));
+            captureFinancialSnapshot(booking, true);
 
             // Cập nhật payment entity → DEPOSIT_FORFEITED
             paymentRepository.findByBooking(booking).ifPresent(payment -> {
@@ -695,10 +782,10 @@ public class BookingService {
      * Business rule:
      *   - Ownership: chỉ booking của accommodation có owner = partner
      *   - Status filter: KHÔNG hiển thị PENDING_ADMIN_APPROVAL
-     *   - Partner chỉ thấy booking SAU KHI admin đã duyệt/xử lý
+     *   - Đối tác chỉ thấy booking SAU KHI hệ thống xác nhận thanh toán hoặc Admin xử lý ngoại lệ
      *
      * Trạng thái partner được thấy:
-     *   - CONFIRMED:  admin đã duyệt
+     *   - CONFIRMED:  VNPAY đã xác nhận hoặc Admin đã xử lý ngoại lệ
      *   - CHECKED_IN:  khách đã check-in
      *   - COMPLETED:   đã hoàn tất
      *   - NO_SHOW:     khách không đến (mất cọc)
@@ -711,7 +798,10 @@ public class BookingService {
                 BookingStatus.NO_SHOW
         );
         return bookingRepository
-                .findByAccommodationOwnerAndBookingStatusInOrderByCreatedAtDesc(partner, visibleStatuses);
+                .findByAccommodationOwnerAndBookingStatusInOrderByCreatedAtDesc(partner, visibleStatuses)
+                .stream()
+                .filter(booking -> isPartnerManagedAccommodation(booking.getAccommodation(), partner))
+                .toList();
     }
 
     // ─── Admin Dashboard methods ─────────────────────────────────────────────
@@ -734,20 +824,23 @@ public class BookingService {
     }
 
     /**
-     * Tính tổng doanh thu demo từ payment đã xác nhận.
+     * Tính tổng doanh thu từ payment đã xác nhận.
      *
      * Tính cả:
-     *   - APPROVED: thanh toán đã admin duyệt
+     *   - APPROVED: thanh toán đã được ghi nhận
      *   - DEPOSIT_FORFEITED: tiền cọc bị giữ lại do no-show
      *
      * Không tính: PENDING_ADMIN_APPROVAL, REJECTED, CANCELLED, SUBMITTED
      */
-    public BigDecimal calculateDemoRevenue() {
+    public BigDecimal calculateApprovedRevenue() {
         List<PaymentStatus> revenueStatuses = List.of(
                 PaymentStatus.APPROVED,
                 PaymentStatus.DEPOSIT_FORFEITED
         );
         return paymentRepository.findByPaymentStatusIn(revenueStatuses).stream()
+                .filter(payment -> payment.getBooking() != null
+                        && (payment.getBooking().getBookingSource() == null
+                        || payment.getBooking().getBookingSource() == BookingSource.ONLINE))
                 .map(Payment::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
@@ -755,14 +848,14 @@ public class BookingService {
     // ─── Partner confirm hold ────────────────────────────────────────────────
 
     /**
-     * Partner xác nhận giữ phòng cho khách.
+     * Đối tác xác nhận giữ phòng cho khách.
      *
      * Rule:
      *   1. Booking phải tồn tại
      *   2. Booking phải thuộc accommodation owner = partner
      *   3. BookingStatus phải là CONFIRMED
      *   4. partnerStatus phải là PENDING_PARTNER_CONFIRMATION hoặc null
-     *   5. Không cho partner xác nhận booking của partner khác
+     *   5. Không cho đối tác xác nhận booking của đối tác khác
      *   6. Không cho xác nhận booking PENDING_ADMIN_APPROVAL/CANCELLED/NO_SHOW/COMPLETED
      */
     @Transactional
@@ -770,22 +863,18 @@ public class BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn đặt phòng!"));
 
-        // Rule 2: Kiểm tra ownership
-        if (booking.getAccommodation().getOwner() == null ||
-                !booking.getAccommodation().getOwner().getId().equals(partner.getId())) {
-            throw new RuntimeException("Bạn không có quyền xác nhận đơn này! Đơn không thuộc cơ sở của bạn.");
-        }
+        validatePartnerOwnership(booking, partner);
 
         // Rule 3: BookingStatus phải là CONFIRMED
         if (booking.getBookingStatus() != BookingStatus.CONFIRMED) {
             throw new RuntimeException(
-                    "Chỉ xác nhận được đơn đã admin duyệt (CONFIRMED)! " +
+                    "Chỉ xác nhận được đơn đã TravelMate/VNPAY ghi nhận (CONFIRMED)! " +
                     "Hiện tại: " + booking.getBookingStatus().name());
         }
 
-        // Rule 3b: PaymentStatus phải là APPROVED — đảm bảo admin đã xác nhận thanh toán
+        // Rule 3b: PaymentStatus phải là APPROVED — đảm bảo khoản thanh toán đã được ghi nhận
         if (booking.getPaymentStatus() != PaymentStatus.APPROVED) {
-            throw new RuntimeException("Chỉ xác nhận giữ phòng khi thanh toán đã được admin duyệt (APPROVED)!");
+            throw new RuntimeException("Chỉ xác nhận giữ phòng/căn khi thanh toán đã được TravelMate/VNPAY ghi nhận (APPROVED)!");
         }
 
         // Rule 4: partnerStatus phải là PENDING hoặc null
@@ -799,7 +888,7 @@ public class BookingService {
 
         // Ghi note
         String currentNote = booking.getNote();
-        String partnerNote = "Partner đã xác nhận giữ phòng cho khách.";
+        String partnerNote = "Đối tác đã xác nhận giữ phòng/căn cho khách.";
         booking.setNote(currentNote != null && !currentNote.isEmpty()
                 ? currentNote + " | " + partnerNote
                 : partnerNote);
@@ -833,11 +922,16 @@ public class BookingService {
             throw new RuntimeException("Chỉ check-in được khi thanh toán đã được xác nhận!");
         }
         if (booking.getPartnerStatus() != PartnerBookingStatus.PARTNER_CONFIRMED) {
-            throw new RuntimeException("Cần xác nhận giữ phòng trước khi thực hiện check-in!");
+            throw new RuntimeException("Cần xác nhận giữ phòng/căn trước khi thực hiện check-in!");
+        }
+        if (requiresRemainingPaymentConfirmation(booking)
+                && booking.getRemainingPaymentStatus() != RemainingPaymentStatus.PAID_AT_PROPERTY) {
+            throw new RuntimeException(
+                    "Đơn cọc 30% phải xác nhận đã thu đủ 70% còn lại tại cơ sở trước khi check-in!");
         }
 
         booking.setBookingStatus(BookingStatus.CHECKED_IN);
-        String checkinNote = "[Partner] Khách đã đến nhận phòng. Check-in lúc "
+        String checkinNote = "[Đối tác] Khách đã đến check-in. Thời gian "
                 + java.time.LocalDateTime.now().format(
                     java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy"));
         appendNote(booking, checkinNote);
@@ -850,26 +944,26 @@ public class BookingService {
     @Transactional
     public Booking checkInWithRemainingConfirmByPartner(Long bookingId, User partner,
                                                          boolean remainingConfirmed, String remainingNote) {
-        // DEPOSIT_30 bắt buộc xác nhận đã thu 70% trước khi check-in
-        if (!remainingConfirmed) {
-            Booking peek = bookingRepository.findById(bookingId)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn đặt phòng!"));
-            if (peek.getPaymentOption() == PaymentOption.DEPOSIT_30) {
-                throw new RuntimeException(
-                    "⚠️ Đơn cọc 30%: Vui lòng xác nhận đã thu đủ khoản còn lại tại cơ sở trước khi check-in cho khách.");
-            }
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn đặt phòng!"));
+        validatePartnerOwnership(booking, partner);
+
+        boolean remainingCollectionRequired = requiresRemainingPaymentConfirmation(booking)
+                && booking.getRemainingPaymentStatus() != RemainingPaymentStatus.PAID_AT_PROPERTY;
+        if (remainingCollectionRequired && !remainingConfirmed) {
+            throw new RuntimeException(
+                    "Đơn cọc 30%: Vui lòng xác nhận đã thu đủ 70% còn lại tại cơ sở trước khi check-in cho khách.");
         }
-        Booking booking = checkInByPartner(bookingId, partner);
-        if (remainingConfirmed && booking.getPaymentOption() == PaymentOption.DEPOSIT_30) {
+        if (remainingCollectionRequired && remainingConfirmed) {
             booking.setRemainingPaymentStatus(RemainingPaymentStatus.PAID_AT_PROPERTY);
             booking.setRemainingPaidAt(LocalDateTime.now());
             booking.setRemainingPaymentNote(remainingNote);
-            String noteText = "[Partner] Đã thu đủ khoản còn lại tại cơ sở lúc check-in.";
+            String noteText = "[Đối tác] Đã thu đủ khoản còn lại tại cơ sở lúc check-in.";
             if (remainingNote != null && !remainingNote.isBlank()) noteText += " (" + remainingNote.trim() + ")";
             appendNote(booking, noteText);
-            booking = bookingRepository.save(booking);
+            bookingRepository.save(booking);
         }
-        return booking;
+        return checkInByPartner(bookingId, partner);
     }
 
     /**
@@ -895,27 +989,30 @@ public class BookingService {
                     "Chỉ báo no-show được khi booking đang CONFIRMED! Hiện tại: " + booking.getBookingStatus().name());
         }
         if (booking.getPartnerStatus() != PartnerBookingStatus.PARTNER_CONFIRMED) {
-            throw new RuntimeException("Cần xác nhận giữ phòng trước khi báo no-show!");
+            throw new RuntimeException("Cần xác nhận giữ phòng/căn trước khi báo no-show!");
         }
         // Guard: chỉ báo no-show cho booking ONLINE (có thanh toán qua TravelMate)
         if (booking.getBookingSource() == BookingSource.DIRECT
                 || booking.getBookingSource() == BookingSource.MANUAL_BLOCK) {
-            throw new RuntimeException("⚠️ Không thể báo no-show cho booking trực tiếp (DIRECT) hoặc chặn phòng (MANUAL_BLOCK)! Chức năng này chỉ dành cho booking online qua TravelMate.");
+            throw new RuntimeException("⚠️ Không thể báo no-show cho booking trực tiếp (DIRECT) hoặc lịch chặn bán nội bộ (MANUAL_BLOCK)! Chức năng này chỉ dành cho booking online qua TravelMate.");
         }
 
         if (booking.getPaymentOption() != PaymentOption.DEPOSIT_30) {
             throw new RuntimeException(
-                "⚠️ No-show & mở lại phòng chỉ áp dụng cho đơn cọc 30% (DEPOSIT_30). " +
+                "⚠️ No-show & mở lại quota chỉ áp dụng cho đơn cọc 30% (DEPOSIT_30). " +
                 "Với đơn đã thanh toán 100%, vui lòng liên hệ Admin để xử lý theo chính sách hoàn trả.");
         }
 
         booking.setBookingStatus(BookingStatus.NO_SHOW);
         booking.setPaymentStatus(PaymentStatus.DEPOSIT_FORFEITED);
-        appendNote(booking, "[Partner] Khách không đến nhận phòng. Cọc 30% bị giữ lại theo chính sách.");
+        booking.setRefundAmount(BigDecimal.ZERO);
+        booking.setCancellationFee(zeroIfNull(booking.getPaidAmount()));
+        captureFinancialSnapshot(booking, true);
+        appendNote(booking, "[Đối tác] Khách không đến check-in. Cọc 30% bị giữ lại theo chính sách.");
 
         paymentRepository.findByBooking(booking).ifPresent(payment -> {
             payment.setPaymentStatus(PaymentStatus.DEPOSIT_FORFEITED);
-            payment.setNote("Cọc 30% bị giữ lại do khách không đến check-in (Partner xác nhận no-show).");
+            payment.setNote("Cọc 30% bị giữ lại do khách không đến check-in (đối tác xác nhận no-show).");
             payment.setApprovedAt(java.time.LocalDateTime.now());
             paymentRepository.save(payment);
         });
@@ -948,7 +1045,7 @@ public class BookingService {
                     "Chỉ check-out được đơn đang CHECKED_IN! Hiện tại: " + booking.getBookingStatus().name());
         }
         if (booking.getPartnerStatus() != PartnerBookingStatus.PARTNER_CONFIRMED) {
-            throw new RuntimeException("Đơn chưa được xác nhận giữ phòng!");
+            throw new RuntimeException("Đơn chưa được xác nhận giữ phòng/căn!");
         }
 
         // Chặn check-out nếu đơn cọc 30% chưa xác nhận thu phần còn lại tại cơ sở
@@ -967,7 +1064,7 @@ public class BookingService {
 
         booking.setBookingStatus(BookingStatus.COMPLETED);
         booking.setPartnerStatus(PartnerBookingStatus.PARTNER_COMPLETED);
-        appendNote(booking, "[Partner] Khách đã trả phòng. Check-out hoàn tất lúc "
+        appendNote(booking, "[Đối tác] Khách đã check-out. Hoàn tất lúc "
                 + java.time.LocalDateTime.now().format(
                     java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")));
 
@@ -990,7 +1087,7 @@ public class BookingService {
      *   - Không cho hủy nếu đã CHECKED_IN/COMPLETED/NO_SHOW
      *
      * Lưu ý: hủy phía partner KHÔNG thay đổi bookingStatus (admin quản lý).
-     * Chỉ set partnerStatus = PARTNER_CANCELLED để admin biết partner từ chối.
+     * Chỉ set partnerStatus = PARTNER_CANCELLED để admin biết đối tác từ chối.
      */
     @Transactional
     public Booking cancelByPartner(Long bookingId, User partner) {
@@ -1008,7 +1105,7 @@ public class BookingService {
         }
 
         booking.setPartnerStatus(PartnerBookingStatus.PARTNER_CANCELLED);
-        appendNote(booking, "⚠️ Partner đã hủy xác nhận. Admin cần xem xét.");
+        appendNote(booking, "⚠️ Đối tác đã hủy xác nhận. Admin cần xem xét.");
 
         return bookingRepository.save(booking);
     }
@@ -1031,24 +1128,21 @@ public class BookingService {
                                        LocalDate checkIn, LocalDate checkOut,
                                        int adults, int children, int roomQuantity,
                                        String note) {
-        // Validate ownership
-        if (accommodation.getOwner() == null || !accommodation.getOwner().getId().equals(partner.getId())) {
-            throw new RuntimeException("Cơ sở này không thuộc quyền quản lý của bạn!");
-        }
+        validatePartnerCanManageAccommodation(accommodation, partner);
         if (room.getAccommodation() == null || !room.getAccommodation().getId().equals(accommodation.getId())) {
-            throw new RuntimeException("Phòng này không thuộc cơ sở đã chọn!");
+            throw new RuntimeException("Phòng/căn này không thuộc cơ sở đã chọn!");
         }
         if (accommodation.getApprovalStatus() != ApprovalStatus.APPROVED) {
             throw new RuntimeException("Cơ sở chưa được Admin duyệt!");
         }
         if (room.getApprovalStatus() != ApprovalStatus.APPROVED) {
-            throw new RuntimeException("Phòng chưa được Admin duyệt!");
+            throw new RuntimeException("Phòng/căn chưa được Admin duyệt!");
         }
         if (checkIn == null || checkOut == null || !checkOut.isAfter(checkIn)) {
-            throw new RuntimeException("Ngày trả phòng phải sau ngày nhận phòng!");
+            throw new RuntimeException("Ngày trả phải sau ngày nhận!");
         }
         if (roomQuantity < 1) {
-            throw new RuntimeException("Số phòng đặt phải ít nhất là 1!");
+            throw new RuntimeException("Số lượng đặt phải ít nhất là 1!");
         }
         if (adults < 1) {
             throw new RuntimeException("Số người lớn phải ít nhất là 1!");
@@ -1058,12 +1152,12 @@ public class BookingService {
         if ((adults + children) > maxGuests) {
             throw new RuntimeException(
                 "⚠️ Tổng số khách (" + (adults + children) + " người) vượt quá sức chứa tối đa của "
-                + roomQuantity + " phòng (" + maxGuests + " người). Vui lòng tăng số phòng hoặc giảm số khách.");
+                + roomQuantity + " phòng/căn (" + maxGuests + " người). Vui lòng tăng số lượng hoặc giảm số khách.");
         }
 
         // Kiểm tra availability (chống overbooking)
         room = roomRepository.findByIdForUpdate(room.getId())
-                .orElseThrow(() -> new RuntimeException("Phòng không tồn tại!"));
+                .orElseThrow(() -> new RuntimeException("Phòng/căn không tồn tại!"));
 
         List<BookingStatus> occupyStatuses = List.of(
                 BookingStatus.PENDING_PAYMENT,
@@ -1079,8 +1173,8 @@ public class BookingService {
 
         if (availableForRange < roomQuantity) {
             throw new RuntimeException(
-                "⚠️ Không đủ phòng trong khoảng ngày này! Còn trống: " + availableForRange
-                + " phòng, bạn cần " + roomQuantity + " phòng.");
+                "⚠️ Không đủ số lượng còn trống trong khoảng ngày này! Còn trống: " + availableForRange
+                + ", bạn cần " + roomQuantity + ".");
         }
 
         // Tạo booking trực tiếp
@@ -1145,29 +1239,26 @@ public class BookingService {
     public Booking blockRoom(User partner, Room room, Accommodation accommodation,
                               LocalDate checkIn, LocalDate checkOut,
                               int roomQuantity, String blockReason) {
-        // Validate ownership
-        if (accommodation.getOwner() == null || !accommodation.getOwner().getId().equals(partner.getId())) {
-            throw new RuntimeException("Cơ sở này không thuộc quyền quản lý của bạn!");
-        }
+        validatePartnerCanManageAccommodation(accommodation, partner);
         if (room.getAccommodation() == null || !room.getAccommodation().getId().equals(accommodation.getId())) {
-            throw new RuntimeException("Phòng này không thuộc cơ sở đã chọn!");
+            throw new RuntimeException("Phòng/căn này không thuộc cơ sở đã chọn!");
         }
         // Guard: cơ sở và phòng phải được Admin duyệt mới cho chặn phòng
         if (accommodation.getApprovalStatus() != ApprovalStatus.APPROVED) {
-            throw new RuntimeException("⚠️ Cơ sở chưa được Admin duyệt! Chỉ cơ sở APPROVED mới có thể chặn phòng.");
+            throw new RuntimeException("⚠️ Cơ sở chưa được Admin duyệt! Chỉ cơ sở APPROVED mới có thể chặn bán nội bộ.");
         }
         if (room.getApprovalStatus() != ApprovalStatus.APPROVED) {
-            throw new RuntimeException("⚠️ Phòng chưa được Admin duyệt! Chỉ phòng APPROVED mới có thể chặn.");
+            throw new RuntimeException("⚠️ Phòng/căn chưa được Admin duyệt! Chỉ phòng/căn APPROVED mới có thể chặn bán.");
         }
         if (checkIn == null || checkOut == null || !checkOut.isAfter(checkIn)) {
             throw new RuntimeException("Ngày kết thúc phải sau ngày bắt đầu!");
         }
         if (roomQuantity < 1) {
-            throw new RuntimeException("Số phòng chặn phải ít nhất là 1!");
+            throw new RuntimeException("Số lượng chặn phải ít nhất là 1!");
         }
 
         room = roomRepository.findByIdForUpdate(room.getId())
-                .orElseThrow(() -> new RuntimeException("Phòng không tồn tại!"));
+                .orElseThrow(() -> new RuntimeException("Phòng/căn không tồn tại!"));
 
         List<BookingStatus> occupyStatuses = List.of(
                 BookingStatus.PENDING_PAYMENT,
@@ -1183,8 +1274,8 @@ public class BookingService {
 
         if (availableForRange < roomQuantity) {
             throw new RuntimeException(
-                "⚠️ Không đủ phòng để chặn trong khoảng ngày này! Còn có thể chặn: "
-                + availableForRange + " phòng.");
+                "⚠️ Không đủ số lượng còn trống để chặn trong khoảng ngày này! Còn có thể chặn: "
+                + availableForRange + ".");
         }
 
         Booking block = new Booking();
@@ -1192,7 +1283,7 @@ public class BookingService {
         block.setUser(partner);
         block.setAccommodation(accommodation);
         block.setRoom(room);
-        block.setCustomerName("CHẶN PHÒNG");
+        block.setCustomerName("CHẶN BÁN NỘI BỘ");
         block.setCustomerPhone("");
         block.setCustomerEmail("");
         block.setCheckIn(checkIn);
@@ -1211,8 +1302,8 @@ public class BookingService {
         block.setPartnerStatus(PartnerBookingStatus.PARTNER_CONFIRMED);
         block.setBookingSource(BookingSource.MANUAL_BLOCK);
         block.setRemainingPaymentStatus(RemainingPaymentStatus.NOT_REQUIRED);
-        block.setBlockReason(blockReason != null ? blockReason.trim() : "Chặn phòng nội bộ");
-        block.setNote("[Chặn phòng] " + (blockReason != null ? blockReason.trim() : "Chặn phòng nội bộ"));
+        block.setBlockReason(blockReason != null ? blockReason.trim() : "Chặn bán nội bộ");
+        block.setNote("[Chặn bán nội bộ] " + (blockReason != null ? blockReason.trim() : "Chặn bán nội bộ"));
 
         block = bookingRepository.save(block);
         String code = "BK-" + room.getRoomCode() + "-B" + String.format("%06d", block.getId());
@@ -1226,7 +1317,7 @@ public class BookingService {
     }
 
     /**
-     * Partner xác nhận đã thu 70% còn lại tại cơ sở (cho booking DEPOSIT_30 đang CHECKED_IN).
+     * Đối tác xác nhận đã thu 70% còn lại tại cơ sở (cho booking DEPOSIT_30 đang CHECKED_IN).
      *
      * Nghiệp vụ:
      *   - Chỉ áp dụng khi booking DEPOSIT_30 + CHECKED_IN
@@ -1252,7 +1343,7 @@ public class BookingService {
 
         booking.setRemainingPaymentStatus(RemainingPaymentStatus.PAID_AT_PROPERTY);
         booking.setRemainingPaidAt(LocalDateTime.now());
-        String noteText = "[Partner] Đã thu đủ " +
+        String noteText = "[Đối tác] Đã thu đủ " +
                 (booking.getRemainingAmount() != null
                         ? String.format("%,.0f₫", booking.getRemainingAmount().doubleValue())
                         : "khoản còn lại")
@@ -1272,15 +1363,15 @@ public class BookingService {
     @Transactional
     public Booking cancelBlock(Long blockId, User partner) {
         Booking block = bookingRepository.findById(blockId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch chặn phòng!"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch chặn bán!"));
 
         validatePartnerOwnership(block, partner);
 
         if (block.getBookingSource() != BookingSource.MANUAL_BLOCK) {
-            throw new RuntimeException("Chỉ có thể hủy lịch chặn phòng!");
+            throw new RuntimeException("Chỉ có thể hủy lịch chặn bán nội bộ!");
         }
         if (block.getBookingStatus() == BookingStatus.CANCELLED) {
-            throw new RuntimeException("Lịch chặn phòng này đã được hủy rồi!");
+            throw new RuntimeException("Lịch chặn bán này đã được hủy rồi!");
         }
 
         // Hoàn lại số phòng
@@ -1290,7 +1381,7 @@ public class BookingService {
 
         block.setBookingStatus(BookingStatus.CANCELLED);
         block.setPaymentStatus(PaymentStatus.CANCELLED);
-        appendNote(block, "[Partner] Đã hủy chặn phòng.");
+        appendNote(block, "[Đối tác] Đã hủy chặn bán nội bộ.");
 
         return bookingRepository.save(block);
     }
@@ -1322,14 +1413,35 @@ public class BookingService {
 
         booking.setBookingStatus(BookingStatus.CANCELLED);
         booking.setPaymentStatus(PaymentStatus.CANCELLED);
-        appendNote(booking, "[Partner] Đã hủy booking trực tiếp.");
+        appendNote(booking, "[Đối tác] Đã hủy booking trực tiếp.");
 
         return bookingRepository.save(booking);
     }
 
-    /** Lấy tất cả booking thuộc partner (bao gồm DIRECT, MANUAL_BLOCK) */
+    /**
+     * Lấy booking được phép hiển thị trên portal Partner.
+     *
+     * ONLINE chỉ hiện sau khi khoản thanh toán được xác minh. DIRECT và MANUAL_BLOCK
+     * do Partner tự tạo nên hiện ngay để quản lý quota vận hành.
+     */
     public List<Booking> getAllBookingsForPartner(User partner) {
-        return bookingRepository.findAllByAccommodationOwnerOrderByCreatedAtDesc(partner);
+        return bookingRepository.findAllByAccommodationOwnerOrderByCreatedAtDesc(partner)
+                .stream()
+                .filter(booking -> isPartnerManagedAccommodation(booking.getAccommodation(), partner))
+                .filter(this::isVisibleToPartner)
+                .toList();
+    }
+
+    /** Lấy chi tiết booking theo cùng quy tắc hiển thị của danh sách Partner. */
+    public Booking getVisibleBookingForPartner(Long bookingId, User partner) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn đặt phòng!"));
+        validatePartnerOwnership(booking, partner);
+        if (!isVisibleToPartner(booking)) {
+            throw new RuntimeException(
+                    "Đơn online chỉ hiển thị cho đối tác sau khi VNPAY xác nhận thanh toán.");
+        }
+        return booking;
     }
 
     /**
@@ -1347,12 +1459,12 @@ public class BookingService {
             throw new RuntimeException("Ghi chú không được để trống!");
         }
 
-        appendNote(booking, "[Partner] " + note.trim());
+        appendNote(booking, "[Đối tác] " + note.trim());
         return bookingRepository.save(booking);
     }
 
     /**
-     * Admin xử lý khi Partner hủy giữ phòng (partnerStatus = PARTNER_CANCELLED).
+     * Admin xử lý khi đối tác hủy giữ phòng (partnerStatus = PARTNER_CANCELLED).
      * Hành động: hủy booking, hoàn lại phòng.
      */
     @Transactional
@@ -1361,7 +1473,7 @@ public class BookingService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn đặt phòng!"));
 
         if (booking.getPartnerStatus() != PartnerBookingStatus.PARTNER_CANCELLED) {
-            throw new RuntimeException("Booking này chưa bị partner hủy!");
+            throw new RuntimeException("Booking này chưa bị đối tác hủy!");
         }
         if (booking.getBookingStatus() == BookingStatus.CANCELLED) {
             throw new RuntimeException("Booking này đã được hủy rồi!");
@@ -1370,7 +1482,7 @@ public class BookingService {
         // Hủy booking — payment chuyển sang REFUND_PENDING (chờ hoàn tiền cho user)
         booking.setBookingStatus(BookingStatus.CANCELLED);
         booking.setPaymentStatus(PaymentStatus.REFUND_PENDING);
-        String note = "Admin hủy đơn do partner từ chối giữ phòng. Đang tiến hành hoàn tiền cho khách";
+        String note = "Admin hủy đơn do đối tác từ chối giữ phòng. Đang tiến hành hoàn tiền cho khách";
         if (reason != null && !reason.isBlank()) note += ": " + reason.trim();
         appendNote(booking, note);
         bookingRepository.save(booking);
@@ -1378,7 +1490,7 @@ public class BookingService {
         // Cập nhật payment → REFUND_PENDING (hoàn tiền đang xử lý)
         paymentRepository.findByBooking(booking).ifPresent(payment -> {
             payment.setPaymentStatus(PaymentStatus.REFUND_PENDING);
-            payment.setNote("Hoàn tiền đang xử lý — Partner hủy giữ phòng, Admin đã xác nhận hủy đơn.");
+            payment.setNote("Hoàn tiền đang xử lý — đối tác hủy giữ phòng, Admin đã xác nhận hủy đơn.");
             paymentRepository.save(payment);
         });
 
@@ -1428,10 +1540,109 @@ public class BookingService {
 
     /** Validate: booking phải thuộc accommodation do partner sở hữu */
     private void validatePartnerOwnership(Booking booking, User partner) {
-        if (booking.getAccommodation().getOwner() == null ||
-                !booking.getAccommodation().getOwner().getId().equals(partner.getId())) {
+        if (booking == null) {
             throw new RuntimeException("Bạn không có quyền thao tác đơn này! Đơn không thuộc cơ sở của bạn.");
         }
+        validatePartnerCanManageAccommodation(booking.getAccommodation(), partner);
+    }
+
+    private void validatePartnerCanManageAccommodation(Accommodation accommodation, User partner) {
+        if (accommodation == null || accommodation.getOwner() == null
+                || partner == null || partner.getId() == null
+                || !accommodation.getOwner().getId().equals(partner.getId())) {
+            throw new RuntimeException("Cơ sở này không thuộc quyền quản lý của bạn!");
+        }
+        if (partner.getPartnerPropertyType() == null) {
+            throw new RuntimeException("Tài khoản partner chưa đăng ký loại lưu trú. Liên hệ Admin.");
+        }
+        if (accommodation.getPropertyType() != partner.getPartnerPropertyType()) {
+            throw new RuntimeException("Tài khoản " + partner.getPartnerPropertyType().name()
+                    + " chỉ được thao tác với loại lưu trú đã đăng ký. Cơ sở này đang là "
+                    + (accommodation.getPropertyType() != null ? accommodation.getPropertyType().name() : "N/A") + ".");
+        }
+    }
+
+    private boolean isPartnerManagedAccommodation(Accommodation accommodation, User partner) {
+        if (accommodation == null || partner == null || partner.getId() == null) {
+            return false;
+        }
+        if (partner.getPartnerPropertyType() == null || accommodation.getPropertyType() == null) {
+            return false;
+        }
+        return accommodation.getOwner() != null
+                && accommodation.getOwner().getId() != null
+                && accommodation.getOwner().getId().equals(partner.getId())
+                && accommodation.getPropertyType() == partner.getPartnerPropertyType();
+    }
+
+    private boolean isVisibleToPartner(Booking booking) {
+        if (booking == null) {
+            return false;
+        }
+        if (booking.getBookingSource() == null || booking.getBookingSource() == BookingSource.ONLINE) {
+            return booking.getBookingStatus() != BookingStatus.PENDING_PAYMENT
+                    && booking.getBookingStatus() != BookingStatus.PENDING_ADMIN_APPROVAL;
+        }
+        return true;
+    }
+
+    private boolean requiresRemainingPaymentConfirmation(Booking booking) {
+        return booking != null
+                && (booking.getBookingSource() == null || booking.getBookingSource() == BookingSource.ONLINE)
+                && booking.getPaymentOption() == PaymentOption.DEPOSIT_30;
+    }
+
+    /**
+     * Luu so lieu tai chinh bat bien theo rate luc dat phong.
+     * TravelMate chi tinh hoa hong tren khoan tien online he thong thuc thu;
+     * tien khach tra tai co so chi duoc luu de doi soat van hanh.
+     */
+    private void captureFinancialSnapshot(Booking booking, boolean depositForfeited) {
+        if (booking == null || (booking.getBookingSource() != null
+                && booking.getBookingSource() != BookingSource.ONLINE)) {
+            return;
+        }
+        BigDecimal onlinePaid = zeroIfNull(booking.getPaidAmount());
+        BigDecimal onsite = booking.getPaymentOption() == PaymentOption.DEPOSIT_30 && !depositForfeited
+                ? zeroIfNull(booking.getRemainingAmount()) : BigDecimal.ZERO;
+        BigDecimal rate = booking.getCommissionRateSnapshot() != null
+                ? booking.getCommissionRateSnapshot()
+                : commissionService.getEffectiveCommissionRate(booking.getRoom());
+        String source = booking.getCommissionSourceSnapshot() != null
+                ? booking.getCommissionSourceSnapshot()
+                : (commissionService.isRoomOverride(booking.getRoom())
+                        ? "ROOM_OVERRIDE" : "PROPERTY_TYPE_DEFAULT");
+        BigDecimal base = onlinePaid;
+        BigDecimal commission = base.multiply(rate).setScale(0, RoundingMode.HALF_UP);
+        BigDecimal discount = zeroIfNull(booking.getDiscountAmount());
+        BigDecimal partnerVoucher = booking.getVoucherCostBearer() == VoucherCostBearer.PARTNER
+                ? discount : BigDecimal.ZERO;
+        BigDecimal adminVoucher = booking.getVoucherCostBearer() == VoucherCostBearer.ADMIN
+                ? discount : BigDecimal.ZERO;
+        BigDecimal payout = onlinePaid.subtract(commission).subtract(partnerVoucher).max(BigDecimal.ZERO);
+
+        booking.setCommissionRateSnapshot(rate);
+        booking.setCommissionSourceSnapshot(source);
+        booking.setCommissionBaseAmount(base);
+        booking.setCommissionAmountSnapshot(commission);
+        booking.setPartnerVoucherAmountSnapshot(partnerVoucher);
+        booking.setAdminVoucherAmountSnapshot(adminVoucher);
+        booking.setPartnerPayoutSnapshot(payout);
+        booking.setOnlinePaidAmountSnapshot(onlinePaid);
+        booking.setOnsiteAmountSnapshot(onsite);
+    }
+
+    private BigDecimal zeroIfNull(BigDecimal amount) {
+        return amount != null ? amount : BigDecimal.ZERO;
+    }
+
+    private String unitLabelFor(Room room) {
+        Accommodation accommodation = room != null ? room.getAccommodation() : null;
+        return accommodation != null && accommodation.getPropertyType() == PropertyType.VILLA ? "căn" : "phòng";
+    }
+
+    private String unitLabelCapFor(Room room) {
+        return "căn".equals(unitLabelFor(room)) ? "Căn" : "Phòng";
     }
 
     /** Nối ghi chú vào note hiện tại (pipe-separated) */

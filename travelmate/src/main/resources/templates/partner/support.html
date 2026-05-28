@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="/assets/css/responsive.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <style>
+        .admin-content { overflow-x: hidden; }
         .support-categories {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -54,6 +55,63 @@
         .chat-bubble--partner { background:var(--color-primary); color:#fff; margin-left:auto; border-bottom-right-radius:4px; }
         .chat-bubble--admin { background:#f1f5f9; color:var(--color-text); border-bottom-left-radius:4px; }
         .chat-meta { font-size:11px; color:var(--color-text-muted); margin-bottom:2px; }
+        .filter-tab {
+            padding: 8px 16px;
+            background: var(--color-surface, #fff);
+            border: 1.5px solid var(--color-border, #e2e8f0);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--color-text-muted, #64748b);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .filter-tab:hover {
+            background: var(--color-bg, #f8fafc);
+            color: var(--color-primary, #1a6b9a);
+            border-color: var(--color-primary-light, #90caf9);
+        }
+        .filter-tab.active {
+            background: var(--color-primary, #1a6b9a);
+            color: #fff;
+            border-color: var(--color-primary, #1a6b9a);
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(26, 107, 154, 0.2);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stats-card {
+            background: var(--color-surface, #fff);
+            border-radius: 12px;
+            padding: 16px 20px;
+            border: 1.5px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            transition: all 0.15s ease;
+        }
+        .stats-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transform: translateY(-1px);
+        }
+        .stats-card__value {
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .stats-card__label {
+            font-size: 12px;
+            color: var(--color-text-muted, #64748b);
+            font-weight: 500;
+        }
     </style>
 </head>
 
@@ -86,18 +144,18 @@
                 </div>
 
                 <!-- Stat cards -->
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4);margin-bottom:var(--space-6);">
-                    <div class="stat-card">
-                        <div class="stat-card__value" th:text="${openCount}">0</div>
-                        <div class="stat-card__label">Chờ xử lý</div>
+                <div class="stats-grid">
+                    <div class="stats-card">
+                        <div class="stats-card__value" style="color: #dc2626;" th:text="${openCount}">0</div>
+                        <div class="stats-card__label">Chờ xử lý</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-card__value" th:text="${respondedCount}">0</div>
-                        <div class="stat-card__label">Đã phản hồi</div>
+                    <div class="stats-card">
+                        <div class="stats-card__value" style="color: #16a34a;" th:text="${respondedCount}">0</div>
+                        <div class="stats-card__label">Đã phản hồi</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-card__value" th:text="${closedCount}">0</div>
-                        <div class="stat-card__label">Đã đóng</div>
+                    <div class="stats-card">
+                        <div class="stats-card__value" style="color: #6b7280;" th:text="${closedCount}">0</div>
+                        <div class="stats-card__label">Đã đóng</div>
                     </div>
                 </div>
 
@@ -128,9 +186,11 @@
                                         1. Chọn danh mục hỗ trợ <span class="required">*</span>
                                     </div>
                                     <div class="support-categories" id="category-picker">
-                                        <div class="support-cat-card" data-cat="Đặt phòng" onclick="selectCategory(this)">
+                                        <div class="support-cat-card"
+                                             th:attr="data-cat=${isVillaPartner ? 'Đặt căn' : 'Đặt phòng'}"
+                                             onclick="selectCategory(this)">
                                             <span class="support-cat-card__icon">📋</span>
-                                            <div class="support-cat-card__label">Đặt phòng</div>
+                                            <div class="support-cat-card__label" th:text="${isVillaPartner ? 'Đặt căn' : 'Đặt phòng'}">Đặt phòng</div>
                                             <div class="check-mark">✓</div>
                                         </div>
                                         <div class="support-cat-card" data-cat="Thanh toán" onclick="selectCategory(this)">
@@ -162,27 +222,31 @@
                                 </div>
 
                                 <form th:action="@{/partner/support/new}" method="post" id="support-form" class="partner-form" onsubmit="return validateSupportForm()">
-                                    <input type="hidden" id="category-input" name="category" />
+                                    <input type="hidden" id="category-input" name="category" th:value="${supportCategory}" />
                                     <div class="partner-form__section">
                                         <div class="partner-form__heading">2. Thông tin yêu cầu</div>
                                         <div class="partner-form__grid">
                                             <div class="form-group">
                                                 <label class="form-label">Tiêu đề <span class="required">*</span></label>
-                                                <input name="subject" type="text" class="form-control" placeholder="Mô tả ngắn gọn vấn đề bạn gặp phải..." required />
+                                                <input name="subject" type="text" class="form-control"
+                                                       th:value="${supportSubject}"
+                                                       placeholder="Mô tả ngắn gọn vấn đề bạn gặp phải..." required />
                                             </div>
                                             <div class="form-group">
                                                 <label class="form-label">Mức độ ưu tiên</label>
                                                 <select name="priority" class="form-control">
-                                                    <option value="Thấp">🟢 Thấp — Không gấp</option>
-                                                    <option value="Trung bình" selected>🟡 Trung bình — Cần giải quyết sớm</option>
-                                                    <option value="Cao">🟠 Cao — Ảnh hưởng vận hành</option>
-                                                    <option value="Khẩn cấp">🔴 Khẩn cấp — Cần phản hồi ngay</option>
+                                                    <option value="Thấp" th:selected="${supportPriority == 'Thấp'}">🟢 Thấp — Không gấp</option>
+                                                    <option value="Trung bình" th:selected="${supportPriority == null or supportPriority == 'Trung bình'}">🟡 Trung bình — Cần giải quyết sớm</option>
+                                                    <option value="Cao" th:selected="${supportPriority == 'Cao'}">🟠 Cao — Ảnh hưởng vận hành</option>
+                                                    <option value="Khẩn cấp" th:selected="${supportPriority == 'Khẩn cấp'}">🔴 Khẩn cấp — Cần phản hồi ngay</option>
                                                 </select>
                                             </div>
                                         </div>
                                         <div class="form-group" style="margin-bottom:0">
                                             <label class="form-label">Mô tả chi tiết <span class="required">*</span></label>
-                                            <textarea name="description" class="form-control" rows="6" placeholder="Mô tả đầy đủ vấn đề: lỗi xảy ra khi nào, các bước tái hiện, kết quả mong đợi..." required></textarea>
+                                            <textarea name="description" class="form-control" rows="6"
+                                                      placeholder="Mô tả đầy đủ vấn đề: lỗi xảy ra khi nào, các bước tái hiện, kết quả mong đợi..."
+                                                      th:text="${supportDescription}" required></textarea>
                                         </div>
                                     </div>
                                     <div id="cat-error" style="color:#ef4444;font-size:13px;margin-top:8px;display:none;">Vui lòng chọn danh mục hỗ trợ!</div>
@@ -273,21 +337,21 @@
                                 Khi nào tôi nhận được quyết toán?
                                 <i class="fa-solid fa-chevron-down faq-item__arrow"></i>
                             </div>
-                            <div class="faq-item__body">Quyết toán được tính theo tháng (ngày 01 đến cuối tháng). Đầu tháng sau, Admin sẽ tạo settlement và chuyển khoản vào tài khoản ngân hàng bạn đã đăng ký trong hồ sơ. Chỉ booking COMPLETED hoặc NO_SHOW (giữ cọc) mới được quyết toán. Thời gian xử lý thường trong 3-5 ngày làm việc.</div>
+                            <div class="faq-item__body">Quyết toán được tính theo tháng (ngày 01 đến cuối tháng). Đầu tháng sau, Admin sẽ tạo settlement và chuyển khoản vào tài khoản ngân hàng bạn đã đăng ký trong hồ sơ. Booking hoàn tất hoặc đơn cọc bị giữ do hủy/no-show mới được quyết toán. Thời gian xử lý thường trong 3-5 ngày làm việc.</div>
                         </div>
                         <div class="faq-item">
                             <div class="faq-item__header" onclick="toggleFaq(this)">
-                                Voucher PARTNER_ACCOMMODATION khác PARTNER_ROOM như thế nào?
+                                Partner sử dụng kho voucher như thế nào?
                                 <i class="fa-solid fa-chevron-down faq-item__arrow"></i>
                             </div>
-                            <div class="faq-item__body"><strong>PARTNER_ACCOMMODATION</strong>: Áp dụng cho toàn bộ phòng trong một nơi lưu trú. <strong>PARTNER_ROOM</strong>: Chỉ áp dụng cho một phòng cụ thể. Cả hai đều do partner chịu chi phí chiết khấu.</div>
+                            <div class="faq-item__body">Voucher do <strong>Admin phát hành</strong> trong kho. Partner chỉ chọn voucher <strong>PARTNER_ROOM</strong> đang hợp lệ và gắn vào <span th:text="${unitLabel ?: 'phòng'}">phòng</span> của mình. Mỗi voucher hiển thị rõ điều kiện đơn tối thiểu, thời hạn và bên chịu chi phí.</div>
                         </div>
                         <div class="faq-item">
                             <div class="faq-item__header" onclick="toggleFaq(this)">
                                 Tại sao booking của tôi ở trạng thái PENDING lâu?
                                 <i class="fa-solid fa-chevron-down faq-item__arrow"></i>
                             </div>
-                            <div class="faq-item__body">Booking PENDING_ADMIN_APPROVAL cần Admin duyệt trước khi xác nhận. Nếu quá 48h chưa được duyệt, hãy gửi ticket hỗ trợ với danh mục <strong>Đặt phòng</strong>.</div>
+                            <div class="faq-item__body">Giao dịch VNPAY thành công được hệ thống tự xác nhận và chuyển ngay vào danh sách chờ giữ phòng/căn. Nếu đơn ở mục cần đối soát, hãy gửi ticket hỗ trợ với danh mục <strong th:text="${isVillaPartner ? 'Đặt căn' : 'Đặt phòng'}">Đặt phòng</strong>.</div>
                         </div>
                         <div class="faq-item">
                             <div class="faq-item__header" onclick="toggleFaq(this)">
@@ -335,6 +399,12 @@
             }
             document.getElementById('cat-error').style.display = 'none';
             return true;
+        }
+
+        const preselectedCategory = document.getElementById('category-input')?.value;
+        if (preselectedCategory) {
+            const card = document.querySelector(`.support-cat-card[data-cat="${preselectedCategory}"]`);
+            if (card) selectCategory(card);
         }
 
         // FAQ accordion

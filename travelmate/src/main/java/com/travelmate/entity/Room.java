@@ -71,6 +71,13 @@ public class Room {
     @Column(nullable = false)
     private Integer availableQuantity;
 
+    /**
+     * Partner/Admin có thể tạm ngừng mở bán online mà không làm mất quota gốc.
+     * Phòng/căn tắt cờ này không xuất hiện ở trang user/chatbot, nhưng Partner vẫn thấy để mở bán lại.
+     */
+    @Column(name = "available_for_booking", nullable = false)
+    private Boolean availableForBooking = true;
+
     /** URL ảnh phòng (placeholder trước, ảnh thật sau) */
     @Column(length = 500)
     private String imageUrl;
@@ -86,7 +93,7 @@ public class Room {
      * - REJECTED : Admin từ chối, Partner thấy badge "Từ chối".
      *
      * Luồng: Partner tạo phòng → PENDING → Admin duyệt → APPROVED → User thấy.
-     * Phòng từ SQL seed / DataInitializer được backfill = APPROVED tự động.
+     * Phòng từ SQL gốc / DataInitializer được backfill = APPROVED tự động.
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "approval_status", length = 50)
@@ -112,10 +119,10 @@ public class Room {
      * Ví dụ:
      *   STANDARD → null → HOTEL 15%
      *   DELUXE   → 16.00 → 16%
-     *   VIP      → 18.00 → 18%
+     *   VIP      → 20.00 → 20%
      *   SUITE    → 20.00 → 20%
      *
-     * ⚠️ DB lưu theo %, ví dụ: 18.00 nghĩa là 18%.
+     * ⚠️ DB lưu theo %, ví dụ: 20.00 nghĩa là 20%.
      * Khi tính: commissionAmount = gross × (commissionRateOverride / 100)
      */
     @Column(name = "commission_rate_override", precision = 5, scale = 2)

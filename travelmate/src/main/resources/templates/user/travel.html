@@ -113,7 +113,7 @@
 
     <!-- ===== HERO ===== -->
     <section class="travel-hero">
-        <div class="travel-hero-bg" style="background-image: url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1920');"></div>
+        <div class="travel-hero-bg" style="background-image: url('/assets/images/travel-posts/sa-pa-guide.jpg');"></div>
         <div class="travel-hero-overlay"></div>
         <div class="container travel-hero-content">
             <h1 class="travel-title-left">KHÁM PHÁ ĐIỂM ĐẾN &amp;</h1>
@@ -498,11 +498,6 @@
 
     <!-- ===== JAVASCRIPT ===== -->
     <script>
-        // Header scroll
-        window.addEventListener('scroll', () => {
-            document.getElementById('header').classList.toggle('scrolled', window.scrollY > 40);
-        });
-
         function getTravelState() {
             const el = document.getElementById('travelSearchState');
             return {

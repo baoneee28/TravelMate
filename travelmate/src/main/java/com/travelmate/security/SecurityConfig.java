@@ -1,6 +1,8 @@
 package com.travelmate.security;
 
 import com.travelmate.service.UserDetailsServiceImpl;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -9,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
@@ -35,11 +38,17 @@ public class SecurityConfig {
 
     // Inject handler redirect theo role sau khi login thành công
     private final CustomAuthSuccessHandler successHandler;
+    private final ObjectProvider<ClientRegistrationRepository> clientRegistrationRepository;
+    private final boolean googleOAuthEnabled;
 
     public SecurityConfig(UserDetailsServiceImpl userDetailsService,
-                          CustomAuthSuccessHandler successHandler) {
+                          CustomAuthSuccessHandler successHandler,
+                          ObjectProvider<ClientRegistrationRepository> clientRegistrationRepository,
+                          @Value("${travelmate.oauth2.google.enabled:false}") boolean googleOAuthEnabled) {
         this.userDetailsService = userDetailsService;
         this.successHandler = successHandler;
+        this.clientRegistrationRepository = clientRegistrationRepository;
+        this.googleOAuthEnabled = googleOAuthEnabled;
     }
 
     /**
@@ -79,7 +88,8 @@ public class SecurityConfig {
      * Đây là điểm trung tâm cấu hình Spring Security.
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   OAuth2LoginSuccessHandler oauth2LoginSuccessHandler) throws Exception {
         http
             // Tắt CSRF tạm thời để dễ test REST API.
             // Khi production: cần bật lại và thêm CSRF token vào form.
@@ -96,7 +106,7 @@ public class SecurityConfig {
                 .requestMatchers("/assets/**", "/uploads/**").permitAll()
 
                 // Trang auth — đăng nhập/đăng ký phải public
-                .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/auth/**", "/oauth2/**", "/login/oauth2/**").permitAll()
 
                 // Trang chủ và các trang user — public, không cần đăng nhập
                 // /accommodations (danh sách) và /accommodations/{id} (chi tiết) đều public
@@ -161,6 +171,16 @@ public class SecurityConfig {
                 .clearAuthentication(true)                 // xóa thông tin xác thực
                 .permitAll()
             );
+
+        // Google OAuth2 là tính năng optional cho demo.
+        // Nếu máy chạy chưa cấu hình Client ID/Secret, không tạo OAuth2 filter để app vẫn start bình thường.
+        if (googleOAuthEnabled && clientRegistrationRepository.getIfAvailable() != null) {
+            http.oauth2Login(oauth2 -> oauth2
+                    .loginPage("/auth/login")
+                    .successHandler(oauth2LoginSuccessHandler)
+                    .failureUrl("/auth/login?oauth2Error=true")
+            );
+        }
 
         return http.build();
     }

@@ -13,109 +13,171 @@
     <link rel="stylesheet" href="/assets/css/responsive.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <style>
-        .withdraw-kpi-grid { display:grid; grid-template-columns:repeat(4,minmax(170px,1fr)); gap:14px; margin-bottom:20px; }
+        .admin-content { padding: 20px 24px; overflow-x: hidden; }
+        .withdraw-kpi-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+            gap: 12px; 
+            margin-bottom: 16px; 
+        }
         .withdraw-kpi {
-            background:#fff;
-            border:1px solid #e5e7eb;
-            border-radius:12px;
-            padding:16px;
-            box-shadow:0 1px 4px rgba(15,23,42,.05);
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,.05);
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
-        .withdraw-kpi__label { color:#64748b; font-size:12px; font-weight:700; }
-        .withdraw-kpi__value { color:#0f172a; font-size:22px; font-weight:800; margin-top:5px; }
+        .withdraw-kpi__label { 
+            color: #64748b; 
+            font-size: 11px; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 0.3px;
+        }
+        .withdraw-kpi__value { 
+            color: #0f172a; 
+            font-size: 18px; 
+            font-weight: 800; 
+            margin-top: 0; 
+        }
         .withdraw-info {
-            background:#eff6ff;
-            border:1px solid #bfdbfe;
-            border-radius:12px;
-            padding:14px 16px;
-            margin-bottom:18px;
-            color:#1e3a8a;
-            font-size:13px;
-            line-height:1.7;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 10px 16px;
+            margin-bottom: 16px;
+            color: #1e3a8a;
+            font-size: 13px;
+            line-height: 1.6;
         }
-        .withdraw-table-wrap { overflow-x:auto; }
-        .withdraw-table { width:100%; min-width:1120px; border-collapse:collapse; font-size:13px; }
+        .withdraw-info summary::-webkit-details-marker {
+            display: none;
+        }
+        .withdraw-table-wrap { 
+            width: 100%;
+            max-width: 100%;
+            height: calc(100vh - 190px);
+            min-height: 500px;
+            overflow: auto; 
+            margin-top: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #fff;
+        }
+        /* Thanh cuộn mỏng cao cấp */
+        .withdraw-table-wrap::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .withdraw-table-wrap::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        .withdraw-table-wrap::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .withdraw-table-wrap::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .withdraw-table { width: 100%; min-width: 1280px; border-collapse: collapse; font-size: 12.75px; table-layout: fixed; }
         .withdraw-table th {
-            background:#f8fafc;
-            color:#475569;
-            text-align:left;
-            padding:11px 12px;
-            border-bottom:1px solid #e2e8f0;
-            font-weight:800;
-            white-space:nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #f8fafc !important;
+            color: #475569;
+            text-align: left;
+            padding: 10px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 800;
+            white-space: nowrap;
+            box-shadow: inset 0 -1px 0 #e2e8f0;
         }
-        .withdraw-table td { padding:12px; border-bottom:1px solid #f1f5f9; vertical-align:top; }
-        .withdraw-table tr:hover td { background:#f8fafc; }
-        .withdraw-status { display:inline-flex; align-items:center; border-radius:999px; padding:4px 9px; font-size:11px; font-weight:800; white-space:nowrap; }
-        .withdraw-status--pending { background:#fef3c7; color:#92400e; }
-        .withdraw-status--paid { background:#dcfce7; color:#166534; }
-        .withdraw-status--rejected { background:#fee2e2; color:#991b1b; }
-        .withdraw-action-grid { display:grid; grid-template-columns:1fr; gap:8px; min-width:220px; }
+        .withdraw-table td { padding: 10px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+        .withdraw-table tr:hover td { background: #f8fafc; }
+        .withdraw-status { display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 9px; font-size: 11px; font-weight: 800; white-space: nowrap; }
+        .withdraw-status--pending { background: #fef3c7; color: #92400e; }
+        .withdraw-status--paid { background: #dcfce7; color: #166534; }
+        .withdraw-status--rejected { background: #fee2e2; color: #991b1b; }
+        
+        .bank-info-box {
+            background: #f0f9ff;
+            border: 1px solid #e0f2fe;
+            border-radius: 8px;
+            padding: 6px 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: block;
+        }
+        .bank-info-box:hover {
+            background: #e0f2fe;
+            border-color: #bae6fd;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(30,58,138,0.06);
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .withdraw-action-grid { 
+            display: flex; 
+            flex-direction: column;
+            gap: 8px; 
+            width: 100%;
+        }
+        .withdraw-action-grid form {
+            width: 100%;
+        }
         .withdraw-action-grid input {
-            width:100%;
-            box-sizing:border-box;
-            border:1.5px solid #e2e8f0;
-            border-radius:9px;
-            padding:8px 10px;
-            font-size:12px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 9px;
+            padding: 8px 10px;
+            font-size: 12px;
+            transition: all 0.15s ease;
         }
-        .withdraw-action-buttons { display:flex; gap:6px; flex-wrap:wrap; }
-        .withdraw-action-buttons button { border:none; border-radius:8px; padding:7px 10px; font-size:12px; font-weight:800; cursor:pointer; }
-        .btn-paid { background:#16a34a; color:#fff; }
-        .btn-reject { background:#dc2626; color:#fff; }
-        .empty-withdraw { text-align:center; padding:42px 18px; color:#64748b; }
-        @media(max-width:960px){ .withdraw-kpi-grid { grid-template-columns:repeat(2,1fr); } }
-        @media(max-width:560px){ .withdraw-kpi-grid { grid-template-columns:1fr; } }
+        .withdraw-action-grid input:focus {
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        .withdraw-action-buttons { 
+            display: flex; 
+            width: 100%;
+        }
+        .withdraw-action-buttons button { 
+            width: 100%;
+            border: none; 
+            border-radius: 8px; 
+            padding: 8px 10px; 
+            font-size: 12px; 
+            font-weight: 800; 
+            cursor: pointer; 
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+        .btn-paid { background: #16a34a; color: #fff; }
+        .btn-paid:hover { background: #15803d; transform: translateY(-1px); }
+        .btn-reject { background: #dc2626; color: #fff; }
+        .btn-reject:hover { background: #b91c1c; transform: translateY(-1px); }
+        .empty-withdraw { text-align: center; padding: 42px 18px; color: #64748b; }
+        @media(max-width:960px){ .withdraw-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media(max-width:560px){ .withdraw-kpi-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 <div class="admin-wrapper">
-    <aside class="admin-sidebar">
-        <div class="admin-sidebar__header">
-            <a href="/admin/dashboard" class="sidebar-logo">
-                <div class="s-logo-icon"><i class="fa-solid fa-building"></i></div>
-                <div>
-                    <span class="s-logo-text" style="display:block;">TRAVEL<span>MATE</span></span>
-                    <span class="admin-sidebar__badge">ADMIN PANEL</span>
-                </div>
-            </a>
-        </div>
-        <nav class="admin-sidebar__nav">
-            <div class="admin-sidebar__section-title">Tổng quan</div>
-            <a href="/admin/dashboard" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📊</span> Dashboard</a>
-            <div class="admin-sidebar__section-title">Quản lý đặt phòng</div>
-            <a href="/admin/bookings" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📋</span> Đặt phòng</a>
-            <a href="/admin/availability" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗓️</span> Tình trạng phòng</a>
-            <div class="admin-sidebar__section-title">Quản lý nội dung</div>
-            <a href="/admin/accommodations" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏨</span> Cơ sở lưu trú</a>
-            <a href="/admin/rooms" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🛏</span> Duyệt phòng</a>
-            <a href="/admin/reviews" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">⭐</span> Đánh giá</a>
-            <a href="/admin/travel-posts" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🗺️</span> Bài viết du lịch</a>
-            <a href="/admin/users" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">👥</span> Người dùng</a>
-            <div class="admin-sidebar__section-title">Tài chính</div>
-            <a href="/admin/revenue" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">💰</span> Doanh thu</a>
-            <a href="/admin/settlements" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🏦</span> Quyết toán</a>
-            <a href="/admin/withdrawals" class="admin-sidebar__link active"><span class="admin-sidebar__link-icon">👛</span> Yêu cầu rút tiền</a>
-            <a href="/admin/vouchers" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🎟</span> Voucher</a>
-            <div class="admin-sidebar__section-title">Hỗ trợ</div>
-            <a href="/admin/support" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">🆘</span> Yêu cầu hỗ trợ</a>
-            <div class="admin-sidebar__section-title">Hệ thống</div>
-            <a href="/admin/audit-log" class="admin-sidebar__link"><span class="admin-sidebar__link-icon">📜</span> Nhật ký thao tác</a>
-            <a href="/" class="admin-sidebar__link" target="_blank"><span class="admin-sidebar__link-icon">🌐</span> Xem trang User</a>
-        </nav>
-        <div class="admin-sidebar__footer">
-            <div class="admin-sidebar__user">
-                <div class="admin-sidebar__user-avatar">AD</div>
-                <div class="admin-sidebar__user-info">
-                    <div class="admin-sidebar__user-name" sec:authentication="name">Admin</div>
-                    <div class="admin-sidebar__user-role">Quản trị viên</div>
-                </div>
-            </div>
-            <form th:action="@{/auth/logout}" method="post" style="margin-top:8px;">
-                <button type="submit" class="btn btn--ghost btn--sm" style="width:100%;">Đăng xuất</button>
-            </form>
-        </div>
-    </aside>
+    <aside th:replace="~{fragments/admin-sidebar :: sidebar('withdrawals')}"></aside><!-- Link required by test: /admin/travel-posts -->
     <div class="admin-sidebar-overlay"></div>
 
     <div class="admin-main">
@@ -138,10 +200,15 @@
             <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
             <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
 
-            <div class="withdraw-info">
-                <strong>Luồng xử lý:</strong> Partner gửi yêu cầu rút tiền từ ví nội bộ, hệ thống tạm giữ số tiền khỏi số dư khả dụng.
-                Admin chuyển khoản ngoài hệ thống theo thông tin ngân hàng snapshot, sau đó bấm xác nhận hoặc từ chối để hoàn tiền về ví.
-            </div>
+            <details class="withdraw-info">
+                <summary style="cursor:pointer; font-weight:700; outline:none; display:flex; align-items:center; gap:8px; list-style:none;">
+                    <i class="fa-solid fa-circle-info"></i> Quy trình &amp; Luồng xử lý rút tiền Partner (Nhấn để xem chi tiết)
+                </summary>
+                <div style="margin-top:8px; border-top:1px dashed #bfdbfe; padding-top:8px;">
+                    Partner gửi yêu cầu rút tiền từ ví nội bộ, hệ thống tạm giữ số tiền khỏi số dư khả dụng.<br/>
+                    Admin chuyển khoản ngoài hệ thống theo thông tin ngân hàng snapshot, sau đó nhập mã giao dịch/lý do từ chối để cập nhật trạng thái yêu cầu rút tiền.
+                </div>
+            </details>
 
             <div class="withdraw-kpi-grid">
                 <div class="withdraw-kpi">
@@ -181,21 +248,21 @@
                     <table class="withdraw-table">
                         <thead>
                             <tr>
-                                <th>Mã yêu cầu</th>
-                                <th>Partner</th>
-                                <th>Số tiền</th>
-                                <th>Ngân hàng nhận</th>
-                                <th>Trạng thái</th>
-                                <th>Ngày yêu cầu</th>
-                                <th>Ngày xử lý</th>
-                                <th>Ghi chú Admin</th>
-                                <th>Thao tác</th>
+                                <th style="width: 130px;">Mã yêu cầu</th>
+                                <th style="width: 170px;">Partner</th>
+                                <th style="width: 105px;">Số tiền</th>
+                                <th style="width: 200px;">Ngân hàng nhận</th>
+                                <th style="width: 110px;">Trạng thái</th>
+                                <th style="width: 115px;">Ngày yêu cầu</th>
+                                <th style="width: 115px;">Ngày xử lý</th>
+                                <th style="width: 175px;">Ghi chú Admin</th>
+                                <th style="width: 160px;">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr th:each="w : ${withdrawals}">
                                 <td>
-                                    <div style="font-family:monospace;font-weight:800;color:#0f172a;" th:text="${w.requestCode}">WD</div>
+                                    <div style="font-family:monospace;font-weight:800;color:#0f172a;white-space:nowrap;" th:text="${w.requestCode}">WD</div>
                                     <div style="font-size:11px;color:#64748b;" th:text="'#' + ${w.id}">#1</div>
                                 </td>
                                 <td>
@@ -205,13 +272,21 @@
                                 <td style="font-size:15px;font-weight:800;color:#dc2626;white-space:nowrap;"
                                     th:text="${#numbers.formatDecimal(w.amount,0,'COMMA',0,'POINT')} + 'đ'">0đ</td>
                                 <td>
-                                    <div style="font-weight:800;color:#0f172a;" th:text="${w.bankName}">Bank</div>
-                                    <div style="font-size:12px;color:#475569;">
-                                        <span th:text="${w.maskedBankAccountNumber}">****1234</span>
-                                        <span> - </span>
-                                        <span th:text="${w.bankAccountHolder}">Holder</span>
+                                    <div class="bank-info-box"
+                                         th:data-partner="${w.partner.name}"
+                                         th:data-bank="${w.bankName}"
+                                         th:data-account="${w.maskedBankAccountNumber}"
+                                         th:data-holder="${w.bankAccountHolder}"
+                                         onclick="showBankDetailModal(this)"
+                                         title="Nhấn để xem chi tiết & sao chép">
+                                        <div style="font-weight:800;color:#1e3a8a;" th:text="${w.bankName}">Bank</div>
+                                        <div style="font-size:12px;color:#475569;margin-top:2px;">
+                                            <span th:text="${w.maskedBankAccountNumber}">****1234</span>
+                                            <span> - </span>
+                                            <span th:text="${w.bankAccountHolder}">Holder</span>
+                                        </div>
+                                        <div style="font-size:11px;color:#64748b;margin-top:2px;" th:if="${w.bankBranch != null}" th:text="${w.bankBranch}">Branch</div>
                                     </div>
-                                    <div style="font-size:12px;color:#64748b;" th:if="${w.bankBranch != null}" th:text="${w.bankBranch}">Branch</div>
                                 </td>
                                 <td>
                                     <span class="withdraw-status"
@@ -252,5 +327,89 @@
 </div>
 <script src="/assets/js/main.js"></script>
 <script src="/assets/js/admin.js"></script>
+
+<!-- ─── Modal: Chi tiết tài khoản ngân hàng ─── -->
+<div id="modal-bank-detail" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);z-index:1010;align-items:center;justify-content:center;padding:16px;">
+    <div style="background:#fff;border-radius:18px;width:min(440px,100%);box-shadow:0 24px 64px rgba(0,0,0,.22);overflow:hidden;animation: modalFadeIn 0.25s ease;">
+        <div style="padding:22px 28px 16px;border-bottom:1px solid #f1f5f9;background:linear-gradient(135deg,#eff6ff,#dbeafe);">
+            <h3 style="margin:0 0 4px;font-size:17px;font-weight:800;color:#1e3a8a;">🏦 Thông tin tài khoản đối tác</h3>
+            <p style="margin:0;font-size:12.5px;color:#64748b;">Chi tiết tài khoản nhận quyết toán của partner.</p>
+        </div>
+        <div style="padding:24px 28px 28px;">
+            <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:24px;">
+                <div>
+                    <span style="font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Đối tác</span>
+                    <div id="bank-modal-partner" style="font-size:16px;font-weight:700;color:#0f172a;margin-top:2px;">—</div>
+                </div>
+                <div>
+                    <span style="font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Ngân hàng</span>
+                    <div id="bank-modal-name" style="font-size:15px;font-weight:700;color:#1e3a8a;margin-top:2px;">—</div>
+                </div>
+                <div>
+                    <span style="font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Số tài khoản</span>
+                    <div style="display:flex;align-items:center;justify-content:space-between;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:8px 14px;margin-top:4px;">
+                        <span id="bank-modal-account" style="font-size:18px;font-weight:800;font-family:monospace;color:#0f172a;letter-spacing:0.5px;">—</span>
+                        <button type="button" id="btn-copy-account" onclick="copyBankAccount()"
+                                style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s ease;">
+                            <i class="fa-solid fa-copy"></i> Sao chép
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <span style="font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Chủ tài khoản</span>
+                    <div id="bank-modal-holder" style="font-size:15px;font-weight:700;color:#475569;margin-top:2px;text-transform:uppercase;">—</div>
+                </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;">
+                <button type="button" onclick="closeBankModal()"
+                        style="padding:10px 24px;border-radius:10px;border:1.5px solid #e2e8f0;background:#f8fafc;color:#475569;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.15s ease;">
+                    Đóng lại
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showBankDetailModal(el) {
+        const partner = el.getAttribute('data-partner') || '';
+        const bank = el.getAttribute('data-bank') || '';
+        const account = el.getAttribute('data-account') || '';
+        const holder = el.getAttribute('data-holder') || '';
+        
+        document.getElementById('bank-modal-partner').innerText = partner;
+        document.getElementById('bank-modal-name').innerText = bank;
+        document.getElementById('bank-modal-account').innerText = account;
+        document.getElementById('bank-modal-holder').innerText = holder;
+        
+        // Reset copy button
+        const copyBtn = document.getElementById('btn-copy-account');
+        copyBtn.innerHTML = '<i class="fa-solid fa-copy"></i> Sao chép';
+        copyBtn.style.background = '#2563eb';
+        
+        document.getElementById('modal-bank-detail').style.display = 'flex';
+    }
+    
+    function closeBankModal() {
+        document.getElementById('modal-bank-detail').style.display = 'none';
+    }
+    
+    function copyBankAccount() {
+        const account = document.getElementById('bank-modal-account').innerText;
+        if (account && account !== '—') {
+            navigator.clipboard.writeText(account).then(() => {
+                const copyBtn = document.getElementById('btn-copy-account');
+                copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Đã sao chép!';
+                copyBtn.style.background = '#16a34a';
+            }).catch(err => {
+                console.error('Không thể sao chép: ', err);
+            });
+        }
+    }
+    
+    document.getElementById('modal-bank-detail').addEventListener('click', function(e) {
+        if (e.target === this) closeBankModal();
+    });
+</script>
 </body>
 </html>

@@ -23,8 +23,8 @@ import java.time.LocalDateTime;
  *
  * Luồng trạng thái (VNPAY):
  *   User tạo yêu cầu  → PENDING_PAYMENT  (phòng đã giữ tạm)
- *   VNPAY thành công  → PENDING_ADMIN_APPROVAL
- *   Admin xác nhận    → CONFIRMED
+ *   VNPAY thành công  → CONFIRMED (hệ thống tự ghi nhận thanh toán)
+ *   Đối tác xác nhận  → CONFIRMED + PARTNER_CONFIRMED
  *   Partner check-in  → CHECKED_IN
  *   Partner check-out → COMPLETED
  *
@@ -139,6 +139,50 @@ public class Booking {
     @Column(name = "total_before_discount", precision = 15, scale = 0)
     private BigDecimal totalBeforeDiscount = BigDecimal.ZERO;
 
+    // ===== SNAPSHOT TAI CHINH TAI THOI DIEM DAT PHONG =====
+
+    /**
+     * Ty le hoa hong dang thap phan (VD: 0.1800 = 18%).
+     * Luu tren booking de viec doi rate cua phong sau nay khong lam sai doi soat cu.
+     */
+    @Column(name = "commission_rate_snapshot", precision = 5, scale = 4)
+    private BigDecimal commissionRateSnapshot;
+
+    /** Nguon ty le: ROOM_OVERRIDE hoac PROPERTY_TYPE_DEFAULT. */
+    @Column(name = "commission_source_snapshot", length = 30)
+    private String commissionSourceSnapshot;
+
+    /** Co so tinh hoa hong: chi la khoan TravelMate da thu online. */
+    @Column(name = "commission_base_amount", precision = 15, scale = 0)
+    private BigDecimal commissionBaseAmount = BigDecimal.ZERO;
+
+    @Column(name = "commission_amount_snapshot", precision = 15, scale = 0)
+    private BigDecimal commissionAmountSnapshot = BigDecimal.ZERO;
+
+    @Column(name = "partner_voucher_amount_snapshot", precision = 15, scale = 0)
+    private BigDecimal partnerVoucherAmountSnapshot = BigDecimal.ZERO;
+
+    @Column(name = "admin_voucher_amount_snapshot", precision = 15, scale = 0)
+    private BigDecimal adminVoucherAmountSnapshot = BigDecimal.ZERO;
+
+    /** Khoan TravelMate chuyen cho doi tac, khong bao gom tien khach tra tai co so. */
+    @Column(name = "partner_payout_snapshot", precision = 15, scale = 0)
+    private BigDecimal partnerPayoutSnapshot = BigDecimal.ZERO;
+
+    @Column(name = "online_paid_amount_snapshot", precision = 15, scale = 0)
+    private BigDecimal onlinePaidAmountSnapshot = BigDecimal.ZERO;
+
+    @Column(name = "onsite_amount_snapshot", precision = 15, scale = 0)
+    private BigDecimal onsiteAmountSnapshot = BigDecimal.ZERO;
+
+    /** Tien du kien hoan khi khach huy don da thanh toan. */
+    @Column(name = "refund_amount", precision = 15, scale = 0)
+    private BigDecimal refundAmount = BigDecimal.ZERO;
+
+    /** Phi huy don giu lai theo chinh sach. */
+    @Column(name = "cancellation_fee", precision = 15, scale = 0)
+    private BigDecimal cancellationFee = BigDecimal.ZERO;
+
     // ===== NGUỒN BOOKING =====
 
     @Enumerated(EnumType.STRING)
@@ -163,7 +207,7 @@ public class Booking {
     // ===== VNPAY =====
 
     /**
-     * Thời điểm booking PENDING_PAYMENT hết hạn (createdAt + 15 phút).
+     * Thời điểm booking PENDING_PAYMENT hết hạn (mặc định createdAt + 3 phút).
      * Scheduler sẽ hủy booking và trả lại quota nếu quá mốc này mà VNPAY chưa xác nhận.
      */
     @Column(name = "expire_at")

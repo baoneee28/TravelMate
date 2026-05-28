@@ -146,7 +146,11 @@
                 <p><span th:text="|Trang này chỉ hiển thị ${unitLabel ?: 'phòng'} thuộc|">Trang này chỉ hiển thị phòng thuộc</span> <strong>cơ sở lưu trú đã được Admin duyệt</strong> của bạn.
                    <span th:text="${(unitLabelCap ?: 'Phòng') + ' bị tính &quot;đang giữ&quot; bao gồm các đơn có trạng thái:'}">Phòng bị tính "đang giữ" bao gồm các đơn có trạng thái:</span> <strong>Chờ duyệt</strong>, <strong>Đã xác nhận</strong> và <strong>Đang check-in</strong>.
                    <br/>
-                   <span style="color:#065f46;font-weight:600;">📌 Booking đã No-show, đã Huỷ hoặc đã Hoàn tất sẽ <em>không</em> chiếm <span th:text="|quota ${unitLabel ?: 'phòng'}|">quota phòng</span></span> — quota được mở lại ngay sau khi partner xác nhận No-show hoặc khách <span th:text="|trả ${unitLabel ?: 'phòng'}|">trả phòng</span>.
+                   <span style="color:#1d4ed8;font-weight:600;">📌 Đơn online đang thanh toán có thể giữ quota tạm thời để tránh bán trùng; bạn thao tác đơn sau khi VNPAY xác nhận thanh toán thành công.</span>
+                   <br/>
+                   <span style="color:#065f46;font-weight:600;">📌 Booking đã No-show, đã Huỷ hoặc đã Hoàn tất sẽ <em>không</em> chiếm <span th:text="|quota ${unitLabel ?: 'phòng'}|">quota phòng</span></span> — quota được mở lại ngay sau khi bạn xác nhận No-show hoặc khách <span th:text="|trả ${unitLabel ?: 'phòng'}|">trả phòng</span>.
+                   <br/>
+                   <span style="color:#065f46;font-weight:600;">📌 Booking trực tiếp và chặn phòng chỉ cập nhật lịch trống; không được tính vào doanh thu hay quyết toán TravelMate.</span>
                 </p>
             </div>
 
@@ -186,19 +190,19 @@
                 <div class="sum-card" style="--sc:#059669;">
                     <div class="sum-card__lbl" th:text="${'Còn ' + (unitLabel ?: 'phòng')}">Còn phòng</div>
                     <div class="sum-card__val" th:text="${summary.availableTypes}">0</div>
-                    <div class="sum-card__sub" th:text="${'loại ' + (unitLabel ?: 'phòng')}">loại phòng</div>
+                    <div class="sum-card__sub" th:text="${unitTypeLabel ?: 'loại phòng'}">loại phòng</div>
                     <span class="sum-card__icon">✅</span>
                 </div>
                 <div class="sum-card" style="--sc:#f59e0b;">
                     <div class="sum-card__lbl">Sắp hết</div>
                     <div class="sum-card__val" th:text="${summary.limitedTypes}">0</div>
-                    <div class="sum-card__sub" th:text="${'loại ' + (unitLabel ?: 'phòng')}">loại phòng</div>
+                    <div class="sum-card__sub" th:text="${unitTypeLabel ?: 'loại phòng'}">loại phòng</div>
                     <span class="sum-card__icon">⚠️</span>
                 </div>
                 <div class="sum-card" style="--sc:#ef4444;">
                     <div class="sum-card__lbl" th:text="${'Hết ' + (unitLabel ?: 'phòng')}">Hết phòng</div>
                     <div class="sum-card__val" th:text="${summary.fullTypes}">0</div>
-                    <div class="sum-card__sub" th:text="${'loại ' + (unitLabel ?: 'phòng')}">loại phòng</div>
+                    <div class="sum-card__sub" th:text="${unitTypeLabel ?: 'loại phòng'}">loại phòng</div>
                     <span class="sum-card__icon">🚫</span>
                 </div>
                 <div class="sum-card" style="--sc:#0ea5e9;">
@@ -222,14 +226,14 @@
                 <div th:if="${not #lists.isEmpty(results)}" class="avail-table-wrap">
                     <div class="avail-table-head">
                         <h2 th:text="${'📋 Tình trạng ' + (unitLabel ?: 'phòng') + ' của bạn'}">📋 Tình trạng phòng của bạn</h2>
-                        <span class="table-count" th:text="${#lists.size(results) + ' loại ' + (unitLabel ?: 'phòng')}"></span>
+                        <span class="table-count" th:text="${#lists.size(results) + ' ' + (unitTypeLabel ?: 'loại phòng')}"></span>
                     </div>
                     <div style="overflow-x:auto;">
                         <table class="avail-tbl">
                             <thead>
                                 <tr>
                                     <th>Cơ sở lưu trú</th>
-                                    <th th:text="${'Loại ' + (unitLabel ?: 'phòng')}">Loại phòng</th>
+                                    <th th:text="${unitTypeLabelCap ?: 'Phòng'}">Loại phòng</th>
                                     <th>Hạng</th>
                                     <th>Giá/đêm</th>
                                     <th style="text-align:center;">Tổng</th>

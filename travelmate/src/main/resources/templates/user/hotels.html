@@ -1350,40 +1350,17 @@
                             <a th:href="@{/accommodations/{id}(id=${hotel.id}, checkIn=${checkIn}, checkOut=${checkOut}, adults=${adults}, children=${children}, rooms=${rooms})}" class="main-img">
                                 <!-- onerror: nếu ảnh online không load được → dùng ảnh local mặc định -->
                                 <img th:src="${hotel.thumbnailUrl}" th:alt="${hotel.name}"
-                                     onerror="this.onerror=null; this.src='/assets/images/resort.jpg'" />
+                                     th:attr="data-fallback=${hotel.propertyType.name() == 'VILLA' ? '/assets/images/accommodations/catalog/villa-exterior.jpg' : (hotel.propertyType.name() == 'HOMESTAY' ? '/assets/images/accommodations/catalog/homestay-exterior.jpg' : (hotel.propertyType.name() == 'RESORT' ? '/assets/images/accommodations/catalog/resort-exterior.jpg' : '/assets/images/accommodations/catalog/hotel-exterior.jpg'))}"
+                                     onerror="this.onerror=null; this.src=this.dataset.fallback" />
                             </a>
-                            <!-- Ảnh phụ thay đổi theo loại hình lưu trú -->
-                            <th:block th:if="${hotel.propertyType.name() == 'HOTEL'}">
-                                <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=200&q=60" alt="Phòng ngủ"
-                                     onerror="this.onerror=null;this.src='/assets/images/resort.jpg'"
-                                    style="grid-column: 2; grid-row: 1" />
-                                <img src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=200&q=60" alt="Hồ bơi"
-                                     onerror="this.onerror=null;this.src='/assets/images/resort.jpg'"
-                                    style="grid-column: 2; grid-row: 2" />
-                            </th:block>
-                            <th:block th:if="${hotel.propertyType.name() == 'VILLA'}">
-                                <img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=200&q=60" alt="Hồ bơi riêng"
-                                     onerror="this.onerror=null;this.src='/assets/images/resort.jpg'"
-                                    style="grid-column: 2; grid-row: 1" />
-                                <img src="https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=200&q=60" alt="View villa"
-                                     onerror="this.onerror=null;this.src='/assets/images/resort.jpg'"
-                                    style="grid-column: 2; grid-row: 2" />
-                            </th:block>
-                            <th:block th:if="${hotel.propertyType.name() == 'HOMESTAY'}">
-                                <img src="https://images.unsplash.com/photo-1586375300773-8384e3e4916f?w=200&q=60" alt="Sân vườn"
-                                     onerror="this.onerror=null;this.src='/assets/images/homestay-o-da-lat.jpg'"
-                                    style="grid-column: 2; grid-row: 1" />
-                                <img src="https://images.unsplash.com/photo-1540518614846-7eded433c457?w=200&q=60" alt="Phòng"
-                                     onerror="this.onerror=null;this.src='/assets/images/homestay-o-da-lat.jpg'"
-                                    style="grid-column: 2; grid-row: 2" />
-                            </th:block>
-                            <th:block th:if="${hotel.propertyType.name() == 'RESORT'}">
-                                <img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=200&q=60" alt="Spa"
-                                     onerror="this.onerror=null;this.src='/assets/images/resort.jpg'"
-                                    style="grid-column: 2; grid-row: 1" />
-                                <img src="https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=200&q=60" alt="Bãi biển"
-                                     onerror="this.onerror=null;this.src='/assets/images/resort.jpg'"
-                                    style="grid-column: 2; grid-row: 2" />
+                            <th:block th:with="cardSideImages=${cardSideImagesByAccommodationId != null ? cardSideImagesByAccommodationId[hotel.id] : null}">
+                                <img th:each="cardImage, stat : ${cardSideImages}"
+                                     th:if="${cardSideImages != null and stat.index < 2}"
+                                     th:src="${cardImage.src}"
+                                     th:alt="${cardImage.alt}"
+                                     th:style="${stat.index == 0 ? 'grid-column: 2; grid-row: 1' : 'grid-column: 2; grid-row: 2'}"
+                                     th:attr="data-fallback=${hotel.propertyType.name() == 'VILLA' ? '/assets/images/accommodations/catalog/villa-exterior.jpg' : (hotel.propertyType.name() == 'HOMESTAY' ? '/assets/images/accommodations/catalog/homestay-exterior.jpg' : (hotel.propertyType.name() == 'RESORT' ? '/assets/images/accommodations/catalog/resort-exterior.jpg' : '/assets/images/accommodations/catalog/hotel-exterior.jpg'))}"
+                                     onerror="this.onerror=null; this.src=this.dataset.fallback" />
                             </th:block>
                             <button class="hcl-wishlist"><i class="fa-regular fa-bookmark"></i></button>
                         </div>

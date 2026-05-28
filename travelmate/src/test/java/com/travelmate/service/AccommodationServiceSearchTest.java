@@ -1,6 +1,9 @@
 package com.travelmate.service;
 
 import com.travelmate.entity.Accommodation;
+import com.travelmate.entity.Amenity;
+import com.travelmate.entity.Room;
+import com.travelmate.entity.User;
 import com.travelmate.entity.enums.ApprovalStatus;
 import com.travelmate.entity.enums.PropertyType;
 import com.travelmate.repository.AccommodationRepository;
@@ -13,8 +16,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -106,7 +114,7 @@ class AccommodationServiceSearchTest {
     }
 
     @Test
-    void searchByTypeMatchesCanThoAliasForSeededResortDemo() {
+    void searchByTypeMatchesCanThoAliasForResortDemo() {
         Accommodation canThoResort = accommodation("Azerai Cần Thơ Resort", "Cần Thơ", PropertyType.RESORT);
 
         when(accommodationRepository.findByPropertyTypeAndApprovalStatus(
@@ -122,6 +130,133 @@ class AccommodationServiceSearchTest {
         assertThat(accommodationService.searchByType(PropertyType.RESORT, "Cần Thơ"))
                 .extracting(Accommodation::getName)
                 .containsExactly("Azerai Cần Thơ Resort");
+    }
+
+    @Test
+    void searchByTypeReturnsEmptyStateForDeepTyposInsteadOfWrongResults() {
+        Accommodation daLatHotel = accommodation("LATA Hotel & Apartments", "Đà Lạt");
+        Accommodation daNangHotel = accommodation("Han River Hotel", "Đà Nẵng");
+        Accommodation hcmHotel = accommodation("Ben Thanh Urban Hotel", "TP. Hồ Chí Minh");
+
+        when(accommodationRepository.findByPropertyTypeAndApprovalStatus(
+                PropertyType.HOTEL, ApprovalStatus.APPROVED))
+                .thenReturn(List.of(daLatHotel, daNangHotel, hcmHotel));
+
+        assertThat(accommodationService.searchByType(PropertyType.HOTEL, "đlat"))
+                .extracting(Accommodation::getName)
+                .containsExactly("LATA Hotel & Apartments");
+        assertThat(accommodationService.searchByType(PropertyType.HOTEL, "dalatt")).isEmpty();
+        assertThat(accommodationService.searchByType(PropertyType.HOTEL, "sgon")).isEmpty();
+        assertThat(accommodationService.searchByType(PropertyType.HOTEL, "da nangg")).isEmpty();
+    }
+
+    @Test
+    void partnerAccommodationListOnlyIncludesRegisteredPropertyType() {
+        User resortPartner = partner(4L, PropertyType.RESORT);
+        Accommodation wrongHotel = accommodation("InterContinental Nha Trang", "Nha Trang", PropertyType.HOTEL);
+        wrongHotel.setOwner(resortPartner);
+        Accommodation resort = accommodation("Vinpearl Resort & Spa Nha Trang", "Nha Trang", PropertyType.RESORT);
+        resort.setOwner(resortPartner);
+
+        when(accommodationRepository.findByOwner(resortPartner))
+                .thenReturn(List.of(wrongHotel, resort));
+
+        assertThat(accommodationService.getAccommodationsByOwner(resortPartner))
+                .extracting(Accommodation::getName)
+                .containsExactly("Vinpearl Resort & Spa Nha Trang");
+    }
+
+    @Test
+    void partnerApprovedRoomsOnlyIncludesRoomsFromRegisteredPropertyType() {
+        User resortPartner = partner(4L, PropertyType.RESORT);
+        Room hotelRoom = room("ICN-STD", accommodation("InterContinental Nha Trang", "Nha Trang", PropertyType.HOTEL));
+        hotelRoom.getAccommodation().setOwner(resortPartner);
+        Room resortRoom = room("VPR-DLX", accommodation("Vinpearl Resort & Spa Nha Trang", "Nha Trang", PropertyType.RESORT));
+        resortRoom.getAccommodation().setOwner(resortPartner);
+
+        when(roomRepository.findByAccommodation_OwnerAndApprovalStatus(resortPartner, ApprovalStatus.APPROVED))
+                .thenReturn(List.of(hotelRoom, resortRoom));
+
+        assertThat(accommodationService.getApprovedRoomsForPartner(resortPartner))
+                .extracting(Room::getRoomCode)
+                .containsExactly("VPR-DLX");
+    }
+
+    @Test
+    void updateRoomAmenitiesRejectsRoomFromWrongPropertyTypeEvenWhenOwnerMatches() {
+        User resortPartner = partner(4L, PropertyType.RESORT);
+        Room hotelRoom = room("ICN-STD", accommodation("InterContinental Nha Trang", "Nha Trang", PropertyType.HOTEL));
+        hotelRoom.setId(10L);
+        hotelRoom.getAccommodation().setOwner(resortPartner);
+
+        when(roomRepository.findById(10L)).thenReturn(Optional.of(hotelRoom));
+
+        assertThatThrownBy(() -> accommodationService.updateRoomAmenities(resortPartner, 10L, List.of()))
+                .hasMessageContaining("Tài khoản RESORT");
+        verify(roomRepository, never()).save(any(Room.class));
+    }
+
+    @Test
+    void updateRoomAmenitiesReturnsApprovedRoomToPendingWhenImportantAmenityIsRemoved() {
+        User hotelPartner = partner(3L, PropertyType.HOTEL);
+        Accommodation hotel = accommodation("LATA Hotel & Apartments", "Đà Lạt", PropertyType.HOTEL);
+        hotel.setOwner(hotelPartner);
+        Room room = room("LATA-DLX", hotel);
+        room.setId(11L);
+        Amenity wifi = amenity(1L, "WiFi miễn phí");
+        Amenity television = amenity(2L, "TV màn hình phẳng");
+        room.setAmenities(List.of(wifi, television));
+
+        when(roomRepository.findById(11L)).thenReturn(Optional.of(room));
+        when(amenityRepository.findAllById(List.of(2L))).thenReturn(List.of(television));
+        when(roomRepository.save(room)).thenReturn(room);
+
+        Room updated = accommodationService.updateRoomAmenities(hotelPartner, 11L, List.of(2L));
+
+        assertThat(updated.getApprovalStatus()).isEqualTo(ApprovalStatus.PENDING);
+        assertThat(updated.getAvailableForBooking()).isFalse();
+        verify(roomRepository).save(room);
+    }
+
+    @Test
+    void userRoomListsHideRoomsStoppedForOnlineBooking() {
+        Accommodation hotel = accommodation("LATA Hotel & Apartments", "Đà Lạt", PropertyType.HOTEL);
+        Room open = room("LATA-OPEN", hotel);
+        open.setAvailableQuantity(2);
+        Room stopped = room("LATA-STOP", hotel);
+        stopped.setAvailableQuantity(2);
+        stopped.setAvailableForBooking(false);
+
+        when(roomRepository.findByAccommodationAndAvailableQuantityGreaterThanAndApprovalStatus(
+                hotel, 0, ApprovalStatus.APPROVED)).thenReturn(List.of(stopped, open));
+        when(roomRepository.findByAccommodationAndApprovalStatus(hotel, ApprovalStatus.APPROVED))
+                .thenReturn(List.of(stopped, open));
+
+        assertThat(accommodationService.getAvailableRooms(hotel))
+                .extracting(Room::getRoomCode)
+                .containsExactly("LATA-OPEN");
+        assertThat(accommodationService.getAllApprovedRooms(hotel))
+                .extracting(Room::getRoomCode)
+                .containsExactly("LATA-OPEN");
+    }
+
+    @Test
+    void partnerCanToggleRoomSellingWithoutChangingQuota() {
+        User hotelPartner = partner(3L, PropertyType.HOTEL);
+        Accommodation hotel = accommodation("LATA Hotel & Apartments", "Đà Lạt", PropertyType.HOTEL);
+        hotel.setOwner(hotelPartner);
+        Room room = room("LATA-STD", hotel);
+        room.setId(77L);
+        room.setAvailableQuantity(5);
+        room.setAvailableForBooking(true);
+        when(roomRepository.findById(77L)).thenReturn(Optional.of(room));
+        when(roomRepository.save(room)).thenReturn(room);
+
+        Room result = accommodationService.toggleRoomBookingAvailability(hotelPartner, 77L);
+
+        assertThat(result.getAvailableForBooking()).isFalse();
+        assertThat(result.getAvailableQuantity()).isEqualTo(5);
+        verify(roomRepository).save(room);
     }
 
     private void assertSearch(String keyword, String expectedAccommodationName) {
@@ -141,5 +276,30 @@ class AccommodationServiceSearchTest {
         accommodation.setPropertyType(propertyType);
         accommodation.setApprovalStatus(ApprovalStatus.APPROVED);
         return accommodation;
+    }
+
+    private static User partner(Long id, PropertyType propertyType) {
+        User partner = new User();
+        partner.setId(id);
+        partner.setRole(User.Role.PARTNER);
+        partner.setPartnerPropertyType(propertyType);
+        return partner;
+    }
+
+    private static Room room(String roomCode, Accommodation accommodation) {
+        Room room = new Room();
+        room.setRoomCode(roomCode);
+        room.setRoomName(roomCode);
+        room.setAccommodation(accommodation);
+        room.setApprovalStatus(ApprovalStatus.APPROVED);
+        room.setAvailableForBooking(true);
+        return room;
+    }
+
+    private static Amenity amenity(Long id, String name) {
+        Amenity amenity = new Amenity();
+        amenity.setId(id);
+        amenity.setName(name);
+        return amenity;
     }
 }

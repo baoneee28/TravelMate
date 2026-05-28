@@ -5,6 +5,7 @@ import com.travelmate.entity.Accommodation;
 import com.travelmate.entity.Booking;
 import com.travelmate.entity.Review;
 import com.travelmate.entity.Room;
+import com.travelmate.entity.RoomImage;
 import com.travelmate.entity.TravelPost;
 import com.travelmate.entity.enums.ApprovalStatus;
 import com.travelmate.entity.enums.BookingStatus;
@@ -13,6 +14,7 @@ import com.travelmate.repository.BookingRepository;
 import com.travelmate.service.AccommodationService;
 import com.travelmate.service.AvailabilityService;
 import com.travelmate.service.ReviewService;
+import com.travelmate.service.RoomImageService;
 import com.travelmate.service.TravelPostService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,9 +26,11 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * AccommodationPageController — Điều khiển trang tìm kiếm và chi tiết khách sạn.
@@ -38,23 +42,64 @@ import java.util.Optional;
 @Controller
 public class AccommodationPageController {
     private static final DateTimeFormatter DISPLAY_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final int DETAIL_GALLERY_SIZE = 5;
+    private static final String LATA_HOTEL_NAME = "LATA Hotel & Apartments";
+    private static final List<Map.Entry<String, String>> LATA_DETAIL_GALLERY_IMAGES = List.of(
+            Map.entry("/assets/images/accommodations/lata/cover/room-hero.jpg",
+                    "LATA Hotel & Apartments - phòng ngủ"),
+            Map.entry("/assets/images/accommodations/lata/shared/main-lounge.jpg",
+                    "LATA Hotel & Apartments - khu lounge"),
+            Map.entry("/assets/images/accommodations/lata/shared/dining-area.jpg",
+                    "LATA Hotel & Apartments - khu ăn uống"),
+            Map.entry("/assets/images/accommodations/lata/shared/open-kitchen.jpg",
+                    "LATA Hotel & Apartments - bếp chung"),
+            Map.entry("/assets/images/accommodations/lata/rooms/standard-king/interior.jpg",
+                    "LATA Hotel & Apartments - phòng Standard King"));
+    private static final Map<PropertyType, List<String>> DETAIL_GALLERY_FALLBACK_URLS = Map.of(
+            PropertyType.HOTEL, List.of(
+                    "/assets/images/accommodations/catalog/hotel-exterior.jpg",
+                    "/assets/images/accommodations/amenities/hotel/lobby.jpg",
+                    "/assets/images/accommodations/amenities/hotel/bedroom.jpg",
+                    "/assets/images/accommodations/amenities/hotel/pool.jpg",
+                    "/assets/images/accommodations/amenities/hotel/restaurant.jpg"),
+            PropertyType.VILLA, List.of(
+                    "/assets/images/accommodations/catalog/villa-exterior.jpg",
+                    "/assets/images/accommodations/amenities/villa/bedroom.jpg",
+                    "/assets/images/accommodations/amenities/villa/private-pool.jpg",
+                    "/assets/images/accommodations/amenities/villa/kitchen.jpg",
+                    "/assets/images/accommodations/amenities/villa/panoramic-view.jpg"),
+            PropertyType.HOMESTAY, List.of(
+                    "/assets/images/accommodations/catalog/homestay-exterior.jpg",
+                    "/assets/images/accommodations/amenities/homestay/bedroom.jpg",
+                    "/assets/images/accommodations/amenities/homestay/garden.jpg",
+                    "/assets/images/accommodations/amenities/homestay/shared-kitchen.jpg",
+                    "/assets/images/accommodations/amenities/homestay/breakfast.jpg"),
+            PropertyType.RESORT, List.of(
+                    "/assets/images/accommodations/catalog/resort-exterior.jpg",
+                    "/assets/images/accommodations/catalog/resort-room.jpg",
+                    "/assets/images/accommodations/amenities/resort/private-beach.jpg",
+                    "/assets/images/accommodations/amenities/resort/infinity-pool.jpg",
+                    "/assets/images/accommodations/amenities/resort/spa.jpg"));
 
     private final AccommodationService accommodationService;
     private final ReviewService reviewService;
     private final BookingRepository bookingRepository;
     private final AvailabilityService availabilityService;
     private final TravelPostService travelPostService;
+    private final RoomImageService roomImageService;
 
     public AccommodationPageController(AccommodationService accommodationService,
                                        ReviewService reviewService,
                                        BookingRepository bookingRepository,
                                        AvailabilityService availabilityService,
-                                       TravelPostService travelPostService) {
+                                       TravelPostService travelPostService,
+                                       RoomImageService roomImageService) {
         this.accommodationService = accommodationService;
         this.reviewService = reviewService;
         this.bookingRepository = bookingRepository;
         this.availabilityService = availabilityService;
         this.travelPostService = travelPostService;
+        this.roomImageService = roomImageService;
     }
 
     /**
@@ -83,9 +128,12 @@ public class AccommodationPageController {
 
         // Parse type string → PropertyType enum, fallback HOTEL nếu sai
         PropertyType propertyType = parsePropertyType(type);
+        String effectiveKeyword = (keyword == null || keyword.trim().isBlank())
+                ? "Đà Lạt"
+                : keyword.trim();
 
         // Tìm kiếm theo loại hình + keyword
-        List<Accommodation> hotels = accommodationService.searchByType(propertyType, keyword);
+        List<Accommodation> hotels = accommodationService.searchByType(propertyType, effectiveKeyword);
 
         // ── Tính tình trạng phòng theo ngày cho từng accommodation (hiện badge trên card) ──
         Map<Long, Map<String, Object>> accAvailMap = new HashMap<>();
@@ -117,7 +165,7 @@ public class AccommodationPageController {
         // ── Gợi ý du lịch theo điểm đến đang tìm ──────────────────────────────
         // Nếu user nhập tên nơi lưu trú (VD: "Tulip Hotel") không khớp destination_slug,
         // fallback sang city của kết quả đầu tiên có bài viết để demo vẫn đúng nghiệp vụ.
-        String cleanKeyword = keyword != null ? keyword.trim() : "";
+        String cleanKeyword = effectiveKeyword.trim();
         String travelKeyword = cleanKeyword;
         String requestedTravelSlug = travelPostService.normalizeDestination(cleanKeyword);
         List<TravelPost> travelPosts = cleanKeyword.isBlank()
@@ -160,7 +208,8 @@ public class AccommodationPageController {
 
         // Truyền dữ liệu vào template
         model.addAttribute("hotels", hotels);
-        model.addAttribute("keyword", keyword);
+        model.addAttribute("cardSideImagesByAccommodationId", buildListingCardSideImages(hotels));
+        model.addAttribute("keyword", effectiveKeyword);
         model.addAttribute("keywordDisplay", keywordDisplay);
         model.addAttribute("currentType", type.toUpperCase());
         model.addAttribute("checkIn", checkIn);
@@ -245,6 +294,11 @@ public class AccommodationPageController {
             displayRooms = accommodationService.getAvailableRooms(hotel);
         }
 
+        // Gallery luôn dùng toàn bộ phòng/căn đang mở bán, kể cả loại phòng đã hết suất ở ngày đang chọn.
+        List<Room> galleryRooms = accommodationService.getAllApprovedRooms(hotel);
+        Map<Long, List<RoomImage>> roomImagesMap = roomImageService.getImagesForRooms(galleryRooms);
+        List<Map<String, String>> galleryImages = buildDetailGallery(hotel, galleryRooms, roomImagesMap);
+
         // Lấy danh sách đánh giá từ DB
         List<Review> reviews = reviewService.getReviewsByAccommodation(hotel);
 
@@ -285,6 +339,8 @@ public class AccommodationPageController {
         // Truyền vào template
         model.addAttribute("hotel", hotel);
         model.addAttribute("availableRooms", displayRooms);
+        model.addAttribute("roomImagesMap", roomImagesMap);
+        model.addAttribute("galleryImages", galleryImages);
         model.addAttribute("availabilityMap", availabilityMap);
         model.addAttribute("datesSelected", datesSelected);
         model.addAttribute("reviews", reviews);
@@ -303,6 +359,92 @@ public class AccommodationPageController {
         model.addAttribute("travelDestinationSlug", travelPostService.normalizeDestination(hotel.getCity()));
 
         return "user/hotel-detail";
+    }
+
+    private List<Map<String, String>> buildDetailGallery(Accommodation hotel, List<Room> galleryRooms,
+                                                          Map<Long, List<RoomImage>> roomImagesMap) {
+        List<Map<String, String>> gallery = new ArrayList<>();
+        Set<String> usedUrls = new LinkedHashSet<>();
+        if (LATA_HOTEL_NAME.equalsIgnoreCase(hotel.getName())) {
+            for (Map.Entry<String, String> image : LATA_DETAIL_GALLERY_IMAGES) {
+                addGalleryImage(gallery, usedUrls, image.getKey(), image.getValue());
+            }
+        } else {
+            addGalleryImage(gallery, usedUrls, hotel.getThumbnailUrl(), hotel.getName());
+        }
+
+        for (Room room : galleryRooms) {
+            for (RoomImage image : roomImagesMap.getOrDefault(room.getId(), List.of())) {
+                String alt = image.getCaption() == null || image.getCaption().isBlank()
+                        ? hotel.getName() + " - " + room.getRoomName()
+                        : image.getCaption();
+                addGalleryImage(gallery, usedUrls, image.getImageUrl(), alt);
+            }
+            addGalleryImage(gallery, usedUrls, room.getImageUrl(),
+                    hotel.getName() + " - " + room.getRoomName());
+        }
+
+        PropertyType propertyType = hotel.getPropertyType() == null ? PropertyType.HOTEL : hotel.getPropertyType();
+        int fallbackIndex = 1;
+        for (String fallbackUrl : DETAIL_GALLERY_FALLBACK_URLS.get(propertyType)) {
+            if (gallery.size() >= DETAIL_GALLERY_SIZE) {
+                break;
+            }
+            addGalleryImage(gallery, usedUrls, fallbackUrl,
+                    hotel.getName() + " - hình ảnh " + fallbackIndex++);
+        }
+        return gallery;
+    }
+
+    private Map<Long, List<Map<String, String>>> buildListingCardSideImages(List<Accommodation> hotels) {
+        Map<Long, List<Map<String, String>>> result = new HashMap<>();
+        if (hotels == null) {
+            return result;
+        }
+        for (Accommodation hotel : hotels) {
+            List<Map<String, String>> sideImages = new ArrayList<>();
+            Set<String> usedUrls = new LinkedHashSet<>();
+            addListingSideImage(sideImages, usedUrls, hotel.getThumbnailUrl(), hotel.getName());
+
+            for (Room room : accommodationService.getAllApprovedRooms(hotel)) {
+                addListingSideImage(sideImages, usedUrls, room.getImageUrl(),
+                        hotel.getName() + " - " + room.getRoomName());
+                if (sideImages.size() >= 3) {
+                    break;
+                }
+            }
+
+            PropertyType propertyType = hotel.getPropertyType() == null ? PropertyType.HOTEL : hotel.getPropertyType();
+            int fallbackIndex = 1;
+            for (String fallbackUrl : DETAIL_GALLERY_FALLBACK_URLS.get(propertyType)) {
+                addListingSideImage(sideImages, usedUrls, fallbackUrl,
+                        hotel.getName() + " - hình ảnh " + fallbackIndex++);
+                if (sideImages.size() >= 3) {
+                    break;
+                }
+            }
+            result.put(hotel.getId(), sideImages.stream().skip(1).limit(2).toList());
+        }
+        return result;
+    }
+
+    private static void addListingSideImage(List<Map<String, String>> images, Set<String> usedUrls,
+                                            String source, String alt) {
+        if (images.size() >= 3) {
+            return;
+        }
+        addGalleryImage(images, usedUrls, source, alt);
+    }
+
+    private static void addGalleryImage(List<Map<String, String>> gallery, Set<String> usedUrls,
+                                        String source, String alt) {
+        if (source == null || source.isBlank()) {
+            return;
+        }
+        String cleanSource = source.trim();
+        if (usedUrls.add(cleanSource)) {
+            gallery.add(Map.of("src", cleanSource, "alt", alt == null ? "" : alt));
+        }
     }
 
     /**

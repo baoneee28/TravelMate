@@ -1,5 +1,6 @@
 package com.travelmate.service;
 
+import com.travelmate.config.VnpayConfigProperties;
 import com.travelmate.entity.Booking;
 import com.travelmate.entity.Payment;
 import com.travelmate.entity.Room;
@@ -55,7 +56,9 @@ class NoShowDepositTest {
     void setUp() {
         bookingService = new BookingService(
                 bookingRepository, paymentRepository, roomRepository,
-                accommodationRepository, voucherService, notificationService
+                accommodationRepository, voucherService, notificationService,
+                new CommissionService(),
+                new VnpayConfigProperties()
         );
     }
 

@@ -3,9 +3,11 @@ package com.travelmate.service;
 import com.travelmate.dto.AdminRevenueSummaryDto;
 import com.travelmate.dto.PartnerRevenueSummaryDto;
 import com.travelmate.dto.RevenueItemDto;
+import com.travelmate.entity.Accommodation;
 import com.travelmate.entity.Payment;
 import com.travelmate.entity.Room;
 import com.travelmate.entity.User;
+import com.travelmate.entity.enums.BookingSource;
 import com.travelmate.entity.enums.PaymentOption;
 import com.travelmate.entity.enums.PaymentStatus;
 import com.travelmate.entity.enums.PropertyType;
@@ -14,6 +16,7 @@ import com.travelmate.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,13 +25,10 @@ import java.util.List;
  *
  * Nguồn dữ liệu: bảng payments, chỉ lấy APPROVED + DEPOSIT_FORFEITED.
  *
- * Công thức (quy tắc cuối — chỉ tính trên tiền thu online):
+ * Công thức:
  *   grossAmount     = payment.amount (tiền thực thu qua hệ thống: cọc 30% hoặc 100%)
- *   commissionBase  = payment.amount (luôn dùng số tiền online thực tế)
- *                     FULL_PAYMENT  → 100% đã thu qua hệ thống
- *                     DEPOSIT_30    → chỉ 30% cọc online (70% khách trả tại cơ sở không tính)
- *                     NO_SHOW       → cọc 30% bị giữ lại
- *   commission      = commissionBase × effectiveRate
+ *   commissionBase  = grossAmount; TravelMate chi tinh phi tren tien online da thu
+ *   commission      = commissionBase x rate snapshot luc dat phong
  *   voucherDeduct   = booking.discountAmount nếu voucherCostBearer = PARTNER
  *   partnerNet      = max(0, grossAmount - commission - voucherDeduct)
  */
@@ -53,26 +53,22 @@ public class RevenueService {
      * Tổng hợp doanh thu toàn hệ thống cho Admin.
      */
     public AdminRevenueSummaryDto calculateAdminRevenueSummary() {
-        List<Payment> payments = paymentRepository.findByPaymentStatusIn(REVENUE_STATUSES);
+        List<Payment> payments = findOnlineRevenuePayments();
         AdminRevenueSummaryDto dto = new AdminRevenueSummaryDto();
 
         for (Payment p : payments) {
-            BigDecimal gross = p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO;
+            BigDecimal gross = resolveOnlinePaid(p);
 
-            // v3: xác định cơ sở tính commission đúng theo nghiệp vụ
-            Room room = p.getBooking().getRoom();
             BigDecimal commissionBase = resolveCommissionBase(p);
-            BigDecimal commission = commissionService.calculateCommission(commissionBase, room);
+            BigDecimal commission = resolveCommissionAmount(p);
 
             // Trừ voucher partner chịu để payout khớp bảng chi tiết
-            BigDecimal voucherDeduct = BigDecimal.ZERO;
-            if (p.getBooking().getVoucherCostBearer() == VoucherCostBearer.PARTNER
-                    && p.getBooking().getDiscountAmount() != null) {
-                voucherDeduct = p.getBooking().getDiscountAmount();
-            }
-            BigDecimal payout = gross.subtract(commission).subtract(voucherDeduct).max(BigDecimal.ZERO);
+            BigDecimal voucherDeduct = resolvePartnerVoucherAmount(p);
+            BigDecimal payout = resolvePartnerPayout(p);
 
             dto.setTotalGross(dto.getTotalGross().add(gross));
+            dto.setTotalOrderAmount(dto.getTotalOrderAmount().add(resolveTotalOrderAmount(p)));
+            dto.setTotalOnsiteAmount(dto.getTotalOnsiteAmount().add(resolveOnsiteAmount(p)));
             dto.setTotalCommissionBase(dto.getTotalCommissionBase().add(commissionBase));
             dto.setTotalCommission(dto.getTotalCommission().add(commission));
             dto.setTotalPayout(dto.getTotalPayout().add(payout));
@@ -90,7 +86,7 @@ public class RevenueService {
      * Danh sách chi tiết từng dòng doanh thu cho Admin.
      */
     public List<RevenueItemDto> getRevenueItemsForAdmin() {
-        List<Payment> payments = paymentRepository.findByPaymentStatusIn(REVENUE_STATUSES);
+        List<Payment> payments = findOnlineRevenuePayments();
         List<RevenueItemDto> items = new ArrayList<>();
 
         for (Payment p : payments) {
@@ -106,8 +102,7 @@ public class RevenueService {
      * CHỈ lấy payment thuộc accommodation do partner đó sở hữu.
      */
     public PartnerRevenueSummaryDto calculatePartnerRevenueSummary(User partner) {
-        List<Payment> payments = paymentRepository
-                .findByBookingAccommodationOwnerAndPaymentStatusIn(partner, REVENUE_STATUSES);
+        List<Payment> payments = findManagedRevenuePaymentsForPartner(partner);
 
         PartnerRevenueSummaryDto dto = new PartnerRevenueSummaryDto();
         dto.setPartnerName(partner.getName());
@@ -120,28 +115,31 @@ public class RevenueService {
                     .multiply(BigDecimal.valueOf(100)));
         }
 
+        BigDecimal totalCommissionBase = BigDecimal.ZERO;
         for (Payment p : payments) {
-            BigDecimal gross = p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO;
-
-            // v3: xác định cơ sở tính commission đúng theo nghiệp vụ
-            Room room = p.getBooking().getRoom();
+            BigDecimal gross = resolveOnlinePaid(p);
             BigDecimal commissionBase = resolveCommissionBase(p);
-            BigDecimal commission = commissionService.calculateCommission(commissionBase, room);
+
+            BigDecimal commission = resolveCommissionAmount(p);
 
             // Voucher deduction: chỉ tính nếu partner chịu
-            BigDecimal voucherDeduct = BigDecimal.ZERO;
-            if (p.getBooking().getVoucherCostBearer() == VoucherCostBearer.PARTNER
-                    && p.getBooking().getDiscountAmount() != null) {
-                voucherDeduct = p.getBooking().getDiscountAmount();
-            }
-
-            BigDecimal payout = gross.subtract(commission).subtract(voucherDeduct).max(BigDecimal.ZERO);
+            BigDecimal voucherDeduct = resolvePartnerVoucherAmount(p);
+            BigDecimal payout = resolvePartnerPayout(p);
 
             dto.setTotalGross(dto.getTotalGross().add(gross));
+            dto.setTotalOrderAmount(dto.getTotalOrderAmount().add(resolveTotalOrderAmount(p)));
+            dto.setTotalOnsiteAmount(dto.getTotalOnsiteAmount().add(resolveOnsiteAmount(p)));
             dto.setTotalCommission(dto.getTotalCommission().add(commission));
             dto.setTotalVoucherDeduction(dto.getTotalVoucherDeduction().add(voucherDeduct));
             dto.setTotalPayout(dto.getTotalPayout().add(payout));
             dto.setTotalBookings(dto.getTotalBookings() + 1);
+            totalCommissionBase = totalCommissionBase.add(commissionBase);
+        }
+
+        if (totalCommissionBase.compareTo(BigDecimal.ZERO) > 0) {
+            dto.setCommissionRate(dto.getTotalCommission()
+                    .multiply(BigDecimal.valueOf(100))
+                    .divide(totalCommissionBase, 1, RoundingMode.HALF_UP));
         }
         return dto;
     }
@@ -150,8 +148,7 @@ public class RevenueService {
      * Danh sách chi tiết từng dòng doanh thu của 1 partner.
      */
     public List<RevenueItemDto> getRevenueItemsForPartner(User partner) {
-        List<Payment> payments = paymentRepository
-                .findByBookingAccommodationOwnerAndPaymentStatusIn(partner, REVENUE_STATUSES);
+        List<Payment> payments = findManagedRevenuePaymentsForPartner(partner);
 
         List<RevenueItemDto> items = new ArrayList<>();
         for (Payment p : payments) {
@@ -162,12 +159,93 @@ public class RevenueService {
 
     // ─── HELPER ───────────────────────────────────────────────────────────────
 
-    /**
-     * Cơ sở tính commission = tiền thực thu qua hệ thống (payment.amount).
-     * TravelMate chỉ tính commission trên tiền online, không tính 70% khách trả tại cơ sở.
-     */
+    private List<Payment> findManagedRevenuePaymentsForPartner(User partner) {
+        return paymentRepository
+                .findByBookingAccommodationOwnerAndPaymentStatusIn(partner, REVENUE_STATUSES)
+                .stream()
+                .filter(this::isOnlineRevenuePayment)
+                .filter(payment -> payment.getBooking() != null
+                        && isManagedByPartner(payment.getBooking().getAccommodation(), partner))
+                .toList();
+    }
+
+    private List<Payment> findOnlineRevenuePayments() {
+        return paymentRepository.findByPaymentStatusIn(REVENUE_STATUSES).stream()
+                .filter(this::isOnlineRevenuePayment)
+                .toList();
+    }
+
+    private boolean isOnlineRevenuePayment(Payment payment) {
+        if (payment == null || payment.getBooking() == null) {
+            return false;
+        }
+        BookingSource source = payment.getBooking().getBookingSource();
+        return source == null || source == BookingSource.ONLINE;
+    }
+
+    private boolean isManagedByPartner(Accommodation accommodation, User partner) {
+        if (accommodation == null || partner == null || partner.getId() == null) {
+            return false;
+        }
+        if (partner.getPartnerPropertyType() == null || accommodation.getPropertyType() == null) {
+            return false;
+        }
+        return accommodation.getOwner() != null
+                && accommodation.getOwner().getId() != null
+                && accommodation.getOwner().getId().equals(partner.getId())
+                && accommodation.getPropertyType() == partner.getPartnerPropertyType();
+    }
+
     private BigDecimal resolveCommissionBase(Payment p) {
+        return resolveOnlinePaid(p);
+    }
+
+    private BigDecimal resolveCommissionAmount(Payment p) {
+        BigDecimal base = resolveCommissionBase(p);
+        if (hasFinancialSnapshot(p)) {
+            return base.multiply(p.getBooking().getCommissionRateSnapshot())
+                    .setScale(0, RoundingMode.HALF_UP);
+        }
+        return commissionService.calculateCommission(base, p.getBooking().getRoom());
+    }
+
+    private BigDecimal resolvePartnerVoucherAmount(Payment p) {
+        if (hasFinancialSnapshot(p) && p.getBooking().getPartnerVoucherAmountSnapshot() != null) {
+            return p.getBooking().getPartnerVoucherAmountSnapshot();
+        }
+        return p.getBooking().getVoucherCostBearer() == VoucherCostBearer.PARTNER
+                && p.getBooking().getDiscountAmount() != null
+                ? p.getBooking().getDiscountAmount() : BigDecimal.ZERO;
+    }
+
+    private BigDecimal resolvePartnerPayout(Payment p) {
+        return resolveOnlinePaid(p).subtract(resolveCommissionAmount(p))
+                .subtract(resolvePartnerVoucherAmount(p)).max(BigDecimal.ZERO);
+    }
+
+    private BigDecimal resolveOnlinePaid(Payment p) {
         return p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO;
+    }
+
+    private BigDecimal resolveTotalOrderAmount(Payment p) {
+        return p.getBooking().getTotalAmount() != null
+                ? p.getBooking().getTotalAmount() : resolveOnlinePaid(p);
+    }
+
+    private BigDecimal resolveOnsiteAmount(Payment p) {
+        if (hasFinancialSnapshot(p) && p.getBooking().getOnsiteAmountSnapshot() != null) {
+            return p.getBooking().getOnsiteAmountSnapshot();
+        }
+        if (p.getPaymentOption() == PaymentOption.DEPOSIT_30
+                && p.getPaymentStatus() != PaymentStatus.DEPOSIT_FORFEITED) {
+            return p.getBooking().getRemainingAmount() != null
+                    ? p.getBooking().getRemainingAmount() : BigDecimal.ZERO;
+        }
+        return BigDecimal.ZERO;
+    }
+
+    private boolean hasFinancialSnapshot(Payment p) {
+        return p != null && p.getBooking() != null && p.getBooking().getCommissionRateSnapshot() != null;
     }
 
     /**
@@ -176,11 +254,11 @@ public class RevenueService {
     private String resolveCommissionBaseLabel(Payment p) {
         if (p.getPaymentOption() == PaymentOption.DEPOSIT_30) {
             if (p.getPaymentStatus() == PaymentStatus.DEPOSIT_FORFEITED) {
-                return "Cọc 30% bị giữ (no-show)";
+                return "Cọc online bị giữ (hủy/no-show)";
             }
-            return "Cọc 30% đã thu online";
+            return "Cọc online 30% đã thu";
         }
-        return "100% đã thu online";
+        return "Thanh toán online 100%";
     }
 
     /**
@@ -212,28 +290,25 @@ public class RevenueService {
         item.setPaymentOption(p.getPaymentOption() != null ? p.getPaymentOption().name() : "");
         item.setPaymentStatus(p.getPaymentStatus().name());
 
-        // Financial breakdown — v3: dùng commissionBase đúng
-        BigDecimal gross = p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO;
+        // Financial breakdown: dùng số tiền và rate snapshot của booking.
+        BigDecimal gross = resolveOnlinePaid(p);
         BigDecimal commissionBase = resolveCommissionBase(p);
 
-        // Effective rate (thập phân)
-        BigDecimal effectiveRate = commissionService.getEffectiveCommissionRate(room, type);
-        BigDecimal commission = commissionService.calculateCommission(commissionBase, room);
+        BigDecimal effectiveRate = hasFinancialSnapshot(p)
+                ? p.getBooking().getCommissionRateSnapshot()
+                : commissionService.getEffectiveCommissionRate(room, type);
+        BigDecimal commission = resolveCommissionAmount(p);
 
-        // Commission source
-        boolean isOverride = commissionService.isRoomOverride(room);
-        item.setCommissionSource(isOverride ? "ROOM_OVERRIDE" : "PROPERTY_TYPE_DEFAULT");
+        String source = hasFinancialSnapshot(p) ? p.getBooking().getCommissionSourceSnapshot()
+                : (commissionService.isRoomOverride(room) ? "ROOM_OVERRIDE" : "PROPERTY_TYPE_DEFAULT");
+        item.setCommissionSource(source);
 
-        BigDecimal voucherDeduct = BigDecimal.ZERO;
-        if (p.getBooking().getVoucherCostBearer() == VoucherCostBearer.PARTNER
-                && p.getBooking().getDiscountAmount() != null) {
-            voucherDeduct = p.getBooking().getDiscountAmount();
-        }
+        BigDecimal voucherDeduct = resolvePartnerVoucherAmount(p);
+        BigDecimal partnerNet = resolvePartnerPayout(p);
 
-        // partnerNet = khoản admin chuyển lại partner (từ phần admin thu online), tối thiểu 0
-        BigDecimal partnerNet = gross.subtract(commission).subtract(voucherDeduct).max(BigDecimal.ZERO);
-
+        item.setTotalOrderAmount(resolveTotalOrderAmount(p));
         item.setGrossAmount(gross);
+        item.setOnsiteAmount(resolveOnsiteAmount(p));
         item.setCommissionBase(commissionBase);
         item.setCommissionBaseLabel(resolveCommissionBaseLabel(p));
         item.setCommissionRate(effectiveRate);          // thập phân, backward compat

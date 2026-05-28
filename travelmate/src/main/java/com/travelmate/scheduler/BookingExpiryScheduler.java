@@ -4,6 +4,7 @@ import com.travelmate.entity.enums.BookingStatus;
 import com.travelmate.entity.enums.PaymentStatus;
 import com.travelmate.repository.BookingRepository;
 import com.travelmate.repository.PaymentRepository;
+import com.travelmate.repository.RoomRepository;
 import com.travelmate.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +33,7 @@ public class BookingExpiryScheduler {
 
     private final BookingRepository bookingRepository;
     private final PaymentRepository paymentRepository;
+    private final RoomRepository roomRepository;
     private final PaymentService paymentService;
 
     /**
@@ -64,6 +66,15 @@ public class BookingExpiryScheduler {
                         booking.setBookingStatus(BookingStatus.CANCELLED);
                         booking.setPaymentStatus(PaymentStatus.EXPIRED);
                         booking.setNote("Tự động hủy: quá hạn thanh toán VNPAY.");
+                        booking.setExpireAt(null);
+                        if (booking.getRoom() != null) {
+                            int currentAvailable = booking.getRoom().getAvailableQuantity() != null
+                                    ? booking.getRoom().getAvailableQuantity()
+                                    : 0;
+                            int restoreQuantity = booking.getRoomQuantity() != null ? booking.getRoomQuantity() : 1;
+                            booking.getRoom().setAvailableQuantity(currentAvailable + restoreQuantity);
+                            roomRepository.save(booking.getRoom());
+                        }
                         bookingRepository.save(booking);
                         log.warn("Booking {} không có payment, chỉ hủy booking", booking.getBookingCode());
                     }
