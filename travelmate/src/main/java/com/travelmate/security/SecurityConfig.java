@@ -44,7 +44,7 @@ public class SecurityConfig {
     public SecurityConfig(UserDetailsServiceImpl userDetailsService,
                           CustomAuthSuccessHandler successHandler,
                           ObjectProvider<ClientRegistrationRepository> clientRegistrationRepository,
-                          @Value("${travelmate.oauth2.google.enabled:false}") boolean googleOAuthEnabled) {
+                          @Value("${travelmate.oauth2.google.enabled:true}") boolean googleOAuthEnabled) {
         this.userDetailsService = userDetailsService;
         this.successHandler = successHandler;
         this.clientRegistrationRepository = clientRegistrationRepository;

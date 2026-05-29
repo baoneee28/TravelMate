@@ -1,6 +1,7 @@
 package com.travelmate.controller.page;
 
 import com.travelmate.service.PasswordResetService;
+import com.travelmate.service.PasswordResetService.PasswordResetRequestResult;
 import com.travelmate.service.UserService;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -36,7 +37,7 @@ public class AuthPageController {
                               PasswordResetService passwordResetService,
                               ObjectProvider<ClientRegistrationRepository> clientRegistrationRepository,
                               MessageSource messageSource,
-                              @Value("${travelmate.oauth2.google.enabled:false}") boolean googleOAuthEnabled) {
+                              @Value("${travelmate.oauth2.google.enabled:true}") boolean googleOAuthEnabled) {
         this.userService = userService;
         this.passwordResetService = passwordResetService;
         this.clientRegistrationRepository = clientRegistrationRepository;
@@ -72,8 +73,8 @@ public class AuthPageController {
     @PostMapping("/forgot-password")
     public String handleForgotPassword(@RequestParam("email") String email,
                                        RedirectAttributes redirectAttributes) {
-        passwordResetService.requestReset(email);
-        redirectAttributes.addFlashAttribute("success", message("auth.forgot.generic"));
+        PasswordResetRequestResult result = passwordResetService.requestReset(email);
+        addResetRequestFeedback(redirectAttributes, result);
         return "redirect:/auth/forgot-password";
     }
 
@@ -150,5 +151,19 @@ public class AuthPageController {
 
     private String message(String code) {
         return messageSource.getMessage(code, null, LocaleContextHolder.getLocale());
+    }
+
+    private String message(String code, Object... args) {
+        return messageSource.getMessage(code, args, LocaleContextHolder.getLocale());
+    }
+
+    private void addResetRequestFeedback(RedirectAttributes redirectAttributes,
+                                         PasswordResetRequestResult result) {
+        String maskedEmail = result == null ? "email này" : result.maskedEmail();
+        redirectAttributes.addFlashAttribute("resetSubmitted", true);
+        redirectAttributes.addFlashAttribute("resetMessageType", "success");
+        redirectAttributes.addFlashAttribute("resetIcon", "fa-solid fa-envelope-circle-check");
+        redirectAttributes.addFlashAttribute("resetTitle", message("auth.forgot.acceptedTitle"));
+        redirectAttributes.addFlashAttribute("resetBody", message("auth.forgot.acceptedBody", maskedEmail));
     }
 }

@@ -1,5 +1,11 @@
 HELP.md
 target/
+logs/
+_trash_review/
+browser-test-artifacts/
+codex_chat_cleanup_backup_*/
+.m2/
+m2repo_test/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -32,3 +38,13 @@ build/
 ### VS Code ###
 .vscode/*
 !.vscode/settings.json
+
+### Local secrets ###
+.env
+.env.local
+.env.*
+application-local.properties
+
+### Chat Session Exports ###
+CHAT_SESSIONS_*.csv
+CHAT_SESSIONS_*.md

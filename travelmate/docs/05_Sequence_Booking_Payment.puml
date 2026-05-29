@@ -24,13 +24,13 @@ participant "VNPAY\nSandbox" as VNPAY
 == 1. User tạo booking ==
 
 User -> Browser : Chọn phòng/căn và bấm "Đặt phòng"
-Browser -> BookingCtrl : GET /booking/room/{roomId}
+Browser -> BookingCtrl : GET /booking?roomId=...
 BookingCtrl -> DB : Load room + accommodation
 DB --> BookingCtrl : Dữ liệu phòng/căn
 BookingCtrl --> Browser : booking.html
 
 User -> Browser : Nhập ngày, số khách, số lượng,\npaymentOption, voucherCode
-Browser -> BookingCtrl : POST /booking/create
+Browser -> BookingCtrl : POST /booking/confirm
 BookingCtrl -> BookingSvc : createBooking(...)
 
 BookingSvc -> BookingSvc : Validate ngày và số lượng còn

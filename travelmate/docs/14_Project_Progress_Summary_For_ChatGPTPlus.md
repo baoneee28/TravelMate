@@ -141,7 +141,7 @@ Trong qua trinh lam da co cac lan kiem tra sau:
 
 - Scan 183 duong dan anh local trong `src/main`: khong thieu file.
 - Kiem tra 234 URL anh phong/gallery: missing 0.
-- Test full Maven trong mot so phien: pass 234/234.
+- Test full Maven trong phien moi nhat: pass 247/247.
 - Sau khi sua admin duyet anh, chay targeted tests:
   - `UserPortalFlowTemplateTest`
   - `RoomImageServiceTest`

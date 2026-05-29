@@ -8,6 +8,12 @@ skinparam packageBackgroundColor #FAFAFA
 title TravelMate — Class Diagram (Entity Layer)
 
 ' ─── ENUMS ───────────────────────────────────────────────────────────────────
+enum Role {
+    USER
+    ADMIN
+    PARTNER
+}
+
 enum BookingStatus {
     PENDING_PAYMENT
     PENDING_ADMIN_APPROVAL
@@ -30,11 +36,30 @@ enum PaymentStatus {
     REFUND_PENDING
     REFUNDED
     NOT_REQUIRED
+    SUBMITTED
 }
 
 enum PaymentOption {
     FULL_PAYMENT
     DEPOSIT_30
+}
+
+enum PaymentMethod {
+    VNPAY
+    MOMO_DEMO
+}
+
+enum PartnerBookingStatus {
+    PENDING_PARTNER_CONFIRMATION
+    PARTNER_CONFIRMED
+    PARTNER_COMPLETED
+    PARTNER_CANCELLED
+}
+
+enum RemainingPaymentStatus {
+    NOT_REQUIRED
+    UNPAID
+    PAID_AT_PROPERTY
 }
 
 enum BookingSource {
@@ -65,6 +90,21 @@ enum SettlementStatus {
     CANCELLED
 }
 
+enum RoomCategory {
+    STANDARD
+    DELUXE
+    FAMILY
+    VIP
+    SUITE
+    OTHER
+}
+
+enum PartnerWithdrawalStatus {
+    PENDING
+    PAID
+    REJECTED
+}
+
 enum PropertyType {
     HOTEL
     VILLA
@@ -84,16 +124,36 @@ class User {
     - id: Long
     - email: String
     - password: String
-    - fullName: String
+    - name: String
+    - shortName: String
     - phone: String
-    - role: String
+    - role: Role
     - status: String
-    - partnerPropertyType: String
+    - partnerPropertyType: PropertyType
     - bankAccountNumber: String
     - bankName: String
     - bankAccountHolder: String
+    - bankBranch: String
     - avatarUrl: String
     - createdAt: LocalDateTime
+    - updatedAt: LocalDateTime
+}
+
+enum Region {
+    NORTH
+    CENTRAL
+    SOUTH
+}
+
+enum Category {
+    GUIDE
+    ATTRACTION
+    ESSENTIAL
+}
+
+enum TravelPostStatus {
+    VISIBLE
+    HIDDEN
 }
 
 class Accommodation {
@@ -120,6 +180,7 @@ class Room {
     - capacity: Integer
     - pricePerNight: BigDecimal
     - availableQuantity: Integer
+    - availableForBooking: Boolean
     - description: String
     - imageUrl: String
     - roomCategory: RoomCategory
@@ -160,9 +221,31 @@ class Booking {
     - discountAmount: BigDecimal
     - voucherCostBearer: String
     - totalBeforeDiscount: BigDecimal
+    - commissionRateSnapshot: BigDecimal
+    - commissionAmountSnapshot: BigDecimal
+    - partnerVoucherAmountSnapshot: BigDecimal
+    - adminVoucherAmountSnapshot: BigDecimal
+    - partnerPayoutSnapshot: BigDecimal
+    - onlinePaidAmountSnapshot: BigDecimal
+    - onsiteAmountSnapshot: BigDecimal
+    - refundAmount: BigDecimal
+    - cancellationFee: BigDecimal
     - bookingSource: BookingSource
     - blockReason: String
+    - remainingPaymentStatus: RemainingPaymentStatus
+    - expireAt: LocalDateTime
     - createdAt: LocalDateTime
+}
+
+class RoomImage {
+    - id: Long
+    - room: Room
+    - imageUrl: String
+    - caption: String
+    - sortOrder: Integer
+    - primaryImage: Boolean
+    - createdAt: LocalDateTime
+    - updatedAt: LocalDateTime
 }
 
 class Payment {
@@ -178,7 +261,12 @@ class Payment {
     - vnpTxnRef: String
     - vnpTransactionNo: String
     - vnpBankCode: String
+    - vnpBankTranNo: String
+    - vnpCardType: String
     - vnpResponseCode: String
+    - vnpTransactionStatus: String
+    - vnpPayDate: String
+    - expireAt: LocalDateTime
 }
 
 class Voucher {
@@ -220,9 +308,47 @@ class PartnerSettlement {
     - commissionAmount: BigDecimal
     - voucherDeductionAmount: BigDecimal
     - payoutAmount: BigDecimal
+    - scheduledPayoutDate: LocalDate
     - settlementStatus: SettlementStatus
     - settlementDate: LocalDateTime
     - note: String
+}
+
+class PartnerWallet {
+    - id: Long
+    - partner: User
+    - availableBalance: BigDecimal
+    - pendingWithdrawalAmount: BigDecimal
+    - totalEarnedAmount: BigDecimal
+    - totalWithdrawnAmount: BigDecimal
+    - updatedAt: LocalDateTime
+}
+
+class PartnerWithdrawalRequest {
+    - id: Long
+    - partner: User
+    - requestCode: String
+    - amount: BigDecimal
+    - bankName: String
+    - bankAccountNumber: String
+    - bankAccountHolder: String
+    - withdrawalStatus: PartnerWithdrawalStatus
+    - requestedAt: LocalDateTime
+    - processedAt: LocalDateTime
+}
+
+class PartnerWalletTransaction {
+    - id: Long
+    - partner: User
+    - settlement: PartnerSettlement
+    - withdrawalRequest: PartnerWithdrawalRequest
+    - transactionCode: String
+    - transactionType: String
+    - direction: String
+    - amount: BigDecimal
+    - balanceBefore: BigDecimal
+    - balanceAfter: BigDecimal
+    - createdAt: LocalDateTime
 }
 
 class SupportTicket {
@@ -244,27 +370,38 @@ class TravelDestination {
     - id: Long
     - name: String
     - slug: String
-    - description: String
-    - thumbnailUrl: String
-    - featured: Boolean
+    - region: Region
+    - imageUrl: String
+    - shortDescription: String
+    - active: Boolean
+    - displayOrder: Integer
+    - createdAt: LocalDateTime
 }
 
 class TravelPost {
     - id: Long
     - title: String
+    - destinationName: String
+    - destinationSlug: String
+    - summary: String
     - content: String
     - thumbnailUrl: String
-    - destination: TravelDestination
-    - status: Status
+    - sourceUrl: String
+    - sourceName: String
+    - category: Category
+    - status: TravelPostStatus
+    - createdBy: String
     - createdAt: LocalDateTime
+    - updatedAt: LocalDateTime
 }
 
 class AdminActionLog {
     - id: Long
-    - admin: User
+    - adminEmail: String
     - actionType: String
     - targetType: String
     - targetId: Long
+    - description: String
     - note: String
     - createdAt: LocalDateTime
 }
@@ -272,10 +409,11 @@ class AdminActionLog {
 class Notification {
     - id: Long
     - user: User
-    - booking: Booking
+    - title: String
     - message: String
     - type: String
-    - read: Boolean
+    - targetUrl: String
+    - isRead: Boolean
     - createdAt: LocalDateTime
 }
 
@@ -284,6 +422,7 @@ class Notification {
 ' Ownership
 User "1" --o "0..*" Accommodation : owns >
 Accommodation "1" --o "0..*" Room : contains >
+Room "1" --o "0..*" RoomImage : gallery >
 
 ' Room amenities (N-N)
 Room "0..*" -- "0..*" Amenity : has >
@@ -302,31 +441,47 @@ Voucher "0..*" --> "0..1" Room : for >
 
 ' Settlement
 PartnerSettlement "0..*" --> "1" User : for partner >
+PartnerWallet "0..1" --> "1" User : belongs to partner >
+PartnerWithdrawalRequest "0..*" --> "1" User : requested by partner >
+PartnerWalletTransaction "0..*" --> "1" User : for partner >
+PartnerWalletTransaction "0..*" --> "0..1" PartnerSettlement : credits >
+PartnerWalletTransaction "0..*" --> "0..1" PartnerWithdrawalRequest : withdraws >
 
 ' Support
 SupportTicket "0..*" --> "0..1" User : from partner >
 SupportTicket "0..*" --> "0..1" User : from user >
 
 ' Travel
-TravelPost "0..*" --> "1" TravelDestination : belongs to >
+note right of TravelPost
+  TravelPost lưu destinationName/destinationSlug.
+  Không có khóa ngoại JPA trực tiếp sang TravelDestination.
+end note
 
 ' Notifications
 Notification "0..*" --> "1" User : sent to >
-Notification "0..*" --> "0..1" Booking : about >
 
 ' Enum usage
 Booking ..> BookingStatus
 Booking ..> PaymentStatus
 Booking ..> PaymentOption
 Booking ..> BookingSource
+Booking ..> PartnerBookingStatus
+Booking ..> RemainingPaymentStatus
+Payment ..> PaymentMethod
 Payment ..> PaymentStatus
 Payment ..> PaymentOption
 Voucher ..> DiscountType
 Voucher ..> VoucherScope
 Voucher ..> VoucherCostBearer
 PartnerSettlement ..> SettlementStatus
+PartnerWithdrawalRequest ..> PartnerWithdrawalStatus
+TravelDestination ..> Region
+TravelPost ..> Category
+TravelPost ..> TravelPostStatus
+User ..> Role
 Accommodation ..> PropertyType
 Accommodation ..> ApprovalStatus
 Room ..> ApprovalStatus
+Room ..> RoomCategory
 
 @enduml

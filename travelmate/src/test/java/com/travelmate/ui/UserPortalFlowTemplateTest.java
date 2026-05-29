@@ -174,7 +174,7 @@ class UserPortalFlowTemplateTest {
                 "#{auth.google.disabled}",
                 "disabled");
         assertThat(register).contains("#{auth.register.heading}", "#{auth.register.error.passwordMismatch}");
-        assertThat(forgot).contains("Nếu email tồn tại trong hệ thống", "#{auth.forgot.heading}")
+        assertThat(forgot).contains("reset-result", "resetMessageType", "#{auth.forgot.heading}")
                 .doesNotContain("demoResetLink");
         assertThat(reset).contains("tokenValid", "/auth/reset-password", "Liên kết không còn hiệu lực",
                 "#{auth.reset.heading}");

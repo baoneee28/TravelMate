@@ -156,8 +156,8 @@ Booking đã thanh toán 100% không xử lý như cọc mất; Admin/đối tá
 | Post-condition | PartnerSettlement `PENDING` được tạo |
 
 ### Điều kiện booking được tính
-- `ONLINE + APPROVED + COMPLETED`
-- `ONLINE + DEPOSIT_FORFEITED + NO_SHOW`
+- `ONLINE + Payment APPROVED + Booking COMPLETED`
+- `ONLINE + Payment DEPOSIT_FORFEITED + Booking NO_SHOW/CANCELLED`
 - Không tính `DIRECT`, `MANUAL_BLOCK`, booking chưa hoàn tất, booking hủy hoặc đang check-in.
 
 ### Công thức

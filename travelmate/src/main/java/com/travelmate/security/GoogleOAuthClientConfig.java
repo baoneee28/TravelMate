@@ -11,6 +11,7 @@ import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
+import org.springframework.lang.NonNull;
 import org.springframework.util.StringUtils;
 
 /**
@@ -34,9 +35,9 @@ public class GoogleOAuthClientConfig {
 
     static class CompleteGoogleOAuthConfiguration implements Condition {
         @Override
-        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        public boolean matches(@NonNull ConditionContext context, @NonNull AnnotatedTypeMetadata metadata) {
             boolean enabled = context.getEnvironment()
-                    .getProperty("travelmate.oauth2.google.enabled", Boolean.class, false);
+                    .getProperty("travelmate.oauth2.google.enabled", Boolean.class, true);
             String clientId = context.getEnvironment().getProperty("travelmate.oauth2.google.client-id");
             String clientSecret = context.getEnvironment().getProperty("travelmate.oauth2.google.client-secret");
             return enabled && StringUtils.hasText(clientId) && StringUtils.hasText(clientSecret);

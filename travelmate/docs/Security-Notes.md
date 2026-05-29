@@ -17,7 +17,7 @@ CSRF **đang tắt** trong `SecurityConfig.java`:
 Khi triển khai production, bật CSRF và thêm `th:action` vào mọi form:
 ```html
 <!-- Thymeleaf tự inject _csrf token khi dùng th:action -->
-<form th:action="@{/booking/create}" method="post">
+<form th:action="@{/booking/confirm}" method="post">
     ...
 </form>
 ```
@@ -54,12 +54,12 @@ Không cần thêm hidden field thủ công — Thymeleaf + Spring Security tự
 | Tất cả còn lại | `authenticated()` | Phải đăng nhập |
 
 ### Các endpoint cần test manual khi bảo vệ
-1. Truy cập `/admin/` khi không đăng nhập → redirect về `/auth/login`
-2. Đăng nhập USER rồi truy cập `/admin/` → redirect về `/auth/login` (403 → login)
-3. Đăng nhập PARTNER rồi truy cập `/admin/` → bị chặn
+1. Truy cập `/admin/dashboard` khi không đăng nhập → redirect về `/auth/login`
+2. Đăng nhập USER rồi truy cập `/admin/dashboard` → bị chặn theo phân quyền
+3. Đăng nhập PARTNER rồi truy cập `/admin/dashboard` → bị chặn theo phân quyền
 4. Đăng nhập USER rồi truy cập `/partner/` → bị chặn
-5. `GET /api/travel-posts/` không đăng nhập → trả về dữ liệu bình thường
-6. `POST /api/travel-posts/` không đăng nhập → redirect login (403)
+5. `GET /api/travel-posts/{id}` không đăng nhập → trả về dữ liệu nếu bài viết đang `VISIBLE`
+6. `POST /api/travel-posts` không đăng nhập → bị chặn theo cấu hình security
 7. `/payment/vnpay-return` không có session → nhận được response (không bị chặn)
 
 ---

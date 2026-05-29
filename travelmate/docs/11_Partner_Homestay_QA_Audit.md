@@ -53,7 +53,7 @@ Ngày kiểm tra: `27/05/2026`.
 
 | Nhóm kiểm tra | Kết quả |
 | --- | --- |
-| Toàn bộ unit/integration test hiện có | `234/234` PASS, 0 fail, 0 error, 0 skipped |
+| Toàn bộ unit/integration test hiện có | `247/247` PASS, 0 fail, 0 error, 0 skipped |
 | Homestay ẩn booking chưa được chuyển sang Partner và chặn mở URL trực tiếp | PASS |
 | Check-in cọc/đủ tiền và no-show Homestay | PASS |
 | Revenue Homestay 10%, trừ voucher Partner, loại Direct | PASS |

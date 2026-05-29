@@ -1,7 +1,7 @@
 # TravelMate — Test Report
 
-**Phiên bản:** 1.5  
-**Ngày kiểm thử:** 2026-05-27  
+**Phiên bản:** 1.6  
+**Ngày kiểm thử:** 2026-05-29  
 **Môi trường:** Spring Boot 3.5 + JUnit 5 + Mockito + MockMvc + Surefire
 
 ---
@@ -12,14 +12,14 @@ Kết quả được lấy từ `travelmate/target/surefire-reports/TEST-*.xml`.
 
 | Hạng mục | Số lượng |
 |---|---:|
-| Tổng test cases | 234 |
-| PASS | 234 |
+| Tổng test cases | 247 |
+| PASS | 247 |
 | FAIL | 0 |
 | ERROR | 0 |
 | SKIPPED | 0 |
 | Tỷ lệ pass | 100% |
 
-**Kết quả surefire:** `Tests run: 234, Failures: 0, Errors: 0, Skipped: 0`.
+**Kết quả surefire:** `Tests run: 247, Failures: 0, Errors: 0, Skipped: 0`.
 
 ---
 
@@ -33,33 +33,34 @@ Kết quả được lấy từ `travelmate/target/surefire-reports/TEST-*.xml`.
 | 4 | `TravelDestinationSqlTest` | 1 | PASS |
 | 5 | `TravelPostSqlTest` | 6 | PASS |
 | 6 | `UserPortalSqlSeedTest` | 9 | PASS |
-| 7 | `GoogleOAuthClientConfigTest` | 2 | PASS |
+| 7 | `GoogleOAuthClientConfigTest` | 4 | PASS |
 | 8 | `OAuth2LoginSuccessHandlerTest` | 3 | PASS |
 | 9 | `AccommodationServiceSearchTest` | 9 | PASS |
 | 10 | `AvailabilityOverlapTest` | 9 | PASS |
 | 11 | `AvailabilityServicePartnerTypeGuardTest` | 3 | PASS |
 | 12 | `BookingCalculationTest` | 37 | PASS |
-| 13 | `ChatbotServiceTest` | 13 | PASS |
+| 13 | `ChatbotServiceTest` | 14 | PASS |
 | 14 | `CommissionServiceTest` | 3 | PASS |
 | 15 | `ExcelExportServiceTest` | 5 | PASS |
 | 16 | `FileStorageServiceTest` | 3 | PASS |
 | 17 | `NoShowDepositTest` | 9 | PASS |
 | 18 | `PartnerWalletServiceTest` | 11 | PASS |
-| 19 | `PasswordResetServiceTest` | 6 | PASS |
+| 19 | `PasswordResetServiceTest` | 12 | PASS |
 | 20 | `PaymentServiceTest` | 6 | PASS |
 | 21 | `RevenueServiceHomestayTest` | 4 | PASS |
-| 22 | `RoomImageServiceTest` | 3 | PASS |
-| 23 | `SettlementEligibilityTest` | 9 | PASS |
-| 24 | `SettlementServiceTest` | 12 | PASS |
-| 25 | `TravelPostServiceTest` | 4 | PASS |
-| 26 | `VoucherCalculationTest` | 25 | PASS |
-| 27 | `TravelmateApplicationTests` | 1 | PASS |
-| 28 | `AdminTravelPostSidebarTest` | 1 | PASS |
-| 29 | `TravelSuggestionHotelsTemplateTest` | 6 | PASS |
-| 30 | `UserPortalFlowTemplateTest` | 10 | PASS |
-| 31 | `DataInitializerTest` | 2 | PASS |
-| 32 | `BusinessLabelUtilTest` | 1 | PASS |
-| | **Tổng cộng** | **234** | **PASS** |
+| 22 | `ReviewServiceTest` | 3 | PASS |
+| 23 | `RoomImageServiceTest` | 3 | PASS |
+| 24 | `SettlementEligibilityTest` | 9 | PASS |
+| 25 | `SettlementServiceTest` | 12 | PASS |
+| 26 | `TravelPostServiceTest` | 4 | PASS |
+| 27 | `VoucherCalculationTest` | 25 | PASS |
+| 28 | `TravelmateApplicationTests` | 1 | PASS |
+| 29 | `AdminTravelPostSidebarTest` | 1 | PASS |
+| 30 | `TravelSuggestionHotelsTemplateTest` | 7 | PASS |
+| 31 | `UserPortalFlowTemplateTest` | 10 | PASS |
+| 32 | `DataInitializerTest` | 2 | PASS |
+| 33 | `BusinessLabelUtilTest` | 1 | PASS |
+| | **Tổng cộng** | **247** | **PASS** |
 
 ---
 
@@ -104,6 +105,14 @@ Kết quả được lấy từ `travelmate/target/surefire-reports/TEST-*.xml`.
 - SQL seed có dữ liệu du lịch, bài viết, voucher, booking, ví, withdrawal và room images.
 - File upload/storage được kiểm tra đường dẫn và ràng buộc cơ bản.
 - Export Excel settlement/withdrawal trả file XLSX, có sheet/header và mask tài khoản ngân hàng.
+
+### Authentication, Google Login Và Quên Mật Khẩu
+- Google OAuth chỉ tạo/đăng nhập tài khoản `USER`, chặn `ADMIN`/`PARTNER` và user bị khóa.
+- OAuth client chỉ được đăng ký khi có đủ Client ID/Secret; nếu thiếu app vẫn khởi động bình thường.
+- Quên mật khẩu tạo token UUID dùng một lần, hết hạn sau 30 phút và vô hiệu token cũ.
+- Nếu SMTP chưa cấu hình và không bật demo link, hệ thống không tạo token và vẫn trả thông báo chung để tránh lộ email.
+- Nếu gửi email thất bại, token vừa tạo được vô hiệu hóa ngay.
+- Review chỉ cho booking online đã hoàn tất và cập nhật rating thang 10.
 
 ---
 
@@ -159,7 +168,7 @@ mvnw.cmd test
 Kỳ vọng:
 
 ```text
-Tests run: 234, Failures: 0, Errors: 0, Skipped: 0
+Tests run: 247, Failures: 0, Errors: 0, Skipped: 0
 BUILD SUCCESS
 ```
 

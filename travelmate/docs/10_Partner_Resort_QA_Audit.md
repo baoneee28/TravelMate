@@ -56,6 +56,6 @@ Chạy từ thư mục `travelmate`:
 
 **Kết quả xác minh lịch sử ngày 2026-05-25:** `128/128` test pass, `0` fail, `0` error, `0` skipped. File SQL đã được rà mã booking seed: `91` mã, không trùng mã `VALUES`.
 
-**Kết quả suite toàn dự án chạy lại ngày 2026-05-27:** `234/234` test pass, `0` fail, `0` error, `0` skipped. Đây là con số hiện tại cần dùng trong báo cáo và buổi demo.
+**Kết quả suite toàn dự án chạy lại ngày 2026-05-29:** `247/247` test pass, `0` fail, `0` error, `0` skipped. Đây là con số hiện tại cần dùng trong báo cáo và buổi demo.
 
 Dữ liệu demo Resort đã được đưa vào `src/main/resources/travelmate_db.sql` để có thể import lại trên máy trình bày.

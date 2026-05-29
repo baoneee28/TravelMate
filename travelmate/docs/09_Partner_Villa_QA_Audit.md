@@ -3,7 +3,7 @@
 **Ngay cap nhat:** 2026-05-27  
 **Pham vi:** Partner VILLA, user flow dat Villa, guard backend, seed SQL, test report
 
-> Tai lieu nay dinh chinh ban phan bien cu co so va ket luan "hoan hao 100%". Theo source hien tai trong workspace, ket qua dung la **234/234 tests pass**. Khong nen ghi so test cu hoac 100% tuyet doi trong bao cao nop, vi se lech voi Maven/Surefire.
+> Tai lieu nay dinh chinh ban phan bien cu co so va ket luan "hoan hao 100%". Theo source hien tai trong workspace, ket qua dung la **247/247 tests pass**. Khong nen ghi so test cu hoac 100% tuyet doi trong bao cao nop, vi se lech voi Maven/Surefire.
 
 ---
 
@@ -11,12 +11,12 @@
 
 | Hang muc | Trang thai dung hien tai | Ghi chu QA |
 |---|---|---|
-| Maven test suite | **234/234 PASS** | Xac nhan tu `target/surefire-reports` ngay 2026-05-27 |
+| Maven test suite | **247/247 PASS** | Xac nhan tu Maven/Surefire ngay 2026-05-29 |
 | Guard owner + `partnerPropertyType` | **Da phu cac luong chinh Partner** | Booking, direct booking, manual block, voucher, room/amenity, support prefill |
 | Partner VILLA wording | **Da polish manh** | Partner side dung "can", "dat can", "giu can", "chan can", "tien nghi can" |
 | User VILLA wording | **Da doi cac diem de thay** | Detail/booking/mybooking dung "can" o cac nhan chinh; cac text khong render cho Villa hoac noi dung hospitality chung co the con "phong" |
 | SQL seed Villa | **Da sach hon va dung owner** | Villa thuoc `partner3@travelmate.vn`, co online completed, pending confirm, checked-in, no-show demo, direct booking, manual block |
-| Bao cao test cu | **Sai voi source hien tai** | Phai dung 234/234 neu nop/bao cao tu workspace nay |
+| Bao cao test cu | **Sai voi source hien tai** | Phai dung 247/247 neu nop/bao cao tu workspace nay |
 
 ---
 
@@ -24,7 +24,7 @@
 
 | Claim cu | Dung/Sai | Dinh chinh nen dung |
 |---|---:|---|
-| Claim so test cu | Sai | Hien tai la **234/234 pass**, 0 fail, 0 error, 0 skipped |
+| Claim so test cu | Sai | Hien tai la **247/247 pass**, 0 fail, 0 error, 0 skipped |
 | "Security Guard Rails HOAN HAO 100%" | Qua manh | Nen ghi: **Da bo sung guard owner + property type cho cac luong Partner trong pham vi audit** |
 | "User side co tinh giu nguyen Nhan phong/Tra phong" | Khong con dung | User side da doi nhieu nhan chinh sang **Nhan can/Tra can/Dat can/Het can** khi `isVilla=true` |
 | "SQL seed hoan toan sach 100%" | Qua manh | Nen ghi: **Da ra soat va don cac dong Villa de gay hieu nham owner/comment** |
@@ -132,7 +132,7 @@ Lenh da chay:
 Ket qua:
 
 ```text
-Tests run: 234, Failures: 0, Errors: 0, Skipped: 0
+Tests run: 247, Failures: 0, Errors: 0, Skipped: 0
 BUILD SUCCESS
 ```
 
@@ -150,7 +150,7 @@ Bao cao da dong bo:
 
 | Nhom test | Trang thai | Ghi chu |
 |---|---:|---|
-| Maven test | PASS | Surefire reports xanh 234/234 |
+| Maven test | PASS | Surefire reports xanh 247/247 |
 | `mvn clean test` | BLOCKED moi truong | Windows/Java IDE dang giu file `target/classes/application.properties`; khong phai loi code |
 | Partner3 la VILLA | PASS | `travelmate_db.sql` gan `partner3@travelmate.vn` = `PARTNER`, `VILLA`, `ACTIVE` |
 | Villa thuoc partner3 | PASS | The Anam Villa va Ba Na Hills Forest Villa owner_id = partner3 |

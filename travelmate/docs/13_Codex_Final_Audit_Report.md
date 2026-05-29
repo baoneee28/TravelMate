@@ -6,7 +6,7 @@ Ngay ra soat: 27/05/2026
 
 Trang thai hien tai: PASS cho cac nhom core demo da ban voi ben ra soat.
 
-- Full test suite: 234 tests, 0 failures, 0 errors, 0 skipped.
+- Full test suite: 247 tests, 0 failures, 0 errors, 0 skipped.
 - Browser smoke test: PASS tren `http://localhost:18080` cho login, news filter empty-state, listing mac dinh Da Lat.
 - Khong con app test chay nen sau khi kiem tra: `NO_JAVA_PROCESS`, `LOCAL_18080_HTTP=000`.
 - Grep cac cum loi thoi theo checklist da sach trong source/test/doc demo chinh.
@@ -165,7 +165,7 @@ PASS ve mat co so code de tra loi.
 
 - VNPAY cham/sap: `BookingExpiryScheduler` xu ly `PENDING_PAYMENT` het han
 - AI mat mang: `ChatbotService` bat `RestClientException` va fallback
-- SMTP chua tich hop trong ban local: Forgot password chi ghi reset link vao console/log, khong hien link tren UI
+- Forgot password dung `EmailService`/Spring Mail de gui email that khi SMTP duoc cau hinh; neu SMTP chua cau hinh thi he thong tra thong bao chung va chi in reset link local khi bat rieng `TRAVELMATE_PASSWORD_RESET_DEMO_LINK=true`.
 - Overbooking: `RoomRepository` dung `PESSIMISTIC_WRITE`
 - N+1 admin booking: `BookingRepository.findAllForAdminPage()` dung `JOIN FETCH`
 - Excel lon: da chuyen sang `SXSSFWorkbook`
@@ -179,7 +179,7 @@ PASS ve mat co so code de tra loi.
 Ket qua:
 
 ```text
-Tests run: 234, Failures: 0, Errors: 0, Skipped: 0
+Tests run: 247, Failures: 0, Errors: 0, Skipped: 0
 BUILD SUCCESS
 ```
 

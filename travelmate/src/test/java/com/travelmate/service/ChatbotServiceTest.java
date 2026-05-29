@@ -3,6 +3,7 @@ package com.travelmate.service;
 import com.travelmate.dto.RoomAvailabilityDto;
 import com.travelmate.entity.Accommodation;
 import com.travelmate.entity.Room;
+import com.travelmate.entity.User;
 import com.travelmate.entity.enums.ApprovalStatus;
 import com.travelmate.entity.enums.PropertyType;
 import com.travelmate.entity.enums.VoucherScope;
@@ -21,6 +22,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -72,6 +74,19 @@ class ChatbotServiceTest {
         assertThat(chatbotService.processMessage("helo", null).intent()).isEqualTo("GREETING");
         assertThat(chatbotService.processMessage("hi", null).intent()).isEqualTo("GREETING");
         assertThat(chatbotService.processMessage("halo", null).intent()).isEqualTo("GREETING");
+    }
+
+    @Test
+    void blankMessageGreetsSignedInUserByLastName() {
+        User user = new User();
+        user.setName("Nguyen Minh An");
+        when(userRepository.findByEmail("an@travelmate.vn")).thenReturn(Optional.of(user));
+
+        ChatbotService.ChatbotResponse response = chatbotService.processMessage(" ", "an@travelmate.vn");
+
+        assertThat(response.intent()).isEqualTo("GREETING");
+        assertThat(response.reply()).contains("An", "TravelBot");
+        assertThat(response.quickReplies()).contains("Đặt phòng của tôi");
     }
 
     @Test

@@ -177,7 +177,7 @@
 Khi trình bày phần kiểm thử, dùng số liệu mới:
 
 ```text
-Tests run: 234
+Tests run: 247
 Failures: 0
 Errors: 0
 Skipped: 0

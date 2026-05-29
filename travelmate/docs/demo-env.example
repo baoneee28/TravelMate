@@ -1,4 +1,6 @@
 # TravelMate local environment
+# Copy this file to ../.env.local (inside the travelmate module folder) for local demo.
+# .env.local is ignored by Git and is loaded automatically by application.properties.
 
 # VNPAY sandbox credentials
 VNPAY_TMN_CODE=your_sandbox_tmn_code
@@ -12,9 +14,18 @@ VNPAY_IPN_URL=http://localhost:8080/payment/vnpay-ipn
 GROQ_CHATBOT_ENABLED=true
 GROQ_API_KEY=
 
+# Password reset email (Gmail app password example)
+TRAVELMATE_APP_BASE_URL=http://localhost:8080
+TRAVELMATE_PASSWORD_RESET_EMAIL_ENABLED=auto
+TRAVELMATE_PASSWORD_RESET_DEMO_LINK=false
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your_email@gmail.com
+SMTP_PASSWORD=your_gmail_app_password
+
 # Optional Google OAuth2 Login (localhost:8080)
 # Google Cloud redirect URI: http://localhost:8080/login/oauth2/code/google
-# App chỉ tạo OAuth client khi đủ cả ba giá trị dưới đây.
+# App tự tạo OAuth client khi có đủ Client ID/Secret. Chỉ đặt false nếu muốn tắt chủ động.
 GOOGLE_OAUTH_ENABLED=true
 GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your_client_secret

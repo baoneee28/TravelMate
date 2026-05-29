@@ -12,7 +12,6 @@ class GoogleOAuthClientConfigTest {
     @Test
     void missingCredentialsLeavesGoogleOAuthDisabledWithoutBreakingApplicationContext() {
         try (AnnotationConfigApplicationContext context = contextWith(
-                "travelmate.oauth2.google.enabled=true",
                 "travelmate.oauth2.google.client-id=",
                 "travelmate.oauth2.google.client-secret=")) {
             assertThat(context.getBeansOfType(ClientRegistrationRepository.class)).isEmpty();
@@ -27,6 +26,25 @@ class GoogleOAuthClientConfigTest {
                 "travelmate.oauth2.google.client-secret=local-secret")) {
             ClientRegistrationRepository registrations = context.getBean(ClientRegistrationRepository.class);
             assertThat(registrations.findByRegistrationId("google")).isNotNull();
+        }
+    }
+
+    @Test
+    void disabledFlagWinsEvenWhenCredentialsArePresent() {
+        try (AnnotationConfigApplicationContext context = contextWith(
+                "travelmate.oauth2.google.enabled=false",
+                "travelmate.oauth2.google.client-id=local-client.apps.googleusercontent.com",
+                "travelmate.oauth2.google.client-secret=local-secret")) {
+            assertThat(context.getBeansOfType(ClientRegistrationRepository.class)).isEmpty();
+        }
+    }
+
+    @Test
+    void missingSecretLeavesGoogleOAuthDisabled() {
+        try (AnnotationConfigApplicationContext context = contextWith(
+                "travelmate.oauth2.google.client-id=local-client.apps.googleusercontent.com",
+                "travelmate.oauth2.google.client-secret=")) {
+            assertThat(context.getBeansOfType(ClientRegistrationRepository.class)).isEmpty();
         }
     }
 

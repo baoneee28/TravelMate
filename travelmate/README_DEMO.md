@@ -82,21 +82,26 @@ vnpay.return-url=http://localhost:8080/payment/vnpay-return
 - IPN URL cần ngrok nếu muốn test server-to-server callback (không bắt buộc cho demo local)
 
 ### Quên mật khẩu khi demo offline
-Tính năng quên mật khẩu tạo token dùng một lần. Bản local hiện chưa tích hợp gửi mail SMTP thật.
-Để demo ổn định trên máy giảng viên hoặc khi không có internet, hệ thống mặc định bật:
+Tính năng quên mật khẩu tạo token dùng một lần, hết hạn sau 30 phút và gửi email thật qua SMTP khi cấu hình đủ:
+
+App tự đọc file `travelmate/.env.local` nếu có. File này đã được `.gitignore`, nên có thể dùng để cấu hình local mà không lộ secret khi push Git.
+
+```properties
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your_email@gmail.com
+SMTP_PASSWORD=your_gmail_app_password
+TRAVELMATE_PASSWORD_RESET_EMAIL_ENABLED=auto
+TRAVELMATE_PASSWORD_RESET_DEMO_LINK=false
+```
+
+Khi cần demo offline không có SMTP, bật riêng link console:
 
 ```properties
 TRAVELMATE_PASSWORD_RESET_DEMO_LINK=true
 ```
 
-Khi người dùng bấm **Quên mật khẩu**, link đặt lại mật khẩu sẽ được ghi ra console Spring Boot:
-
-```text
-Local reset-password link for user@travelmate.vn: /auth/reset-password?token=...
-```
-
-Chỉ cần copy đường dẫn này dán vào trình duyệt đang chạy `localhost:8080`.
-Thông báo trên giao diện vẫn giữ nguyên dạng bảo mật: “Nếu email tồn tại trong hệ thống...”.
+Thông báo trên giao diện luôn giữ dạng bảo mật: “Nếu email tồn tại trong hệ thống...”, không tiết lộ email có tồn tại hay không.
 
 ---
 
@@ -216,22 +221,23 @@ Login `info@rungthongdalat.vn` vào `/partner/wallet` để test case có tiền
 > Khi dữ liệu lớn, streaming giúp ghi file theo từng cụm dòng thay vì giữ toàn bộ workbook trong RAM.
 
 ### 6.6 Google Login Thật Trên Localhost
-Google Login là tính năng optional để demo điểm cộng. Mặc định hệ thống **không bật** OAuth2 để máy khác vẫn chạy được khi chưa có Client ID/Secret.
+Google Login là tính năng optional để demo điểm cộng. Hệ thống tự bật OAuth2 khi có đủ Google Client ID/Secret; nếu thiếu thì app vẫn chạy và nút Google ở trạng thái disabled.
 
 1. Tạo OAuth Client trên Google Cloud Console
 2. Cấu hình:
    - Authorized JavaScript origins: `http://localhost:8080`
    - Authorized redirect URIs: `http://localhost:8080/login/oauth2/code/google`
 3. Set biến môi trường:
-   - `GOOGLE_OAUTH_ENABLED=true`
    - `GOOGLE_CLIENT_ID=...apps.googleusercontent.com`
    - `GOOGLE_CLIENT_SECRET=...`
+   - `GOOGLE_OAUTH_ENABLED=false` chỉ dùng khi muốn tắt chủ động
+   - Hoặc ghi các dòng này vào `travelmate/.env.local` để app tự đọc khi chạy local
 4. Chạy app và bấm **Đăng nhập với Google** tại `/auth/login`
 
 Rule bảo vệ:
 - Google Login chỉ tạo/đăng nhập tài khoản `USER`
 - Nếu email Google trùng `ADMIN` hoặc `PARTNER`, hệ thống chặn và yêu cầu đăng nhập bằng tài khoản hệ thống
-- Nếu thiếu cờ bật, Client ID hoặc Client Secret, app vẫn chạy và nút Google hiển thị dạng disabled để không làm vỡ demo
+- Nếu thiếu Client ID hoặc Client Secret, app vẫn chạy và nút Google hiển thị dạng disabled để không làm vỡ demo
 
 ### 6.7 Demo Dữ Liệu Có Sẵn
 | Booking code | Trạng thái | Kịch bản demo |
@@ -290,7 +296,7 @@ mvn test
 ```
 
 Test bao gồm:
-- Tổng hiện tại: **234 tests PASS** (234 pass, 0 fail, 0 error, 0 skipped theo surefire, chạy ngày 27/05/2026)
+- Tổng hiện tại: **247 tests PASS** (247 pass, 0 fail, 0 error, 0 skipped theo surefire, chạy ngày 29/05/2026)
 - `DataInitializerTest` — Phục hồi snapshot tiền tại cơ sở của đơn cọc cũ theo Hướng A
 - `BookingCalculationTest` — Tính tiền DEPOSIT_30 / FULL_PAYMENT
 - `VoucherCalculationTest` — Logic voucher PERCENT / FIXED_AMOUNT / VNPAY guard

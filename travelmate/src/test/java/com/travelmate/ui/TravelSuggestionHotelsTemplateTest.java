@@ -74,6 +74,16 @@ class TravelSuggestionHotelsTemplateTest {
     }
 
     @Test
+    void travelSuggestionCardsKeepAccommodationSearchVisibleAndDoNotReplaceResults() throws IOException {
+        String html = Files.readString(HOTELS_TEMPLATE);
+
+        assertThat(html).contains("id=\"hotelListArea\"", "id=\"travelSuggestSection\"");
+        assertThat(html.indexOf("id=\"hotelListArea\""))
+                .isLessThan(html.indexOf("id=\"travelSuggestSection\""));
+        assertThat(html).contains("Danh sách nơi lưu trú vẫn được giữ nguyên theo bộ lọc hiện tại.");
+    }
+
+    @Test
     void travelSuggestionSectionKeepsReturnPathToAccommodationResults() throws IOException {
         String html = Files.readString(HOTELS_TEMPLATE);
 

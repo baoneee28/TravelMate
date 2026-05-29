@@ -248,7 +248,7 @@ mvn test
 ```
 
 Test bao gồm:
-- Tổng hiện tại: **234 tests PASS** (234 pass, 0 fail, 0 error, 0 skipped theo surefire, chạy ngày 27/05/2026)
+- Tổng hiện tại: **247 tests PASS** (247 pass, 0 fail, 0 error, 0 skipped theo surefire, chạy ngày 29/05/2026)
 - `DataInitializerTest` — Phục hồi snapshot tiền tại cơ sở của đơn cọc cũ theo Hướng A
 - `BookingCalculationTest` — Tính tiền DEPOSIT_30 / FULL_PAYMENT
 - `VoucherCalculationTest` — Logic voucher PERCENT / FIXED_AMOUNT / VNPAY guard
