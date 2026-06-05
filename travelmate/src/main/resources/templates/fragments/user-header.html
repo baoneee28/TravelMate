@@ -2,29 +2,6 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 <th:block th:fragment="header(staticHeader, activeMenu)">
-    <div class="admin-preview-bar" th:if="${showAdminPreviewBar}">
-        <div class="admin-preview-bar__inner container">
-            <span class="admin-preview-bar__label">
-                <i class="fa-solid fa-shield-halved"></i>
-                Đang xem trang người dùng với vai trò Admin
-            </span>
-            <div class="admin-preview-bar__actions">
-                <a th:href="@{/admin/dashboard}">
-                    <i class="fa-solid fa-gauge-high"></i>
-                    Quay về Admin
-                </a>
-                <a th:href="@{/admin/bookings}">
-                    <i class="fa-solid fa-calendar-check"></i>
-                    Booking
-                </a>
-                <a th:href="@{/admin/vouchers}">
-                    <i class="fa-solid fa-ticket"></i>
-                    Voucher
-                </a>
-            </div>
-        </div>
-    </div>
-
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <aside class="sidebar-menu" id="sidebarMenu" role="dialog" aria-label="Menu điều hướng">

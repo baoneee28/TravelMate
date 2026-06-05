@@ -67,6 +67,8 @@ class ChatbotServiceTest {
         lenient().when(travelPostRepository.findTop3ByDestinationSlugInAndStatusOrderByCreatedAtDesc(
                 anyCollection(), eq(com.travelmate.entity.TravelPost.Status.VISIBLE)))
                 .thenReturn(List.of());
+        lenient().when(accommodationRepository.findByApprovalStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED))
+                .thenReturn(List.of());
     }
 
     @Test
@@ -137,7 +139,6 @@ class ChatbotServiceTest {
                 .contains("du lịch biển")
                 .contains("Nha Trang")
                 .contains("Đà Nẵng")
-                .contains("Phú Quốc")
                 .contains("Xem nơi lưu trú")
                 .contains("Xem gợi ý du lịch")
                 .contains("Xem voucher");
@@ -146,6 +147,8 @@ class ChatbotServiceTest {
     @Test
     void roomPriceSearchChecksDatesAndLinksDirectlyToAvailableRoom() {
         Accommodation homestay = accommodation(1L, "LATA Hotel & Apartments", "Đà Lạt", PropertyType.HOMESTAY, 650_000D);
+        when(accommodationRepository.findByApprovalStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED))
+                .thenReturn(List.of(homestay));
         when(accommodationRepository.findByPropertyTypeAndApprovalStatus(PropertyType.HOMESTAY, ApprovalStatus.APPROVED))
                 .thenReturn(List.of(homestay));
         when(availabilityService.checkAvailabilityForAccommodation(
@@ -171,6 +174,8 @@ class ChatbotServiceTest {
         Accommodation suitable = accommodation(12L, "Pine Family Homestay", "Đà Lạt", PropertyType.HOMESTAY, 1_400_000D);
         addRoomCapacity(small, 111L, 2);
         addRoomCapacity(suitable, 112L, 4);
+        when(accommodationRepository.findByApprovalStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED))
+                .thenReturn(List.of(small, suitable));
         when(accommodationRepository.findByPropertyTypeAndApprovalStatus(PropertyType.HOMESTAY, ApprovalStatus.APPROVED))
                 .thenReturn(List.of(small, suitable));
         when(availabilityService.checkAvailabilityForAccommodation(eq(small), any(LocalDate.class), any(LocalDate.class)))
@@ -191,6 +196,8 @@ class ChatbotServiceTest {
     void villaSearchReturnsDatabaseRoomForRequestedDestinationAndCapacity() {
         Accommodation villa = accommodation(20L, "Biển Xanh Villa", "Nha Trang", PropertyType.VILLA, 3_200_000D);
         addRoomCapacity(villa, 201L, 6);
+        when(accommodationRepository.findByApprovalStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED))
+                .thenReturn(List.of(villa));
         when(accommodationRepository.findByPropertyTypeAndApprovalStatus(PropertyType.VILLA, ApprovalStatus.APPROVED))
                 .thenReturn(List.of(villa));
         when(availabilityService.checkAvailabilityForAccommodation(eq(villa), any(LocalDate.class), any(LocalDate.class)))
@@ -208,6 +215,8 @@ class ChatbotServiceTest {
     void unavailableRoomIsNotRecommendedForSelectedDates() {
         Accommodation hotel = accommodation(30L, "River Hotel Đà Nẵng", "Đà Nẵng", PropertyType.HOTEL, 800_000D);
         addRoomCapacity(hotel, 301L, 2);
+        when(accommodationRepository.findByApprovalStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED))
+                .thenReturn(List.of(hotel));
         when(accommodationRepository.findByPropertyTypeAndApprovalStatus(PropertyType.HOTEL, ApprovalStatus.APPROVED))
                 .thenReturn(List.of(hotel));
         when(availabilityService.checkAvailabilityForAccommodation(eq(hotel), any(LocalDate.class), any(LocalDate.class)))
@@ -219,6 +228,68 @@ class ChatbotServiceTest {
         assertThat(response.reply())
                 .contains("Hiện chưa còn")
                 .doesNotContain("#room-301");
+    }
+
+    @Test
+    void benTreHotelBookingQuestionReturnsDirectRoomChoice() {
+        Accommodation hotel = accommodation(40L, "Dz Hoàng", "Bến Tre", PropertyType.HOTEL, 200_000D);
+        addRoomCapacity(hotel, 401L, 3);
+        when(accommodationRepository.findByApprovalStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED))
+                .thenReturn(List.of(hotel));
+        when(accommodationRepository.findByPropertyTypeAndApprovalStatus(PropertyType.HOTEL, ApprovalStatus.APPROVED))
+                .thenReturn(List.of(hotel));
+        when(availabilityService.checkAvailabilityForAccommodation(eq(hotel), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(List.of(availableRoom(401L, hotel, "phòng vip", 200_000, 5)));
+
+        ChatbotService.ChatbotResponse suggestion = chatbotService.processMessage(
+                "Hãy gợi ý cho tôi khách sạn ở Bến Tre", null);
+        ChatbotService.ChatbotResponse booking = chatbotService.processMessage(
+                "tôi muốn đặt khách sạn tại bến tre", null);
+        ChatbotService.ChatbotResponse followUp = chatbotService.processMessage(
+                "nhưng mà tôi muốn đặt", null, "Bến Tre");
+
+        assertThat(suggestion.intent()).isEqualTo("FIND_ACCOMMODATION");
+        assertThat(suggestion.reply())
+                .contains("Bến Tre", "Dz Hoàng", "phòng vip", "200.000đ", "#room-401", "Xem phòng này")
+                .doesNotContain("Bạn muốn tìm");
+        assertThat(suggestion.quickReplies()).contains("Đặt phòng Bến Tre");
+        assertThat(booking.reply())
+                .contains("Bến Tre", "Dz Hoàng", "#room-401", "Xem phòng này")
+                .doesNotContain("Bạn muốn tìm");
+        assertThat(followUp.reply())
+                .contains("Bến Tre", "Dz Hoàng", "#room-401", "Xem phòng này")
+                .doesNotContain("Bạn muốn đặt phòng? Hãy chọn điểm đến");
+    }
+
+    @Test
+    void newlyApprovedCityFromDatabaseWorksWithoutStaticDestinationAlias() {
+        Accommodation hotel = accommodation(41L, "Mekong Garden Hotel", "Trà Vinh", PropertyType.HOTEL, 350_000D);
+        addRoomCapacity(hotel, 411L, 2);
+        when(accommodationRepository.findByApprovalStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED))
+                .thenReturn(List.of(hotel));
+        when(accommodationRepository.findByPropertyTypeAndApprovalStatus(PropertyType.HOTEL, ApprovalStatus.APPROVED))
+                .thenReturn(List.of(hotel));
+        when(availabilityService.checkAvailabilityForAccommodation(eq(hotel), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(List.of(availableRoom(411L, hotel, "Deluxe Mekong", 350_000, 4)));
+
+        ChatbotService.ChatbotResponse response =
+                chatbotService.processMessage("Tôi muốn đặt khách sạn tại Trà Vinh", null);
+
+        assertThat(response.intent()).isEqualTo("FIND_ACCOMMODATION");
+        assertThat(response.reply())
+                .contains("Trà Vinh", "Mekong Garden Hotel", "Deluxe Mekong", "350.000đ", "#room-411")
+                .doesNotContain("Bạn muốn tìm");
+        assertThat(response.quickReplies()).contains("Đặt phòng Trà Vinh");
+    }
+
+    @Test
+    void cityRemovedFromApprovedDatabaseIsNotTreatedAsHardcodedDestination() {
+        ChatbotService.ChatbotResponse response =
+                chatbotService.processMessage("Tôi muốn đặt khách sạn tại Trà Vinh", null);
+
+        assertThat(response.intent()).isEqualTo("FIND_ACCOMMODATION");
+        assertThat(response.reply()).contains("Bạn muốn tìm");
+        assertThat(response.quickReplies()).doesNotContain("Trà Vinh", "Đặt phòng Trà Vinh");
     }
 
     @Test
@@ -293,8 +364,8 @@ class ChatbotServiceTest {
         assertThat(response.intent()).isEqualTo("OUT_OF_SCOPE");
         assertThat(response.reply())
                 .contains("du lịch và đặt phòng")
-                .contains("Đà Lạt")
-                .contains("Nha Trang");
+                .contains("các nơi lưu trú đang mở bán")
+                .doesNotContain("Đà Lạt", "Nha Trang");
     }
 
     @Test
@@ -305,7 +376,8 @@ class ChatbotServiceTest {
         assertThat(response.intent()).isEqualTo("AI_BUSINESS");
         assertThat(response.reply())
                 .contains("TravelMate")
-                .contains("Đà Lạt")
+                .contains("Xem tất cả")
+                .doesNotContain("Đà Lạt")
                 .doesNotContain("Minh chua co du lieu")
                 .doesNotContain("Mình chưa có dữ liệu TravelMate");
     }

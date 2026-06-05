@@ -468,69 +468,6 @@ img {
 }
 
 /* ===== HEADER ===== */
-.admin-preview-bar {
-    position: sticky;
-    top: 0;
-    z-index: 1300;
-    background: #0f172a;
-    color: #fff;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.18);
-}
-
-.admin-preview-bar__inner {
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    overflow-x: auto;
-}
-
-.admin-preview-bar__label,
-.admin-preview-bar__actions,
-.admin-preview-bar__actions a {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    white-space: nowrap;
-}
-
-.admin-preview-bar__label {
-    font-size: 0.83rem;
-    font-weight: 750;
-    color: #e0f2fe;
-}
-
-.admin-preview-bar__actions {
-    gap: 8px;
-}
-
-.admin-preview-bar__actions a {
-    min-height: 30px;
-    padding: 0 12px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.08);
-    color: #fde68a;
-    font-size: 0.78rem;
-    font-weight: 750;
-    text-decoration: none;
-    transition: background 0.18s ease, color 0.18s ease;
-}
-
-.admin-preview-bar__actions a:hover {
-    background: rgba(253, 230, 138, 0.18);
-    color: #fff7ed;
-}
-
-.admin-preview-bar ~ .header {
-    top: 44px;
-}
-
-.admin-preview-bar ~ .search-nav {
-    top: 120px !important;
-}
-
 .header {
     position: fixed;
     top: 0;
@@ -2379,31 +2316,6 @@ header[style*="background:#fff"] .language-switch a:hover,
 }
 
 @media (max-width: 768px) {
-    .admin-preview-bar__inner {
-        min-height: 56px;
-        justify-content: flex-start;
-        padding-top: 7px;
-        padding-bottom: 7px;
-    }
-
-    .admin-preview-bar__label {
-        font-size: 0.76rem;
-    }
-
-    .admin-preview-bar__actions a {
-        min-height: 30px;
-        padding: 0 10px;
-        font-size: 0.74rem;
-    }
-
-    .admin-preview-bar ~ .header {
-        top: 56px;
-    }
-
-    .admin-preview-bar ~ .search-nav {
-        top: 132px !important;
-    }
-
     .header {
         height: 76px;
         padding: 0;

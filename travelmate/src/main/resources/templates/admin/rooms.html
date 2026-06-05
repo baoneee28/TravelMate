@@ -39,6 +39,46 @@
         .room-action-icon--detail { background:#eff6ff;border-color:#bfdbfe;color:#2563eb; }
         .room-action-icon--images { background:#ecfdf5;border-color:#99f6e4;color:#0f766e; }
         .room-action-icon i { font-size:13px; }
+        .room-commission-cell { min-width:116px; }
+        .room-commission-chip {
+            display:inline-flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            gap:2px;
+            min-width:96px;
+            padding:6px 10px;
+            border-radius:12px;
+            background:#fff7ed;
+            border:1px solid #fed7aa;
+            color:#b45309;
+            line-height:1.1;
+            white-space:nowrap;
+            box-shadow:inset 3px 0 0 #f59e0b;
+        }
+        .room-commission-chip__rate {
+            display:inline-flex;
+            align-items:center;
+            gap:4px;
+            font-size:12px;
+            font-weight:800;
+            color:#9a3412;
+        }
+        .room-commission-chip__label {
+            font-size:10px;
+            font-weight:700;
+            color:#92400e;
+            letter-spacing:.01em;
+        }
+        .room-commission-default {
+            display:inline-flex;
+            align-items:center;
+            gap:4px;
+            color:#64748b;
+            font-size:11px;
+            font-weight:600;
+            white-space:nowrap;
+        }
         .modal-overlay { display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,.5);padding:16px; }
         .modal-overlay.active { display:flex; }
         .modal-box { background:#fff;border-radius:16px;width:min(500px,100%);box-shadow:0 20px 60px rgba(0,0,0,.25); }
@@ -324,14 +364,17 @@
                                 <td style="font-weight:600;color:var(--color-primary);"
                                     th:text="${#numbers.formatDecimal(r.pricePerNight, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</td>
                                 <!-- Commission -->
-                                <td>
+                                <td class="room-commission-cell">
                                     <span th:if="${r.commissionRateOverride != null}"
-                                          style="background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">
-                                        🔧 <span th:text="${r.commissionRateOverride} + '%'">18%</span>
-                                        <span style="font-size:10px;display:block;color:#92400e;">Riêng theo phòng</span>
+                                          class="room-commission-chip">
+                                        <span class="room-commission-chip__rate">
+                                            <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i>
+                                            <span th:text="${r.commissionRateOverride} + '%'">18%</span>
+                                        </span>
+                                        <span class="room-commission-chip__label">Riêng theo phòng</span>
                                     </span>
                                     <span th:if="${r.commissionRateOverride == null}"
-                                          style="color:#6b7280;font-size:11px;">
+                                          class="room-commission-default">
                                         Mặc định
                                         <span th:if="${r.accommodation.propertyType != null}"
                                               th:text="${'(' +

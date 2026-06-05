@@ -15,11 +15,67 @@
     <link rel="stylesheet" href="/assets/css/responsive.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <style>
+        body.partner-room-form-page .admin-content {
+            padding: 18px 24px 22px;
+        }
+        body.partner-room-form-page .page-header {
+            margin-bottom: 16px;
+        }
+        body.partner-room-form-page .page-header__title {
+            font-size: 26px;
+            line-height: 1.2;
+        }
+        body.partner-room-form-page .room-form-card {
+            max-width: none !important;
+            width: 100%;
+            border-radius: 10px;
+        }
+        body.partner-room-form-page .room-form-body {
+            padding: 18px !important;
+        }
+        body.partner-room-form-page .room-form-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            gap: 14px !important;
+            align-items: start;
+        }
+        body.partner-room-form-page .room-form-wide {
+            grid-column: span 2;
+        }
+        body.partner-room-form-page .room-form-full {
+            grid-column: 1 / -1;
+        }
+        body.partner-room-form-page .form-group {
+            margin-bottom: 0;
+        }
+        body.partner-room-form-page .form-label {
+            margin-bottom: 7px;
+        }
+        body.partner-room-form-page .form-control {
+            min-height: 40px;
+        }
+        body.partner-room-form-page textarea.form-control {
+            min-height: 118px;
+            resize: vertical;
+        }
+        body.partner-room-form-page .room-amenity-panel {
+            margin-top: 16px !important;
+            padding: 16px !important;
+            border-radius: 10px !important;
+        }
+        body.partner-room-form-page .room-amenity-group {
+            margin-bottom: 12px !important;
+        }
+        body.partner-room-form-page .room-form-actions {
+            margin-top: 14px !important;
+            justify-content: flex-end;
+        }
         .room-upload-zone {
             border: 1.5px dashed #93c5fd;
             border-radius: 12px;
             background: #f8fbff;
-            padding: 18px;
+            min-height: 118px;
+            padding: 16px;
             display: flex;
             gap: 14px;
             align-items: center;
@@ -94,10 +150,37 @@
             cursor: pointer;
             padding: 0;
         }
+        @media (max-width: 1280px) {
+            body.partner-room-form-page .room-form-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+            body.partner-room-form-page .room-form-wide {
+                grid-column: 1 / -1;
+            }
+        }
+        @media (max-width: 760px) {
+            body.partner-room-form-page .admin-content {
+                padding: 14px 12px 18px;
+            }
+            body.partner-room-form-page .room-form-grid {
+                grid-template-columns: 1fr !important;
+            }
+            body.partner-room-form-page .room-form-wide,
+            body.partner-room-form-page .room-form-full {
+                grid-column: 1 / -1;
+            }
+            body.partner-room-form-page .room-form-actions {
+                justify-content: stretch;
+                flex-direction: column;
+            }
+            body.partner-room-form-page .room-form-actions .btn {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 
-<body>
+<body class="partner-room-form-page">
     <div class="admin-wrapper">
         <aside th:replace="~{fragments/partner-sidebar :: sidebar('accommodations', ${partnerName})}"></aside>
         <div class="admin-sidebar-overlay"></div>
@@ -147,23 +230,24 @@
                 </div>
 
                 <!-- Form -->
-                <div class="chart-card" style="max-width: 720px;">
+                <div class="chart-card room-form-card" style="max-width: 720px;">
                     <div class="chart-card__header">
                         <h3 class="chart-card__title"
                             th:text="${isVillaPartner} ? '📝 Thông tin căn villa mới' : (${isResortPartner} ? '📝 Thông tin loại phòng / suite mới' : '📝 Thông tin phòng mới')">
                             📝 Thông tin phòng mới
                         </h3>
                     </div>
-                    <div class="review-panel__body" style="padding: var(--space-5);">
+                    <div class="review-panel__body room-form-body" style="padding: var(--space-5);">
                         <form th:action="@{/partner/accommodations/{id}/rooms/new(id=${accommodation.id})}" method="post" enctype="multipart/form-data">
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);">
+                            <div class="room-form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);">
 
                                 <div class="form-group">
-                                    <label class="form-label"
-                                           th:text="${isVillaPartner} ? 'Mã căn (Villa Code)' : (${isResortPartner} ? 'Mã phòng / suite (Room Code)' : 'Mã phòng (Room Code)')">
-                                        Mã phòng (Room Code) <span style="color:#ef4444;">*</span>
+                                    <label class="form-label">
+                                        <span th:text="${isVillaPartner} ? 'Mã căn (Villa Code)' : (${isResortPartner} ? 'Mã phòng / suite (Room Code)' : 'Mã phòng (Room Code)')">
+                                            Mã phòng (Room Code)
+                                        </span>
+                                        <span style="color:#ef4444;">*</span>
                                     </label>
-                                    <span style="color:#ef4444;font-size:13px;">*</span>
                                     <input type="text" name="roomCode" class="form-control"
                                            th:placeholder="${isVillaPartner} ? 'VD: GHV-GARDEN, ANV-BEACH' : (${isResortPartner} ? 'VD: VNT-DLX, VNT-SUI' : 'VD: LATA-STD')"
                                            required maxlength="50"
@@ -222,7 +306,7 @@
                                     </small>
                                 </div>
 
-                                <div class="form-group" style="grid-column: 1 / -1;">
+                                <div class="form-group room-form-wide">
                                     <label class="form-label"
                                            th:text="${isVillaPartner} ? 'Ảnh căn villa' : (${isResortPartner} ? 'Ảnh phòng / suite Resort' : 'Ảnh phòng')">Ảnh phòng</label>
                                     <input type="hidden" name="imageUrl" value="" />
@@ -251,7 +335,7 @@
                                     </small>
                                  </div>
 
-                                 <div class="form-group" style="grid-column: 1 / -1;">
+                                 <div class="form-group room-form-wide">
                                      <label class="form-label"
                                             th:text="${isVillaPartner} ? 'Mô tả căn villa' : (${isResortPartner} ? 'Mô tả phòng / suite Resort' : 'Mô tả phòng')">
                                          Mô tả phòng
@@ -310,7 +394,8 @@
                             </div>
 
                             <!-- ★ TIỆN NGHI PHÒNG / CĂN -->
-                            <div th:if="${amenityGroups != null and !amenityGroups.isEmpty()}"
+                            <div class="room-amenity-panel room-form-full"
+                                 th:if="${amenityGroups != null and !amenityGroups.isEmpty()}"
                                  style="margin-top:var(--space-5);padding:20px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;">
                                 <div style="font-weight:700;font-size:15px;color:#0f172a;margin-bottom:4px;"
                                      th:text="${isVillaPartner} ? '🏡 Tiện nghi căn villa' : (${isResortPartner} ? '🌴 Tiện nghi phòng / suite Resort' : '🏷 Tiện nghi phòng')">
@@ -320,7 +405,7 @@
                                     <span th:text="${'Chọn các tiện nghi có trong ' + (unitLabel ?: 'phòng') + ' để khách hàng biết trước khi ' + (bookingUnitLabel ?: 'đặt phòng') + '. Không bắt buộc — có thể cập nhật sau.'}">Chọn các tiện nghi có trong phòng để khách hàng biết trước khi đặt. Không bắt buộc — có thể cập nhật sau.</span>
                                 </div>
 
-                                <div th:each="entry : ${amenityGroups}" style="margin-bottom:18px;">
+                                <div class="room-amenity-group" th:each="entry : ${amenityGroups}" style="margin-bottom:18px;">
                                     <div style="font-size:13px;font-weight:700;color:#2563eb;margin-bottom:10px;padding-bottom:4px;border-bottom:1px solid #dbeafe;">
                                         <span th:text="${entry.key}">Nhóm</span>
                                     </div>
@@ -341,7 +426,7 @@
                             </div>
 
                             <!-- Actions -->
-                            <div style="display:flex;gap:var(--space-3);margin-top:var(--space-4);">
+                            <div class="room-form-actions" style="display:flex;gap:var(--space-3);margin-top:var(--space-4);">
                                 <button type="submit" class="btn btn--primary"
                                         th:text="${isVillaPartner} ? '✅ Thêm căn villa ngay' : (${isResortPartner} ? '✅ Gửi phòng / suite chờ duyệt' : '✅ Thêm phòng ngay')">
                                     ✅ Thêm phòng ngay

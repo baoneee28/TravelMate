@@ -43,6 +43,7 @@ import java.util.Set;
 public class AccommodationPageController {
     private static final DateTimeFormatter DISPLAY_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final int DETAIL_GALLERY_SIZE = 5;
+    private static final int DETAIL_ROOM_UPLOAD_LIMIT = 3;
     private static final String LATA_HOTEL_NAME = "LATA Hotel & Apartments";
     private static final List<Map.Entry<String, String>> LATA_DETAIL_GALLERY_IMAGES = List.of(
             Map.entry("/assets/images/accommodations/lata/cover/room-hero.jpg",
@@ -389,22 +390,38 @@ public class AccommodationPageController {
             for (Map.Entry<String, String> image : LATA_DETAIL_GALLERY_IMAGES) {
                 addGalleryImage(gallery, usedUrls, image.getKey(), image.getValue());
             }
+            return gallery;
         }
 
         for (Room room : galleryRooms) {
             for (RoomImage image : roomImagesMap.getOrDefault(room.getId(), List.of())) {
+                if (gallery.size() >= DETAIL_ROOM_UPLOAD_LIMIT) {
+                    return gallery;
+                }
                 String alt = image.getCaption() == null || image.getCaption().isBlank()
                         ? hotel.getName() + " - " + room.getRoomName()
                         : image.getCaption();
                 addGalleryImage(gallery, usedUrls, image.getImageUrl(), alt);
             }
+        }
+
+        if (!gallery.isEmpty()) {
+            return gallery;
+        }
+
+        for (Room room : galleryRooms) {
+            if (gallery.size() >= DETAIL_GALLERY_SIZE) {
+                break;
+            }
             addGalleryImage(gallery, usedUrls, room.getImageUrl(),
                     hotel.getName() + " - " + room.getRoomName());
         }
 
-        if (!LATA_HOTEL_NAME.equalsIgnoreCase(hotel.getName())) {
-            addGalleryImage(gallery, usedUrls, hotel.getThumbnailUrl(), hotel.getName());
+        if (!gallery.isEmpty()) {
+            return gallery;
         }
+
+        addGalleryImage(gallery, usedUrls, hotel.getThumbnailUrl(), hotel.getName());
 
         PropertyType propertyType = hotel.getPropertyType() == null ? PropertyType.HOTEL : hotel.getPropertyType();
         int fallbackIndex = 1;

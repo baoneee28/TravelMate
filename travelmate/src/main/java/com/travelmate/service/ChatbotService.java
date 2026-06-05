@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class ChatbotService {
@@ -107,33 +108,36 @@ public class ChatbotService {
             NumberFormat.getIntegerInstance(Locale.of("vi", "VN"));
     private static final DateTimeFormatter DATE_FMT =
             DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private static final List<String> DEFAULT_QR =
-            List.of("Tìm khách sạn", "Gợi ý điểm đến", "Hướng dẫn đặt phòng", "Liên hệ hỗ trợ");
     private static final TravelPreference BEACH_PREF = new TravelPreference(
             "BEACH", "du lịch biển", "🏖️",
-            List.of("Nha Trang", "Đà Nẵng", "Phú Quốc", "Vũng Tàu", "Mũi Né"),
+            List.of(),
             "hợp với lịch trình nghỉ dưỡng, tắm biển và ăn hải sản");
     private static final TravelPreference MOUNTAIN_PREF = new TravelPreference(
             "MOUNTAIN", "du lịch núi", "⛰️",
-            List.of("Sa Pa", "Đà Lạt", "Hà Giang", "Ninh Bình"),
+            List.of(),
             "hợp với săn mây, trekking nhẹ và không khí mát mẻ");
     private static final TravelPreference RELAX_PREF = new TravelPreference(
             "RELAX", "nghỉ dưỡng", "🌿",
-            List.of("Phú Quốc", "Nha Trang", "Đà Nẵng", "Đà Lạt"),
+            List.of(),
             "hợp với resort, khách sạn tiện nghi và lịch trình thư giãn");
     private static final TravelPreference FAMILY_PREF = new TravelPreference(
             "FAMILY", "du lịch gia đình", "👨‍👩‍👧‍👦",
-            List.of("Đà Nẵng", "Đà Lạt", "Nha Trang", "Hội An", "Phú Quốc"),
+            List.of(),
             "ưu tiên nơi dễ di chuyển, nhiều lựa chọn phòng gia đình");
     private static final TravelPreference SAVING_PREF = new TravelPreference(
             "SAVING", "du lịch tiết kiệm", "💡",
-            List.of("Đà Lạt", "Sa Pa", "Hội An", "Ninh Bình", "Mũi Né"),
+            List.of(),
             "dễ tìm homestay/khách sạn tầm trung và lịch trình gọn");
 
     // ── public entry point ────────────────────────────────────
 
     @Transactional(readOnly = true)
     public ChatbotResponse processMessage(String message, String username) {
+        return processMessage(message, username, null);
+    }
+
+    @Transactional(readOnly = true)
+    public ChatbotResponse processMessage(String message, String username, String lastDestination) {
         if (message == null || message.isBlank()) {
             return greeting(username);
         }
@@ -199,6 +203,11 @@ public class ChatbotService {
             return allHotels();
         }
 
+        String previousDestination = normalizePreviousDestination(lastDestination);
+        if (previousDestination != null && extractDestination(norm) == null && isBookingFollowUp(norm)) {
+            return searchAccommodations(previousDestination, PropertyType.HOTEL, message);
+        }
+
         // ── BUDGET TRAVEL PLAN ────────────────────────────────
         // Ưu tiên ngân sách trước các intent tìm nơi lưu trú/gợi ý du lịch.
         Long budgetVnd = extractBudgetVnd(message);
@@ -253,9 +262,6 @@ public class ChatbotService {
         if (extractedDest != null) {
             return searchAccommodations(extractedDest, null, message);
         }
-        if (DestinationAliasUtil.isKnownDestination(message)) {
-            return searchAccommodations(message, null, message);
-        }
 
         Optional<ChatbotResponse> aiResponse = groqBusinessFallback(message, norm, username);
         if (aiResponse.isPresent()) {
@@ -283,7 +289,7 @@ public class ChatbotService {
                 + "<p>Tôi có thể giúp bạn:</p>"
                 + "<ul>"
                 + "<li>🏨 Tìm khách sạn, villa, homestay, resort theo điểm đến</li>"
-                + "<li>💰 Tư vấn chuyến đi theo ngân sách, ví dụ: \"3 triệu đi Sa Pa\"</li>"
+                + "<li>💰 Tư vấn chuyến đi theo ngân sách và điểm đến đang mở bán</li>"
                 + "<li>🗺️ Gợi ý điểm du lịch hấp dẫn</li>"
                 + "<li>📋 Hướng dẫn đặt phòng &amp; chính sách cọc</li>"
                 + "<li>🎫 Voucher &amp; ưu đãi hiện có</li>"
@@ -479,28 +485,25 @@ public class ChatbotService {
                 + "<p><a href='/accommodations' class='bot-link'>→ Danh sách khách sạn &amp; villa</a></p>"
                 + "<p>Hoặc nhập tên điểm đến để tôi tìm nhanh cho bạn!</p>";
         return new ChatbotResponse(I_FIND, reply,
-                List.of("Đà Lạt", "Nha Trang", "Đà Nẵng", "Phú Quốc"));
+                currentDestinationQuickReplies());
     }
 
     private ChatbotResponse travelDestinations() {
+        List<String> destinations = currentDestinationNames(10);
+        String chips = destinations.isEmpty()
+                ? "<span class='bot-dest-chip'>Chưa có điểm đến đang mở bán</span>"
+                : destinations.stream()
+                        .map(destination -> "<span class='bot-dest-chip'>📍 " + esc(destination) + "</span>")
+                        .collect(Collectors.joining());
         String reply = "<div>"
-                + "<p>🗺️ <strong>Điểm đến nổi bật tại Việt Nam:</strong></p>"
+                + "<p>🗺️ <strong>Điểm đến đang mở bán trên TravelMate:</strong></p>"
                 + "<div class='bot-dest-grid'>"
-                + "<span class='bot-dest-chip'>🌸 Đà Lạt</span>"
-                + "<span class='bot-dest-chip'>🏖️ Nha Trang</span>"
-                + "<span class='bot-dest-chip'>🌊 Đà Nẵng</span>"
-                + "<span class='bot-dest-chip'>🏮 Hội An</span>"
-                + "<span class='bot-dest-chip'>⛰️ Sa Pa</span>"
-                + "<span class='bot-dest-chip'>🏝️ Phú Quốc</span>"
-                + "<span class='bot-dest-chip'>🏛️ Hà Nội</span>"
-                + "<span class='bot-dest-chip'>🌆 TP. HCM</span>"
-                + "<span class='bot-dest-chip'>🛥️ Hạ Long</span>"
-                + "<span class='bot-dest-chip'>🌅 Vũng Tàu</span>"
+                + chips
                 + "</div>"
                 + "<p>Gõ tên điểm đến để tôi tìm khách sạn phù hợp!</p>"
                 + "</div>";
         return new ChatbotResponse(I_TRAVEL, reply,
-                List.of("Đà Lạt", "Nha Trang", "Phú Quốc", "Hội An"));
+                currentDestinationQuickReplies());
     }
 
     private ChatbotResponse travelSuggestionForDest(String destination) {
@@ -618,7 +621,7 @@ public class ChatbotService {
                     + "<p><a href='/accommodations?keyword=" + encUrl(displayName) + typeParam
                     + "' class='bot-link'>Tìm kiếm trên trang danh sách</a> hoặc chọn điểm đến khác.</p>";
             return new ChatbotResponse(I_FIND, reply,
-                    List.of("Đà Lạt", "Nha Trang", "Phú Quốc", "Xem tất cả"));
+                    destinationFallbackQuickReplies());
         }
 
         List<AvailableRoomSuggestion> available = findAvailableRooms(
@@ -629,7 +632,7 @@ public class ChatbotService {
                     + "<p><a href='/accommodations?keyword=" + encUrl(displayName) + typeParam
                     + "' class='bot-link'>Xem thêm lựa chọn</a> hoặc đổi ngày lưu trú.</p>";
             return new ChatbotResponse(I_FIND, reply,
-                    List.of("Đà Lạt", "Nha Trang", "Phú Quốc", "Xem tất cả"));
+                    destinationFallbackQuickReplies());
         }
 
         StringBuilder sb = new StringBuilder("<div class='bot-hotel-results'>");
@@ -648,29 +651,30 @@ public class ChatbotService {
           .append("</div>");
 
         return new ChatbotResponse(I_FIND, sb.toString(),
-                List.of("Gợi ý du lịch " + displayName, "Tìm điểm đến khác", "Hướng dẫn đặt phòng"));
+                List.of("Đặt phòng " + displayName, "Gợi ý du lịch " + displayName, "Hướng dẫn đặt phòng"));
     }
 
     private ChatbotResponse askDestination() {
         String reply = "<p>🏨 Bạn muốn tìm <strong>khách sạn</strong> ở đâu?</p>"
                 + "<p>Nhập tên thành phố hoặc điểm đến bạn muốn đặt phòng nhé!</p>";
         return new ChatbotResponse(I_FIND, reply,
-                List.of("Đà Lạt", "Nha Trang", "Đà Nẵng", "Phú Quốc"));
+                currentDestinationQuickReplies());
     }
 
     private ChatbotResponse askDestinationForType(String typeDisplay) {
         String reply = "<p>🏡 Bạn muốn tìm <strong>" + esc(typeDisplay) + "</strong> ở đâu?</p>"
                 + "<p>Nhập tên thành phố hoặc điểm đến nhé!</p>";
         return new ChatbotResponse(I_FIND, reply,
-                List.of("Đà Lạt", "Nha Trang", "Đà Nẵng", "Phú Quốc"));
+                currentDestinationQuickReplies());
     }
 
     private ChatbotResponse outOfScope() {
-        String suggest = "Đà Lạt";
+        String suggest = currentPrimaryDestination();
+        String destinationText = currentDestinationText(4);
         String reply = "<div>"
                 + "<p>🤖 Câu này nằm ngoài phạm vi đồ án, nên mình sẽ kéo về <strong>du lịch và đặt phòng trên TravelMate</strong>.</p>"
-                + "<p>Nếu bạn muốn đổi không khí, mình có thể gợi ý <strong>Đà Lạt</strong>, "
-                + "<strong>Sa Pa</strong>, <strong>Hội An</strong> hoặc <strong>Nha Trang</strong> theo ngân sách của bạn.</p>"
+                + "<p>Nếu bạn muốn đổi không khí, mình có thể gợi ý theo các điểm đến đang mở bán: "
+                + "<strong>" + esc(destinationText) + "</strong>.</p>"
                 + botActionRow(suggest)
                 + "</div>";
         return new ChatbotResponse(I_OUT_OF_SCOPE, reply,
@@ -678,43 +682,42 @@ public class ChatbotService {
     }
 
     private ChatbotResponse fallback() {
+        List<String> examples = currentDestinationQuickReplies();
+        String exampleText = examples.stream()
+                .filter(q -> !q.equalsIgnoreCase("Xem tất cả"))
+                .limit(2)
+                .collect(Collectors.joining("\", \""));
+        if (!exampleText.isBlank()) {
+            exampleText = " (VD: \"" + exampleText + "\")";
+        }
         String reply = "<p>🤔 Tôi chưa hiểu câu hỏi của bạn. Bạn có thể:</p><ul>"
-                + "<li>Nhập tên <strong>điểm đến</strong> (VD: \"Đà Lạt\", \"Nha Trang\")</li>"
+                + "<li>Nhập tên <strong>điểm đến</strong>" + esc(exampleText) + "</li>"
                 + "<li>Hỏi về <strong>đặt phòng</strong>, <strong>chính sách</strong>, <strong>voucher</strong></li>"
                 + "<li>Nhấn các nút gợi ý bên dưới</li>"
                 + "</ul>";
-        return new ChatbotResponse(I_FALLBACK, reply, DEFAULT_QR);
+        return new ChatbotResponse(I_FALLBACK, reply, destinationFallbackQuickReplies());
     }
 
     private ChatbotResponse redirectToTravelMate(String message, String norm) {
         String lead;
-        String primaryDestination;
-        List<String> destinations;
+        String primaryDestination = currentPrimaryDestination();
+        List<String> destinations = currentDestinationNames(5);
 
         if (isCurrentNewsQuestion(norm)) {
-            primaryDestination = "Đà Lạt";
-            destinations = List.of("Đà Lạt", "Sa Pa", "Hội An", "Nha Trang");
             lead = "Mình không cập nhật thời sự theo thời gian thực trong TravelMate. Nếu bạn muốn đổi chủ đề thành một chuyến đi, TravelMate có thể gợi ý các điểm đến dễ demo và dễ đặt phòng.";
         } else if (isFoodContext(norm)) {
-            primaryDestination = "Hội An";
-            destinations = List.of("Hội An", "Đà Nẵng", "TP. HCM", "Nha Trang");
             lead = "Nếu bạn đang đói hoặc muốn đi ăn ngon, mình sẽ kéo về du lịch ẩm thực: ưu tiên nơi lưu trú gần phố đi bộ, chợ đêm hoặc khu trung tâm để tiện khám phá.";
         } else if (isTravelMoodCandidate(norm)) {
-            primaryDestination = "Đà Lạt";
-            destinations = List.of("Đà Lạt", "Hội An", "Đà Nẵng", "Nha Trang", "Vũng Tàu");
             lead = "Nếu bạn muốn đổi không khí, TravelMate có thể gợi ý điểm đến nhẹ nhàng, nhiều quán cafe, photowalk và hoạt động nhóm. Mình không tư vấn chuyện tình cảm sâu, chỉ kéo về lựa chọn du lịch phù hợp.";
         } else if (isRestContext(norm)) {
-            primaryDestination = "Phú Quốc";
-            destinations = List.of("Phú Quốc", "Đà Lạt", "Sa Pa", "Nha Trang");
             lead = "Nếu bạn đang mệt, stress hoặc cần nghỉ ngơi, mình sẽ chuyển thành nhu cầu nghỉ dưỡng: ưu tiên resort, homestay yên tĩnh hoặc phòng có view đẹp trên TravelMate.";
         } else if (isWeatherContext(norm)) {
-            primaryDestination = "Đà Lạt";
-            destinations = List.of("Đà Lạt", "Sa Pa", "Nha Trang", "Đà Nẵng");
-            lead = "TravelMate chưa có dự báo thời tiết trực tiếp, nhưng mình có thể bẻ câu này thành gợi ý điểm đến: trời nóng thì đi biển, muốn mát mẻ thì chọn Đà Lạt hoặc Sa Pa.";
+            lead = "TravelMate chưa có dự báo thời tiết trực tiếp, nhưng mình có thể bẻ câu này thành gợi ý điểm đến đang mở bán trong hệ thống.";
         } else {
-            primaryDestination = "Đà Lạt";
-            destinations = List.of("Đà Lạt", "Sa Pa", "Hội An", "Nha Trang");
             lead = "Mình sẽ kéo câu này về TravelMate: nếu bạn muốn đổi không khí, mình có thể gợi ý điểm đến, loại nơi lưu trú và cách đặt phòng theo ngân sách của bạn.";
+        }
+        if (destinations.isEmpty()) {
+            destinations = List.of("Xem tất cả");
         }
 
         String reply = "<div class='bot-ai-response'>"
@@ -801,13 +804,19 @@ public class ChatbotService {
         sb.append("Tin nhắn lạc đề vẫn được xử lý bằng cách suy ra tình cảnh và nói về du lịch/lưu trú/hoạt động trong TravelMate, không trả lời trực tiếp ngoài phạm vi.\n");
         sb.append("Không hỗ trợ: vé máy bay/xe, giá ngoài hệ thống, nhà hàng ngoài dữ liệu, y tế, pháp lý, tài chính, lập trình, chính trị.\n");
         sb.append("Loại hình lưu trú: khách sạn, villa, homestay, resort.\n");
+        List<String> currentDestinations = currentDestinationNames(8);
+        if (!currentDestinations.isEmpty()) {
+            sb.append("Địa điểm đang có cơ sở APPROVED trong TravelMate: ")
+                    .append(String.join(", ", currentDestinations))
+                    .append(".\n");
+        }
         if (isContextualTravelBridgeCandidate(norm)) {
             sb.append("Bảng gợi ý theo tình cảnh:\n");
-            sb.append("- Đói bụng/thèm ăn: Hội An, Đà Nẵng, Nha Trang, TP. HCM; ưu tiên lưu trú gần trung tâm, phố đi bộ, chợ đêm, khu ẩm thực.\n");
-            sb.append("- Mệt/stress/cần nghỉ: Đà Lạt, Phú Quốc, Nha Trang, Sa Pa; ưu tiên resort, homestay yên tĩnh, phòng có view.\n");
-            sb.append("- Buồn/cô đơn/thất tình/muốn gặp người mới: Đà Lạt, Hội An, Đà Nẵng, Nha Trang, Vũng Tàu; gợi ý cafe, photowalk, biển, tour/hoạt động nhóm; không cam kết tìm được người yêu.\n");
-            sb.append("- Nóng bức: biển như Nha Trang, Đà Nẵng, Phú Quốc, Vũng Tàu. Mưa lạnh: Đà Lạt, Sa Pa, cafe/khách sạn gần trung tâm.\n");
-            sb.append("- Ăn mừng/sinh nhật/đi cùng bạn bè: Đà Nẵng, Nha Trang, TP. HCM, Hội An; ưu tiên villa/homestay/khách sạn gần khu vui chơi.\n");
+            sb.append("- Chỉ gợi ý điểm đến đang có trong dữ liệu APPROVED ở trên; nếu không có điểm đến phù hợp, nói chưa có dữ liệu TravelMate.\n");
+            sb.append("- Đói bụng/thèm ăn: ưu tiên lưu trú gần trung tâm, phố đi bộ, chợ đêm, khu ẩm thực nếu dữ liệu có.\n");
+            sb.append("- Mệt/stress/cần nghỉ: ưu tiên resort, homestay yên tĩnh hoặc phòng có view nếu dữ liệu có.\n");
+            sb.append("- Buồn/cô đơn/thất tình/muốn gặp người mới: gợi ý cafe, photowalk, biển, tour/hoạt động nhóm; không cam kết tìm được người yêu.\n");
+            sb.append("- Thời tiết/nóng/lạnh: không bịa dự báo; chỉ đổi thành gợi ý loại nơi lưu trú phù hợp trong dữ liệu TravelMate.\n");
         }
         sb.append("Quy trình đặt phòng: tìm điểm đến và ngày ở, chọn nơi lưu trú/phòng, đăng nhập hoặc đăng ký, chọn đặt cọc 30% hoặc thanh toán 100% qua VNPAY, theo dõi trong Đặt phòng của tôi.\n");
         sb.append("Thanh toán: demo dùng VNPAY Sandbox. Đặt cọc 30% qua VNPAY, 70% còn lại thanh toán trực tiếp tại cơ sở khi nhận phòng. Thanh toán 100% trực tuyến được ưu tiên xác nhận nhanh.\n");
@@ -915,7 +924,6 @@ public class ChatbotService {
         return !isBlank(message)
                 && !isHardOutOfScope(norm)
                 && (extractDestination(norm) != null
-                || DestinationAliasUtil.isKnownDestination(message)
                 || extractTravelPreference(norm) != null
                 || isContextualTravelBridgeCandidate(norm)
                 || matches(norm,
@@ -1157,40 +1165,157 @@ public class ChatbotService {
         );
     }
 
+    private boolean isBookingFollowUp(String norm) {
+        return matches(norm,
+                "muon dat", "toi muon dat", "minh muon dat", "can dat",
+                "dat luon", "dat ngay", "chon phong", "book luon",
+                "book ngay", "tiep tuc dat", "muon book");
+    }
+
+    private String normalizePreviousDestination(String destination) {
+        if (destination == null || destination.isBlank()) {
+            return null;
+        }
+        String normalized = DestinationAliasUtil.normalizeText(destination);
+        return normalized.isBlank() ? null : normalized;
+    }
+
     private String extractDestination(String norm) {
-        String[] spacedDests = {
-            "da lat", "nha trang", "da nang", "hoi an", "sa pa",
-            "phu quoc", "ha noi", "ho chi minh", "sai gon",
-            "ha long", "vung tau", "mui ne", "can tho", "ninh binh",
-            "ha giang", "yen bai", "quang ninh", "lao cai"
-        };
-        for (String d : spacedDests) {
-            if (norm.contains(d)) return d;
+        String dynamicDestination = extractDynamicApprovedDestination(norm);
+        if (dynamicDestination != null) {
+            return dynamicDestination;
         }
-
-        String compact = DestinationAliasUtil.compact(norm);
-        String[] compactDests = {
-            "dalat", "nhatrang", "danang", "hoian", "sapa", "phuquoc",
-            "hanoi", "hochiminh", "saigon", "tphcm", "halong",
-            "vungtau", "muine", "cantho", "ninhbinh", "hagiang"
-        };
-        for (String d : compactDests) {
-            if (compact.contains(d)) return d;
-        }
-
-        // short aliases
-        if (compact.contains("hcm") || compact.contains("tphcm")) return "ho chi minh";
-
         return null;
     }
 
     private String resolveDisplayName(String destination) {
+        String dynamicName = resolveDynamicDisplayName(destination);
+        if (dynamicName != null) {
+            return dynamicName;
+        }
         String name = DestinationAliasUtil.displayName(destination);
         if (name == null || name.isBlank() || name.equals(destination.trim())) {
             String slug = DestinationAliasUtil.normalizeSlug(destination);
             name = DestinationAliasUtil.displayName(slug);
         }
         return (name == null || name.isBlank()) ? destination.trim() : name;
+    }
+
+    private String extractDynamicApprovedDestination(String normalizedMessage) {
+        if (normalizedMessage == null || normalizedMessage.isBlank()) {
+            return null;
+        }
+        String compactMessage = DestinationAliasUtil.compact(normalizedMessage);
+        return approvedDestinationCandidates().stream()
+                .filter(candidate -> dynamicDestinationMatches(normalizedMessage, compactMessage, candidate))
+                .max(Comparator.comparingInt(candidate -> DestinationAliasUtil.normalizeText(candidate).length()))
+                .orElse(null);
+    }
+
+    private String resolveDynamicDisplayName(String destination) {
+        String normalized = DestinationAliasUtil.normalizeText(destination);
+        if (normalized.isBlank()) {
+            return null;
+        }
+        String compact = DestinationAliasUtil.compact(normalized);
+        return approvedDestinationCandidates().stream()
+                .filter(candidate -> {
+                    String candidateNorm = DestinationAliasUtil.normalizeText(candidate);
+                    String candidateCompact = DestinationAliasUtil.compact(candidateNorm);
+                    return candidateNorm.equals(normalized) || candidateCompact.equals(compact);
+                })
+                .findFirst()
+                .orElse(null);
+    }
+
+    private boolean dynamicDestinationMatches(String normalizedMessage, String compactMessage, String candidate) {
+        String candidateNorm = DestinationAliasUtil.normalizeText(candidate);
+        if (candidateNorm.length() < 3) {
+            return false;
+        }
+        String candidateCompact = DestinationAliasUtil.compact(candidateNorm);
+        if (candidateCompact.length() < 3) {
+            return false;
+        }
+        return (" " + normalizedMessage + " ").contains(" " + candidateNorm + " ")
+                || compactMessage.contains(candidateCompact);
+    }
+
+    private List<String> approvedDestinationCandidates() {
+        return accommodationRepository.findByApprovalStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED)
+                .stream()
+                .flatMap(a -> Stream.of(a.getCity(), a.getName()))
+                .filter(value -> value != null && !value.isBlank())
+                .map(String::trim)
+                .distinct()
+                .toList();
+    }
+
+    private List<String> currentDestinationNames(int limit) {
+        return accommodationRepository
+                .findByApprovalStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED)
+                .stream()
+                .map(Accommodation::getCity)
+                .filter(city -> city != null && !city.isBlank())
+                .map(String::trim)
+                .distinct()
+                .limit(limit)
+                .toList();
+    }
+
+    private String currentPrimaryDestination() {
+        return currentDestinationNames(1).stream()
+                .findFirst()
+                .orElse("Xem tất cả");
+    }
+
+    private String currentDestinationText(int limit) {
+        List<String> destinations = currentDestinationNames(limit);
+        if (destinations.isEmpty()) {
+            return "các nơi lưu trú đang mở bán";
+        }
+        return String.join(", ", destinations);
+    }
+
+    private List<String> currentPreferenceDestinations(TravelPreference preference, int limit) {
+        List<String> destinations = currentDestinationNames(20);
+        if (destinations.isEmpty()) {
+            return List.of("Xem tất cả");
+        }
+        if (preference == null) {
+            return destinations.stream().limit(limit).toList();
+        }
+        List<String> preferred = destinations.stream()
+                .filter(city -> preference.destinations().stream()
+                        .anyMatch(destination -> DestinationAliasUtil.matchesTextOrDestination(city, destination)))
+                .limit(limit)
+                .toList();
+        return preferred.isEmpty()
+                ? destinations.stream().limit(limit).toList()
+                : preferred;
+    }
+
+    private List<String> currentDestinationQuickReplies() {
+        List<String> currentCities = currentDestinationNames(4);
+        if (!currentCities.isEmpty()) {
+            return currentCities;
+        }
+        return List.of("Xem tất cả", "Hướng dẫn đặt phòng", "Voucher", "Liên hệ hỗ trợ");
+    }
+
+    private List<String> destinationFallbackQuickReplies() {
+        return Stream.concat(currentDestinationQuickReplies().stream(), Stream.of("Xem tất cả"))
+                .distinct()
+                .limit(4)
+                .toList();
+    }
+
+    private List<String> budgetQuickReplies(String destination) {
+        if (destination != null && !destination.isBlank() && !"Xem tất cả".equalsIgnoreCase(destination)) {
+            return List.of("Tìm khách sạn " + destination, "Gợi ý lịch trình " + destination,
+                    "Xem voucher", "Chính sách cọc 30%");
+        }
+        return destinationFallbackQuickReplies();
     }
 
     private String resolveFirstNameFromEmail(String email) {
@@ -1336,7 +1461,9 @@ public class ChatbotService {
     }
 
     private String botActionRow(String destination) {
-        String keyword = (destination == null || destination.isBlank()) ? "" : "?keyword=" + encUrl(destination);
+        String keyword = (destination == null || destination.isBlank() || "Xem tất cả".equalsIgnoreCase(destination))
+                ? ""
+                : "?keyword=" + encUrl(destination);
         return "<div class='bot-action-row'>"
                 + "<a href='/accommodations" + keyword + "' class='bot-action-btn'>Xem nơi lưu trú</a>"
                 + "<a href='/travel' class='bot-action-btn secondary'>Xem gợi ý du lịch</a>"
@@ -1346,7 +1473,16 @@ public class ChatbotService {
 
     private String destinationChips(List<String> destinations) {
         StringBuilder sb = new StringBuilder("<div class='bot-dest-grid'>");
+        if (destinations == null || destinations.isEmpty()) {
+            sb.append("<span class='bot-dest-chip'>Chưa có điểm đến đang mở bán</span>");
+            sb.append("</div>");
+            return sb.toString();
+        }
         for (String destination : destinations) {
+            if ("Xem tất cả".equalsIgnoreCase(destination)) {
+                sb.append("<a class='bot-dest-chip' href='/accommodations'>Xem tất cả</a>");
+                continue;
+            }
             sb.append("<a class='bot-dest-chip' href='/accommodations?keyword=")
               .append(encUrl(destination)).append("'>")
               .append(esc(destination)).append("</a>");
@@ -1379,6 +1515,9 @@ public class ChatbotService {
                     || DestinationAliasUtil.matchesTextOrDestination(accommodation.getName(), destination);
         }
         if (preference == null) {
+            return true;
+        }
+        if (preference.destinations().isEmpty()) {
             return true;
         }
         return preference.destinations().stream().anyMatch(d ->
@@ -1460,7 +1599,7 @@ public class ChatbotService {
         String typeLabel = typeLabel(preferredType);
         String actionDestination = destDisplay != null
                 ? destDisplay
-                : preference != null ? preference.destinations().get(0) : "Đà Lạt";
+                : currentPrimaryDestination();
 
         StringBuilder sb = new StringBuilder("<div>");
 
@@ -1493,8 +1632,9 @@ public class ChatbotService {
           .append("<p style='font-size:.8rem;color:#475569'>Mình chưa tính vé xe/máy bay vì TravelMate chưa quản lý phần đó trong bản demo.</p>");
 
         if (preference != null && dest == null) {
+            List<String> preferenceDestinations = currentPreferenceDestinations(preference, 5);
             sb.append("<p>").append(preference.icon()).append(" Điểm đến hợp nhu cầu: </p>")
-              .append(destinationChips(preference.destinations()));
+              .append(destinationChips(preferenceDestinations));
         }
 
         if (filtered.isEmpty()) {
@@ -1502,8 +1642,7 @@ public class ChatbotService {
               .append("</strong> phù hợp cho <strong>").append(esc(contextLabel))
               .append("</strong> trong mức <strong>").append(fmtPrice((double) maxPerNight))
               .append("</strong>/phòng/đêm.</p>")
-              .append("<p>Gợi ý: thử chọn homestay, giảm số đêm hoặc xem các điểm đến chi phí mềm hơn như ")
-              .append("<strong>Đà Lạt</strong>, <strong>Sa Pa</strong>, <strong>Hội An</strong>.</p>")
+              .append("<p>Gợi ý: thử chọn homestay, giảm số đêm hoặc xem các điểm đến đang mở bán khác trong hệ thống.</p>")
               .append(botActionRow(actionDestination));
         } else {
             sb.append("<p>🎯 Gợi ý <strong>").append(esc(typeLabel))
@@ -1521,8 +1660,7 @@ public class ChatbotService {
         List<String> qr = dest != null
                 ? List.of("Tìm khách sạn " + resolveDisplayName(dest), "Gợi ý lịch trình " + resolveDisplayName(dest),
                           "Xem voucher", "Chính sách cọc 30%")
-                : List.of("4 triệu muốn đi biển", "5 triệu đi Đà Lạt 3 ngày 2 đêm",
-                          "2tr tìm homestay Đà Lạt", "Xem voucher");
+                : budgetQuickReplies(actionDestination);
         return new ChatbotResponse(I_BUDGET_PLAN, sb.toString(), qr);
     }
 

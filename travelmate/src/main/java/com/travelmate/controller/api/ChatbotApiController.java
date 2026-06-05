@@ -23,12 +23,13 @@ public class ChatbotApiController {
             @RequestBody Map<String, String> body,
             Authentication authentication) {
         String userMessage = body.getOrDefault("message", "");
+        String lastDestination = body.getOrDefault("lastDestination", "");
         String username = (authentication != null
                 && authentication.isAuthenticated()
                 && !"anonymousUser".equals(authentication.getPrincipal()))
                 ? authentication.getName()
                 : null;
-        ChatbotResponse response = chatbotService.processMessage(userMessage, username);
+        ChatbotResponse response = chatbotService.processMessage(userMessage, username, lastDestination);
         return ResponseEntity.ok(Map.of(
                 "intent",       response.intent(),
                 "reply",        response.reply(),

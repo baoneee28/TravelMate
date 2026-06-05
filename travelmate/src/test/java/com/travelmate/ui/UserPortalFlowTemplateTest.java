@@ -27,6 +27,19 @@ class UserPortalFlowTemplateTest {
     }
 
     @Test
+    @DisplayName("TravelBot giữ điểm đến vừa tìm để khách có thể nói tiếp là muốn đặt")
+    void travelBotRemembersLastDestinationForBookingFollowUp() throws IOException {
+        String floatingActions = read("fragments/user-floating-actions.html");
+
+        assertThat(floatingActions).contains(
+                "var lastDestination = '';",
+                "rememberBookingDestination(qrs)",
+                "var bookingPrefix = 'Đặt phòng ';",
+                "lastDestination = qrs[i].slice(bookingPrefix.length).trim();",
+                "JSON.stringify({ message: message, lastDestination: lastDestination })");
+    }
+
+    @Test
     @DisplayName("Detail có modal xem chi tiết phòng/căn và wording Villa dùng căn")
     void hotelDetailHasRoomDetailModalAndVillaWording() throws IOException {
         String detail = read("user/hotel-detail.html");
@@ -44,6 +57,26 @@ class UserPortalFlowTemplateTest {
         assertThat(detail).contains("gallery-image-source", "source.dataset.src");
         assertThat(detail).containsOnlyOnce("id=\"galleryImageSources\"");
         assertThat(detail.indexOf("id=\"galleryImageSources\"")).isLessThan(detail.indexOf("id=\"galleryModal\""));
+    }
+
+    @Test
+    @DisplayName("Detail ưu tiên đúng ảnh phòng upload và không bù ảnh mẫu khi đã có ảnh thật")
+    void hotelDetailGalleryUsesUploadedRoomImagesBeforeFallback() throws IOException {
+        String controller = Files.readString(Path.of(
+                "src/main/java/com/travelmate/controller/page/AccommodationPageController.java"));
+        String detail = read("user/hotel-detail.html");
+
+        assertThat(controller).contains(
+                "private static final int DETAIL_ROOM_UPLOAD_LIMIT = 3;",
+                "if (gallery.size() >= DETAIL_ROOM_UPLOAD_LIMIT) {",
+                "return gallery;",
+                "addGalleryImage(gallery, usedUrls, hotel.getThumbnailUrl(), hotel.getName())");
+        assertThat(controller).contains(
+                "if (!gallery.isEmpty()) {\n" +
+                "            return gallery;\n" +
+                "        }\n\n" +
+                "        for (Room room : galleryRooms)");
+        assertThat(detail).contains("ưu tiên ảnh phòng/căn đã upload");
     }
 
     @Test
@@ -78,6 +111,27 @@ class UserPortalFlowTemplateTest {
         assertThat(rooms).contains("name=\"imageFiles\"");
         assertThat(rooms).contains("Chỉ hỗ trợ JPG, PNG, WEBP");
         assertThat(rooms).contains("refreshUploadedImagePreview");
+        assertThat(rooms).contains(
+                "room-commission-chip",
+                "room-commission-chip__rate",
+                "room-commission-chip__label",
+                "Riêng theo phòng");
+    }
+
+    @Test
+    @DisplayName("Admin settlement tách cột trạng thái và ngày chuyển để không đè UI")
+    void adminSettlementsSeparateStatusAndTransferDateColumns() throws IOException {
+        String settlements = read("admin/settlements.html");
+
+        assertThat(settlements).contains(
+                ".admin-topbar__actions",
+                "gap: 10px",
+                "min-width: 1460px",
+                "<th style=\"width: 150px;\">Trạng thái</th>",
+                "<th style=\"width: 115px;\">Ngày chuyển</th>",
+                "class=\"set-status-cell\"",
+                "class=\"set-transfer-cell\"");
+        assertThat(settlements).doesNotContain("style=\"font-size: 11.5px;\"");
     }
 
     @Test
@@ -86,13 +140,21 @@ class UserPortalFlowTemplateTest {
         String roomForm = read("partner/room-form.html");
 
         assertThat(roomForm).contains(
+                "partner-room-form-page",
+                "room-form-card",
+                "room-form-grid",
+                "room-form-wide",
+                "name=\"roomCode\"",
                 "enctype=\"multipart/form-data\"",
                 "name=\"roomImages\"",
                 "accept=\"image/png,image/jpeg,image/webp\"",
                 "previewRoomImages",
                 "Tải lên tối đa 3 ảnh JPG, PNG hoặc WEBP",
                 "Ảnh đầu tiên sẽ làm ảnh đại diện");
-        assertThat(roomForm).doesNotContain("URL ảnh phòng", "Nhập URL ảnh phòng");
+        assertThat(roomForm).doesNotContain(
+                "URL ảnh phòng",
+                "Nhập URL ảnh phòng",
+                "<span style=\"color:#ef4444;font-size:13px;\">*</span>");
     }
 
     @Test
@@ -205,9 +267,10 @@ class UserPortalFlowTemplateTest {
         assertThat(accommodations).contains(
                 "approvedRoomCountMap",
                 "pendingRoomCountMap",
-                "Listing đã duyệt — chờ duyệt phòng",
+                "Chờ duyệt phòng",
                 "Chưa public phòng",
                 "Khách hàng chưa thấy phòng/căn mới cho tới khi Admin duyệt");
+        assertThat(accommodations).doesNotContain("Listing đã duyệt — chờ duyệt phòng");
         assertThat(roomStatus).contains(
                 "@{/partner/rooms/{roomId}/toggle-selling",
                 "Tạm ngừng bán",
@@ -216,19 +279,16 @@ class UserPortalFlowTemplateTest {
     }
 
     @Test
-    @DisplayName("Admin xem trang user có thanh quay về Admin và không đặt phòng như User")
-    void adminPreviewBarKeepsAdminOutOfUserBookingFlow() throws IOException {
+    @DisplayName("Admin xem trang user không còn thanh preview và không đặt phòng như User")
+    void adminPreviewModeDoesNotShowStickyBarOrEnterUserBookingFlow() throws IOException {
         String header = read("fragments/user-header.html");
         String footer = read("fragments/user-footer.html");
         String detail = read("user/hotel-detail.html");
+        String style = Files.readString(Path.of("src/main/resources/static/assets/css/style.css"));
 
-        assertThat(header).contains(
-                "showAdminPreviewBar",
-                "Đang xem trang người dùng với vai trò Admin",
-                "Quay về Admin",
-                "@{/admin/dashboard}",
-                "@{/admin/bookings}",
-                "@{/admin/vouchers}");
+        assertThat(header).doesNotContain("admin-preview-bar", "Đang xem trang người dùng với vai trò Admin");
+        assertThat(style).doesNotContain("admin-preview-bar");
+        assertThat(header).contains("QUAY VỀ ADMIN", "@{/admin/dashboard}", "@{/admin/bookings}", "@{/admin/vouchers}");
         assertThat(footer).contains(
                 "th:if=\"${!isAdmin}\"",
                 "@{/my-bookings}",

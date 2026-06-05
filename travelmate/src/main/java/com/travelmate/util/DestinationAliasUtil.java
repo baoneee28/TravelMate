@@ -153,8 +153,4 @@ public final class DestinationAliasUtil {
         return SLUG_TO_DISPLAY_NAME.getOrDefault(slug, input != null ? input.trim() : "");
     }
 
-    public static boolean isKnownDestination(String input) {
-        String slug = normalizeSlug(input);
-        return !slug.isBlank() && SLUG_TO_DISPLAY_NAME.containsKey(slug);
-    }
 }

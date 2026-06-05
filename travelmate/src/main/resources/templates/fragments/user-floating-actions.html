@@ -361,6 +361,7 @@ body.chatbot-open .ai-chat-widget {
     var isOpen   = false;
     var greeted  = false;
     var typingEl = null;
+    var lastDestination = '';
 
     // badge hiện sau 3 giây nếu chưa mở chat
     setTimeout(function() {
@@ -431,6 +432,7 @@ body.chatbot-open .ai-chat-widget {
 
         qrEl.innerHTML = '';
         if (qrs && qrs.length) {
+            rememberBookingDestination(qrs);
             qrs.forEach(function(t) {
                 var c = document.createElement('button');
                 c.className = 'qr-chip';
@@ -438,6 +440,16 @@ body.chatbot-open .ai-chat-widget {
                 c.addEventListener('click', function(){ sendMsg(t); });
                 qrEl.appendChild(c);
             });
+        }
+    }
+
+    function rememberBookingDestination(qrs) {
+        var bookingPrefix = 'Đặt phòng ';
+        for (var i = 0; i < qrs.length; i++) {
+            if (typeof qrs[i] === 'string' && qrs[i].indexOf(bookingPrefix) === 0) {
+                lastDestination = qrs[i].slice(bookingPrefix.length).trim();
+                return;
+            }
         }
     }
 
@@ -473,7 +485,7 @@ body.chatbot-open .ai-chat-widget {
         fetch('/api/chatbot/message', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: message })
+            body: JSON.stringify({ message: message, lastDestination: lastDestination })
         })
         .then(function(r){ return r.json(); })
         .then(function(d){

@@ -15,17 +15,69 @@
     <link rel="stylesheet" href="/assets/css/responsive.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <style>
-        .admin-content { overflow-x: hidden; }
+        body.partner-accommodations-page .admin-content {
+            overflow-x: hidden;
+            padding: 12px 18px 16px;
+        }
+        body.partner-accommodations-page .page-header {
+            margin-bottom: 10px;
+        }
+        body.partner-accommodations-page .stats-grid {
+            gap: 10px;
+            margin-bottom: 12px !important;
+        }
+        body.partner-accommodations-page .stats-card {
+            min-height: 56px;
+            padding: 10px 12px;
+        }
+        body.partner-accommodations-page .table-wrap {
+            overflow-x: hidden;
+        }
+        body.partner-accommodations-page .partner-accommodations-table {
+            width: 100%;
+            min-width: 1180px;
+            table-layout: fixed;
+            font-size: 12px;
+        }
+        body.partner-accommodations-page .partner-accommodations-table th,
+        body.partner-accommodations-page .partner-accommodations-table td {
+            padding: 8px 8px;
+            vertical-align: middle;
+        }
+        body.partner-accommodations-page .partner-accommodation-name,
+        body.partner-accommodations-page .partner-accommodation-address {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        body.partner-accommodations-page .partner-status-note {
+            max-width: 190px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        body.partner-accommodations-page .partner-actions {
+            display: flex;
+            gap: 5px;
+            flex-wrap: nowrap;
+            align-items: center;
+            justify-content: flex-end;
+            white-space: nowrap;
+        }
+        body.partner-accommodations-page .partner-actions .btn,
+        body.partner-accommodations-page .partner-actions .badge {
+            font-size: 11px !important;
+            padding: 4px 8px !important;
+            border-radius: 6px;
+        }
         @media (min-width: 1025px) {
             .admin-main {
-                zoom: 0.9 !important;
+                zoom: 0.92 !important;
                 margin-left: 260px !important;
             }
         }
     </style>
 </head>
 
-<body>
+<body class="partner-accommodations-page">
     <div class="admin-wrapper">
         <aside th:replace="~{fragments/partner-sidebar :: sidebar('accommodations', ${partnerName})}"></aside>
         <div class="admin-sidebar-overlay"></div>
@@ -102,17 +154,17 @@
 
                 <!-- Table -->
                 <div class="table-wrap">
-                    <table class="table data-table" style="min-width: 1350px;">
+                    <table class="table data-table partner-accommodations-table">
                         <thead>
                             <tr>
-                                <th style="white-space: nowrap; min-width: 250px;">Tên nơi lưu trú</th>
-                                <th style="white-space: nowrap; min-width: 100px;">Loại</th>
-                                <th style="white-space: nowrap; min-width: 100px;">Thành phố</th>
-                                <th style="white-space: nowrap; min-width: 120px;">Điểm đánh giá</th>
-                                <th th:text="${'Số ' + (unitLabelCap ?: 'Phòng')}" style="white-space: nowrap; min-width: 100px;">Số Phòng</th>
-                                <th style="white-space: nowrap; min-width: 220px;">Trạng thái duyệt</th>
-                                <th style="white-space: nowrap; min-width: 100px;">Ngày tạo</th>
-                                <th style="width: 390px; min-width: 390px; white-space: nowrap;">Thao tác</th>
+                                <th style="white-space: nowrap; width: 19%;">Tên nơi lưu trú</th>
+                                <th style="white-space: nowrap; width: 8%;">Loại</th>
+                                <th style="white-space: nowrap; width: 8%;">Thành phố</th>
+                                <th style="white-space: nowrap; width: 9%;">Đánh giá</th>
+                                <th th:text="${'Số ' + (unitLabelCap ?: 'Phòng')}" style="white-space: nowrap; width: 8%;">Số Phòng</th>
+                                <th style="white-space: nowrap; width: 18%;">Trạng thái</th>
+                                <th style="white-space: nowrap; width: 8%;">Ngày tạo</th>
+                                <th style="white-space: nowrap; width: 22%; text-align:right;">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -128,8 +180,8 @@
                             <!-- Render từng row từ MySQL -->
                             <tr th:each="acc : ${accommodations}">
                                 <td>
-                                    <div style="font-weight:600; white-space: nowrap;" th:text="${acc.name}">Tên</div>
-                                    <div style="font-size:11px;color:var(--color-text-muted); white-space: nowrap;"
+                                    <div class="partner-accommodation-name" style="font-weight:600; white-space: nowrap;" th:text="${acc.name}">Tên</div>
+                                    <div class="partner-accommodation-address" style="font-size:11px;color:var(--color-text-muted); white-space: nowrap;"
                                          th:text="${acc.address ?: '--'}">Địa chỉ</div>
                                 </td>
                                 <td style="white-space: nowrap;">
@@ -165,22 +217,22 @@
                                                           acc.approvalStatus.name() == 'APPROVED' ? 'badge--warning' : 'badge--danger'}"
                                           th:text="${acc.approvalStatus.name() == 'PENDING' ? '⏳ Chờ Admin duyệt listing' :
                                                     (acc.approvalStatus.name() == 'APPROVED' and (approvedRoomCountMap[acc.id] ?: 0) > 0) ? '✅ Đã duyệt — Đang mở bán' :
-                                                    acc.approvalStatus.name() == 'APPROVED' ? '⏳ Listing đã duyệt — chờ duyệt phòng' :
+                                                    acc.approvalStatus.name() == 'APPROVED' ? '⏳ Chờ duyệt phòng' :
                                                     '❌ Bị từ chối — Liên hệ Admin'}">
                                         Trạng thái
                                     </span>
                                     <!-- Giải thích khi bị từ chối -->
                                     <div th:if="${acc.approvalStatus.name() == 'REJECTED'}"
-                                         style="font-size:11px;color:#dc2626;margin-top:4px; white-space: nowrap;">
+                                         class="partner-status-note" style="font-size:11px;color:#dc2626;margin-top:4px; white-space: nowrap;">
                                         Liên hệ Admin để biết lý do.
                                     </div>
                                     <!-- Giải thích khi đang pending -->
                                     <div th:if="${acc.approvalStatus.name() == 'PENDING'}"
-                                         style="font-size:11px;color:#d97706;margin-top:4px; white-space: nowrap;">
+                                         class="partner-status-note" style="font-size:11px;color:#d97706;margin-top:4px; white-space: nowrap;">
                                         Khách hàng chưa thấy listing này.
                                     </div>
                                     <div th:if="${acc.approvalStatus.name() == 'APPROVED' and (approvedRoomCountMap[acc.id] ?: 0) == 0}"
-                                         style="font-size:11px;color:#d97706;margin-top:4px; white-space: nowrap;">
+                                         class="partner-status-note" style="font-size:11px;color:#d97706;margin-top:4px; white-space: nowrap;">
                                         Khách hàng chưa thấy phòng/căn mới cho tới khi Admin duyệt.
                                     </div>
                                 </td>
@@ -190,12 +242,12 @@
                                     <span th:if="${acc.createdAt == null}">--</span>
                                 </td>
                                 <td>
-                                    <div style="display:flex;gap:6px;flex-wrap:nowrap;align-items:center;white-space:nowrap;">
+                                    <div class="partner-actions">
                                         <!-- Xem trang public nếu APPROVED -->
                                         <a th:if="${acc.approvalStatus.name() == 'APPROVED' and (approvedRoomCountMap[acc.id] ?: 0) > 0}"
                                            th:href="@{/accommodations/{id}(id=${acc.id})}"
                                            target="_blank" class="btn btn--ghost btn--sm"
-                                           style="font-size:12px;padding:5px 10px;">
+                                           style="font-size:12px;padding:5px 10px;" title="Xem trang public">
                                             🔗 Xem
                                         </a>
                                         <span th:if="${acc.approvalStatus.name() == 'APPROVED' and (approvedRoomCountMap[acc.id] ?: 0) == 0}"
@@ -211,16 +263,16 @@
                                         <a th:if="${acc.approvalStatus.name() == 'APPROVED'}"
                                            th:href="@{/partner/support(action='listing-change',accommodationId=${acc.id})}"
                                            class="btn btn--ghost btn--sm"
-                                           style="font-size:12px;padding:5px 10px;color:#0f766e;border-color:#99f6e4;background:#f0fdfa;">
+                                           style="font-size:12px;padding:5px 10px;color:#0f766e;border-color:#99f6e4;background:#f0fdfa;" title="Yêu cầu chỉnh sửa/ngừng bán">
                                             <i class="fa-solid fa-pen-to-square" style="margin-right:4px;"></i>
-                                            Yêu cầu chỉnh sửa/ngừng bán
+                                            Chỉnh sửa
                                         </a>
                                         <a th:if="${acc.approvalStatus.name() == 'APPROVED'}"
                                            th:href="@{/partner/room-status}"
                                            class="btn btn--ghost btn--sm"
-                                           style="font-size:12px;padding:5px 10px;color:#c2410c;border-color:#fed7aa;background:#fff7ed;">
+                                           style="font-size:12px;padding:5px 10px;color:#c2410c;border-color:#fed7aa;background:#fff7ed;" title="Ngừng bán nhanh">
                                             <i class="fa-solid fa-pause" style="margin-right:4px;"></i>
-                                            Ngừng bán nhanh
+                                            Ngừng bán
                                         </a>
                                          <!-- Nếu PENDING: hiển thị badge chờ -->
                                          <span th:if="${acc.approvalStatus.name() == 'PENDING'}"
