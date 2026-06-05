@@ -188,10 +188,17 @@ class AccommodationPageControllerTravelSuggestionTest {
         RoomImage uploadedImage = new RoomImage();
         uploadedImage.setImageUrl("/uploads/official-room.webp");
         uploadedImage.setCaption("Ảnh đã duyệt");
+        RoomImage uploadedImage2 = new RoomImage();
+        uploadedImage2.setImageUrl("/uploads/official-room-2.jpg");
+        uploadedImage2.setCaption("Ảnh đã duyệt 2");
+        RoomImage uploadedImage3 = new RoomImage();
+        uploadedImage3.setImageUrl("/uploads/official-room-3.png");
+        uploadedImage3.setCaption("Ảnh đã duyệt 3");
         when(accommodationService.getById(10L)).thenReturn(Optional.of(accommodations.get(0)));
         when(accommodationService.getAvailableRooms(accommodations.get(0))).thenReturn(List.of(room));
         when(accommodationService.getAllApprovedRooms(accommodations.get(0))).thenReturn(List.of(room));
-        when(roomImageService.getImagesForRooms(List.of(room))).thenReturn(Map.of(room.getId(), List.of(uploadedImage)));
+        List<RoomImage> uploadedImages = List.of(uploadedImage, uploadedImage2, uploadedImage3);
+        when(roomImageService.getImagesForRooms(List.of(room))).thenReturn(Map.of(room.getId(), uploadedImages));
         when(reviewService.getReviewsByAccommodation(accommodations.get(0))).thenReturn(List.of());
         when(bookingRepository.findByAccommodationAndBookingStatusIn(
                 org.mockito.ArgumentMatchers.eq(accommodations.get(0)),
@@ -203,11 +210,12 @@ class AccommodationPageControllerTravelSuggestionTest {
         assertThat(controller.hotelDetail(10L, "", "", 2, 0, 1, detailModel)).isEqualTo("user/hotel-detail");
         @SuppressWarnings("unchecked")
         List<Map<String, String>> gallery = (List<Map<String, String>>) detailModel.getAttribute("galleryImages");
-        assertThat(gallery).hasSize(5);
-        assertThat(gallery.get(0).get("src")).isEqualTo("/uploads/official-room.webp");
-        assertThat(gallery.get(1).get("src")).isEqualTo("/uploads/legacy-room.jpg");
-        assertThat(gallery.get(2).get("src")).isEqualTo("/assets/images/resort.jpg");
-        assertThat(detailModel.getAttribute("roomImagesMap")).isEqualTo(Map.of(room.getId(), List.of(uploadedImage)));
+        assertThat(gallery)
+                .extracting(image -> image.get("src"))
+                .containsExactly("/uploads/official-room.webp", "/uploads/official-room-2.jpg",
+                        "/uploads/official-room-3.png")
+                .doesNotContain("/uploads/legacy-room.jpg", "/assets/images/resort.jpg");
+        assertThat(detailModel.getAttribute("roomImagesMap")).isEqualTo(Map.of(room.getId(), uploadedImages));
     }
 
     private static Accommodation accommodation(Long id, String name, String city, PropertyType propertyType) {
