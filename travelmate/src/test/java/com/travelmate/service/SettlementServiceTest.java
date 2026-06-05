@@ -95,15 +95,15 @@ class SettlementServiceTest {
     }
 
     @Test
-    @DisplayName("Settlement đơn cọc hoàn tất chỉ tính hoa hồng trên tiền online dù snapshot cũ từng lưu tổng đơn")
+    @DisplayName("Settlement đơn cọc hoàn tất tính hoa hồng trên tổng đơn gốc")
     void generateMonthlySettlement_completedDepositUsesOnlinePaidRule() {
         YearMonth lastMonth = YearMonth.now().minusMonths(1);
         Payment payment = completedPaymentForPartner(lastMonth.atDay(16), new BigDecimal("300000"));
         payment.setPaymentOption(com.travelmate.entity.enums.PaymentOption.DEPOSIT_30);
         Booking booking = payment.getBooking();
         booking.setTotalAmount(new BigDecimal("1000000"));
+        booking.setTotalBeforeDiscount(new BigDecimal("1000000"));
         booking.setCommissionRateSnapshot(new BigDecimal("0.1500"));
-        // Du lieu legacy theo Huong B: service phai bo qua amount cu va ap dung Huong A.
         booking.setCommissionBaseAmount(new BigDecimal("1000000"));
         booking.setCommissionAmountSnapshot(new BigDecimal("150000"));
         booking.setPartnerVoucherAmountSnapshot(BigDecimal.ZERO);
@@ -117,13 +117,13 @@ class SettlementServiceTest {
         PartnerSettlement settlement = settlementService.generateMonthlySettlements().get(0);
 
         assertThat(settlement.getGrossAmount()).isEqualByComparingTo("300000");
-        assertThat(settlement.getCommissionAmount()).isEqualByComparingTo("45000");
-        assertThat(settlement.getPayoutAmount()).isEqualByComparingTo("255000");
+        assertThat(settlement.getCommissionAmount()).isEqualByComparingTo("150000");
+        assertThat(settlement.getPayoutAmount()).isEqualByComparingTo("150000");
         verify(commissionService, never()).calculateCommission(any(BigDecimal.class), any(Room.class));
     }
 
     @Test
-    @DisplayName("Settlement đơn cọc bị hủy tính hoa hồng trên tiền cọc bị giữ, không ghi tiền tại cơ sở")
+    @DisplayName("Settlement đơn cọc bị hủy vẫn tính hoa hồng trên tổng đơn gốc")
     void generateMonthlySettlement_cancelledDepositForfeitedUsesDepositBase() {
         YearMonth lastMonth = YearMonth.now().minusMonths(1);
         Payment payment = completedPaymentForPartner(lastMonth.atDay(17), new BigDecimal("300000"));
@@ -132,11 +132,12 @@ class SettlementServiceTest {
         Booking booking = payment.getBooking();
         booking.setBookingStatus(BookingStatus.CANCELLED);
         booking.setTotalAmount(new BigDecimal("1000000"));
+        booking.setTotalBeforeDiscount(new BigDecimal("1000000"));
         booking.setCommissionRateSnapshot(new BigDecimal("0.1500"));
-        booking.setCommissionBaseAmount(new BigDecimal("300000"));
-        booking.setCommissionAmountSnapshot(new BigDecimal("45000"));
+        booking.setCommissionBaseAmount(new BigDecimal("1000000"));
+        booking.setCommissionAmountSnapshot(new BigDecimal("150000"));
         booking.setPartnerVoucherAmountSnapshot(BigDecimal.ZERO);
-        booking.setPartnerPayoutSnapshot(new BigDecimal("255000"));
+        booking.setPartnerPayoutSnapshot(new BigDecimal("150000"));
         booking.setOnsiteAmountSnapshot(BigDecimal.ZERO);
 
         when(paymentRepository.findByPaymentStatusIn(any())).thenReturn(List.of(payment));
@@ -147,8 +148,8 @@ class SettlementServiceTest {
         PartnerSettlement settlement = settlementService.generateMonthlySettlements().get(0);
 
         assertThat(settlement.getGrossAmount()).isEqualByComparingTo("300000");
-        assertThat(settlement.getCommissionAmount()).isEqualByComparingTo("45000");
-        assertThat(settlement.getPayoutAmount()).isEqualByComparingTo("255000");
+        assertThat(settlement.getCommissionAmount()).isEqualByComparingTo("150000");
+        assertThat(settlement.getPayoutAmount()).isEqualByComparingTo("150000");
         verify(commissionService, never()).calculateCommission(any(BigDecimal.class), any(Room.class));
     }
 
@@ -160,8 +161,8 @@ class SettlementServiceTest {
         pending.setPeriodStart(lastMonth.atDay(1));
         pending.setPeriodEnd(lastMonth.atEndOfMonth());
         pending.setGrossAmount(new BigDecimal("300000"));
-        pending.setCommissionAmount(new BigDecimal("150000"));
-        pending.setPayoutAmount(new BigDecimal("150000"));
+        pending.setCommissionAmount(new BigDecimal("45000"));
+        pending.setPayoutAmount(new BigDecimal("255000"));
         pending.setVoucherDeductionAmount(BigDecimal.ZERO);
 
         Payment payment = completedPaymentForPartner(lastMonth.atDay(16), new BigDecimal("300000"));
@@ -179,13 +180,13 @@ class SettlementServiceTest {
 
         List<PartnerSettlement> result = settlementService.getAllSettlementsForAdmin();
 
-        assertThat(result.get(0).getCommissionAmount()).isEqualByComparingTo("45000");
-        assertThat(result.get(0).getPayoutAmount()).isEqualByComparingTo("255000");
+        assertThat(result.get(0).getCommissionAmount()).isEqualByComparingTo("150000");
+        assertThat(result.get(0).getPayoutAmount()).isEqualByComparingTo("150000");
         verify(settlementRepository).save(pending);
     }
 
     @Test
-    @DisplayName("Đơn cọc 10 triệu có voucher Partner: chỉ tính hoa hồng trên 3 triệu online")
+    @DisplayName("Đơn cọc 10 triệu có voucher Partner: hoa hồng tính trên tổng đơn gốc")
     void depositWithPartnerVoucher_usesOnlineCommissionBaseAndDeductsPartnerVoucher() {
         YearMonth lastMonth = YearMonth.now().minusMonths(1);
         PartnerSettlement settlement = settlementForMonth(lastMonth);
@@ -194,6 +195,7 @@ class SettlementServiceTest {
         Booking booking = payment.getBooking();
         booking.setBookingCode("BK-DEP-PARTNER-VOUCHER");
         booking.setTotalAmount(new BigDecimal("10000000"));
+        booking.setTotalBeforeDiscount(new BigDecimal("10000000"));
         booking.setRemainingAmount(new BigDecimal("7000000"));
         booking.setOnsiteAmountSnapshot(new BigDecimal("7000000"));
         booking.setCommissionRateSnapshot(new BigDecimal("0.1500"));
@@ -209,10 +211,10 @@ class SettlementServiceTest {
 
         assertThat(item.getGross()).isEqualByComparingTo("3000000");
         assertThat(item.getOnsiteAmount()).isEqualByComparingTo("7000000");
-        assertThat(item.getCommissionAmount()).isEqualByComparingTo("450000");
+        assertThat(item.getCommissionAmount()).isEqualByComparingTo("1500000");
         assertThat(item.getVoucherDeductAmount()).isEqualByComparingTo("200000");
-        assertThat(item.getPartnerPayout()).isEqualByComparingTo("2350000");
-        assertThat(item.getCommissionBaseLabel()).isEqualTo("HH trên cọc online 30%");
+        assertThat(item.getPartnerPayout()).isEqualByComparingTo("1300000");
+        assertThat(item.getCommissionBaseLabel()).isEqualTo("HH trên tổng đơn gốc");
     }
 
     @Test
@@ -225,6 +227,7 @@ class SettlementServiceTest {
         Booking booking = payment.getBooking();
         booking.setBookingCode("BK-DEP-ADMIN-VOUCHER");
         booking.setTotalAmount(new BigDecimal("10000000"));
+        booking.setTotalBeforeDiscount(new BigDecimal("10000000"));
         booking.setRemainingAmount(new BigDecimal("7000000"));
         booking.setOnsiteAmountSnapshot(new BigDecimal("7000000"));
         booking.setCommissionRateSnapshot(new BigDecimal("0.1500"));
@@ -238,9 +241,9 @@ class SettlementServiceTest {
 
         SettlementDetailItemDto item = settlementService.getBreakdownForSettlement(settlement).get(0);
 
-        assertThat(item.getCommissionAmount()).isEqualByComparingTo("450000");
+        assertThat(item.getCommissionAmount()).isEqualByComparingTo("1500000");
         assertThat(item.getVoucherDeductAmount()).isEqualByComparingTo("0");
-        assertThat(item.getPartnerPayout()).isEqualByComparingTo("2550000");
+        assertThat(item.getPartnerPayout()).isEqualByComparingTo("1500000");
     }
 
     @Test
@@ -253,6 +256,7 @@ class SettlementServiceTest {
         full.setPaymentOption(PaymentOption.FULL_PAYMENT);
         full.getBooking().setBookingCode("BK-FULL");
         full.getBooking().setTotalAmount(new BigDecimal("10000000"));
+        full.getBooking().setTotalBeforeDiscount(new BigDecimal("10000000"));
         full.getBooking().setCommissionRateSnapshot(new BigDecimal("0.1500"));
         full.getBooking().setPartnerVoucherAmountSnapshot(BigDecimal.ZERO);
         full.getBooking().setOnsiteAmountSnapshot(BigDecimal.ZERO);
@@ -261,6 +265,7 @@ class SettlementServiceTest {
         deposit.setPaymentOption(PaymentOption.DEPOSIT_30);
         deposit.getBooking().setBookingCode("BK-DEPOSIT");
         deposit.getBooking().setTotalAmount(new BigDecimal("10000000"));
+        deposit.getBooking().setTotalBeforeDiscount(new BigDecimal("10000000"));
         deposit.getBooking().setRemainingAmount(new BigDecimal("7000000"));
         deposit.getBooking().setOnsiteAmountSnapshot(new BigDecimal("7000000"));
         deposit.getBooking().setCommissionRateSnapshot(new BigDecimal("0.1500"));
@@ -274,8 +279,8 @@ class SettlementServiceTest {
 
         assertThat(totals.get("gross")).isEqualByComparingTo("13000000");
         assertThat(totals.get("onsite")).isEqualByComparingTo("7000000");
-        assertThat(totals.get("commission")).isEqualByComparingTo("1950000");
-        assertThat(totals.get("payout")).isEqualByComparingTo("11050000");
+        assertThat(totals.get("commission")).isEqualByComparingTo("3000000");
+        assertThat(totals.get("payout")).isEqualByComparingTo("10000000");
     }
 
     @Test
@@ -321,11 +326,11 @@ class SettlementServiceTest {
         PartnerSettlement settlement = pendingSettlement(LocalDate.now().minusDays(1));
         when(settlementRepository.findById(11L)).thenReturn(Optional.of(settlement));
 
-        PartnerSettlement result = settlementService.markSettlementPaid(11L, "Đã chuyển khoản", partner);
+        PartnerSettlement result = settlementService.markSettlementPaid(11L, "Admin ghi nhận đã xử lý chi trả ngoài hệ thống", partner);
 
         assertThat(result.getSettlementStatus()).isEqualTo(SettlementStatus.PAID);
         assertThat(result.getSettlementDate()).isNotNull();
-        assertThat(result.getNote()).isEqualTo("Đã chuyển khoản");
+        assertThat(result.getNote()).isEqualTo("Admin ghi nhận đã xử lý chi trả ngoài hệ thống");
         verify(partnerWalletService).creditSettlement(result, partner);
     }
 
@@ -357,8 +362,8 @@ class SettlementServiceTest {
         PartnerSettlement result = settlementService.markSettlementPaid(11L, "Chi trả đã đối soát", partner);
 
         assertThat(result.getSettlementStatus()).isEqualTo(SettlementStatus.PAID);
-        assertThat(result.getCommissionAmount()).isEqualByComparingTo("450000");
-        assertThat(result.getPayoutAmount()).isEqualByComparingTo("2550000");
+        assertThat(result.getCommissionAmount()).isEqualByComparingTo("1500000");
+        assertThat(result.getPayoutAmount()).isEqualByComparingTo("1500000");
         verify(partnerWalletService).creditSettlement(result, partner);
     }
 

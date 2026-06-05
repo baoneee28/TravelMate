@@ -24,7 +24,7 @@
         .pending-expiry-note { margin-top:5px;font-size:10.5px;line-height:1.45;color:#92400e;white-space:normal; }
         .pending-expiry-note strong { color:#7c2d12; }
         .pending-expiry-note--expired { color:#991b1b;background:#fee2e2;border-radius:8px;padding:4px 6px; }
-        .badge-status { display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap; }
+        .badge-status { display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border-radius:20px;font-size:10px;font-weight:700;white-space:normal;line-height:1.35;text-align:left;max-width:100%; }
         .badge-pending   { background:#fef3c7;color:#92400e; }
         .badge-confirmed { background:#dbeafe;color:#1e40af; }
         .badge-checkedin { background:#d1fae5;color:#065f46; }
@@ -114,7 +114,7 @@
         }
 
         .admin-bookings-table {
-            min-width: 1180px;
+            min-width: 1260px;
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
@@ -156,10 +156,11 @@
             line-height: 1.4;
         }
         .admin-bookings-table .col-partner {
-            width: 105px;
+            width: 125px;
             white-space: normal !important;
+            line-height: 1.4;
         }
-        .admin-bookings-table .col-actions { width: 118px; }
+        .admin-bookings-table .col-actions { width: 130px; }
 
         /* Sticky columns configuration */
         .admin-bookings-table th.col-code,
@@ -262,11 +263,11 @@
                     </div>
                     <div class="bk-stat" style="--st-color:#d97706;--st-bg:#fffbeb;">
                         <div class="bk-stat__icon"><i class="fa-solid fa-hourglass-half"></i></div>
-                        <div><div class="bk-stat__val" th:text="${pendingCount}">0</div><div class="bk-stat__lbl">Cần xác nhận TT</div></div>
+                        <div><div class="bk-stat__val" th:text="${pendingCount}">0</div><div class="bk-stat__lbl">Cần đối soát</div></div>
                     </div>
                     <div class="bk-stat" style="--st-color:#16a34a;--st-bg:#f0fdf4;">
                         <div class="bk-stat__icon"><i class="fa-solid fa-circle-check"></i></div>
-                        <div><div class="bk-stat__val" th:text="${confirmedCount}">0</div><div class="bk-stat__lbl">Đã xác nhận TT</div></div>
+                        <div><div class="bk-stat__val" th:text="${confirmedCount}">0</div><div class="bk-stat__lbl">Đã ghi nhận</div></div>
                     </div>
                     <div class="bk-stat" style="--st-color:#0891b2;--st-bg:#ecfeff;">
                         <div class="bk-stat__icon"><i class="fa-solid fa-door-open"></i></div>
@@ -304,8 +305,8 @@
                     <div style="display: flex; gap: 6px; flex-wrap: wrap; width: 100%;">
                         <button class="filter-tab active" data-status-filter="all" data-source-filter="all" style="white-space: nowrap;"><i class="fa-solid fa-list"></i> Tất cả</button>
                         <button class="filter-tab" data-status-filter="PENDING_PAYMENT" data-source-filter="all" style="white-space: nowrap;"><i class="fa-solid fa-credit-card"></i> Chờ thanh toán</button>
-                        <button class="filter-tab" data-status-filter="PENDING_ADMIN_APPROVAL" data-source-filter="all" style="white-space: nowrap;"><i class="fa-solid fa-triangle-exclamation"></i> Cần xác nhận TT</button>
-                        <button class="filter-tab" data-status-filter="CONFIRMED" data-source-filter="all" style="white-space: nowrap;"><i class="fa-solid fa-circle-check"></i> Đã xác nhận TT</button>
+                        <button class="filter-tab" data-status-filter="PENDING_ADMIN_APPROVAL" data-source-filter="all" style="white-space: nowrap;"><i class="fa-solid fa-triangle-exclamation"></i> Cần đối soát</button>
+                        <button class="filter-tab" data-status-filter="CONFIRMED" data-source-filter="all" style="white-space: nowrap;"><i class="fa-solid fa-circle-check"></i> Đã ghi nhận</button>
                         <button class="filter-tab" data-status-filter="CHECKED_IN" data-source-filter="all" style="white-space: nowrap;"><i class="fa-solid fa-door-open"></i> Đang lưu trú</button>
                         <button class="filter-tab" data-status-filter="COMPLETED" data-source-filter="all" style="white-space: nowrap;"><i class="fa-solid fa-flag-checkered"></i> Hoàn tất</button>
                         <button class="filter-tab" data-status-filter="NO_SHOW" data-source-filter="all" style="white-space: nowrap;"><i class="fa-solid fa-ban"></i> Không đến</button>
@@ -429,8 +430,13 @@
                                     <!-- MANUAL_BLOCK -->
                                     <div th:if="${bkSource == 'MANUAL_BLOCK'}"
                                          style="font-size:11px;color:#9ca3af;font-style:italic;">—</div>
-                                    <!-- Có thanh toán -->
-                                    <th:block th:if="${bkSource != 'MANUAL_BLOCK'}">
+                                    <!-- DIRECT: thu trực tiếp tại cơ sở -->
+                                    <th:block th:if="${bkSource == 'DIRECT'}">
+                                        <span class="badge-status" style="background:#fef3c7;color:#b45309;">💵 Thu tại cơ sở</span>
+                                        <div style="font-size:10px;color:#6b7280;margin-top:2px;">Không qua TravelMate</div>
+                                    </th:block>
+                                    <!-- ONLINE: có thanh toán qua TravelMate -->
+                                    <th:block th:if="${bkSource == 'ONLINE' or bkSource == ''}">
                                         <!-- th:switch thay cho ternary lồng nhau để tránh SpelParseException -->
                                         <th:block th:switch="${payStatus}">
                                             <span th:case="'PENDING_PAYMENT'" class="badge-status badge-pay-pending"
@@ -444,8 +450,8 @@
                                             <span th:case="'EXPIRED'"           class="badge-status badge-pay-rejected">⌛ Quá hạn thanh toán</span>
                                             <span th:case="'REJECTED'"          class="badge-status badge-pay-rejected">❌ Thanh toán bị từ chối</span>
                                             <span th:case="'DEPOSIT_FORFEITED'" class="badge-status badge-pay-rejected">💸 Mất cọc (hủy/no-show)</span>
-                                            <span th:case="'REFUND_PENDING'"    class="badge-status badge-pay-refund">🔄 Đang chờ hoàn tiền</span>
-                                            <span th:case="'REFUNDED'"          class="badge-status badge-pay-approved">↩ Đã duyệt hoàn tiền</span>
+                                            <span th:case="'REFUND_PENDING'"    class="badge-status badge-pay-refund">🔄 Chờ xử lý hoàn tiền</span>
+                                            <span th:case="'REFUNDED'"          class="badge-status badge-pay-approved">↩ Đã ghi nhận hoàn tiền</span>
                                             <span th:case="*" class="badge-status badge-pay-pending" th:text="${payStatus != '' ? payStatus : '—'}">--</span>
                                         </th:block>
                                         <div style="font-size:10px;color:#6b7280;margin-top:2px;"
@@ -453,12 +459,15 @@
                                         <!-- Còn lại (DEPOSIT_30) -->
                                         <div th:if="${payOpt == 'DEPOSIT_30' and b.remainingAmount != null and b.remainingAmount.compareTo(T(java.math.BigDecimal).ZERO) gt 0}"
                                              style="font-size:10px;margin-top:2px;">
-                                            <span th:if="${remPaySt == 'NOT_REQUIRED' or remPaySt == 'UNPAID' or remPaySt == ''}"
-                                                  style="color:#d97706;font-weight:700;">⏳ Còn lại trả tại cơ sở:
-                                                <span th:text="${#numbers.formatInteger(b.remainingAmount, 0, 'COMMA') + '₫'}">0₫</span>
-                                            </span>
-                                            <span th:if="${remPaySt == 'PAID_AT_PROPERTY'}"
-                                                  style="color:#16a34a;font-weight:700;">✅ Đã thu tại cơ sở</span>
+                                             <span th:if="${remPaySt == 'NOT_REQUIRED' or remPaySt == 'UNPAID' or remPaySt == ''}"
+                                                   style="display:inline-flex;align-items:center;gap:4px;color:#d97706;font-weight:700;">⏳ Còn thu tại cơ sở:
+                                                 <span th:text="${#numbers.formatInteger(b.remainingAmount, 0, 'COMMA') + '₫'}">0₫</span>
+                                             </span>
+                                             <span th:if="${remPaySt == 'PAID_AT_PROPERTY'}"
+                                                   style="display:inline-flex;align-items:center;gap:4px;color:#16a34a;font-weight:700;">
+                                                 ✅ Đã thu tại cơ sở:
+                                                 <span th:text="${#numbers.formatInteger(b.remainingAmount, 0, 'COMMA') + '₫'}">0₫</span>
+                                             </span>
                                         </div>
                                     </th:block>
                                 </td>
@@ -478,8 +487,8 @@
                                                               (${bkStatus == 'COMPLETED'}              ? 'badge-completed' :
                                                               (${bkStatus == 'NO_SHOW'}                ? 'badge-noshow' : 'badge-cancelled')))))"
                                                th:text="${bkStatus == 'PENDING_PAYMENT'}        ? '⏳ Chờ thanh toán' :
-                                                        (${bkStatus == 'PENDING_ADMIN_APPROVAL'} ? '⏳ Chờ xác nhận thanh toán' :
-                                                        (${bkStatus == 'CONFIRMED'}              ? (partnerSt == 'PARTNER_CONFIRMED' ? '✅ Đã giữ phòng' : (partnerSt == 'PARTNER_CANCELLED' ? '❌ Đối tác hủy' : '⏳ Chờ đối tác giữ phòng')) :
+                                                        (${bkStatus == 'PENDING_ADMIN_APPROVAL'} ? '⚠ Cần Admin đối soát' :
+                                                        (${bkStatus == 'CONFIRMED'}              ? (partnerSt == 'PARTNER_CONFIRMED' ? '✅ Đã giữ phòng/căn' : (partnerSt == 'PARTNER_CANCELLED' ? '❌ Không thể tiếp nhận' : '⚠️ Cần kiểm tra trạng thái giữ phòng/căn')) :
                                                         (${bkStatus == 'CHECKED_IN'}             ? '🏨 Đang lưu trú' :
                                                         (${bkStatus == 'COMPLETED'}              ? '🏁 Đã hoàn tất' :
                                                         (${bkStatus == 'NO_SHOW'}                ? '🚫 Khách không đến' : '❌ Đã hủy')))))">--</span>
@@ -509,10 +518,10 @@
                                  <td class="col-partner">
                                      <!-- MANUAL_BLOCK: hiển thị đặc biệt -->
                                      <span th:if="${bkSource == 'MANUAL_BLOCK'}"
-                                           style="font-size:10px;background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:10px;font-weight:700;white-space:nowrap;">🔒 Đang chặn phòng</span>
+                                            style="display:inline-flex;align-items:center;gap:4px;font-size:10px;background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:10px;font-weight:700;white-space:normal;line-height:1.35;max-width:100%;">🔒 Đang chặn phòng</span>
                                      <!-- DIRECT -->
                                      <span th:if="${bkSource == 'DIRECT'}"
-                                           style="font-size:10px;background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:10px;font-weight:700;white-space:nowrap;">🏃 Booking trực tiếp</span>
+                                            style="display:inline-flex;align-items:center;gap:4px;font-size:10px;background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:10px;font-weight:700;white-space:normal;line-height:1.35;max-width:100%;">🏃 Booking trực tiếp</span>
                                      <!-- ONLINE: partner status bình thường -->
                                      <th:block th:if="${bkSource == 'ONLINE' or bkSource == ''}">
                                          <span th:if="${partnerSt == ''}" style="font-size:11px;color:#9ca3af;">—</span>
@@ -520,10 +529,10 @@
                                                th:classappend="${partnerSt == 'PARTNER_CONFIRMED'} ? 'badge-partner-confirmed' :
                                                               (${partnerSt == 'PARTNER_COMPLETED'}  ? 'badge-partner-completed' :
                                                               (${partnerSt == 'PARTNER_CANCELLED'}  ? 'badge-partner-cancelled' : 'badge-partner-pending'))"
-                                               th:text="${partnerSt == 'PENDING_PARTNER_CONFIRMATION' or partnerSt == ''} ? '⏳ Chờ giữ phòng'   :
-                                                        (${partnerSt == 'PARTNER_CONFIRMED'}         ? '✅ Đã giữ phòng'     :
+                                               th:text="${partnerSt == 'PENDING_PARTNER_CONFIRMATION' or partnerSt == ''} ? '⚠️ Cần kiểm tra trạng thái giữ phòng/căn'   :
+                                                        (${partnerSt == 'PARTNER_CONFIRMED'}         ? '✅ Đã giữ phòng/căn'     :
                                                         (${partnerSt == 'PARTNER_COMPLETED'}         ? '🏁 Đã hoàn tất'       :
-                                                        (${partnerSt == 'PARTNER_CANCELLED'}         ? '❌ Đối tác hủy'    : partnerSt)))">--</span>
+                                                        (${partnerSt == 'PARTNER_CANCELLED'}         ? '❌ Không thể tiếp nhận'    : partnerSt)))">--</span>
                                      </th:block>
                                  </td>
 
@@ -546,7 +555,7 @@
                                          <th:block th:if="${bkStatus == 'PENDING_ADMIN_APPROVAL' and (bkSource == 'ONLINE' or bkSource == '')}">
                                              <button type="button" class="action-btn btn-approve"
                                                      th:attr="onclick='openApproveModal(' + ${b.id} + ')'"
-                                                     th:text="${payOpt == 'DEPOSIT_30'} ? '✅ Xác nhận cọc' : '✅ Xác nhận thanh toán'">
+                                                     th:text="${payOpt == 'DEPOSIT_30'} ? '✅ Ghi nhận cọc VNPAY' : '✅ Ghi nhận thanh toán'">
                                                  ✅ Duyệt đối soát
                                              </button>
                                              <button type="button" class="action-btn btn-reject"
@@ -556,9 +565,9 @@
                                         <!-- ONLINE + CONFIRMED: luồng đối tác -->
                                         <th:block th:if="${bkStatus == 'CONFIRMED' and (bkSource == 'ONLINE' or bkSource == '')}">
                                             <span th:if="${partnerSt == 'PARTNER_CONFIRMED'}"
-                                                  style="font-size:11px;color:#065f46;background:#d1fae5;padding:3px 8px;border-radius:10px;font-weight:700;white-space:nowrap;">✅ Đối tác đã giữ phòng</span>
+                                                  style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#065f46;background:#d1fae5;padding:3px 8px;border-radius:10px;font-weight:700;white-space:normal;line-height:1.35;max-width:100%;">✅ Đã giữ phòng/căn</span>
                                             <span th:if="${partnerSt == '' or partnerSt == 'PENDING_PARTNER_CONFIRMATION'}"
-                                                  style="font-size:11px;color:#b45309;white-space:nowrap;">⏳ Chờ đối tác xác nhận</span>
+                                                  style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#b45309;background:#fffbeb;padding:3px 8px;border-radius:10px;font-weight:700;white-space:normal;line-height:1.35;max-width:100%;">⚠️ Cần kiểm tra trạng thái giữ phòng/căn</span>
                                             <button th:if="${partnerSt == 'PARTNER_CANCELLED'}"
                                                     type="button" class="action-btn btn-cancel"
                                                     th:attr="onclick='openPartnerCancelModal(' + ${b.id} + ')'">🚫 Xử lý hủy</button>
@@ -582,11 +591,11 @@
                                         <!-- REFUND_PENDING: nút xác nhận hoàn tiền nhanh -->
                                         <th:block th:if="${payStatus == 'REFUND_PENDING'}">
                                             <form th:action="@{/admin/bookings/{id}/mark-refunded(id=${b.id})}" method="post" style="display:inline;">
-                                                <input type="hidden" name="note" value="Đã chuyển khoản hoàn tiền cho khách" />
+                                                <input type="hidden" name="note" value="Admin ghi nhận đã xử lý hoàn tiền ngoài hệ thống" />
                                                 <button type="submit" class="action-btn"
                                                         style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;"
-                                                        onclick="return confirm('Xác nhận đã hoàn tiền cho đơn này?')">
-                                                    ↩ Hoàn tiền
+                                                        onclick="return confirm('Ghi nhận đã xử lý hoàn tiền cho đơn này?')">
+                                                    ↩ Ghi nhận hoàn tiền
                                                 </button>
                                             </form>
                                         </th:block>
@@ -594,7 +603,7 @@
                                         <!-- CANCELLED: hiển thị trạng thái + REFUNDED nếu đã hoàn -->
                                         <th:block th:if="${bkStatus == 'CANCELLED' or bkStatus == 'NO_SHOW'}">
                                             <span th:if="${payStatus == 'REFUNDED'}"
-                                                  style="font-size:11px;color:#166534;background:#dcfce7;padding:3px 8px;border-radius:10px;font-weight:700;white-space:nowrap;">↩ Đã hoàn tiền</span>
+                                                  style="font-size:11px;color:#166534;background:#dcfce7;padding:3px 8px;border-radius:10px;font-weight:700;white-space:nowrap;">↩ Đã ghi nhận hoàn tiền</span>
                                             <span th:if="${payStatus == 'DEPOSIT_FORFEITED'}"
                                                   style="font-size:11px;color:#991b1b;background:#fee2e2;padding:3px 8px;border-radius:10px;font-weight:700;white-space:nowrap;">💸 Mất cọc</span>
                                         </th:block>
@@ -630,7 +639,7 @@
         <div class="modal-box">
             <div class="modal-box__head">
                 <h3>✅ Đối soát giao dịch ngoại lệ</h3>
-                <p style="font-size:12.5px;color:#64748b;margin:0;">Chỉ dùng khi giao dịch VNPAY cần kiểm tra thủ công trước khi chuyển sang đối tác giữ phòng.</p>
+                <p style="font-size:12.5px;color:#64748b;margin:0;">Chỉ dùng khi giao dịch VNPAY cần kiểm tra thủ công trước khi hệ thống tự giữ phòng/căn.</p>
             </div>
             <div class="modal-box__body">
                 <form id="form-approve" method="post">
@@ -667,12 +676,12 @@
         </div>
     </div>
 
-    <!-- Modal: Xử lý đối tác hủy -->
+    <!-- Modal: Xử lý đối tác không thể tiếp nhận khách -->
     <div class="modal-overlay" id="modal-partner-cancel">
         <div class="modal-box">
             <div class="modal-box__head">
-                <h3>🚫 Xử lý đối tác hủy xác nhận</h3>
-                <p style="font-size:12.5px;color:#64748b;margin:0;">Đối tác đã hủy giữ phòng. Chọn hành động xử lý phù hợp.</p>
+                <h3>🚫 Xử lý đối tác không thể tiếp nhận khách</h3>
+                <p style="font-size:12.5px;color:#64748b;margin:0;">Đối tác báo không thể tiếp nhận khách. Chọn hành động xử lý phù hợp.</p>
             </div>
             <div class="modal-box__body">
                 <form id="form-partner-cancel" method="post">

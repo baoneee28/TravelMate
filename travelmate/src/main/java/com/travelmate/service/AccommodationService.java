@@ -34,7 +34,7 @@ import java.util.Set;
 @Service
 public class AccommodationService {
 
-    private static final Set<String> STAR_REVIEW_AMENITIES = Set.of(
+    private static final Set<String> IMPORTANT_AMENITIES_REQUIRING_REVIEW = Set.of(
             "WiFi miễn phí",
             "Máy lạnh",
             "Phòng tắm riêng",
@@ -143,7 +143,7 @@ public class AccommodationService {
                         .map(Amenity::getName)
                         .filter(name -> name != null && !name.isBlank())
                         .collect(java.util.stream.Collectors.toSet());
-        return STAR_REVIEW_AMENITIES.stream()
+        return IMPORTANT_AMENITIES_REQUIRING_REVIEW.stream()
                 .anyMatch(name -> oldAmenityNames.contains(name) && !newAmenityNames.contains(name));
     }
 
@@ -231,6 +231,7 @@ public class AccommodationService {
                 .findByPropertyTypeAndApprovalStatus(type, ApprovalStatus.APPROVED)
                 .stream()
                 .filter(AccommodationService::ownerIsActive)
+                .filter(this::hasUserVisibleRoom)
                 .collect(java.util.stream.Collectors.toList());
 
         String normalizedKeyword = DestinationAliasUtil.normalizeText(keyword);
@@ -241,6 +242,15 @@ public class AccommodationService {
         return approvedActive.stream()
                 .filter(a -> matchesKeyword(a, keyword))
                 .collect(java.util.stream.Collectors.toList());
+    }
+
+    public boolean hasUserVisibleRoom(Accommodation accommodation) {
+        if (accommodation == null) {
+            return false;
+        }
+        return roomRepository.findByAccommodationAndApprovalStatus(accommodation, ApprovalStatus.APPROVED)
+                .stream()
+                .anyMatch(AccommodationService::isRoomOpenForOnlineBooking);
     }
 
     // ─── PARTNER: Quản lý accommodation của mình ─────────────────────────────
@@ -270,7 +280,7 @@ public class AccommodationService {
     public Accommodation createAccommodation(User partner,
                                               String name, String address, String city,
                                               String description, String thumbnailUrl,
-                                              PropertyType propertyType, Integer starRating) {
+                                              PropertyType propertyType) {
         // Validate: partner phải có partnerPropertyType được set
         if (partner.getPartnerPropertyType() == null) {
             throw new RuntimeException("Tài khoản partner chưa đăng ký loại lưu trú. Liên hệ Admin.");
@@ -293,7 +303,7 @@ public class AccommodationService {
         acc.setPropertyType(propertyType);
         acc.setApprovalStatus(ApprovalStatus.PENDING); // chờ quản trị viên duyệt
         acc.setOwner(partner);
-        acc.setStarRating(starRating);
+        acc.setStarRating(null);
         acc.setRating(0.0);
         acc.setReviewCount(0);
 
@@ -479,9 +489,12 @@ public class AccommodationService {
         // Guard: accommodation cha phải đã APPROVED mới được duyệt phòng
         if (room.getAccommodation() == null
                 || room.getAccommodation().getApprovalStatus() != ApprovalStatus.APPROVED) {
+            String parentName = room.getAccommodation() != null && room.getAccommodation().getName() != null
+                    ? room.getAccommodation().getName()
+                    : "không xác định";
             throw new RuntimeException(
                 "Chỉ được duyệt phòng khi cơ sở lưu trú cha đã được Admin duyệt! " +
-                "Cơ sở '" + room.getAccommodation().getName() + "' hiện chưa được duyệt.");
+                "Cơ sở '" + parentName + "' hiện chưa được duyệt.");
         }
         room.setApprovalStatus(ApprovalStatus.APPROVED);
         room.setAvailableForBooking(true);

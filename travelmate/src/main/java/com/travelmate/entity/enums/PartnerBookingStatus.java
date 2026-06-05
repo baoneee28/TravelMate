@@ -4,15 +4,13 @@ package com.travelmate.entity.enums;
  * PartnerBookingStatus — Trạng thái xác nhận từ phía đối tác.
  *
  * Luồng:
- *   VNPAY xác minh thành công → partnerStatus = PENDING_PARTNER_CONFIRMATION
- *   Đối tác xác nhận giữ phòng → partnerStatus = PARTNER_CONFIRMED
- *
- * Các trạng thái PARTNER_COMPLETED, PARTNER_CANCELLED
- * được chuẩn bị sẵn cho phase sau, chưa dùng trong task này.
+ *   VNPAY xác minh thành công → partnerStatus = PARTNER_CONFIRMED
+ *   Đối tác check-out/hoàn tất → partnerStatus = PARTNER_COMPLETED
+ *   Đối tác báo không thể tiếp nhận khách → partnerStatus = PARTNER_CANCELLED
  */
 public enum PartnerBookingStatus {
-    PENDING_PARTNER_CONFIRMATION,  // Chờ đối tác xác nhận giữ phòng
-    PARTNER_CONFIRMED,             // Đối tác đã xác nhận giữ phòng
-    PARTNER_COMPLETED,             // (Dự phòng) Đối tác xác nhận hoàn tất
-    PARTNER_CANCELLED              // (Dự phòng) Đối tác hủy
+    PENDING_PARTNER_CONFIRMATION,  // Trạng thái legacy/ngoại lệ cần kiểm tra
+    PARTNER_CONFIRMED,             // TravelMate đã giữ phòng/căn
+    PARTNER_COMPLETED,             // Đối tác xác nhận hoàn tất lưu trú
+    PARTNER_CANCELLED              // Đối tác báo không thể tiếp nhận khách
 }

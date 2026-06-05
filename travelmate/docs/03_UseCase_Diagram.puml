@@ -57,7 +57,6 @@ rectangle "TravelMate System" {
         usecase "Quản lý cơ sở lưu trú" as UC_ManageAccom
         usecase "Quản lý phòng/căn" as UC_ManageRoom
         usecase "Xem/gắn voucher được cấp" as UC_AssignVoucher
-        usecase "Xác nhận giữ phòng" as UC_ConfirmHold
         usecase "Check-in khách" as UC_CheckIn
         usecase "Thu 70% tại cơ sở\nvới booking cọc" as UC_Remaining
         usecase "Check-out / hoàn tất" as UC_CheckOut
@@ -84,7 +83,6 @@ User --> UC_ViewVoucher
 Partner --> UC_ManageAccom
 Partner --> UC_ManageRoom
 Partner --> UC_AssignVoucher
-Partner --> UC_ConfirmHold
 Partner --> UC_CheckIn
 Partner --> UC_Remaining
 Partner --> UC_CheckOut

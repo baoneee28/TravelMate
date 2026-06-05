@@ -27,10 +27,10 @@ import java.util.List;
  *
  * Công thức:
  *   grossAmount     = payment.amount (tiền thực thu qua hệ thống: cọc 30% hoặc 100%)
- *   commissionBase  = grossAmount; TravelMate chi tinh phi tren tien online da thu
+ *   commissionBase  = tong don goc truoc voucher
  *   commission      = commissionBase x rate snapshot luc dat phong
  *   voucherDeduct   = booking.discountAmount nếu voucherCostBearer = PARTNER
- *   partnerNet      = max(0, grossAmount - commission - voucherDeduct)
+ *   partnerNet      = grossAmount - commission - voucherDeduct
  */
 @Service
 public class RevenueService {
@@ -197,7 +197,7 @@ public class RevenueService {
     }
 
     private BigDecimal resolveCommissionBase(Payment p) {
-        return resolveOnlinePaid(p);
+        return resolvePreDiscountTotal(p);
     }
 
     private BigDecimal resolveCommissionAmount(Payment p) {
@@ -220,7 +220,7 @@ public class RevenueService {
 
     private BigDecimal resolvePartnerPayout(Payment p) {
         return resolveOnlinePaid(p).subtract(resolveCommissionAmount(p))
-                .subtract(resolvePartnerVoucherAmount(p)).max(BigDecimal.ZERO);
+                .subtract(resolvePartnerVoucherAmount(p));
     }
 
     private BigDecimal resolveOnlinePaid(Payment p) {
@@ -228,8 +228,16 @@ public class RevenueService {
     }
 
     private BigDecimal resolveTotalOrderAmount(Payment p) {
-        return p.getBooking().getTotalAmount() != null
-                ? p.getBooking().getTotalAmount() : resolveOnlinePaid(p);
+        return resolvePreDiscountTotal(p);
+    }
+
+    private BigDecimal resolvePreDiscountTotal(Payment p) {
+        return safePositive(p.getBooking().getTotalBeforeDiscount(),
+                safePositive(p.getBooking().getTotalAmount(), resolveOnlinePaid(p)));
+    }
+
+    private BigDecimal safePositive(BigDecimal value, BigDecimal fallback) {
+        return value != null && value.compareTo(BigDecimal.ZERO) > 0 ? value : fallback;
     }
 
     private BigDecimal resolveOnsiteAmount(Payment p) {
@@ -254,11 +262,11 @@ public class RevenueService {
     private String resolveCommissionBaseLabel(Payment p) {
         if (p.getPaymentOption() == PaymentOption.DEPOSIT_30) {
             if (p.getPaymentStatus() == PaymentStatus.DEPOSIT_FORFEITED) {
-                return "Cọc online bị giữ (hủy/no-show)";
+                return "Tổng đơn gốc (cọc bị giữ)";
             }
-            return "Cọc online 30% đã thu";
+            return "Tổng đơn gốc (cọc 30%)";
         }
-        return "Thanh toán online 100%";
+        return "Tổng đơn gốc (thanh toán 100%)";
     }
 
     /**

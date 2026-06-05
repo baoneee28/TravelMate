@@ -1,6 +1,6 @@
 # Bao cao tien trinh TravelMate - Tong hop cac phien Codex
 
-Ngay tong hop: 28/05/2026  
+Ngay tong hop: 02/06/2026
 Muc dich: Tong hop nhung thay doi da lam trong project TravelMate de gui sang ChatGPT Plus/nguoi ho tro khac, giup nam duoc boi canh hien tai va tiep tuc ho tro dung huong.
 
 ## 1. Tong quan nhanh
@@ -141,7 +141,7 @@ Trong qua trinh lam da co cac lan kiem tra sau:
 
 - Scan 183 duong dan anh local trong `src/main`: khong thieu file.
 - Kiem tra 234 URL anh phong/gallery: missing 0.
-- Test full Maven trong phien moi nhat: pass 247/247.
+- Test full Maven trong phien moi nhat: pass 279/279.
 - Sau khi sua admin duyet anh, chay targeted tests:
   - `UserPortalFlowTemplateTest`
   - `RoomImageServiceTest`

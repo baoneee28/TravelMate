@@ -35,7 +35,7 @@ Checklist:
 
 | Case | Buoc chinh | Ket qua can thay |
 | --- | --- | --- |
-| FULL_PAYMENT success | User dat phong, chon thanh toan 100%, thanh toan VNPAY thanh cong | User thay da thanh toan 100%, don `CONFIRMED`, cho Partner xac nhan giu phong; Admin khong can nut xac nhan TT |
+| FULL_PAYMENT success | User dat phong, chon thanh toan 100%, thanh toan VNPAY thanh cong | User thay da thanh toan 100%, don `CONFIRMED`, partner status `PARTNER_CONFIRMED`; Partner co the check-in khi khach den |
 | DEPOSIT_30 success | User dat phong khac, chon coc 30%, thanh toan VNPAY thanh cong | User/Partner thay da coc 30%, 70% con lai thanh toan tai co so |
 | Fail/cancel | User sang VNPAY roi huy/that bai | Booking `CANCELLED`, payment `CANCELLED/FAILED/EXPIRED`, phong duoc mo lai |
 | Refresh result | Sau thanh toan thanh cong bam F5 3-5 lan | Khong sinh payment/notification/revenue trung |
@@ -88,7 +88,7 @@ LIMIT 1;
 | Da thanh toan 100% | User thanh toan xong roi huy truoc check-in | Booking `CANCELLED`, payment `REFUND_PENDING`, Admin thay can xu ly hoan tien |
 | Da coc 30% | User coc xong roi huy | Booking `CANCELLED`, payment `DEPOSIT_FORFEITED`, refund `0`, tien coc duoc quyet toan theo hoa hong tren khoan online |
 | Huy lan 2 | Refresh va thu huy lai | Nut huy khong con; backend khong doi trang thai/quota lan nua |
-| Partner sau khi huy | Partner vao booking da huy | Khong co nut xac nhan giu phong, check-in, no-show |
+| Partner sau khi huy | Partner vao booking da huy | Khong co nut check-in, no-show hoac thao tac van hanh |
 
 ## 5. Test import SQL moi
 
@@ -117,8 +117,8 @@ Can dat:
 ## 6. Luong demo tong hop
 
 1. User dat FULL_PAYMENT, VNPAY success.
-2. Partner xac nhan giu phong.
-3. Partner check-in.
+2. TravelMate tu giu phong sau khi ghi nhan thanh toan.
+3. Partner check-in khi khach den.
 4. Partner check-out.
 5. Admin generate settlement thang.
 6. Admin mark settlement `PAID`.

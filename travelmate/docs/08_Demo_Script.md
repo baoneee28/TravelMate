@@ -28,6 +28,55 @@
 
 ---
 
+## Kịch Bản Ưu Tiên Khi Demo Trước Giảng Viên
+
+### Mở đầu 1 phút: định vị project trước khi demo
+
+| Câu hỏi dễ bị hỏi | Câu trả lời nên nói |
+|---|---|
+| TravelMate là gì? | TravelMate là website đặt phòng/lưu trú dạng OTA-mini cho đồ án: User đặt phòng, Partner vận hành cơ sở/phòng, Admin quản trị và đối soát. |
+| Đây là REST API hay web render server? | Đây là Spring Boot MVC + Thymeleaf server-rendered web; backend vẫn chia Controller, Service, Repository, Entity rõ ràng. |
+| Project demo hay production? | Project ở mức demo/local/sandbox. Có guard nghiệp vụ chính nhưng production cần thêm CSRF, migration, secret manager, monitoring, load test và tích hợp thanh toán/hoàn tiền thật. |
+| Điểm khác web giới thiệu khách sạn? | TravelMate có login, phân quyền, booking, payment, availability, voucher, partner workflow, settlement/wallet, withdrawal và test tự động; không chỉ hiển thị thông tin tĩnh. |
+| Chức năng quan trọng nhất? | Luồng booking-payment-partner-confirm-settlement vì nó nối User, Partner, Admin, DB, trạng thái nghiệp vụ và VNPAY Sandbox. |
+
+### Demo 1: Flow ngắn, an toàn, ít lỗi
+
+| Mục | Nội dung |
+|---|---|
+| Mục tiêu | Chứng minh hệ thống có dữ liệu thật, UI chạy ổn, search/chi tiết lưu trú hoạt động, phân quyền cơ bản rõ ràng và không phụ thuộc VNPAY. |
+| Account | Guest + `user@travelmate.vn / user123`. |
+| Steps | Trang chủ -> tìm Đà Lạt -> mở chi tiết LATA/Tulip/TM Grand -> đăng nhập user -> mở `my-bookings` -> mở chatbot hỏi trong phạm vi. |
+| Câu nói | Đây là luồng xem và tra cứu thông tin; booking/payment là flow tiếp theo, nhóm em tách riêng để demo rõ từng phần. |
+| Rủi ro | Thiếu data/ảnh/alias; chatbot API hoặc mạng yếu. |
+| Cứu demo | Dùng dữ liệu seed có sẵn; nếu Groq lỗi thì nói chatbot có fallback intent-based trong phạm vi TravelMate. |
+
+### Demo 2: Flow nghiệp vụ mạnh nhất
+
+| Mục | Nội dung |
+|---|---|
+| Mục tiêu | User đặt phòng -> VNPAY -> TravelMate tự giữ phòng/căn -> Partner check-in/check-out -> User review; sau đó giải thích settlement. |
+| Account | `user@travelmate.vn`, `partner@travelmate.vn`, `admin@travelmate.vn`. |
+| Steps | User login -> chọn room còn trống -> chọn `FULL_PAYMENT` hoặc `DEPOSIT_30` -> VNPAY success -> my-bookings -> Partner thấy đơn đã giữ -> check-in -> check-out -> User review. |
+| Câu nói | Sau VNPAY, hệ thống tự ghi nhận payment `APPROVED`, booking `CONFIRMED` và partner status `PARTNER_CONFIRMED`; Partner không cần bấm giữ phòng thủ công, chỉ check-in khi khách đến. |
+| Rủi ro | VNPAY env/mạng/gateway lỗi; room vừa hết chỗ hoặc ngày chọn overlap seed. |
+| Cứu demo | Chuẩn bị booking seed đã thanh toán; nếu VNPAY fail, mở my-bookings/partner bookings sẵn để demo trạng thái. |
+
+### Demo 3: Flow quản trị, doanh thu và đối soát
+
+| Mục | Nội dung |
+|---|---|
+| Mục tiêu | Chứng minh không chỉ CRUD: có revenue, settlement, wallet, withdrawal và export Excel. |
+| Account | `admin@travelmate.vn`; Partner có ví mẫu trong SQL hiện tại. |
+| Steps | Admin revenue -> settlements -> tạo tháng trước nếu chưa có -> mark paid -> Partner wallet -> request withdrawal -> Admin paid/reject -> export Excel. |
+| Câu nói | Ví đối tác trong TravelMate là sổ quyết toán nội bộ; Admin chuyển khoản ngoài hệ thống rồi cập nhật trạng thái. |
+| Rủi ro | Máy demo chưa import đúng SQL nên thiếu ví/settlement mẫu; settlement tháng trước đã tạo rồi nên bấm tạo lại không sinh mới. |
+| Cứu demo | Nếu thiếu data, mở settlement/revenue và giải thích flow dựa trên test report/source; không cố tạo số liệu tài chính mới tại chỗ. |
+
+**Thứ tự khuyến nghị:** Nếu mạng không chắc, đi Demo 1 trước. Nếu VNPAY Sandbox đã cấu hình ổn, đi Demo 1 -> Demo 2 -> Demo 3.
+
+---
+
 ## 1. Trang Chủ, Search Và Chi Tiết Lưu Trú
 
 **Mục tiêu:** Cho giảng viên thấy dữ liệu thật, UI trực quan, không chỉ là form trống.
@@ -66,7 +115,7 @@
 3. Sau khi thanh toán thành công, TravelMate hiển thị:
    - VNPAY đã xác minh.
    - TravelMate tự ghi nhận thanh toán.
-   - Booking chờ đối tác xác nhận giữ phòng.
+   - Booking đã được TravelMate giữ phòng/căn.
 
 **Điểm nhấn khi bảo vệ:** Không còn flow cũ phải đợi Admin sau khi VNPAY thành công. Admin chỉ xử lý đối soát ngoại lệ, hoàn tiền hoặc khiếu nại.
 
@@ -77,8 +126,8 @@
 1. Vào `/my-bookings`.
 2. Lọc tab "Đã thanh toán".
 3. Chỉ rõ các nhãn:
-   - `Đã thanh toán — Chờ đối tác xác nhận giữ phòng`
-   - `Đối tác đã xác nhận giữ phòng`
+   - `Đã thanh toán`
+   - `Đã giữ phòng/căn`
    - `Đang lưu trú`
    - `Hoàn thành`
 4. Với booking cọc 30%, chỉ rõ dòng `Còn 70% thanh toán tại cơ sở`.
@@ -86,13 +135,12 @@
 
 ---
 
-## 5. Partner Xác Nhận, Check-In, Check-Out
+## 5. Partner Check-In, Check-Out
 
 1. Đăng nhập `partner@travelmate.vn / partner123`.
 2. Vào `/partner/bookings`.
-3. Lọc hoặc quan sát booking đang `Chờ xác nhận giữ phòng`.
-4. Bấm `Xác nhận giữ phòng`.
-5. Với booking đã xác nhận:
+3. Lọc hoặc quan sát booking đang `Đã giữ phòng/căn`.
+4. Với booking đã giữ:
    - Check-in khách.
    - Nếu là cọc 30%, xác nhận thu 70% tại cơ sở.
    - Check-out để hoàn tất.
@@ -125,6 +173,14 @@
    - Bên chịu chi phí: `ADMIN` hoặc `PARTNER`.
 3. Nhấn mạnh Partner không tự tạo voucher mới; Partner chỉ xem/gắn voucher được cấp hoặc gửi yêu cầu hỗ trợ khuyến mãi.
 4. Nói rõ settlement chỉ trừ Partner khi `costBearer = PARTNER`.
+
+### 7.1 Availability/overbooking nên nói thế nào
+
+1. Availability tính theo khoảng ngày, không phải trừ tồn kho vĩnh viễn.
+2. Quy tắc overlap: booking cũ giữ phòng nếu `oldCheckIn < newCheckOut` và `oldCheckOut > newCheckIn`.
+3. Source hiện coi `PENDING_PAYMENT`, `PENDING_ADMIN_APPROVAL`, `CONFIRMED`, `CHECKED_IN` là trạng thái giữ phòng.
+4. `CANCELLED`, `NO_SHOW`, `COMPLETED` không còn giữ availability sau khi đã xử lý; đây là điểm cần nói đúng khi bị hỏi xoắn.
+5. Direct booking và manual block vẫn ảnh hưởng availability nhưng không có payment online, không commission, không settlement.
 
 ---
 
@@ -161,6 +217,13 @@
 3. Với request `PENDING`, nhập mã giao dịch demo rồi bấm đã chuyển.
 4. Hoặc từ chối để hệ thống hoàn tiền về ví Partner.
 
+### 8.4 Câu nói bắt buộc khi demo tiền
+- Settlement là kỳ đối soát nội bộ theo tháng, không phải lệnh chuyển khoản ngân hàng tự động.
+- `PAID` nghĩa là Admin đã ghi nhận xử lý chi trả ngoài hệ thống; ví Partner chỉ được credit một lần.
+- Partner wallet là sổ nội bộ, không phải ví điện tử hoặc tài khoản ngân hàng thật.
+- Withdrawal `PENDING` là tiền đang được giữ khỏi số dư có thể rút; reject sẽ trả lại balance.
+- Refund trong bản demo là `REFUND_PENDING -> REFUNDED`, chưa tích hợp API refund production.
+
 ---
 
 ## 9. Admin Listing, Revenue Và Support
@@ -177,7 +240,7 @@
 Khi trình bày phần kiểm thử, dùng số liệu mới:
 
 ```text
-Tests run: 247
+Tests run: 279
 Failures: 0
 Errors: 0
 Skipped: 0
@@ -189,6 +252,25 @@ Nhóm test nổi bật:
 - Settlement eligibility và wallet/withdrawal.
 - Partner property type guard.
 - SQL seed, UI template, room image, Excel export.
+
+### 10.1 Cách nói về test count
+- Số hiện tại của source này là `279/279` test pass, không dùng lại số cũ `247/247`, `255/255`, `257/257`, `259/259`, `267/267`, `269/269`, `272/272`, `274/274` hoặc `278/278`.
+- Chỉ nói "vừa chạy pass" nếu đã chạy trên máy demo hoặc có ảnh/terminal `BUILD SUCCESS`.
+- Test tự động không thay thế test thủ công: VNPAY Sandbox, UI, upload, Excel, OAuth/SMTP và browser session vẫn cần kiểm tra trước buổi bảo vệ.
+
+### 10.2 Checklist môi trường local
+- App chạy mặc định ở `http://localhost:8080`.
+- DB cần import `travelmate/src/main/resources/travelmate_db.sql`.
+- VNPAY dùng Sandbox; cần `VNPAY_TMN_CODE`, `VNPAY_HASH_SECRET`, return URL và IPN URL phù hợp.
+- IPN server-to-server cần public URL/tunnel nếu muốn gateway gọi vào máy local; không nói localhost tự nhận IPN thật từ internet.
+- SMTP/Google OAuth/chatbot AI chỉ demo khi đã cấu hình và test chắc; nếu không, dùng form login và flow fallback.
+- Không trình chiếu secret thật trong `application.properties`, `.env` hoặc terminal.
+
+### 10.3 Smoke test trong phiên rà soát 2026-06-02
+- Full Maven suite: `279/279` pass, `0` fail, `0` error, `0` skipped.
+- App local start được ở `http://127.0.0.1:18080`; DataInitializer hoàn tất.
+- HTTP/session smoke test pass `23/23` checks: public pages, login User/Partner/Admin, User my-bookings/booking form/payment-result, Partner dashboard/bookings/wallet/settlements/support, Admin dashboard/bookings/settlements/withdrawals/reviews/support và cross-role guard.
+- Session 2026-06-03 đã chạy được Chrome headless cho luồng User đặt lại đơn đã hủy/no-show trên desktop và mobile: login thành công, bấm/tap nút đặt lại, redirect sang form booking có prefill và banner đơn mới độc lập. Trước buổi bảo vệ vẫn nên mở browser thật trên máy demo để chạy lại các flow lớn như VNPAY, Partner và Admin.
 
 ---
 
@@ -205,3 +287,93 @@ Không. Đây là ví quyết toán nội bộ. Admin chuyển khoản ngoài h�
 
 **Cọc 30% xử lý no-show thế nào?**  
 Nếu khách không đến, cọc 30% bị giữ và có thể đưa vào settlement sau khi trừ commission và voucher Partner chịu.
+
+**Full payment no-show có demo giống cọc 30% không?**
+Không. Full payment no-show là chính sách hoàn tiền/giữ phí phức tạp hơn. Trong bản hiện tại, hệ thống không tự chuyển full payment no-show thành check-in; Admin xử lý theo chính sách riêng.
+
+**Completed/no-show có còn giữ phòng không?**
+Không còn giữ availability sau khi đã xử lý. Booking `COMPLETED` là lịch sử lưu trú đã checkout, còn `NO_SHOW` là khách không đến và quota được mở lại; các trạng thái này không nằm trong nhóm active giữ phòng của `AvailabilityService`.
+
+**Partner có tự tạo voucher không?**
+Không. Admin tạo voucher; Partner chỉ gắn voucher kho `PARTNER_ROOM` được cấp vào phòng/căn thuộc quyền quản lý và đã được duyệt.
+
+**Admin có thay Partner check-in/check-out không?**
+Không phải flow chính. Partner vận hành lưu trú thực tế; Admin chỉ có nút override cho tình huống ngoại lệ hoặc khi Partner không thao tác được.
+
+**User thường gõ thẳng `/admin` thì sao?**
+Spring Security chặn bằng rule `/admin/**` chỉ role `ADMIN`. Không chỉ dựa vào việc ẩn menu trên giao diện.
+
+**Quên mật khẩu có gửi lại mật khẩu cũ không?**
+Không. Mật khẩu đã hash bằng BCrypt; forgot password chỉ tạo token/link đặt lại mật khẩu mới.
+
+**CSRF đang tắt có nên nói là an toàn production không?**
+Không. Bản demo tắt CSRF để test/form local thuận tiện; production phải bật CSRF token cho các request thay đổi dữ liệu.
+
+**User sửa hidden price bằng DevTools thì sao?**
+Backend lấy giá phòng từ database và tự tính lại tổng tiền trong `BookingService`, nên không tin giá từ client.
+
+**Callback VNPAY hoặc bấm settlement paid bị trùng thì sao?**
+Payment callback chỉ xử lý khi payment còn `PENDING_PAYMENT`; settlement paid/credit wallet có transaction guard và unique key để tránh cộng ví trùng.
+
+**VNPAY success nhưng DB lỗi thì sao?**
+Đây là tình huống production cần đối soát. Bản demo có transaction, verify, raw payload và trạng thái payment/booking; nếu triển khai thật cần retry job, log callback, màn Admin reconciliation và API kiểm tra lại giao dịch từ gateway.
+
+**Nếu không chạy lại test trên máy bảo vệ thì có nên đọc số không?**
+Không nên nói như kết quả vừa chạy nếu chưa chạy lại trên máy trình bày. Cách an toàn là: "Theo test report hiện tại của source là 279/279 pass; trước demo nhóm sẽ chạy lại trên máy trình bày để xác nhận."
+
+**Unit test có gọi VNPAY thật không?**
+Không. Unit/integration test giả lập callback hoặc kiểm service/controller; VNPAY Sandbox thật phụ thuộc mạng và secret nên kiểm bằng manual demo.
+
+**`ddl-auto=update` có nên dùng production không?**
+Không. Nó tiện cho dev/demo, nhưng production nên dùng Flyway/Liquibase hoặc schema migration có kiểm soát.
+
+**Nếu MySQL lỗi khi demo thì xử lý sao?**
+Kiểm MySQL service, database name, user/password, import lại SQL backup và dùng ảnh/video dự phòng. Không sửa code tại chỗ nếu lỗi nằm ở môi trường.
+
+**Project đã production-ready chưa?**
+Chưa. TravelMate đạt mức đồ án/demo với các guard nghiệp vụ chính; production cần HTTPS, domain, backup, monitoring, CSRF, rate limit, secret manager, migration, load test và đối soát payment thật.
+
+**Refund thật đã có chưa?**
+Chưa. Hệ thống chỉ ghi nhận `REFUND_PENDING -> REFUNDED`; hoàn tiền thật cần API refund/cổng thanh toán production và quy trình đối soát.
+
+**Dữ liệu mẫu có đủ cho kinh doanh thật không?**
+Không. Dữ liệu mẫu đủ demo luồng nghiệp vụ chính, nhưng production cần dữ liệu thật, ảnh/chính sách thật, load test và quy trình vận hành/kiểm duyệt đầy đủ hơn.
+
+---
+
+## Hard Defense Mở Rộng
+
+### Nếu bị hỏi mở rộng production
+- Không nói TravelMate ngang Booking/Agoda/Airbnb.
+- Câu an toàn: TravelMate là OTA-mini/demo; production cần HTTPS, cloud/server, backup, monitoring, secret manager, CSRF, rate limit, migration DB, load test, payment/refund thật, fraud/dispute và dữ liệu thật.
+- Nếu hỏi microservices: monolith MVC phù hợp đồ án; chỉ tách Payment, Notification/Email, Chatbot/AI, Search/Recommendation hoặc Settlement khi hệ thống/team đủ lớn.
+- Nếu hỏi mobile: cần REST API/JSON, auth token/JWT hoặc cơ chế mobile phù hợp, CORS/API security, API versioning và upload/push notification qua API.
+
+### Nếu bị hỏi tính năng thực tế
+- MoMo: reuse booking/payment/status/tính tiền, nhưng cần provider riêng để tạo URL/QR, verify signature và xử lý callback. Hiện `MOMO_DEMO` chỉ là enum dự phòng, chưa phải MoMo production.
+- Bản đồ: hiện chưa có tọa độ trong `Accommodation`; muốn làm thật cần latitude/longitude, form chọn vị trí và map provider.
+- Recommendation AI: hiện chatbot là rule-based + Groq optional; AI gợi ý thật cần dữ liệu search/click/booking/review/wishlist lớn hơn.
+- Đa ngôn ngữ: source có `messages_vi/en` và đổi `lang` cơ bản; dịch toàn bộ UI + dữ liệu DB cần key/i18n và bảng/cột bản dịch riêng.
+
+### Nếu thầy yêu cầu mở code ngay
+- Booking: mở `BookingService.createBooking`, nói validate -> lock room -> availability -> voucher -> tính tiền từ DB -> tạo booking/payment `PENDING_PAYMENT`.
+- Payment: mở `PaymentService` và `VnpayService`, nói verify signature, validate amount, idempotency, callback success/fail.
+- Security: mở `SecurityConfig`, nói `/admin/**`, `/partner/**`, BCrypt, OAuth optional và CSRF đang tắt cho demo.
+- Settlement/wallet: mở `SettlementService` và `PartnerWalletService`, nói payout, `PAID` credit một lần, withdrawal hold/reject/paid.
+
+### Câu trả lời nhanh hard defense
+
+**Nếu AI hỗ trợ code thì em hiểu gì?**
+Nhóm có dùng công cụ hỗ trợ, nhưng đã đọc lại source, chạy test, chuẩn bị demo và có thể mở code giải thích các luồng booking, payment, security, partner và settlement.
+
+**Nếu hỏi sao chưa bật CSRF?**
+Demo local tắt để test form/payment thuận tiện hơn; production phải bật CSRF token cho các request thay đổi dữ liệu.
+
+**Nếu hỏi IPN localhost có chạy không?**
+Return URL có thể quay về localhost qua browser; IPN là server-to-server nên cần tunnel/public HTTPS nếu muốn gateway gọi vào máy local.
+
+**Nếu hỏi overbooking production thì sao?**
+Source có overlap check và lock ghi ở mức demo. Production cần concurrency/load test, transaction isolation, retry strategy và monitoring.
+
+**Nếu hỏi wallet có phải ví thật không?**
+Không. Đây là sổ quyết toán nội bộ; hệ thống chưa tích hợp ngân hàng hoặc ví điện tử thật.

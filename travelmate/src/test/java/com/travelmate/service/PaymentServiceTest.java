@@ -32,11 +32,12 @@ class PaymentServiceTest {
     @Mock private BookingRepository bookingRepository;
     @Mock private RoomRepository roomRepository;
     @Mock private NotificationService notificationService;
+    @Mock private EmailService emailService;
 
     @InjectMocks private PaymentService paymentService;
 
     @Test
-    void markGatewaySuccessAutoConfirmsPaymentAndSendsBookingToPartner() {
+    void markGatewaySuccessAutoConfirmsPaymentAndHoldsRoom() {
         User user = new User();
         Accommodation accommodation = new Accommodation();
         accommodation.setName("LATA Hotel");
@@ -63,14 +64,15 @@ class PaymentServiceTest {
         assertThat(payment.getApprovedAt()).isNotNull();
         assertThat(booking.getBookingStatus()).isEqualTo(BookingStatus.CONFIRMED);
         assertThat(booking.getPaymentStatus()).isEqualTo(PaymentStatus.APPROVED);
-        assertThat(booking.getPartnerStatus()).isEqualTo(PartnerBookingStatus.PENDING_PARTNER_CONFIRMATION);
+        assertThat(booking.getPartnerStatus()).isEqualTo(PartnerBookingStatus.PARTNER_CONFIRMED);
         verify(paymentRepository).save(payment);
         verify(bookingRepository).save(booking);
         verify(notificationService).createPaymentReceived(user, "BK-LATA-000001", accommodation, "thanh toán 100%");
+        verify(emailService).sendBookingConfirmationEmail(booking);
     }
 
     @Test
-    void markGatewaySuccessDeposit30AutoConfirmsAndKeepsRemainingAmountForPartner() {
+    void markGatewaySuccessDeposit30AutoHoldsRoomAndKeepsRemainingAmountForCheckIn() {
         User user = new User();
         Accommodation accommodation = new Accommodation();
         accommodation.setName("Hoa Lu Riverside Homestay");
@@ -99,12 +101,13 @@ class PaymentServiceTest {
         assertThat(payment.getPaymentStatus()).isEqualTo(PaymentStatus.APPROVED);
         assertThat(booking.getBookingStatus()).isEqualTo(BookingStatus.CONFIRMED);
         assertThat(booking.getPaymentStatus()).isEqualTo(PaymentStatus.APPROVED);
-        assertThat(booking.getPartnerStatus()).isEqualTo(PartnerBookingStatus.PENDING_PARTNER_CONFIRMATION);
+        assertThat(booking.getPartnerStatus()).isEqualTo(PartnerBookingStatus.PARTNER_CONFIRMED);
         assertThat(booking.getPaidAmount()).isEqualByComparingTo("288000");
         assertThat(booking.getRemainingAmount()).isEqualByComparingTo("672000");
         verify(paymentRepository).save(payment);
         verify(bookingRepository).save(booking);
         verify(notificationService).createPaymentReceived(user, "BK-HLR-STD-0007", accommodation, "khoản cọc 30%");
+        verify(emailService).sendBookingConfirmationEmail(booking);
     }
 
     @Test
@@ -125,6 +128,7 @@ class PaymentServiceTest {
         verify(paymentRepository, times(1)).save(payment);
         verify(bookingRepository, times(1)).save(booking);
         verify(notificationService, times(1)).createPaymentReceived(any(), any(), any(), eq("thanh toán 100%"));
+        verify(emailService, times(1)).sendBookingConfirmationEmail(any());
     }
 
     @Test
@@ -153,6 +157,7 @@ class PaymentServiceTest {
         verify(bookingRepository).save(booking);
         verify(roomRepository).save(room);
         verifyNoInteractions(notificationService);
+        verifyNoInteractions(emailService);
     }
 
     @Test
@@ -180,6 +185,7 @@ class PaymentServiceTest {
         verify(paymentRepository).save(payment);
         verify(bookingRepository).save(booking);
         verify(roomRepository).save(room);
+        verifyNoInteractions(emailService);
     }
 
     @Test
@@ -197,5 +203,6 @@ class PaymentServiceTest {
         verify(paymentRepository, never()).save(any(Payment.class));
         verify(bookingRepository, never()).save(any(Booking.class));
         verify(roomRepository, never()).save(any(Room.class));
+        verifyNoInteractions(emailService);
     }
 }

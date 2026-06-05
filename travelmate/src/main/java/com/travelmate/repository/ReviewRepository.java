@@ -3,10 +3,14 @@ package com.travelmate.repository;
 import com.travelmate.entity.Accommodation;
 import com.travelmate.entity.Booking;
 import com.travelmate.entity.Review;
+import com.travelmate.entity.Room;
 import com.travelmate.entity.User;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,4 +43,20 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     /** Lấy reviews của nhiều accommodation — dùng cho partner xem tất cả review cơ sở mình */
     List<Review> findByAccommodationInOrderByCreatedAtDesc(List<Accommodation> accommodations);
+
+    @Query("""
+            select avg(r.rating)
+            from Review r
+            where r.booking.room = :room
+              and r.isHidden = false
+              and r.createdAt >= :from
+              and r.createdAt < :to
+            """)
+    Double findAverageRatingByRoomAndCreatedAtBetweenAndIsHiddenFalse(@Param("room") Room room,
+                                                                      @Param("from") LocalDateTime from,
+                                                                      @Param("to") LocalDateTime to);
+
+    long countByBooking_RoomAndCreatedAtBetweenAndIsHiddenFalse(Room room,
+                                                                LocalDateTime from,
+                                                                LocalDateTime to);
 }

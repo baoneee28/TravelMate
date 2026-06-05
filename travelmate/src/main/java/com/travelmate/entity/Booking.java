@@ -23,8 +23,7 @@ import java.time.LocalDateTime;
  *
  * Luồng trạng thái (VNPAY):
  *   User tạo yêu cầu  → PENDING_PAYMENT  (phòng đã giữ tạm)
- *   VNPAY thành công  → CONFIRMED (hệ thống tự ghi nhận thanh toán)
- *   Đối tác xác nhận  → CONFIRMED + PARTNER_CONFIRMED
+ *   VNPAY thành công  → CONFIRMED + PARTNER_CONFIRMED (TravelMate tự giữ phòng/căn)
  *   Partner check-in  → CHECKED_IN
  *   Partner check-out → COMPLETED
  *
@@ -152,7 +151,7 @@ public class Booking {
     @Column(name = "commission_source_snapshot", length = 30)
     private String commissionSourceSnapshot;
 
-    /** Co so tinh hoa hong: chi la khoan TravelMate da thu online. */
+    /** Co so tinh hoa hong: tong don goc truoc voucher. */
     @Column(name = "commission_base_amount", precision = 15, scale = 0)
     private BigDecimal commissionBaseAmount = BigDecimal.ZERO;
 

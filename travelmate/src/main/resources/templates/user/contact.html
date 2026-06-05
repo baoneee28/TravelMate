@@ -19,7 +19,7 @@
 
 <body>
     <script src="/assets/js/main.js"></script>
-    <script src="/assets/js/user.js"></script>
+    <script src="/assets/js/user.js?v=20260603-preview"></script>
     <div th:replace="~{fragments/user-header :: header(true, 'contact')}"></div>
 
     <section class="contact-hero">
@@ -44,10 +44,10 @@
     <section class="contact-features-section">
         <div class="container">
             <div class="contact-features-grid">
-                <a href="/my-bookings" class="contact-feature-card">
+                <a th:href="${isAdmin} ? @{/admin/bookings} : @{/my-bookings}" class="contact-feature-card">
                     <div class="feature-card-icon icon-blue"><i class="fa-solid fa-bed"></i></div>
-                    <h4>Phòng của tôi</h4>
-                    <p>Xem và quản lý các đặt phòng hiện tại của bạn</p>
+                    <h4 th:text="${isAdmin} ? 'Quản lý booking' : 'Phòng của tôi'">Phòng của tôi</h4>
+                    <p th:text="${isAdmin} ? 'Quay về khu quản trị để kiểm tra và hỗ trợ booking' : 'Xem và quản lý các đặt phòng hiện tại của bạn'">Xem và quản lý các đặt phòng hiện tại của bạn</p>
                 </a>
                 <a href="#supportForm" class="contact-feature-card">
                     <div class="feature-card-icon icon-amber"><i class="fa-solid fa-paper-plane"></i></div>

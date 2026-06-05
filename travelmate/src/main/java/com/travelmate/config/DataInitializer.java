@@ -7,6 +7,7 @@ import com.travelmate.entity.enums.ApprovalStatus;
 import com.travelmate.entity.enums.PropertyType;
 import com.travelmate.entity.PartnerSettlement;
 import com.travelmate.entity.enums.RoomCategory;
+import com.travelmate.entity.enums.SettlementStatus;
 import com.travelmate.repository.AccommodationRepository;
 import com.travelmate.repository.PartnerSettlementRepository;
 import com.travelmate.repository.RoomRepository;
@@ -20,6 +21,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,7 +54,10 @@ public class DataInitializer {
             ensureDatabaseConstraints(jdbcTemplate);
             normalizeLegacyPaymentMethods(jdbcTemplate);
             normalizeVisibleSeedLabels(jdbcTemplate);
+            normalizeLegacyBookingHoldNotes(jdbcTemplate);
             normalizeOnlineDepositCommissionSnapshots(jdbcTemplate);
+            normalizeOnlineFullPaymentCommissionSnapshots(jdbcTemplate);
+            normalizeLegacyReviewRatings(jdbcTemplate);
 
             // ── ADMIN ────────────────────────────────────────────────────────
             var adminOpt = userRepository.findByEmail("admin@travelmate.vn");
@@ -274,8 +280,15 @@ public class DataInitializer {
             initMissingDefaultAccommodations(accommodationRepository, roomRepository,
                     partnerHotel, partnerResort, partnerVilla, partnerHomestay);
 
+            // ── Voucher kho Partner dùng cho trang booking và luồng đặt cọc 30% ──
+            ensurePartnerVoucherCatalogData(jdbcTemplate);
+
             // ── FIX: ảnh demo phải tách riêng theo từng nơi lưu trú và từng phòng/căn ──
             normalizeSeedImageUrls(jdbcTemplate);
+
+            // ── BACKFILL: dữ liệu quyết toán để Admin/Partner có màn hình kiểm tra trên DB mới ──
+            ensureDefaultSettlementData(settlementRepository,
+                    partnerHotel, partnerResort, partnerVilla, partnerHomestay);
 
             // ── FIX: Cập nhật settlement notes khớp đúng với partner ─────────
             fixSettlementNotes(settlementRepository, partnerHotel, partnerResort, partnerVilla, partnerHomestay);
@@ -285,6 +298,102 @@ public class DataInitializer {
     }
 
     // ── INITIALIZATION METHODS ───────────────────────────────────────────────
+
+    private void ensureDefaultSettlementData(PartnerSettlementRepository repo,
+                                             User partnerHotel,
+                                             User partnerResort,
+                                             User partnerVilla,
+                                             User partnerHomestay) {
+        if (repo.count() > 0) {
+            return;
+        }
+
+        List<PartnerSettlement> settlements = List.of(
+                createSettlement(
+                        partnerHotel,
+                        "2026-04-01",
+                        "2026-04-30",
+                        "8360000",
+                        "1254000",
+                        "0",
+                        "7106000",
+                        "2026-05-10",
+                        SettlementStatus.PAID,
+                        "2026-05-10T09:00:00",
+                        "Tháng 04/2026: Sunrise Sapa Lodge và Tulip Hotel đã đối soát, Admin đã ghi nhận chi trả."
+                ),
+                createSettlement(
+                        partnerResort,
+                        "2026-05-01",
+                        "2026-05-31",
+                        "17460000",
+                        "3142800",
+                        "0",
+                        "14317200",
+                        "2026-06-10",
+                        SettlementStatus.PENDING,
+                        null,
+                        "Tháng 05/2026 đang chờ: Blue Ocean Resort, VNPAY/TravelMate đã ghi nhận thanh toán, chờ chi trả."
+                ),
+                createSettlement(
+                        partnerVilla,
+                        "2026-05-01",
+                        "2026-05-31",
+                        "24100000",
+                        "2892000",
+                        "0",
+                        "21208000",
+                        "2026-06-10",
+                        SettlementStatus.PENDING,
+                        null,
+                        "Tháng 05/2026 đang chờ: Green Hills Villa, các booking đủ điều kiện đã gom vào kỳ tháng."
+                ),
+                createSettlement(
+                        partnerHomestay,
+                        "2026-04-01",
+                        "2026-04-30",
+                        "3860000",
+                        "386000",
+                        "50000",
+                        "3424000",
+                        "2026-05-10",
+                        SettlementStatus.PAID,
+                        "2026-05-10T09:15:00",
+                        "Tháng 04/2026: Mekong Homestay có voucher do Partner chịu 50.000đ, Admin đã ghi nhận chi trả."
+                )
+        );
+
+        repo.saveAll(settlements);
+        log.info("[DataInitializer] Created {} default partner settlements for a fresh database.", settlements.size());
+    }
+
+    private PartnerSettlement createSettlement(User partner,
+                                               String periodStart,
+                                               String periodEnd,
+                                               String grossAmount,
+                                               String commissionAmount,
+                                               String voucherDeductionAmount,
+                                               String payoutAmount,
+                                               String scheduledPayoutDate,
+                                               SettlementStatus status,
+                                               String settlementDate,
+                                               String note) {
+        PartnerSettlement settlement = new PartnerSettlement();
+        settlement.setPartner(partner);
+        settlement.setPeriodStart(LocalDate.parse(periodStart));
+        settlement.setPeriodEnd(LocalDate.parse(periodEnd));
+        settlement.setGrossAmount(new BigDecimal(grossAmount));
+        settlement.setCommissionAmount(new BigDecimal(commissionAmount));
+        settlement.setVoucherDeductionAmount(new BigDecimal(voucherDeductionAmount));
+        settlement.setPayoutAmount(new BigDecimal(payoutAmount));
+        settlement.setScheduledPayoutDate(LocalDate.parse(scheduledPayoutDate));
+        settlement.setSettlementStatus(status);
+        if (settlementDate != null) {
+            settlement.setSettlementDate(LocalDateTime.parse(settlementDate));
+        }
+        settlement.setNote(note);
+        return settlement;
+    }
 
     private void cleanupLegacySeedWalletData(JdbcTemplate jdbcTemplate) {
         String seedEmails = "('seeduser_wallet@travelmate.vn','seedpartner_wallet@travelmate.vn','seedpartner_nobank@travelmate.vn')";
@@ -411,6 +520,107 @@ public class DataInitializer {
                 "ALTER TABLE rooms ADD UNIQUE KEY uk_rooms_room_code (room_code)");
     }
 
+    private void ensurePartnerVoucherCatalogData(JdbcTemplate jdbcTemplate) {
+        try {
+            String[] legacyCodes = {"PV5", "PV9", "PV10", "PV11", "PV15", "PF239", "PF240", "PF241"};
+            String[] currentCodes = {"HOTEL10", "EARLY10", "STAY10", "WEEKEND15", "FAMILY15",
+                    "ROOM100K", "STAY150K", "STAY200K"};
+            int migratedCodes = 0;
+            for (int i = 0; i < legacyCodes.length; i++) {
+                migratedCodes += updateQuietly(jdbcTemplate,
+                        "UPDATE IGNORE vouchers SET code = ? WHERE code = ?",
+                        currentCodes[i], legacyCodes[i]);
+            }
+
+            int vouchers = jdbcTemplate.update("""
+                    INSERT INTO vouchers (code, name, description, discount_type, discount_value,
+                        max_discount_amount, min_order_amount, start_date, end_date,
+                        active, voucher_scope, property_type, cost_bearer, owner_id, created_at)
+                    VALUES
+                    ('HOTEL10',  'Ưu đãi khách sạn 10%',  'Giảm 10% cho phòng khách sạn được đối tác chọn áp dụng.',
+                        'PERCENT', 10.00, 500000, 500000,
+                        CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), 1, 'PARTNER_ROOM', NULL, 'PARTNER', NULL, NOW()),
+                    ('EARLY10',  'Đặt sớm tiết kiệm 10%',  'Giảm 10% cho khách đặt phòng trước ngày lưu trú.',
+                        'PERCENT', 10.00, 500000, 500000,
+                        CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), 1, 'PARTNER_ROOM', NULL, 'PARTNER', NULL, NOW()),
+                    ('STAY10', 'Kỳ nghỉ linh hoạt 10%', 'Giảm 10% cho phòng/căn được đối tác bật khuyến mãi.',
+                        'PERCENT', 10.00, 500000, 500000,
+                        CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), 1, 'PARTNER_ROOM', NULL, 'PARTNER', NULL, NOW()),
+                    ('WEEKEND15', 'Cuối tuần giảm 15%', 'Giảm 15% cho lịch lưu trú cuối tuần tại phòng/căn được chọn.',
+                        'PERCENT', 15.00, 600000, 500000,
+                        CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), 1, 'PARTNER_ROOM', NULL, 'PARTNER', NULL, NOW()),
+                    ('FAMILY15', 'Gia đình vui hè 15%', 'Giảm 15% cho nhóm khách gia đình đặt phòng/căn phù hợp.',
+                        'PERCENT', 15.00, 600000, 500000,
+                        CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), 1, 'PARTNER_ROOM', NULL, 'PARTNER', NULL, NOW()),
+                    ('ROOM100K', 'Giảm 100K đặt phòng', 'Giảm trực tiếp 100.000đ cho đơn đặt phòng đủ điều kiện.',
+                        'FIXED_AMOUNT', 100000, NULL, 500000,
+                        CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), 1, 'PARTNER_ROOM', NULL, 'PARTNER', NULL, NOW()),
+                    ('STAY150K', 'Ở 2 đêm giảm 150K', 'Giảm trực tiếp 150.000đ cho kỳ nghỉ từ 2 đêm.',
+                        'FIXED_AMOUNT', 150000, NULL, 500000,
+                        CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), 1, 'PARTNER_ROOM', NULL, 'PARTNER', NULL, NOW()),
+                    ('STAY200K', 'Kỳ nghỉ cao cấp giảm 200K', 'Giảm trực tiếp 200.000đ cho đơn đặt phòng/căn giá trị cao.',
+                        'FIXED_AMOUNT', 200000, NULL, 500000,
+                        CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), 1, 'PARTNER_ROOM', NULL, 'PARTNER', NULL, NOW())
+                    ON DUPLICATE KEY UPDATE
+                        name = VALUES(name),
+                        description = VALUES(description),
+                        discount_type = VALUES(discount_type),
+                        discount_value = VALUES(discount_value),
+                        max_discount_amount = VALUES(max_discount_amount),
+                        min_order_amount = VALUES(min_order_amount),
+                        start_date = VALUES(start_date),
+                        end_date = VALUES(end_date),
+                        active = VALUES(active),
+                        voucher_scope = VALUES(voucher_scope),
+                        property_type = VALUES(property_type),
+                        cost_bearer = VALUES(cost_bearer)
+                    """);
+
+            int migratedAssignments = updateQuietly(jdbcTemplate, """
+                    INSERT IGNORE INTO room_voucher_assignments
+                        (voucher_id, room_id, assigned_by_partner_id, active, assigned_at)
+                    SELECT current_v.id, rva.room_id, rva.assigned_by_partner_id, rva.active, COALESCE(rva.assigned_at, NOW())
+                    FROM room_voucher_assignments rva
+                    JOIN vouchers legacy_v ON legacy_v.id = rva.voucher_id
+                    JOIN vouchers current_v ON current_v.code = CASE legacy_v.code
+                        WHEN 'PV5' THEN 'HOTEL10'
+                        WHEN 'PV9' THEN 'EARLY10'
+                        WHEN 'PV10' THEN 'STAY10'
+                        WHEN 'PV11' THEN 'WEEKEND15'
+                        WHEN 'PV15' THEN 'FAMILY15'
+                        WHEN 'PF239' THEN 'ROOM100K'
+                        WHEN 'PF240' THEN 'STAY150K'
+                        WHEN 'PF241' THEN 'STAY200K'
+                    END
+                    WHERE legacy_v.code IN ('PV5', 'PV9', 'PV10', 'PV11', 'PV15', 'PF239', 'PF240', 'PF241')
+                    """);
+
+            int assignments = jdbcTemplate.update("""
+                    INSERT IGNORE INTO room_voucher_assignments
+                        (voucher_id, room_id, assigned_by_partner_id, active, assigned_at)
+                    SELECT v.id, r.id, a.owner_id, 1, NOW()
+                    FROM vouchers v
+                    JOIN rooms r ON r.room_code IN ('LATA-STD', 'TLP-VIP', 'TMG-DLX', 'ANM-GDN', 'HLR-STD', 'VNT-DLX')
+                    JOIN accommodations a ON a.id = r.accommodation_id
+                    WHERE v.code IN ('HOTEL10', 'EARLY10', 'STAY10', 'WEEKEND15', 'FAMILY15',
+                                     'ROOM100K', 'STAY150K', 'STAY200K')
+                      AND a.owner_id IS NOT NULL
+                    """);
+
+            int retiredLegacy = updateQuietly(jdbcTemplate,
+                    "UPDATE vouchers SET active = 0, name = 'Chương trình đã thay thế', " +
+                            "description = 'Mã cũ đã được chuyển sang bộ voucher vận hành thực tế.' " +
+                            "WHERE code IN ('PV5', 'PV9', 'PV10', 'PV11', 'PV15', 'PF239', 'PF240', 'PF241')");
+
+            if (migratedCodes > 0 || vouchers > 0 || migratedAssignments > 0 || assignments > 0 || retiredLegacy > 0) {
+                log.info("[DataInitializer] Ensured partner voucher catalog: migratedCodes={}, vouchers={}, migratedAssignments={}, assignments={}, retiredLegacy={}.",
+                        migratedCodes, vouchers, migratedAssignments, assignments, retiredLegacy);
+            }
+        } catch (Exception e) {
+            log.debug("[DataInitializer] Skip partner voucher catalog data: {}", e.getMessage());
+        }
+    }
+
     private int updateQuietly(JdbcTemplate jdbcTemplate, String sql) {
         try {
             return jdbcTemplate.update(sql);
@@ -470,6 +680,34 @@ public class DataInitializer {
             }
         } catch (Exception e) {
             log.debug("[DataInitializer] Skip visible label normalization: {}", e.getMessage());
+        }
+    }
+
+    private void normalizeLegacyBookingHoldNotes(JdbcTemplate jdbcTemplate) {
+        try {
+            int updated = 0;
+            String bookingNote = "VNPAY đã ghi nhận thanh toán. TravelMate đã giữ phòng/căn trên hệ thống.";
+            String paymentNote = "VNPAY ghi nhận thành công. TravelMate đã giữ phòng/căn trên hệ thống.";
+            String legacyHoldWhere =
+                    "note IS NOT NULL AND (" +
+                    "note LIKE '%Xác nhận giữ phòng%' " +
+                    "OR note LIKE '%Xác nh%n gi% ph%' " +
+                    "OR note LIKE '%Partner%đã giữ phòng%' " +
+                    "OR note LIKE '%partner%đã giữ phòng%'" +
+                    ")";
+
+            updated += jdbcTemplate.update(
+                    "UPDATE bookings SET note = ? WHERE " + legacyHoldWhere,
+                    bookingNote);
+            updated += jdbcTemplate.update(
+                    "UPDATE payments SET note = ? WHERE " + legacyHoldWhere,
+                    paymentNote);
+
+            if (updated > 0) {
+                log.info("[DataInitializer] Normalized {} legacy booking hold notes.", updated);
+            }
+        } catch (Exception e) {
+            log.debug("[DataInitializer] Skip legacy booking hold note normalization: {}", e.getMessage());
         }
     }
 
@@ -679,8 +917,8 @@ public class DataInitializer {
     }
 
     /**
-     * Chuyen cac snapshot cu cua don coc ve quy tac Hướng A:
-     * hoa hong chi tinh tren tien online TravelMate da thu.
+     * Chuyen cac snapshot cu cua don coc ve quy tac moi:
+     * commission tinh tren tong don goc voi DEPOSIT_30, con payout van dua tren so tien online TravelMate da thu.
      * Rate da snapshot van duoc giu nguyen de khong thay doi thoa thuan cu.
      */
     private void normalizeOnlineDepositCommissionSnapshots(JdbcTemplate jdbcTemplate) {
@@ -689,10 +927,12 @@ public class DataInitializer {
                 "COALESCE(r.commission_rate_override / 100, " +
                 "CASE a.property_type WHEN 'HOTEL' THEN 0.15 WHEN 'RESORT' THEN 0.18 " +
                 "WHEN 'VILLA' THEN 0.12 WHEN 'HOMESTAY' THEN 0.10 ELSE 0.10 END))";
+        String orderTotal = "COALESCE(b.total_before_discount, b.total_amount, COALESCE(b.paid_amount, 0))";
+        String commissionBase = orderTotal;
         String partnerVoucher =
                 "CASE WHEN b.voucher_cost_bearer = 'PARTNER' THEN COALESCE(b.discount_amount, 0) ELSE 0 END";
         String remaining =
-                "GREATEST(COALESCE(b.total_amount, 0) - COALESCE(b.paid_amount, 0), 0)";
+                "GREATEST(" + orderTotal + " - COALESCE(b.paid_amount, 0), 0)";
         String noOnsiteCollection =
                 "b.payment_status = 'DEPOSIT_FORFEITED' OR b.booking_status IN ('CANCELLED', 'NO_SHOW')";
         String normalizedRemaining =
@@ -700,7 +940,7 @@ public class DataInitializer {
                 "ELSE " + remaining + " END";
         String onsite =
                 "CASE WHEN " + noOnsiteCollection + " THEN 0 ELSE " + remaining + " END";
-        String commission = "ROUND(COALESCE(b.paid_amount, 0) * " + effectiveRate + ", 0)";
+        String commission = "ROUND(" + commissionBase + " * " + effectiveRate + ", 0)";
         try {
             int updated = jdbcTemplate.update(
                     "UPDATE bookings b " +
@@ -709,31 +949,126 @@ public class DataInitializer {
                     "SET b.commission_rate_snapshot = " + effectiveRate + ", " +
                     "b.commission_source_snapshot = COALESCE(b.commission_source_snapshot, " +
                     "CASE WHEN r.commission_rate_override IS NOT NULL THEN 'ROOM_OVERRIDE' ELSE 'PROPERTY_TYPE_DEFAULT' END), " +
-                    "b.commission_base_amount = COALESCE(b.paid_amount, 0), " +
+                    "b.commission_base_amount = " + commissionBase + ", " +
                     "b.commission_amount_snapshot = " + commission + ", " +
                     "b.partner_voucher_amount_snapshot = " + partnerVoucher + ", " +
                     "b.admin_voucher_amount_snapshot = CASE WHEN b.voucher_cost_bearer = 'ADMIN' " +
                     "THEN COALESCE(b.discount_amount, 0) ELSE 0 END, " +
-                    "b.partner_payout_snapshot = GREATEST(COALESCE(b.paid_amount, 0) - " +
-                    commission + " - " + partnerVoucher + ", 0), " +
+                    "b.partner_payout_snapshot = COALESCE(b.paid_amount, 0) - " +
+                    commission + " - " + partnerVoucher + ", " +
                     "b.remaining_amount = " + normalizedRemaining + ", " +
                     "b.online_paid_amount_snapshot = COALESCE(b.paid_amount, 0), " +
                     "b.onsite_amount_snapshot = " + onsite + " " +
                     "WHERE b.payment_option = 'DEPOSIT_30' " +
                     "AND (b.booking_source IS NULL OR b.booking_source = 'ONLINE') " +
                     "AND (b.commission_rate_snapshot IS NULL " +
-                    "OR COALESCE(b.commission_base_amount, -1) <> COALESCE(b.paid_amount, 0) " +
+                    "OR COALESCE(b.commission_base_amount, -1) <> " + commissionBase + " " +
                     "OR COALESCE(b.commission_amount_snapshot, -1) <> " + commission + " " +
-                    "OR COALESCE(b.partner_payout_snapshot, -1) <> GREATEST(COALESCE(b.paid_amount, 0) - " +
-                    commission + " - " + partnerVoucher + ", 0) " +
+                    "OR COALESCE(b.partner_payout_snapshot, -1) <> COALESCE(b.paid_amount, 0) - " +
+                    commission + " - " + partnerVoucher + " " +
                     "OR COALESCE(b.remaining_amount, -1) <> " + normalizedRemaining + " " +
                     "OR COALESCE(b.online_paid_amount_snapshot, -1) <> COALESCE(b.paid_amount, 0) " +
                     "OR COALESCE(b.onsite_amount_snapshot, -1) <> " + onsite + ")");
             if (updated > 0) {
-                log.info("[DataInitializer] Converted {} online deposit snapshots to online-paid commission rule.", updated);
+                log.info("[DataInitializer] Converted {} online deposit snapshots to gross-order commission rule.", updated);
             }
         } catch (Exception e) {
             log.debug("[DataInitializer] Skip online deposit snapshot normalization: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Chuyen snapshot cua don thanh toan 100% ve cung quy tac: commission tinh
+     * tren tong don goc truoc voucher; remaining cua FULL_PAYMENT luon la 0.
+     */
+    private void normalizeOnlineFullPaymentCommissionSnapshots(JdbcTemplate jdbcTemplate) {
+        String effectiveRate =
+                "COALESCE(b.commission_rate_snapshot, " +
+                "COALESCE(r.commission_rate_override / 100, " +
+                "CASE a.property_type WHEN 'HOTEL' THEN 0.15 WHEN 'RESORT' THEN 0.18 " +
+                "WHEN 'VILLA' THEN 0.12 WHEN 'HOMESTAY' THEN 0.10 ELSE 0.10 END))";
+        String orderTotal = "COALESCE(b.total_before_discount, b.total_amount, COALESCE(b.paid_amount, 0))";
+        String partnerVoucher =
+                "CASE WHEN b.voucher_cost_bearer = 'PARTNER' THEN COALESCE(b.discount_amount, 0) ELSE 0 END";
+        String commission = "ROUND(" + orderTotal + " * " + effectiveRate + ", 0)";
+        try {
+            int updated = jdbcTemplate.update(
+                    "UPDATE bookings b " +
+                    "JOIN rooms r ON r.id = b.room_id " +
+                    "JOIN accommodations a ON a.id = b.accommodation_id " +
+                    "SET b.commission_rate_snapshot = " + effectiveRate + ", " +
+                    "b.commission_source_snapshot = COALESCE(b.commission_source_snapshot, " +
+                    "CASE WHEN r.commission_rate_override IS NOT NULL THEN 'ROOM_OVERRIDE' ELSE 'PROPERTY_TYPE_DEFAULT' END), " +
+                    "b.commission_base_amount = " + orderTotal + ", " +
+                    "b.commission_amount_snapshot = " + commission + ", " +
+                    "b.partner_voucher_amount_snapshot = " + partnerVoucher + ", " +
+                    "b.admin_voucher_amount_snapshot = CASE WHEN b.voucher_cost_bearer = 'ADMIN' " +
+                    "THEN COALESCE(b.discount_amount, 0) ELSE 0 END, " +
+                    "b.partner_payout_snapshot = COALESCE(b.paid_amount, 0) - " +
+                    commission + " - " + partnerVoucher + ", " +
+                    "b.remaining_amount = 0, " +
+                    "b.online_paid_amount_snapshot = COALESCE(b.paid_amount, 0), " +
+                    "b.onsite_amount_snapshot = 0 " +
+                    "WHERE b.payment_option = 'FULL_PAYMENT' " +
+                    "AND COALESCE(b.paid_amount, 0) > 0 " +
+                    "AND (b.booking_source IS NULL OR b.booking_source = 'ONLINE') " +
+                    "AND (b.commission_rate_snapshot IS NULL " +
+                    "OR COALESCE(b.commission_base_amount, -1) <> " + orderTotal + " " +
+                    "OR COALESCE(b.commission_amount_snapshot, -1) <> " + commission + " " +
+                    "OR COALESCE(b.partner_payout_snapshot, -1) <> COALESCE(b.paid_amount, 0) - " +
+                    commission + " - " + partnerVoucher + " " +
+                    "OR COALESCE(b.remaining_amount, -1) <> 0 " +
+                    "OR COALESCE(b.online_paid_amount_snapshot, -1) <> COALESCE(b.paid_amount, 0) " +
+                    "OR COALESCE(b.onsite_amount_snapshot, -1) <> 0)");
+            if (updated > 0) {
+                log.info("[DataInitializer] Converted {} full-payment snapshots to gross-order commission rule.", updated);
+            }
+        } catch (Exception e) {
+            log.debug("[DataInitializer] Skip full-payment snapshot normalization: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Reviews used to be submitted on a 5-star scale. Convert those old rows once
+     * so historical 5-star reviews become 10-point reviews in the current UI.
+     */
+    private void normalizeLegacyReviewRatings(JdbcTemplate jdbcTemplate) {
+        final String migrationKey = "review-rating-stars-to-score-v1";
+        try {
+            jdbcTemplate.execute(
+                    "CREATE TABLE IF NOT EXISTS data_migration_flags (" +
+                    "migration_key VARCHAR(100) NOT NULL PRIMARY KEY, " +
+                    "applied_at DATETIME(6) NOT NULL)");
+
+            Integer applied = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM data_migration_flags WHERE migration_key = ?",
+                    Integer.class,
+                    migrationKey);
+            if (applied != null && applied > 0) {
+                return;
+            }
+
+            Integer legacyCount = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM reviews WHERE rating BETWEEN 1 AND 5",
+                    Integer.class);
+            if (legacyCount != null && legacyCount > 0) {
+                int updated = jdbcTemplate.update(
+                        "UPDATE reviews SET rating = LEAST(rating * 2, 10) WHERE rating BETWEEN 1 AND 5");
+                jdbcTemplate.update(
+                        "UPDATE accommodations a " +
+                        "JOIN (" +
+                        "SELECT accommodation_id, COUNT(*) AS visible_review_count, ROUND(AVG(rating), 1) AS average_rating " +
+                        "FROM reviews WHERE is_hidden = 0 GROUP BY accommodation_id" +
+                        ") s ON s.accommodation_id = a.id " +
+                        "SET a.rating = s.average_rating, a.review_count = s.visible_review_count");
+                log.info("[DataInitializer] Converted {} legacy 5-star reviews to 10-point ratings.", updated);
+            }
+
+            jdbcTemplate.update(
+                    "INSERT INTO data_migration_flags (migration_key, applied_at) VALUES (?, NOW(6))",
+                    migrationKey);
+        } catch (Exception e) {
+            log.debug("[DataInitializer] Skip legacy review rating normalization: {}", e.getMessage());
         }
     }
 
@@ -1165,7 +1500,7 @@ public class DataInitializer {
                 // Tạo note mới sạch, thay thế note sai bằng ghi chú hợp lệ cho đối tác này
                 String typeName = partner.getPartnerPropertyType() != null
                     ? partner.getPartnerPropertyType().name() : "property";
-                s.setNote("Đã thanh toán cho đối tác " + partner.getName() + " (" + typeName + ").");
+                s.setNote("Đã ghi nhận chi trả ngoài hệ thống cho đối tác " + partner.getName() + " (" + typeName + ").");
                 fixCount++;
             }
         }

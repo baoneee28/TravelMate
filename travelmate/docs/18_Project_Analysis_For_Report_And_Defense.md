@@ -183,7 +183,7 @@ Co the dua vao bao cao nhu sau:
 | `room_amenities` | Bang lien ket phong-tien nghi | `room_id`, `amenity_id` | n-n | Sinh tu quan he many-to-many. |
 | `bookings` | Luu don dat phong | `booking_code`, `user_id`, `room_id`, `check_in`, `check_out`, `total_amount`, `booking_status`, `payment_status` | n-1 user/accommodation/room, 1-n payments, 1-1 review | Co nhieu truong snapshot tai chinh de doi soat. |
 | `payments` | Luu giao dich thanh toan | `booking_id`, `amount`, `payment_status`, `vnp_txn_ref`, `transaction_no`, VNPAY fields | n-1 booking | Dung cho VNPAY return/IPN va doi trang thai. |
-| `reviews` | Luu danh gia sau booking | `user_id`, `accommodation_id`, `booking_id`, `rating`, `comment`, `is_hidden` | n-1 user/accommodation, 1-1 booking | Rating hop le 1-10, admin co the an/hien. |
+| `reviews` | Luu danh gia sau booking | `user_id`, `accommodation_id`, `booking_id`, `rating`, `comment`, `is_hidden` | n-1 user/accommodation, 1-1 booking | User cham 1-5 sao; diem hien thi cua co so duoc quy doi sang thang 10, admin co the an/hien. |
 | `vouchers` | Luu ma giam gia | `code`, `discount_type`, `discount_value`, `max_discount`, `min_order`, `voucher_scope`, `cost_bearer` | Co the gan user global, accommodation/room/partner | Ho tro voucher global va partner room catalog. |
 | `room_voucher_assignments` | Gan voucher vao phong | `voucher_id`, `room_id`, `active`, `assigned_at` | n-1 voucher/room | Co rang buoc unique room-voucher. |
 | `support_tickets` | Luu yeu cau ho tro | requester info, `category`, `subject`, `priority`, `status`, `admin_response` | Co the lien ket user/partner | Dung cho contact, partner support va admin support. |
@@ -765,3 +765,165 @@ Co the dua vao bao cao nhu sau:
 Co the dua vao bao cao nhu sau:
 
 > Truoc khi nop bai, can kiem tra dong bo ca source code, bao cao, slide va demo. Trong do, quan trong nhat la dam bao luong demo chinh chay on dinh, cac so do trong bao cao khop voi source code, va sinh vien co the giai thich duoc cac quyet dinh ky thuat quan trong nhu kien truc MVC, thiet ke database, xu ly booking, thanh toan, voucher va bao mat.
+
+## 19. Gap Analysis: TravelMate So Voi He Thong Thuc Te
+
+### 19.1 Cach trinh bay dung muc
+
+Gap Analysis khong nen noi theo huong "project thieu rat nhieu". Cach noi an toan hon:
+
+> TravelMate da dap ung cac nghiep vu chinh trong pham vi do an co so: tim kiem noi luu tru, dat phong, thanh toan VNPAY Sandbox, workflow User/Partner/Admin, review va settlement noi bo. Neu trien khai thanh san pham OTA thuong mai, he thong can bo sung them cac thanh phan production nhu channel manager, refund gateway, bank payout, monitoring, backup, rate limit, CSRF day du va load test.
+
+### 19.2 Bang gap can hoc khi bao ve
+
+| Mang nghiep vu | TravelMate hien co | Khoang thieu production | Co can fix truoc bao cao? | Cach tra loi khi bi hoi |
+| --- | --- | --- | --- | --- |
+| Real-time availability | Co overlap theo ngay, lock room, direct booking va manual block | Chua co channel manager dong bo OTA ngoai | Khong | TravelMate quan ly quota mo ban tren nen tang, chua quan ly toan bo inventory vat ly nhu OTA that. |
+| Payment idempotency | `vnp_txn_ref` unique, verify signature/amount, chi update khi `PENDING_PAYMENT` | Chua co monitoring/alert va reconciliation dashboard production | Khong | Flow sandbox du demo; production can log callback, retry va doi soat tu dong. |
+| Refund | Co `REFUND_PENDING` va `REFUNDED` de Admin ghi nhan | Chua goi API hoan tien ngan hang/gateway that | Khong | Refund la trang thai nghiep vu trong do an, khong phai chuyen tien that. |
+| Cancellation policy | Co huy booking, mat coc 30%, full payment sang refund pending | Chua co policy matrix theo listing/thoi gian/mua cao diem | Khong | Project xu ly case chinh; production can bang cancellation_policy rieng. |
+| No-show | Co `NO_SHOW` va `DEPOSIT_FORFEITED` cho coc 30% | Full payment no-show chua co chinh sach sau | Khong | Nhom uu tien luong coc 30%; full payment no-show la huong mo rong policy. |
+| Commission | Co commission theo property type/room override va snapshot | Chua co hop dong phuc tap theo mua/partner level/campaign | Khong | Du cho do an; production can commission contract. |
+| Settlement/wallet | Co settlement thang, payout noi bo, wallet va withdrawal | Chua co bank transfer tu dong, maker-checker, bank reconciliation | Khong | Settlement/wallet la so noi bo, khong phai vi ngan hang that. |
+| Partner payout | Co thong tin ngan hang va request rut tien noi bo | Chua co KYC, bank verification, payout processor | Khong | Admin xu ly chi tra ngoai he thong roi cap nhat trang thai. |
+| Fraud/rate limit | Co verify payment flow va log co ban | Chua co rate limit, risk scoring, anomaly detection | Khong | Production can them rate limit va risk log; khong phai loi chan demo. |
+| Security | Co RBAC, BCrypt, reset token, owner/service guard, upload validation | CSRF dang tat, headers/rate limit/secret manager chua production-grade | Nen noi trung thuc | Demo config phu hop local; production phai bat CSRF va hardening. |
+| Audit log | Co `AdminActionLog` va raw payload payment | Chua chac moi admin action deu duoc log | Khong | Audit hien o muc do an; production can audit toan dien hon. |
+| Notification/email | Co notification entity/API, SMTP optional | Chua co push realtime/SMS/email worker retry | Khong | SMTP/notification phuc vu demo; production can worker va retry. |
+| File upload | Co validate extension/content-type/size va UUID filename | Chua magic-byte scan/virus scan/object storage | Khong | Du demo; production can quet file sau hon. |
+| Data validation | Service co validate booking/voucher/reset/file | Chua chuan hoa toan bo bang DTO + Bean Validation | Khong | Service validation la lop chinh; production nen chuan hoa DTO `@Valid`. |
+| Backup/import DB | Co seed SQL demo | Chua co backup automation/migration | Can chuan bi SQL | Truoc demo can test import SQL; production can Flyway/Liquibase va backup job. |
+| Scalability | Monolithic Spring Boot MVC phu hop do an | Chua queue/cache/CDN/microservice/load test | Khong | Monolith dung voi do an co so; scale la huong phat trien sau. |
+
+### 19.3 Nhung gap khong nen fix sat gio
+
+Khong nen co nang lam channel manager, payment/refund production, bank payout tu dong, fraud scoring, microservices, dynamic pricing theo mua, WebSocket realtime hoac bat CSRF toan bo neu chua test ky form/payment. Cac muc nay co gia tri khi dua vao huong phat trien, nhung sua sat gio co the lam vo demo.
+
+### 19.4 Checklist can test thay vi mo rong production
+
+- [ ] User thuong khong vao duoc `/admin`.
+- [ ] Partner khong vao duoc `/admin`.
+- [ ] Admin khong vao duoc workspace `/partner`.
+- [ ] Partner chi xem/xu ly booking thuoc co so cua minh.
+- [ ] User khong huy/review booking cua user khac.
+- [ ] VNPAY success refresh/callback lap khong update trung.
+- [ ] Coc 30% khong cong 70% vao revenue TravelMate.
+- [ ] Direct booking va manual block khong vao settlement/commission.
+- [ ] Settlement `PAID` khong credit wallet trung.
+- [ ] Withdrawal `REJECTED` hoan lai available balance.
+- [ ] Import `travelmate_db.sql` chay duoc tren may demo.
+- [ ] Khong trinh bay VNPAY Sandbox/refund/wallet nhu giao dich ngan hang that.
+
+### 19.5 Cau tra loi phong thu
+
+Neu thay hoi: "Project thieu nhieu production gap vay co phai chua hoan thien khong?"
+
+> Da khong. Nhom em xac dinh pham vi la do an co so, nen tap trung hoan thien cac nghiep vu chinh: user dat phong, thanh toan sandbox, partner xu ly booking, admin quan ly/doi soat, review va settlement noi bo. Cac gap nhu channel manager, refund gateway, KYC, fraud scoring, CI/CD, monitoring va load test la yeu cau cua san pham thuong mai that, nen nhom dua vao han che va huong phat trien thay vi noi qua la da production-ready.
+
+## 20. Test Plan Hoan Chinh Va Uu Tien Fix
+
+### 20.1 Cach hieu dung
+
+Test plan giai doan nay khong phai la danh sach de mo them chuc nang. Day la checklist chot do on dinh truoc bao cao/bao ve. Nen chia thanh 4 lop:
+
+| Lop test | Muc dich | Co can lam truoc bao cao? |
+| --- | --- | --- |
+| Unit/Integration test da co | Chung minh logic service/controller on dinh o muc code | Co, chay lai `mvnw.cmd test` neu duoc |
+| Smoke test demo | Dam bao app chay, DB dung, login 3 role, UI khong vo | Bat buoc |
+| Manual flow chinh | Dam bao demo User -> Payment -> Partner -> Admin chay tron | Bat buoc |
+| Edge/security/production-risk | Chuan bi phong thu khi bi hoi xoan | Chon loc, khong demo het |
+
+### 20.2 Nhung test da bo sung them theo test plan
+
+| Test | Ly do bo sung | Bang chung |
+| --- | --- | --- |
+| Admin mark refunded sai trang thai | Tranh Admin ghi nhan hoan tien khi booking chua `REFUND_PENDING` | `BookingCalculationTest.markRefundedByAdmin_rejectsBookingThatIsNotRefundPending` |
+| Review/support XSS static guard | Chung minh noi dung user nhap duoc render escaped bang `th:text`, khong dung `th:utext` | `UserPortalFlowTemplateTest.userGeneratedReviewAndSupportContentUsesEscapedTextRendering` |
+| Truy cap cheo role Admin/Partner | Chung minh route security P0 cho `/admin/**` va `/partner/**` | `PartnerWalletAndSettlementIntegrationTest` |
+
+### 20.3 Nhom P0 can chay truoc bao ve
+
+- [ ] Import `travelmate_db.sql` tren MySQL sach.
+- [ ] App start duoc va mo trang chu.
+- [ ] Login User/Admin/Partner duoc, redirect dung role.
+- [ ] User dat phong va thanh toan VNPAY Sandbox success.
+- [ ] Payment `APPROVED`, Booking `CONFIRMED`.
+- [ ] Partner thay booking dung co so da duoc TravelMate giu, check-in, check-out.
+- [ ] Booking `COMPLETED` moi review duoc.
+- [ ] Admin xem duoc booking/revenue/settlement.
+- [ ] User khong vao duoc `/admin`, Partner khong vao duoc `/admin`.
+- [ ] Payment result refresh/callback lap khong double update.
+- [ ] Settlement `PAID` khong credit wallet trung.
+
+### 20.4 Nhom P1 nen chay neu con thoi gian
+
+| Test | Can chay? | Ghi chu |
+| --- | --- | --- |
+| Static CSS/JS/images | Co | UI vo se anh huong an tuong demo |
+| Chatbot fallback khi thieu Groq key | Co neu demo chatbot | Khong co key thi chatbot khong duoc lam app crash |
+| Forgot password without SMTP | Co | Khong co SMTP van tra thong bao chung |
+| Google OAuth missing key | Co | Thieu key app van start, khong demo Google neu chua config |
+| Voucher sai/het han | Co | Khong duoc giam gia sai |
+| Review/support XSS | Nen kiem | Source hien dung `th:text`; production van can security test sau hon |
+| Upload invalid | Co neu demo upload | FileStorageService da chan duoi sai, content-type sai va qua 10MB |
+
+### 20.5 Nhom P2/P3 chi dua vao huong phat trien
+
+Khong nen co nang lam sat gio: concurrency/load test lon, rate limiting toan he thong, Docker/CI/CD, production refund API, channel manager, bank payout tu dong, fraud scoring, microservices hoac bat CSRF toan bo neu chua test ky moi form POST. Cac muc nay nen dua vao han che va huong phat trien.
+
+### 20.6 Muoi test case nen dua vao bao cao chinh
+
+| Ma test | Module | Muc tieu | Expected |
+| --- | --- | --- | --- |
+| TC01 | Auth | Login User/Admin/Partner | Redirect dung role |
+| TC02 | Security | User/Partner truy cap `/admin` | Bi chan |
+| TC03 | Booking | Tao booking ngay hop le | Booking `PENDING_PAYMENT` |
+| TC04 | Payment | VNPAY success | Payment `APPROVED`, Booking `CONFIRMED` |
+| TC05 | Payment | Refresh result URL | Khong double update |
+| TC06 | Partner | Booking da duoc TravelMate giu phong/can | Partner thay dung trang thai va co the check-in |
+| TC07 | Partner | Check-in/check-out | Booking `COMPLETED` |
+| TC08 | Review | Review sau completed | Review duoc luu, khong trung |
+| TC09 | Settlement | Mark settlement paid | Wallet credit dung mot lan |
+| TC10 | Finance | Deposit 30% | Khong cong 70% vao revenue TravelMate |
+
+### 20.7 Cau tra loi khi bi hoi test da du chua
+
+> Trong pham vi do an co so, nhom em kiem thu theo hai huong. Mot la test tu dong cho cac logic quan trong nhu booking calculation, availability, payment, voucher, settlement, wallet, reset password, route security va template. Hai la test thu cong cac flow tich hop tren giao dien nhu User dat phong, VNPAY Sandbox, Partner xu ly booking, Admin quan ly booking/settlement va login 3 role. Nhom em chua khang dinh da du cho production vi chua co load test lon, kiem thu bao mat chuyen sau va doi soat payment production; cac phan do duoc dua vao han che va huong phat trien.
+
+## 21. Script Tra Loi Bao Cao Va Ket Qua Smoke Test Session Nay
+
+### 21.1 Kiem tra gop y ChatGPT Plus
+
+Gop y "Script tra loi bao cao" dung huong vi no giup nhom noi ngan gon theo tung phan: de tai, kien truc, database, booking/payment, partner/admin/settlement, testing va huong phat trien. Diem can sua theo source hien tai la khong duoc noi `247 test pass`; so dung sau khi chay lai la `279/279 pass`.
+
+### 21.2 Script trinh bay de hoc thuoc
+
+| Phan trinh bay | Script nen noi |
+| --- | --- |
+| 1 phut - Gioi thieu de tai | Kinh thua thay/co, nhom em thuc hien TravelMate - website dat phong va goi y du lich. He thong mo phong nen tang trung gian giua khach hang, doi tac luu tru va quan tri vien. Khach hang co the tim kiem noi luu tru, dat phong, thanh toan qua VNPAY Sandbox va theo doi booking. Doi tac quan ly co so/phong va xu ly luu tru. Admin kiem duyet, quan ly booking, voucher, doanh thu va quyet toan. Pham vi la do an co so chay local/demo, chua phai production that. |
+| 1 phut - Kien truc | TravelMate dung Spring Boot MVC, Thymeleaf va MySQL. Source duoc tach theo Controller - Service - Repository - Entity. Controller nhan request va tra view, Service xu ly nghiep vu, Repository truy van database, Entity anh xa bang. Kien truc monolithic MVC phu hop do an vi de demo tren mot ung dung, nhung van the hien duoc phan tang phan mem. |
+| 1 phut - Database | Database xoay quanh cac bang `users`, `accommodations`, `rooms`, `bookings`, `payments`, `vouchers`, `reviews`. Ngoai ra co settlement, partner wallet, withdrawal, support, notification va travel posts. Booking lien ket user, accommodation, room va payment. Payment tach rieng de luu giao dich VNPAY, con booking luu trang thai nghiep vu dat phong. |
+| 2 phut - Booking/payment | User chon phong va ngay luu tru, backend kiem tra lai ngay, suc chua, availability, voucher va gia tu database. Booking/payment ban dau la `PENDING_PAYMENT`. Khi VNPAY Sandbox tra ve success, he thong verify chu ky, amount va cap nhat payment `APPROVED`, booking `CONFIRMED`, partner status `PARTNER_CONFIRMED` de the hien TravelMate da tu giu phong/can tren he thong. Voi coc 30%, TravelMate chi thu 30% online; 70% partner thu tai co so va khong tinh vao doanh thu online TravelMate. |
+| 2 phut - Partner/Admin/settlement | Sau khi thanh toan thanh cong, partner vao danh sach booking dung co so cua minh de check-in khi khach den va check-out khi khach tra phong. Admin giam sat toan he thong, duyet du lieu, quan ly booking, voucher, review, support va settlement. Settlement tao theo thang, chi tinh booking online du dieu kien. Payout = tien TravelMate thu online - commission - voucher do partner chiu. Vi partner la so quyet toan noi bo, khong phai vi ngan hang that. |
+| 1 phut - Testing/exception | Nhom co test tu dong hien tai `279/279 pass`, bao phu booking, payment, voucher, settlement, wallet, password reset, OAuth, chatbot, route security, template, luong user dat lai don da huy/no-show va quy tac tai chinh sau ra soat. Trong session nay da chay them smoke test tich hop qua app local: kho voucher, booking prefill voucher, API voucher coc 30%, Partner bookings/detail future guard va cac trang chinh User/Partner/Admin. |
+| 1 phut - Ket luan/huong phat trien | TravelMate da dap ung muc tieu do an co so: co phan quyen, booking/payment, partner/admin, review, voucher, chatbot va quyet toan noi bo. Han che la he thong chay local/demo, dung VNPAY Sandbox, CSRF dang tat cho demo, chua load test lon va chua tich hop refund/payout production. Huong phat trien la deploy cloud, hardening bao mat, migration database, rate limiting, refund API, payout that, map/location va mobile app. |
+
+### 21.3 Ket qua test trong session nay
+
+| Nhom kiem tra | Ket qua | Ghi chu |
+| --- | --- | --- |
+| Full Maven test | PASS `279/279`, 0 fail, 0 error, 0 skipped | Chay lai ngay 2026-06-05 trong workspace hien tai. |
+| App startup local | PASS | App start o `http://127.0.0.1:18080`, DataInitializer hoan tat. |
+| HTTP/session smoke test | PASS 23/23 checks | Kiem login 3 role, route guard va cac trang chinh User/Partner/Admin. |
+| Chrome headless browser | PASS mot luong User rebook | Ngay 2026-06-03 da login User, mo My bookings, bam/tap dat lai don da huy/no-show tren desktop va mobile, redirect dung sang form booking co prefill va banner don moi doc lap. Cac flow lon khac nhu VNPAY/Partner/Admin van nen chay lai tren may demo. |
+
+### 21.4 Cach noi neu thay hoi "da test tren browser chua?"
+
+> Da, nhom em co chay smoke test tren app local cho cac luong chinh va da login duoc ca 3 role. Rieng luong User dat lai don da huy/no-show da duoc re-test bang Chrome headless ngay 2026-06-03 tren desktop va mobile: bam/tap nut dat lai, sang form booking co prefill va banner don moi doc lap. Truoc buoi bao ve, nhom van se mo browser that tren may demo de chay lai flow VNPAY, Partner xu ly booking va Admin xem settlement/wallet.
+
+### 21.5 Flow nen demo va flow nen tranh
+
+- Nen demo: trang chu, tim kiem/accommodations, User my-bookings, form booking, Partner dashboard/bookings/wallet/settlements/support, Admin dashboard/bookings/settlements/withdrawals/reviews/support.
+- Nen demo VNPAY that neu da co sandbox secret va da smoke test truoc tren may bao ve.
+- Nen tranh neu chua kiem: Google OAuth that, SMTP that, IPN server-to-server localhost, concurrent booking that, refund production, payout ngan hang that.
+- Cau chot: "TravelMate hoan thien trong pham vi do an co so/demo; cac yeu cau production duoc dua vao han che va huong phat trien."

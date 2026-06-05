@@ -28,7 +28,8 @@
             <h4>Hỗ trợ</h4>
             <ul>
                 <li><a th:href="@{/vouchers}">Kho voucher</a></li>
-                <li><a th:href="@{/my-bookings}">Đặt phòng của tôi</a></li>
+                <li th:if="${!isAdmin}"><a th:href="@{/my-bookings}">Đặt phòng của tôi</a></li>
+                <li th:if="${isAdmin}"><a th:href="@{/admin/bookings}">Quản lý booking</a></li>
                 <li><a th:href="@{/contact}">Liên hệ hỗ trợ</a></li>
                 <li><a th:href="@{/news}">Tin tức</a></li>
             </ul>
@@ -55,11 +56,29 @@
         </div>
     </div>
 
-    <div class="container footer-bottom">
-        <p>&copy; 2026 TravelMate. Đồ án cơ sở.</p>
-        <p>Đặt phòng rõ ràng, gợi ý du lịch trực quan.</p>
+    <div id="tmImagePreview"
+         class="tm-image-preview"
+         role="dialog"
+         aria-modal="true"
+         aria-hidden="true"
+         aria-label="Xem ảnh lớn">
+        <button id="tmImagePreviewClose"
+                type="button"
+                class="tm-image-preview-close"
+                aria-label="Đóng ảnh">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="tm-image-preview-stage">
+            <img id="tmImagePreviewImg"
+                 src=""
+                 alt=""
+                 onerror="this.onerror=null;this.src='/assets/images/resort.jpg'" />
+            <div id="tmImagePreviewCaption" class="tm-image-preview-caption" hidden></div>
+        </div>
     </div>
+
     <div th:replace="~{fragments/user-floating-actions :: floatingActions}"></div>
+    <script src="/assets/js/image-preview.js?v=20260603-preview"></script>
 </footer>
 </body>
 </html>

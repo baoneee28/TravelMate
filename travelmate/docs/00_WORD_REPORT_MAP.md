@@ -18,7 +18,9 @@ File này là bản đồ để bạn chuyển sang viết Word nhanh, không ph
 | Sơ đồ trạng thái Booking | `docs/16_State_Booking_Diagram.puml` |
 | Sơ đồ triển khai local | `docs/17_Deployment_Diagram.puml` |
 | Báo cáo kiểm thử chính thức | `docs/07_Test_Report.md` |
+| Checklist kiểm thử browser trước bảo vệ | `docs/20_Defense_Browser_Test_Checklist.md` |
 | Kịch bản demo | `docs/08_Demo_Script.md` |
+| Audit TC061-TC110 / edge cases bảo vệ | `docs/19_Admin_Security_Production_Edge_Cases_TC061_TC110.md` |
 | Checklist sẵn sàng demo/Word | `docs/15_Demo_Word_Readiness_Checklist.md` |
 | Cấu hình biến môi trường demo | `docs/demo-env.example` |
 
@@ -59,8 +61,8 @@ File này là bản đồ để bạn chuyển sang viết Word nhanh, không ph
 
 ### Chương 5 - Kiểm thử và đánh giá
 
-- Ghi đúng số hiện tại: `247` test cases.
-- Kết quả: `247 PASS, 0 FAIL, 0 ERROR, 0 SKIPPED`.
+- Ghi đúng số hiện tại: `279` test cases.
+- Kết quả: `279 PASS, 0 FAIL, 0 ERROR, 0 SKIPPED`.
 - Nhóm test chính: booking, payment, voucher, settlement, wallet, review, Google OAuth, forgot password, template UI.
 - Nêu hạn chế trung thực: CSRF đang tắt cho demo local, secret cần đưa ra biến môi trường khi production.
 
@@ -79,13 +81,13 @@ File này là bản đồ để bạn chuyển sang viết Word nhanh, không ph
 | Quên mật khẩu | Spring Mail SMTP, token 30 phút, dùng một lần |
 | Thanh toán | VNPAY Sandbox |
 | Xuất báo cáo | Apache POI Excel |
-| Test tự động | 247 test cases PASS |
+| Test tự động | 279 test cases PASS |
 
 ---
 
 ## 4. Lưu ý trước khi viết Word
 
-- Không dùng số test cũ `234` hoặc `242`; số đúng sau khi chạy lại là `247`.
+- Không dùng số test cũ `234`, `242`, `247`, `251`, `254`, `255`, `257`, `259`, `267`, `269`, `272`, `274` hoặc `278`; số đúng sau khi chạy lại là `279`.
 - Không đưa Gmail app password, Google Client Secret, VNPAY secret vào báo cáo.
 - Không cần đổi khóa chính `id` thành `user_id`; `id` làm PK và `user_id`, `booking_id` làm FK là convention bình thường trong Spring Boot/JPA.
 - Nên chụp hình các màn: login, Google login, forgot password, email reset, đặt phòng, VNPAY, ví Partner, quyết toán Admin, kết quả test pass.

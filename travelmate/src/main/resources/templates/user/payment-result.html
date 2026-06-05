@@ -207,7 +207,7 @@
 </head>
 <body>
     <script src="/assets/js/main.js"></script>
-    <script src="/assets/js/user.js"></script>
+    <script src="/assets/js/user.js?v=20260603-preview"></script>
     <div th:replace="~{fragments/user-header :: header(true, 'bookings')}"></div>
 
     <div class="pr-wrapper">
@@ -219,7 +219,7 @@
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
                 <h1 class="pr-title">Thanh toán thành công!</h1>
-                <p class="pr-subtitle" th:text="${message}">Thanh toán đã được xác nhận, đơn đang chờ đối tác giữ phòng.</p>
+                <p class="pr-subtitle" th:text="${message}">Thanh toán đã được xác nhận, phòng/căn đã được giữ.</p>
             </div>
 
             <div class="pr-body">
@@ -260,7 +260,7 @@
                 <div class="pr-note">
                     <i class="fa-solid fa-lightbulb" style="margin-right:6px;"></i>
                     <strong>Bước tiếp theo:</strong> Thanh toán đã được VNPAY xác minh và TravelMate tự động ghi nhận.
-                    Đơn đang được gửi đến đối tác để xác nhận giữ phòng/căn. Bạn có thể theo dõi trạng thái tại trang <strong>Đặt phòng của tôi</strong>.
+                    Đơn đã được giữ phòng/căn trên hệ thống; đối tác sẽ tiếp nhận và check-in khi bạn đến. Bạn có thể theo dõi trạng thái tại trang <strong>Đặt phòng của tôi</strong>.
                 </div>
 
                 <div class="pr-note" th:if="${travelDestinationLabel != null and !#strings.isEmpty(travelDestinationLabel)}">
@@ -314,8 +314,8 @@
                 <div class="pr-note">
                     <i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i>
                     <strong>Đơn đặt phòng đã bị hủy</strong> và phòng đã được mở lại cho người khác.
-                    Nếu tài khoản của bạn đã bị trừ tiền nhưng giao dịch thất bại, VNPAY sẽ tự động hoàn tiền trong 1–3 ngày làm việc.
-                    Nếu cần hỗ trợ, vui lòng liên hệ TravelMate qua trang <strong>Hỗ trợ</strong>.
+                    Nếu tài khoản của bạn đã bị trừ tiền nhưng giao dịch thất bại, vui lòng liên hệ ngân hàng/VNPAY hoặc TravelMate để đối soát.
+                    Trong môi trường demo Sandbox, hệ thống chỉ ghi nhận trạng thái giao dịch và không phát sinh hoàn tiền ngân hàng thật.
                 </div>
 
                 <div class="pr-divider"></div>

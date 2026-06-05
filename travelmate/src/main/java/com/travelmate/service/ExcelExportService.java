@@ -359,7 +359,7 @@ public class ExcelExportService {
         }
         return switch (status) {
             case PENDING -> "Chờ chi trả";
-            case PAID -> "Đã chi trả";
+            case PAID -> "Đã ghi nhận chi trả";
             case CANCELLED -> "Đã hủy";
         };
     }

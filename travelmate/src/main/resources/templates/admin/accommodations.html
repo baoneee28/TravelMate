@@ -168,7 +168,7 @@
                                 <th>Partner đăng</th>
                                 <th>Loại</th>
                                 <th>Địa chỉ / Thành phố</th>
-                                <th>Sao</th>
+                                <th>Điểm đánh giá</th>
                                 <th>Trạng thái</th>
                                 <th>Ngày tạo</th>
                                 <th>Thao tác</th>
@@ -213,8 +213,11 @@
                                     <div style="font-size:12px;color:var(--color-text-muted);" th:text="${acc.city}">TP</div>
                                 </td>
                                 <td>
-                                    <span th:if="${acc.starRating != null}" th:text="${acc.starRating} + '⭐'">4⭐</span>
-                                    <span th:if="${acc.starRating == null}">--</span>
+                                    <div th:if="${acc.reviewCount != null and acc.reviewCount > 0}">
+                                        <strong th:text="${#numbers.formatDecimal(acc.rating != null ? acc.rating : 0, 1, 1)} + '/10'">8.6/10</strong>
+                                        <div style="font-size:11px;color:var(--color-text-muted);" th:text="${acc.reviewCount} + ' đánh giá'">0 đánh giá</div>
+                                    </div>
+                                    <span th:if="${acc.reviewCount == null or acc.reviewCount == 0}">Chưa có đánh giá</span>
                                 </td>
                                 <td>
                                     <span class="badge"

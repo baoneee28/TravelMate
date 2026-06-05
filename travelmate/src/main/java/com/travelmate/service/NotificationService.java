@@ -2,6 +2,7 @@ package com.travelmate.service;
 
 import com.travelmate.entity.Accommodation;
 import com.travelmate.entity.Notification;
+import com.travelmate.entity.Room;
 import com.travelmate.entity.User;
 import com.travelmate.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
@@ -67,7 +70,53 @@ public class NotificationService {
         return notificationRepository.save(n);
     }
 
-    /** Notification sau khi giao dịch VNPAY đã được xác minh và chuyển cho partner giữ chỗ. */
+    @Transactional
+    public Notification createLowRatingWarning(User partner, Room room, YearMonth month, double avgRating) {
+        if (partner == null || room == null) {
+            return null;
+        }
+        String monthLabel = month != null ? month.format(DateTimeFormatter.ofPattern("MM/yyyy")) : "tháng hiện tại";
+        String title = "Cảnh báo điểm thấp " + monthLabel + ": " + room.getRoomName();
+        String targetUrl = "/partner/room-status";
+        if (notificationRepository.existsByUserAndTitleAndTargetUrl(partner, title, targetUrl)) {
+            return null;
+        }
+
+        Notification n = new Notification();
+        n.setUser(partner);
+        n.setType(Notification.Type.SYSTEM);
+        n.setTitle(title);
+        n.setMessage("Phòng/căn \"" + room.getRoomName() + "\" đang đạt " + formatRating(avgRating)
+                + "/10 trong " + monthLabel + ". Nếu tháng sau vẫn dưới 2/10, hệ thống sẽ tạm ngừng mở bán.");
+        n.setTargetUrl(targetUrl);
+        n.setIsRead(false);
+        return notificationRepository.save(n);
+    }
+
+    @Transactional
+    public Notification createLowRatingSuspension(User partner, Room room, YearMonth month, double avgRating) {
+        if (partner == null || room == null) {
+            return null;
+        }
+        String monthLabel = month != null ? month.format(DateTimeFormatter.ofPattern("MM/yyyy")) : "tháng hiện tại";
+        String title = "Tạm ngừng mở bán " + monthLabel + ": " + room.getRoomName();
+        String targetUrl = "/partner/room-status";
+        if (notificationRepository.existsByUserAndTitleAndTargetUrl(partner, title, targetUrl)) {
+            return null;
+        }
+
+        Notification n = new Notification();
+        n.setUser(partner);
+        n.setType(Notification.Type.SYSTEM);
+        n.setTitle(title);
+        n.setMessage("Phòng/căn \"" + room.getRoomName() + "\" vẫn dưới 2/10 trong " + monthLabel
+                + ". Hệ thống đã tạm ngừng mở bán online để partner và admin kiểm tra lại.");
+        n.setTargetUrl(targetUrl);
+        n.setIsRead(false);
+        return notificationRepository.save(n);
+    }
+
+    /** Notification sau khi giao dịch VNPAY đã được xác minh và hệ thống tự giữ chỗ. */
     @Transactional
     public Notification createPaymentReceived(User user, String bookingCode,
                                               Accommodation accommodation, String paymentOptionLabel) {
@@ -77,7 +126,7 @@ public class NotificationService {
         n.setTitle("Đã xác nhận " + paymentOptionLabel + " qua VNPAY - " + bookingCode);
         n.setMessage("TravelMate đã tự động xác nhận khoản " + paymentOptionLabel
                 + " của bạn cho đặt phòng tại " + accommodation.getName()
-                + ". Đơn đang chờ đối tác xác nhận giữ phòng.");
+                + ". Phòng/căn đã được giữ trên hệ thống.");
         n.setTargetUrl("/my-bookings?tab=CONFIRMED");
         n.setIsRead(false);
         return notificationRepository.save(n);
@@ -97,5 +146,9 @@ public class NotificationService {
         n.setTargetUrl("/contact");
         n.setIsRead(false);
         return notificationRepository.save(n);
+    }
+
+    private String formatRating(double rating) {
+        return String.format(java.util.Locale.ROOT, "%.1f", rating);
     }
 }

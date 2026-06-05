@@ -5,6 +5,7 @@ import com.travelmate.entity.Accommodation;
 import com.travelmate.entity.Booking;
 import com.travelmate.entity.Room;
 import com.travelmate.entity.User;
+import com.travelmate.entity.Voucher;
 import com.travelmate.entity.enums.ApprovalStatus;
 import com.travelmate.entity.enums.PaymentOption;
 import com.travelmate.repository.UserRepository;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -81,6 +83,7 @@ public class BookingPageController {
             @RequestParam(required = false, defaultValue = "2") int adults,
             @RequestParam(required = false, defaultValue = "0") int children,
             @RequestParam(required = false, defaultValue = "1") int rooms,
+            @RequestParam(required = false, defaultValue = "") String voucherCode,
             @AuthenticationPrincipal CustomUserDetails currentUser,
             Model model) {
 
@@ -151,7 +154,16 @@ public class BookingPageController {
         model.addAttribute("paidFull", paidFull);
         model.addAttribute("paidDeposit", paidDeposit);
         model.addAttribute("roomImages", roomImageService.getImages(room));
-        model.addAttribute("applicableVouchers", voucherService.getApplicableVouchers(room));
+        model.addAttribute("prefillVoucherCode", normalizeVoucherCode(voucherCode));
+
+        List<Voucher> applicableVouchers = voucherService.getApplicableVouchers(room, totalAmount);
+        model.addAttribute("applicableVouchers", applicableVouchers);
+        if (!applicableVouchers.isEmpty()) {
+            Voucher bestVoucher = applicableVouchers.get(0);
+            BigDecimal bestSavings = voucherService.calculateDiscount(bestVoucher, totalAmount);
+            model.addAttribute("recommendedVoucherSummary",
+                    "Tốt nhất: " + bestVoucher.getCode() + " · Tiết kiệm " + formatMoneyVnd(bestSavings) + "đ");
+        }
 
         // isVilla dùng cả trong <main> lẫn modal QR (ngoài <main>) nên cần thêm vào model
         boolean isVilla = hotel.getPropertyType() != null
@@ -177,6 +189,48 @@ public class BookingPageController {
      *   3. Redirect sang GET /payment/vnpay/create/{bookingId}
      *   4. VNPAY xử lý → trả kết quả qua IPN + Return URL
      */
+    @GetMapping("/booking/confirm")
+    public String confirmBookingGetFallback(
+            @RequestParam(required = false) Long roomId,
+            @RequestParam(required = false, defaultValue = "") String checkIn,
+            @RequestParam(required = false, defaultValue = "") String checkOut,
+            @RequestParam(required = false, defaultValue = "2") int adults,
+            @RequestParam(required = false, defaultValue = "0") int children,
+            @RequestParam(required = false, defaultValue = "1") int rooms,
+            @RequestParam(required = false, defaultValue = "") String voucherCode,
+            @AuthenticationPrincipal CustomUserDetails currentUser,
+            RedirectAttributes redirectAttributes) {
+
+        if (currentUser == null) {
+            return "redirect:/auth/login";
+        }
+
+        redirectAttributes.addFlashAttribute("errorMessage",
+                "Phiên xác nhận đặt phòng chưa đầy đủ. Vui lòng kiểm tra thông tin và bấm thanh toán lại.");
+
+        if (roomId == null) {
+            return "redirect:/accommodations";
+        }
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/booking")
+                .queryParam("roomId", roomId)
+                .queryParam("adults", Math.max(1, adults))
+                .queryParam("children", Math.max(0, children))
+                .queryParam("rooms", Math.max(1, rooms));
+
+        if (checkIn != null && !checkIn.isBlank()) {
+            builder.queryParam("checkIn", checkIn);
+        }
+        if (checkOut != null && !checkOut.isBlank()) {
+            builder.queryParam("checkOut", checkOut);
+        }
+        if (voucherCode != null && !voucherCode.isBlank()) {
+            builder.queryParam("voucherCode", normalizeVoucherCode(voucherCode));
+        }
+
+        return "redirect:" + builder.build().toUriString();
+    }
+
     @PostMapping("/booking/confirm")
     public String confirmBooking(
             @RequestParam Long roomId,
@@ -226,7 +280,10 @@ public class BookingPageController {
                     "Lỗi đặt phòng: " + e.getMessage());
             return "redirect:/booking?roomId=" + roomId
                     + "&checkIn=" + checkIn + "&checkOut=" + checkOut
-                    + "&adults=" + adults + "&children=" + children + "&rooms=" + rooms;
+                    + "&adults=" + adults + "&children=" + children + "&rooms=" + rooms
+                    + ((voucherCode != null && !voucherCode.isBlank())
+                    ? "&voucherCode=" + voucherCode.trim().toUpperCase()
+                    : "");
         }
     }
 
@@ -312,13 +369,52 @@ public class BookingPageController {
         return "redirect:/my-bookings";
     }
 
+    /**
+     * Đặt lại từ đơn đã hủy/no-show: chỉ prefill thông tin đặt chỗ, không chuyển thanh toán/voucher cũ.
+     */
+    @GetMapping("/my-bookings/{id}/rebook")
+    public String rebookBooking(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails currentUser,
+            RedirectAttributes redirectAttributes) {
+
+        if (currentUser == null) {
+            return "redirect:/auth/login";
+        }
+
+        try {
+            User user = userRepository.findByEmail(currentUser.getUsername())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản!"));
+
+            BookingService.RebookDraft draft = bookingService.prepareRebook(id, user);
+            redirectAttributes.addFlashAttribute("rebookNotice", draft.notice());
+
+            String bookingUrl = UriComponentsBuilder.fromPath("/booking")
+                    .queryParam("roomId", draft.roomId())
+                    .queryParam("checkIn", draft.checkIn())
+                    .queryParam("checkOut", draft.checkOut())
+                    .queryParam("adults", draft.adults())
+                    .queryParam("children", draft.children())
+                    .queryParam("rooms", draft.rooms())
+                    .build()
+                    .toUriString();
+
+            return "redirect:" + bookingUrl;
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Không thể đặt lại: " + e.getMessage());
+            return "redirect:/my-bookings";
+        }
+    }
+
     // ===== REVIEW =====
 
     /**
      * User gửi đánh giá cho booking đã COMPLETED.
      *
      * POST /my-bookings/{bookingId}/review
-     * Form data: rating (1-5), comment
+     * Form data: rating (1-10), comment
      */
     @PostMapping("/my-bookings/{bookingId}/review")
     public String submitReview(
@@ -370,5 +466,16 @@ public class BookingPageController {
     private String formatDateVN(LocalDate date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         return date.format(formatter);
+    }
+
+    /**
+     * Format tiền theo kiểu 1.234.567.
+     */
+    private String formatMoneyVnd(BigDecimal amount) {
+        return String.format("%,.0f", amount != null ? amount : BigDecimal.ZERO).replace(",", ".");
+    }
+
+    private String normalizeVoucherCode(String voucherCode) {
+        return voucherCode == null ? "" : voucherCode.trim().toUpperCase();
     }
 }

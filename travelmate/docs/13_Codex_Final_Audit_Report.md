@@ -1,12 +1,12 @@
 # Bao cao ra soat TravelMate - Codex
 
-Ngay ra soat: 27/05/2026
+Ngay ra soat: 02/06/2026
 
 ## Ket luan nhanh
 
 Trang thai hien tai: PASS cho cac nhom core demo da ban voi ben ra soat.
 
-- Full test suite: 247 tests, 0 failures, 0 errors, 0 skipped.
+- Full test suite: 279 tests, 0 failures, 0 errors, 0 skipped.
 - Browser smoke test: PASS tren `http://localhost:18080` cho login, news filter empty-state, listing mac dinh Da Lat.
 - Khong con app test chay nen sau khi kiem tra: `NO_JAVA_PROCESS`, `LOCAL_18080_HTTP=000`.
 - Grep cac cum loi thoi theo checklist da sach trong source/test/doc demo chinh.
@@ -179,7 +179,7 @@ PASS ve mat co so code de tra loi.
 Ket qua:
 
 ```text
-Tests run: 247, Failures: 0, Errors: 0, Skipped: 0
+Tests run: 279, Failures: 0, Errors: 0, Skipped: 0
 BUILD SUCCESS
 ```
 

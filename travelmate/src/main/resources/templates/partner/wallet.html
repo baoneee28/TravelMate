@@ -189,7 +189,7 @@
                         <div class="wallet-balance-panel__amount"
                              th:text="${#numbers.formatDecimal(wallet.availableBalance,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
                         <p class="wallet-balance-panel__caption">
-                            Số dư được cộng tự động khi Admin xác nhận quyết toán. Yêu cầu rút tiền sẽ giữ số dư cho đến khi Admin chuyển khoản hoặc từ chối.
+                            Số dư được cộng khi Admin ghi nhận quyết toán đã chi trả ngoài hệ thống. Yêu cầu rút tiền sẽ giữ số dư cho đến khi Admin xử lý chuyển khoản hoặc từ chối.
                         </p>
                     </div>
                     <div class="wallet-mini-grid">

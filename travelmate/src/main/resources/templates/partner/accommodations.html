@@ -108,7 +108,7 @@
                                 <th style="white-space: nowrap; min-width: 250px;">Tên nơi lưu trú</th>
                                 <th style="white-space: nowrap; min-width: 100px;">Loại</th>
                                 <th style="white-space: nowrap; min-width: 100px;">Thành phố</th>
-                                <th style="white-space: nowrap; min-width: 80px;">Sao</th>
+                                <th style="white-space: nowrap; min-width: 120px;">Điểm đánh giá</th>
                                 <th th:text="${'Số ' + (unitLabelCap ?: 'Phòng')}" style="white-space: nowrap; min-width: 100px;">Số Phòng</th>
                                 <th style="white-space: nowrap; min-width: 220px;">Trạng thái duyệt</th>
                                 <th style="white-space: nowrap; min-width: 100px;">Ngày tạo</th>
@@ -142,19 +142,31 @@
                                 </td>
                                 <td style="white-space: nowrap;" th:text="${acc.city ?: '--'}">TP</td>
                                 <td style="white-space: nowrap;">
-                                    <span th:if="${acc.starRating != null}" th:text="${acc.starRating} + '⭐'">4⭐</span>
-                                    <span th:if="${acc.starRating == null}">--</span>
+                                    <div th:if="${acc.reviewCount != null and acc.reviewCount > 0}">
+                                        <strong th:text="${#numbers.formatDecimal(acc.rating != null ? acc.rating : 0, 1, 1)} + '/10'">8.6/10</strong>
+                                        <div style="font-size:11px;color:var(--color-text-muted);" th:text="${acc.reviewCount} + ' đánh giá'">0 đánh giá</div>
+                                    </div>
+                                    <span th:if="${acc.reviewCount == null or acc.reviewCount == 0}">Chưa có đánh giá</span>
                                 </td>
                                 <td style="text-align:center;font-weight:600;color:var(--color-primary); white-space: nowrap;">
                                     <span th:text="${roomCountMap[acc.id] ?: 0}">0</span>
                                     <span style="font-size:11px;font-weight:400;color:var(--color-text-muted);" th:text="${' ' + (unitLabel ?: 'phòng')}"> phòng</span>
+                                    <div th:if="${(approvedRoomCountMap[acc.id] ?: 0) > 0}"
+                                         style="font-size:10.5px;color:#16a34a;margin-top:3px;font-weight:600;"
+                                         th:text="${'✅ ' + (approvedRoomCountMap[acc.id] ?: 0) + ' đã duyệt'}">✅ 1 đã duyệt</div>
+                                    <div th:if="${(pendingRoomCountMap[acc.id] ?: 0) > 0}"
+                                         style="font-size:10.5px;color:#d97706;margin-top:3px;font-weight:600;"
+                                         th:text="${'⏳ ' + (pendingRoomCountMap[acc.id] ?: 0) + ' chờ duyệt'}">⏳ 1 chờ duyệt</div>
                                 </td>
                                 <td style="white-space: nowrap;">
                                     <span class="badge"
                                           th:classappend="${acc.approvalStatus.name() == 'PENDING' ? 'badge--warning' :
-                                                          acc.approvalStatus.name() == 'APPROVED' ? 'badge--success' : 'badge--danger'}"
+                                                          (acc.approvalStatus.name() == 'APPROVED' and (approvedRoomCountMap[acc.id] ?: 0) > 0) ? 'badge--success' :
+                                                          acc.approvalStatus.name() == 'APPROVED' ? 'badge--warning' : 'badge--danger'}"
                                           th:text="${acc.approvalStatus.name() == 'PENDING' ? '⏳ Chờ Admin duyệt listing' :
-                                                    acc.approvalStatus.name() == 'APPROVED' ? '✅ Đã duyệt — Đang mở bán' : '❌ Bị từ chối — Liên hệ Admin'}">
+                                                    (acc.approvalStatus.name() == 'APPROVED' and (approvedRoomCountMap[acc.id] ?: 0) > 0) ? '✅ Đã duyệt — Đang mở bán' :
+                                                    acc.approvalStatus.name() == 'APPROVED' ? '⏳ Listing đã duyệt — chờ duyệt phòng' :
+                                                    '❌ Bị từ chối — Liên hệ Admin'}">
                                         Trạng thái
                                     </span>
                                     <!-- Giải thích khi bị từ chối -->
@@ -167,6 +179,10 @@
                                          style="font-size:11px;color:#d97706;margin-top:4px; white-space: nowrap;">
                                         Khách hàng chưa thấy listing này.
                                     </div>
+                                    <div th:if="${acc.approvalStatus.name() == 'APPROVED' and (approvedRoomCountMap[acc.id] ?: 0) == 0}"
+                                         style="font-size:11px;color:#d97706;margin-top:4px; white-space: nowrap;">
+                                        Khách hàng chưa thấy phòng/căn mới cho tới khi Admin duyệt.
+                                    </div>
                                 </td>
                                 <td style="font-size:12px;color:var(--color-text-muted); white-space: nowrap;">
                                     <span th:if="${acc.createdAt != null}"
@@ -176,12 +192,14 @@
                                 <td>
                                     <div style="display:flex;gap:6px;flex-wrap:nowrap;align-items:center;white-space:nowrap;">
                                         <!-- Xem trang public nếu APPROVED -->
-                                        <a th:if="${acc.approvalStatus.name() == 'APPROVED'}"
+                                        <a th:if="${acc.approvalStatus.name() == 'APPROVED' and (approvedRoomCountMap[acc.id] ?: 0) > 0}"
                                            th:href="@{/accommodations/{id}(id=${acc.id})}"
                                            target="_blank" class="btn btn--ghost btn--sm"
                                            style="font-size:12px;padding:5px 10px;">
                                             🔗 Xem
                                         </a>
+                                        <span th:if="${acc.approvalStatus.name() == 'APPROVED' and (approvedRoomCountMap[acc.id] ?: 0) == 0}"
+                                              class="badge badge--warning" style="font-size:11px;">⏳ Chưa public phòng</span>
                                         <!-- Thêm phòng/căn CHỈ khi APPROVED -->
                                          <a th:if="${acc.approvalStatus.name() == 'APPROVED'}"
                                             th:href="@{/partner/accommodations/{id}/rooms/new(id=${acc.id})}"

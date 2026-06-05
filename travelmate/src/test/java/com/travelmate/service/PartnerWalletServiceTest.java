@@ -214,7 +214,7 @@ class PartnerWalletServiceTest {
         when(withdrawalRepository.findByIdForUpdate(5L)).thenReturn(Optional.of(request));
         when(walletRepository.findByPartnerForUpdate(partner)).thenReturn(Optional.of(wallet));
 
-        PartnerWithdrawalRequest result = walletService.markWithdrawalPaid(5L, admin, "Đã chuyển khoản");
+        PartnerWithdrawalRequest result = walletService.markWithdrawalPaid(5L, admin, "Admin ghi nhận đã xử lý ngoài hệ thống");
 
         assertThat(result.getWithdrawalStatus()).isEqualTo(PartnerWithdrawalStatus.PAID);
         assertThat(wallet.getPendingWithdrawalAmount()).isEqualByComparingTo("0");

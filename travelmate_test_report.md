@@ -1,6 +1,6 @@
 # TravelMate — Báo Cáo Kiểm Thử Settlement / Wallet
 
-**Ngày cập nhật:** 2026-05-27  
+**Ngày cập nhật:** 2026-06-03
 **Phạm vi:** Quyết toán tháng, ví Partner, yêu cầu rút tiền, export Excel và phân quyền route liên quan.
 
 ---
@@ -19,7 +19,7 @@ Module settlement/wallet đã đáp ứng phạm vi demo đồ án và đã qua 
 | Admin xác nhận/từ chối withdrawal | Đạt |
 | Không trừ tiền hai lần khi Admin xác nhận đã chuyển khoản | Đạt |
 | Export Excel settlement/withdrawal | Đạt |
-| Test tự động | **234 pass**, 0 fail, 0 error |
+| Test tự động toàn dự án | **279 pass**, 0 fail, 0 error |
 
 ---
 
@@ -51,8 +51,8 @@ flowchart TD
     C --> D["Partner gửi yêu cầu rút tiền"]
     D --> E["availableBalance giảm, pendingWithdrawal tăng"]
     E --> F{"Admin xử lý"}
-    F -->|Đã chuyển khoản| G["Hoàn tất khoản rút đã phong tỏa"]
-    F -->|Từ chối| H["Hoàn tiền về availableBalance"]
+    F -->|Admin ghi nhận đã xử lý ngoài hệ thống| G["Hoàn tất yêu cầu rút đã phong tỏa"]
+    F -->|Từ chối| H["Hoàn lại số dư về availableBalance"]
     G --> I["Ghi transaction WITHDRAWAL_PAID dạng INFO"]
     H --> J["Ghi transaction WITHDRAWAL_REJECTED"]
 ```
@@ -74,23 +74,23 @@ Payout = GrossAmount - CommissionAmount - PartnerVoucherDeduction
 | `PartnerVoucherDeduction` | Voucher do đối tác chịu |
 | Voucher Admin chịu | Không trừ vào số tiền đối tác nhận |
 
-TravelMate chỉ tính commission trên khoản khách thanh toán online. Với booking `DEPOSIT_30` hoàn tất hoặc mất cọc, hệ thống chỉ đưa phần cọc online 30% vào doanh thu/quyết toán; 70% khách trả tại cơ sở không vào ví TravelMate. Dữ liệu cũ thiếu khoản trả tại cơ sở được chuẩn hóa lại khi ứng dụng khởi động.
+Với booking `DEPOSIT_30` hoàn tất hoặc mất cọc, TravelMate tính hoa hồng theo tổng đơn gốc nhưng payout chỉ lấy từ phần cọc online đã thu; 70% khách trả tại cơ sở không vào ví TravelMate. Dữ liệu cũ thiếu khoản trả tại cơ sở được chuẩn hóa lại khi ứng dụng khởi động.
 
 ---
 
 ## 4. Kết Quả Test Tự Động
 
-Lần chạy gần nhất được xác nhận từ `target/surefire-reports` ngày 2026-05-27.
+Lần chạy gần nhất được xác nhận từ `target/surefire-reports` ngày 2026-06-05. Số liệu này là full suite sau khi bổ sung guard VNPAY return, kiểm tra truy cập chéo role, email reset và luồng user đặt lại đơn đã hủy/no-show; các case settlement/wallet trong báo cáo vẫn được bao phủ trong full suite.
 
 | Nhóm test | Số lượng | Kết quả |
 |---|---:|---|
-| Unit/service/template/static/integration tests | 234 | PASS |
-| **Tổng cộng** | **234** | **PASS** |
+| Unit/service/template/static/integration tests | 279 | PASS |
+| **Tổng cộng** | **279** | **PASS** |
 
 Kết quả kỳ vọng sau khi chạy:
 
 ```text
-Tests run: 234, Failures: 0, Errors: 0, Skipped: 0
+Tests run: 279, Failures: 0, Errors: 0, Skipped: 0
 BUILD SUCCESS
 ```
 
@@ -98,7 +98,7 @@ Integration test đã bao phủ:
 
 | Chức năng | Kiểm thử |
 |---|---|
-| Phân quyền Admin/Partner/User | USER bị chặn khi vào route Admin/Partner |
+| Phân quyền Admin/Partner/User | USER, PARTNER và ADMIN bị chặn khi truy cập sai workspace theo role |
 | Admin settlements | Mở danh sách settlement thành công |
 | Admin withdrawals | Mở danh sách withdrawal thành công |
 | Export Excel settlement | `GET /admin/settlements/{id}/export-excel` trả file XLSX |

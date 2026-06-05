@@ -465,6 +465,48 @@ class VoucherCalculationTest {
                 .isEqualByComparingTo("100000");
     }
 
+    @Test
+    @DisplayName("Danh sách voucher trên booking được sắp theo mức tiết kiệm giảm dần")
+    void getApplicableVouchers_ordersBySavingsDescending() {
+        User resortPartner = partner(4L, PropertyType.RESORT);
+        Room selectedRoom = room(accommodation(8L, "Vinpearl Resort", PropertyType.RESORT, resortPartner));
+
+        Voucher smallerPublic = buildFixedVoucher(50000, 0, VoucherCostBearer.ADMIN);
+        smallerPublic.setId(101L);
+        smallerPublic.setCode("WELCOME50");
+        smallerPublic.setVoucherScope(VoucherScope.USER_GLOBAL);
+
+        Voucher bestPublic = buildPercentVoucher(10, 0, 0);
+        bestPublic.setId(102L);
+        bestPublic.setCode("SUMMER10");
+        bestPublic.setVoucherScope(VoucherScope.USER_GLOBAL);
+
+        Voucher highMinimumPublic = buildPercentVoucher(15, 0, 2000000);
+        highMinimumPublic.setId(104L);
+        highMinimumPublic.setCode("TRAVEL15");
+        highMinimumPublic.setVoucherScope(VoucherScope.USER_GLOBAL);
+
+        Voucher middleAssigned = buildFixedVoucher(100000, 0, VoucherCostBearer.PARTNER);
+        middleAssigned.setId(103L);
+        middleAssigned.setCode("VNT100K");
+        middleAssigned.setVoucherScope(VoucherScope.PARTNER_ROOM);
+        middleAssigned.setPropertyType(PropertyType.RESORT);
+
+        when(voucherRepository.findByVoucherScopeOrderByCreatedAtDesc(VoucherScope.USER_GLOBAL))
+                .thenReturn(List.of(smallerPublic, highMinimumPublic, bestPublic));
+
+        RoomVoucherAssignment assignment = new RoomVoucherAssignment();
+        assignment.setId(201L);
+        assignment.setVoucher(middleAssigned);
+        assignment.setRoom(selectedRoom);
+        when(assignmentRepository.findByRoomAndActiveTrue(selectedRoom))
+                .thenReturn(List.of(assignment));
+
+        assertThat(voucherService.getApplicableVouchers(selectedRoom, new BigDecimal("1300000")))
+                .extracting(Voucher::getCode)
+                .containsExactly("SUMMER10", "VNT100K", "WELCOME50");
+    }
+
     private static User partner(Long id, PropertyType propertyType) {
         User partner = new User();
         partner.setId(id);

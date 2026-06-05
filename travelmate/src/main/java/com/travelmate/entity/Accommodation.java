@@ -75,7 +75,7 @@ public class Accommodation {
     @Column
     private Integer reviewCount = 0;
 
-    /** Số sao của khách sạn (1-5) */
+    /** Trường legacy cho dữ liệu cũ / import seed; UI hiện dùng điểm review 1-10. */
     @Column
     private Integer starRating;
 
@@ -84,7 +84,7 @@ public class Accommodation {
      * Dùng để hiển thị giá trên trang danh sách mà KHÔNG cần load lazy collection rooms.
      * Không ánh xạ vào cột DB → chỉ là derived value khi SELECT.
      */
-    @Formula("(SELECT MIN(r.price_per_night) FROM rooms r WHERE r.accommodation_id = id)")
+    @Formula("(SELECT MIN(r.price_per_night) FROM rooms r WHERE r.accommodation_id = id AND r.approval_status = 'APPROVED' AND r.available_for_booking = true)")
     private Double minPrice;
 
     /**

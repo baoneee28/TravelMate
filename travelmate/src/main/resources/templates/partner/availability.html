@@ -146,7 +146,7 @@
                 <p><span th:text="|Trang này chỉ hiển thị ${unitLabel ?: 'phòng'} thuộc|">Trang này chỉ hiển thị phòng thuộc</span> <strong>cơ sở lưu trú đã được Admin duyệt</strong> của bạn.
                    <span th:text="${(unitLabelCap ?: 'Phòng') + ' bị tính &quot;đang giữ&quot; bao gồm các đơn có trạng thái:'}">Phòng bị tính "đang giữ" bao gồm các đơn có trạng thái:</span> <strong>Chờ duyệt</strong>, <strong>Đã xác nhận</strong> và <strong>Đang check-in</strong>.
                    <br/>
-                   <span style="color:#1d4ed8;font-weight:600;">📌 Đơn online đang thanh toán có thể giữ quota tạm thời để tránh bán trùng; bạn thao tác đơn sau khi VNPAY xác nhận thanh toán thành công.</span>
+                   <span style="color:#1d4ed8;font-weight:600;">📌 Đơn online đang thanh toán có thể giữ quota tạm thời để tránh bán trùng; bạn thao tác đơn sau khi VNPAY ghi nhận thanh toán thành công.</span>
                    <br/>
                    <span style="color:#065f46;font-weight:600;">📌 Booking đã No-show, đã Huỷ hoặc đã Hoàn tất sẽ <em>không</em> chiếm <span th:text="|quota ${unitLabel ?: 'phòng'}|">quota phòng</span></span> — quota được mở lại ngay sau khi bạn xác nhận No-show hoặc khách <span th:text="|trả ${unitLabel ?: 'phòng'}|">trả phòng</span>.
                    <br/>

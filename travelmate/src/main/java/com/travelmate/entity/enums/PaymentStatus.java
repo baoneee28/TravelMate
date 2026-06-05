@@ -5,7 +5,7 @@ package com.travelmate.entity.enums;
  *
  * Luồng VNPAY:
  *   User bấm thanh toán → PENDING_PAYMENT
- *   VNPAY xác nhận OK   → APPROVED (hệ thống tự động ghi nhận)
+ *   VNPAY ghi nhận OK   → APPROVED (hệ thống tự động ghi nhận)
  *   VNPAY lỗi           → FAILED
  *   User hủy trên VNPAY → CANCELLED
  *   Quá 3 phút          → EXPIRED
@@ -21,8 +21,8 @@ public enum PaymentStatus {
     CANCELLED,              // User hủy giao dịch trên cổng VNPAY (mã 24)
     EXPIRED,                // Giao dịch VNPAY hết hạn (mã 11) hoặc quá 3 phút chưa thanh toán
     DEPOSIT_FORFEITED,      // Cọc 30% bị giữ lại khi khách hủy hoặc không đến check-in
-    REFUND_PENDING,         // Chờ admin xác nhận hoàn tiền
-    REFUNDED,               // Đã hoàn tiền cho user
+    REFUND_PENDING,         // Chờ Admin xử lý hoàn tiền ngoài hệ thống
+    REFUNDED,               // Đã ghi nhận kết quả hoàn tiền cho user
     NOT_REQUIRED,           // Không áp dụng thanh toán TravelMate (DIRECT / MANUAL_BLOCK)
     SUBMITTED               // Legacy — giữ để không lỗi dữ liệu DB cũ
 }

@@ -14,6 +14,87 @@
     <link rel="stylesheet" href="/assets/css/partners.css" />
     <link rel="stylesheet" href="/assets/css/responsive.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        .room-upload-zone {
+            border: 1.5px dashed #93c5fd;
+            border-radius: 12px;
+            background: #f8fbff;
+            padding: 18px;
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            cursor: pointer;
+            transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+        }
+        .room-upload-zone:hover {
+            border-color: #2563eb;
+            background: #eff6ff;
+            box-shadow: 0 8px 22px rgba(37, 99, 235, .08);
+        }
+        .room-upload-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            background: #dbeafe;
+            color: #1d4ed8;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        .room-upload-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 3px;
+        }
+        .room-upload-sub {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.45;
+        }
+        .room-upload-preview {
+            display: none;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        .room-upload-thumb {
+            width: 120px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, .06);
+        }
+        .room-upload-thumb img {
+            width: 100%;
+            height: 82px;
+            object-fit: cover;
+            display: block;
+        }
+        .room-upload-thumb span {
+            display: block;
+            padding: 6px 8px;
+            font-size: 11px;
+            color: #475569;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .room-upload-clear {
+            display: none;
+            margin-top: 8px;
+            border: none;
+            background: transparent;
+            color: #dc2626;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 0;
+        }
+    </style>
 </head>
 
 <body>
@@ -74,7 +155,7 @@
                         </h3>
                     </div>
                     <div class="review-panel__body" style="padding: var(--space-5);">
-                        <form th:action="@{/partner/accommodations/{id}/rooms/new(id=${accommodation.id})}" method="post">
+                        <form th:action="@{/partner/accommodations/{id}/rooms/new(id=${accommodation.id})}" method="post" enctype="multipart/form-data">
                             <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);">
 
                                 <div class="form-group">
@@ -143,13 +224,31 @@
 
                                 <div class="form-group" style="grid-column: 1 / -1;">
                                     <label class="form-label"
-                                           th:text="${isVillaPartner} ? 'URL ảnh căn villa' : (${isResortPartner} ? 'URL ảnh phòng / suite Resort' : 'URL ảnh phòng')">URL ảnh phòng</label>
-                                     <input type="url" name="imageUrl" class="form-control"
-                                            th:placeholder="${isVillaPartner} ? 'Nhập URL ảnh căn villa' : (${isResortPartner} ? 'Nhập URL ảnh phòng / suite Resort' : 'Nhập URL ảnh phòng')"
-                                            placeholder="Nhập URL ảnh phòng" />
-                                     <small style="color:var(--color-text-muted);font-size:11px;">
-                                         <span th:text="${'Để trống nếu chưa có ảnh. Ảnh này sẽ hiển thị trong phần thông tin ' + (unitLabel ?: 'phòng') + ' và được dùng làm ảnh phụ trong gallery nơi lưu trú sau khi Admin duyệt ' + (unitLabel ?: 'phòng') + '.'}">Để trống nếu chưa có ảnh. Ảnh này sẽ hiển thị trong phần thông tin phòng và được dùng làm ảnh phụ trong gallery nơi lưu trú sau khi Admin duyệt phòng.</span>
-                                     </small>
+                                           th:text="${isVillaPartner} ? 'Ảnh căn villa' : (${isResortPartner} ? 'Ảnh phòng / suite Resort' : 'Ảnh phòng')">Ảnh phòng</label>
+                                    <input type="hidden" name="imageUrl" value="" />
+                                    <label for="roomImages" class="room-upload-zone">
+                                        <span class="room-upload-icon"><i class="fa-regular fa-images"></i></span>
+                                        <span>
+                                            <span id="roomUploadTitle" class="room-upload-title">Chọn ảnh từ máy tính</span>
+                                            <span class="room-upload-sub"
+                                                  th:text="${'Tải lên tối đa 3 ảnh JPG, PNG hoặc WEBP. Ảnh đầu tiên sẽ làm ảnh đại diện ' + (unitLabel ?: 'phòng') + '.'}">
+                                                Tải lên tối đa 3 ảnh JPG, PNG hoặc WEBP.
+                                            </span>
+                                        </span>
+                                    </label>
+                                    <input type="file" id="roomImages" name="roomImages"
+                                           accept="image/png,image/jpeg,image/webp"
+                                           multiple style="display:none;"
+                                           onchange="previewRoomImages(this)" />
+                                    <div id="roomUploadPreview" class="room-upload-preview"></div>
+                                    <button id="roomUploadClear" type="button" class="room-upload-clear" onclick="clearRoomImages()">
+                                        <i class="fa-solid fa-trash-can"></i> Xóa ảnh đã chọn
+                                    </button>
+                                    <small style="color:var(--color-text-muted);font-size:11px;display:block;margin-top:8px;line-height:1.45;">
+                                        <span th:text="${'Có thể bỏ trống và bổ sung ảnh sau. Khi Admin duyệt ' + (unitLabel ?: 'phòng') + ', ảnh này sẽ hiển thị ở chi tiết nơi lưu trú.'}">
+                                            Có thể bỏ trống và bổ sung ảnh sau.
+                                        </span>
+                                    </small>
                                  </div>
 
                                  <div class="form-group" style="grid-column: 1 / -1;">
@@ -256,6 +355,66 @@
         </div>
     </div>
 
+    <script>
+        function previewRoomImages(input) {
+            const preview = document.getElementById('roomUploadPreview');
+            const clearBtn = document.getElementById('roomUploadClear');
+            const title = document.getElementById('roomUploadTitle');
+            preview.innerHTML = '';
+
+            const files = Array.from(input.files || []);
+            if (files.length > 3) {
+                alert('Chỉ được chọn tối đa 3 ảnh cho mỗi phòng/căn.');
+                clearRoomImages();
+                return;
+            }
+
+            const invalid = files.find(file => !['image/jpeg', 'image/png', 'image/webp'].includes(file.type));
+            if (invalid) {
+                alert('Chỉ hỗ trợ ảnh JPG, PNG hoặc WEBP.');
+                clearRoomImages();
+                return;
+            }
+
+            if (files.length === 0) {
+                clearRoomImages();
+                return;
+            }
+
+            title.textContent = files.length === 1 ? files[0].name : files.length + ' ảnh đã chọn';
+            preview.style.display = 'flex';
+            clearBtn.style.display = 'inline-flex';
+
+            files.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const item = document.createElement('div');
+                    const img = document.createElement('img');
+                    const caption = document.createElement('span');
+                    item.className = 'room-upload-thumb';
+                    img.src = event.target.result;
+                    img.alt = 'Ảnh phòng đã chọn';
+                    caption.textContent = (index === 0 ? 'Ảnh đại diện: ' : '') + file.name;
+                    item.appendChild(img);
+                    item.appendChild(caption);
+                    preview.appendChild(item);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function clearRoomImages() {
+            const input = document.getElementById('roomImages');
+            const preview = document.getElementById('roomUploadPreview');
+            const clearBtn = document.getElementById('roomUploadClear');
+            const title = document.getElementById('roomUploadTitle');
+            input.value = '';
+            preview.innerHTML = '';
+            preview.style.display = 'none';
+            clearBtn.style.display = 'none';
+            title.textContent = 'Chọn ảnh từ máy tính';
+        }
+    </script>
     <script src="/assets/js/main.js"></script>
     <script src="/assets/js/admin.js"></script>
 </body>

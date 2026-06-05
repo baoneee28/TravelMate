@@ -9,13 +9,13 @@
 ## 1. Giới Thiệu
 
 ### 1.1 Mục Đích
-TravelMate là hệ thống đặt phòng trực tuyến quy mô đồ án cơ sở, hỗ trợ ba nhóm người dùng: Khách hàng, Đối tác lưu trú và Quản trị viên. Hệ thống tập trung vào trải nghiệm đặt phòng, thanh toán VNPAY, xác nhận giữ phòng từ đối tác, voucher, quyết toán doanh thu, ví nội bộ đối tác và báo cáo đối soát.
+TravelMate là hệ thống đặt phòng trực tuyến quy mô đồ án cơ sở, hỗ trợ ba nhóm người dùng: Khách hàng, Đối tác lưu trú và Quản trị viên. Hệ thống tập trung vào trải nghiệm đặt phòng, thanh toán VNPAY, TravelMate tự giữ phòng/căn sau thanh toán, voucher, quyết toán doanh thu, ví nội bộ đối tác và báo cáo đối soát.
 
 ### 1.2 Phạm Vi
 - Tìm kiếm và xem chi tiết khách sạn, resort, villa, homestay.
 - Đặt phòng trực tuyến với hai hình thức: cọc 30% hoặc thanh toán 100% qua VNPAY Sandbox.
-- VNPAY thành công thì hệ thống tự xác nhận thanh toán, booking chuyển sang `CONFIRMED` và chờ đối tác xác nhận giữ phòng.
-- Đối tác xác nhận giữ phòng, check-in, xác nhận thu 70% tại cơ sở nếu booking cọc 30%, check-out hoặc no-show.
+- VNPAY thành công thì hệ thống tự xác nhận thanh toán, booking chuyển sang `CONFIRMED` và tự giữ phòng/căn.
+- Đối tác check-in, xác nhận thu 70% tại cơ sở nếu booking cọc 30%, check-out hoặc no-show.
 - Admin quản lý người dùng, cơ sở lưu trú, phòng, bài viết, voucher, đối soát ngoại lệ, hoàn tiền, quyết toán và yêu cầu rút tiền.
 - Voucher do Admin phát hành; `costBearer = ADMIN/PARTNER` quyết định bên chịu chi phí giảm giá.
 - Quyết toán tháng và ví nội bộ cho đối tác, bao gồm lịch sử tiền vào/ra và yêu cầu rút tiền.
@@ -28,7 +28,7 @@ TravelMate là hệ thống đặt phòng trực tuyến quy mô đồ án cơ s
 | Booking | Đơn đặt phòng/căn |
 | DEPOSIT_30 | User thanh toán trước 30% qua VNPAY, 70% còn lại trả tại cơ sở |
 | FULL_PAYMENT | User thanh toán 100% qua VNPAY |
-| Partner status | Trạng thái xác nhận giữ phòng từ phía đối tác |
+| Partner status | Trạng thái vận hành phía đối tác sau khi TravelMate đã ghi nhận/giữ phòng/căn |
 | Settlement | Bản quyết toán doanh thu theo tháng cho đối tác |
 | Partner wallet | Ví quyết toán nội bộ của đối tác |
 | Voucher cost bearer | Bên chịu chi phí voucher: TravelMate/Admin hoặc Partner |
@@ -57,7 +57,7 @@ TravelMate Spring Boot MVC + Thymeleaf
 |---|---|
 | Công khai | Trang chủ, tìm kiếm, chi tiết lưu trú, bài viết du lịch, chatbot |
 | User | Đăng ký/đăng nhập, đặt phòng, thanh toán VNPAY, xem lịch sử, hủy, đánh giá, dùng voucher |
-| Partner | Quản lý cơ sở/phòng, gắn voucher được cấp, xác nhận giữ phòng, check-in/out, xem doanh thu, ví và rút tiền |
+| Partner | Quản lý cơ sở/phòng, gắn voucher được cấp, check-in/out khách, xem doanh thu, ví và rút tiền |
 | Admin | Duyệt listing, quản lý booking/đối soát, voucher, doanh thu, settlement, withdrawal, user, support |
 
 ---
@@ -78,8 +78,8 @@ TravelMate Spring Boot MVC + Thymeleaf
 - Nếu VNPAY thành công và chữ ký hợp lệ:
   - `PaymentStatus = APPROVED`
   - `BookingStatus = CONFIRMED`
-  - `PartnerBookingStatus = PENDING_PARTNER_CONFIRMATION`
-  - Hệ thống gửi booking sang đối tác để xác nhận giữ phòng.
+  - `PartnerBookingStatus = PARTNER_CONFIRMED`
+  - Hệ thống tự giữ phòng/căn và gửi booking sang đối tác để tiếp nhận khách.
 - Nếu VNPAY thất bại/hủy/hết hạn:
   - Booking chuyển `CANCELLED` hoặc trạng thái lỗi phù hợp.
   - Phòng được mở lại.
@@ -93,8 +93,8 @@ TravelMate Spring Boot MVC + Thymeleaf
 - Booking lưu `voucherCode`, `discountAmount`, `voucherCostBearer` để phục vụ đối soát.
 
 ### 3.4 Vòng Đời Booking Sau Thanh Toán
-- `CONFIRMED + PENDING_PARTNER_CONFIRMATION`: đã thanh toán, chờ đối tác xác nhận giữ phòng.
-- `CONFIRMED + PARTNER_CONFIRMED`: đối tác đã xác nhận giữ phòng.
+- `CONFIRMED + PARTNER_CONFIRMED`: đã thanh toán và TravelMate đã giữ phòng/căn.
+- `CONFIRMED + PENDING_PARTNER_CONFIRMATION`: trạng thái legacy/ngoại lệ cần kiểm tra dữ liệu.
 - `CHECKED_IN`: khách đang lưu trú.
 - `COMPLETED`: khách đã trả phòng, booking đủ điều kiện quyết toán nếu payment hợp lệ.
 - `NO_SHOW + DEPOSIT_FORFEITED`: khách không đến với booking cọc 30%, cọc bị giữ và có thể đưa vào quyết toán.
@@ -111,7 +111,7 @@ TravelMate Spring Boot MVC + Thymeleaf
 
 ### 3.6 Partner
 - Quản lý cơ sở lưu trú và phòng/căn trong phạm vi loại hình đã đăng ký.
-- Xác nhận hoặc từ chối giữ phòng sau khi VNPAY thành công.
+- Tiếp nhận khách/check-in sau khi VNPAY thành công và TravelMate đã tự giữ phòng/căn trên hệ thống.
 - Check-in khách; với booking cọc 30%, xác nhận đã thu 70% còn lại tại cơ sở.
 - Check-out để hoàn tất booking.
 - Đánh dấu no-show cho booking cọc 30% theo quyền/hành động được hệ thống cho phép.

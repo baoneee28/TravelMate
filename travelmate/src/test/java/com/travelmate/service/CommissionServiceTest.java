@@ -40,8 +40,8 @@ class CommissionServiceTest {
     }
 
     @Test
-    @DisplayName("Phòng VIP Hotel override 20% chỉ tính trên 600.000 tiền cọc online")
-    void hotelVipOverride_calculatesDepositCommissionFromOnlineAmount() {
+    @DisplayName("Phong VIP Hotel override 20% tinh dung tren base duoc truyen vao")
+    void hotelVipOverride_calculatesCommissionFromProvidedBase() {
         Accommodation hotel = new Accommodation();
         hotel.setPropertyType(PropertyType.HOTEL);
         Room vipRoom = new Room();

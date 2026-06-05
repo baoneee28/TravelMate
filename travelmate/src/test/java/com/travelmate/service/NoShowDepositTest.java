@@ -35,9 +35,9 @@ import static org.mockito.Mockito.*;
  *   → Room availableQuantity được mở lại (+= roomQuantity)
  *
  * FULL_PAYMENT no-show:
- *   → BookingStatus = CHECKED_IN (xử lý check-in vì đã trả đủ 100%)
- *   → PaymentStatus giữ nguyên APPROVED
- *   → Room KHÔNG mở lại (phòng vẫn bị tính là đã dùng)
+ *   → Không xử lý tự động trong demo
+ *   → Booking/Payment giữ nguyên để Admin xử lý refund/giữ phí theo chính sách riêng
+ *   → Không chuyển CHECKED_IN giả
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("BookingService — Nghiệp vụ No-Show")
@@ -153,47 +153,49 @@ class NoShowDepositTest {
     // ─── FULL_PAYMENT no-show ─────────────────────────────────────────────────
 
     @Test
-    @DisplayName("FULL_PAYMENT no-show → BookingStatus = CHECKED_IN (đã trả 100%, vẫn xử lý)")
-    void fullPaymentNoShow_bookingStatusIsCheckedIn() {
+    @DisplayName("FULL_PAYMENT no-show tự động bị chặn, booking giữ CONFIRMED")
+    void fullPaymentNoShow_isRejectedAndBookingStatusStaysConfirmed() {
         Booking booking = buildConfirmedBooking(6L, PaymentOption.FULL_PAYMENT, 1);
 
         when(bookingRepository.findById(6L)).thenReturn(Optional.of(booking));
-        when(bookingRepository.save(any(Booking.class))).thenAnswer(inv ->
-                java.util.Objects.requireNonNull(inv.<Booking>getArgument(0)));
 
-        Booking result = bookingService.markNoShow(6L);
+        assertThatThrownBy(() -> bookingService.markNoShow(6L))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("chỉ áp dụng cho đơn cọc 30%");
 
-        assertThat(result.getBookingStatus()).isEqualTo(BookingStatus.CHECKED_IN);
+        assertThat(booking.getBookingStatus()).isEqualTo(BookingStatus.CONFIRMED);
     }
 
     @Test
-    @DisplayName("FULL_PAYMENT no-show → PaymentStatus giữ nguyên APPROVED (không mất tiền)")
-    void fullPaymentNoShow_paymentStatusStaysApproved() {
+    @DisplayName("FULL_PAYMENT no-show tự động bị chặn, payment giữ APPROVED")
+    void fullPaymentNoShow_isRejectedAndPaymentStatusStaysApproved() {
         Booking booking = buildConfirmedBooking(6L, PaymentOption.FULL_PAYMENT, 1);
 
         when(bookingRepository.findById(6L)).thenReturn(Optional.of(booking));
-        when(bookingRepository.save(any(Booking.class))).thenAnswer(inv ->
-                java.util.Objects.requireNonNull(inv.<Booking>getArgument(0)));
 
-        Booking result = bookingService.markNoShow(6L);
+        assertThatThrownBy(() -> bookingService.markNoShow(6L))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("chính sách hoàn tiền/giữ phí riêng");
 
-        assertThat(result.getPaymentStatus()).isEqualTo(PaymentStatus.APPROVED);
+        assertThat(booking.getPaymentStatus()).isEqualTo(PaymentStatus.APPROVED);
     }
 
     @Test
-    @DisplayName("FULL_PAYMENT no-show → Room KHÔNG được mở lại (phòng vẫn tính đã dùng)")
-    void fullPaymentNoShow_roomNotRestored() {
+    @DisplayName("FULL_PAYMENT no-show tự động bị chặn, không lưu booking/payment/room")
+    void fullPaymentNoShow_isRejectedWithoutSavingSideEffects() {
         Booking booking = buildConfirmedBooking(6L, PaymentOption.FULL_PAYMENT, 1);
         Room room = booking.getRoom();
         int originalQty = room.getAvailableQuantity();
 
         when(bookingRepository.findById(6L)).thenReturn(Optional.of(booking));
-        when(bookingRepository.save(any(Booking.class))).thenAnswer(inv ->
-                java.util.Objects.requireNonNull(inv.<Booking>getArgument(0)));
 
-        bookingService.markNoShow(6L);
+        assertThatThrownBy(() -> bookingService.markNoShow(6L))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("không chuyển thành check-in giả");
 
         assertThat(room.getAvailableQuantity()).isEqualTo(originalQty);
+        verify(bookingRepository, never()).save(any(Booking.class));
+        verify(paymentRepository, never()).findByBooking(any(Booking.class));
         verify(roomRepository, never()).save(room);
     }
 

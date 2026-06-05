@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Comparator;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -224,6 +225,30 @@ public class VoucherService {
     }
 
     /**
+     * Danh sách voucher hiển thị trên trang booking, sắp xếp theo mức tiết kiệm
+     * giảm dần cho tổng đơn hiện tại để voucher tốt nhất nằm ở đầu danh sách.
+     */
+    public List<Voucher> getApplicableVouchers(Room room, BigDecimal orderAmount) {
+        return getApplicableVouchers(room).stream()
+                .filter(voucher -> meetsMinimumOrder(voucher, orderAmount))
+                .sorted(Comparator
+                        .comparing((Voucher voucher) -> calculateDiscount(voucher, orderAmount))
+                        .reversed()
+                        .thenComparing(voucher -> voucher.getCode() == null ? "" : voucher.getCode(),
+                                String.CASE_INSENSITIVE_ORDER))
+                .toList();
+    }
+
+    private boolean meetsMinimumOrder(Voucher voucher, BigDecimal orderAmount) {
+        if (voucher == null || orderAmount == null) {
+            return true;
+        }
+        BigDecimal minimum = voucher.getMinOrderAmount() != null
+                ? voucher.getMinOrderAmount() : BigDecimal.ZERO;
+        return orderAmount.compareTo(minimum) >= 0;
+    }
+
+    /**
      * Validate code trên server; PARTNER_ROOM chỉ hợp lệ sau khi partner đã
      * gắn vào đúng phòng.
      */
@@ -288,6 +313,22 @@ public class VoucherService {
     public List<Voucher> getPublicVouchers() {
         return voucherRepository.findByVoucherScopeOrderByCreatedAtDesc(VoucherScope.USER_GLOBAL)
                 .stream().filter(Voucher::isCurrentlyValid).toList();
+    }
+
+    public List<Voucher> getVoucherStoreVouchersForUsers() {
+        Map<Long, Voucher> distinct = new LinkedHashMap<>();
+        getPublicVouchers().forEach(voucher -> distinct.put(voucher.getId(), voucher));
+        assignmentRepository.findAll().stream()
+                .filter(assignment -> Boolean.TRUE.equals(assignment.getActive()))
+                .filter(assignment -> assignment.getRoom() != null
+                        && assignment.getRoom().getApprovalStatus() == ApprovalStatus.APPROVED
+                        && assignment.getRoom().getAccommodation() != null
+                        && assignment.getRoom().getAccommodation().getApprovalStatus() == ApprovalStatus.APPROVED)
+                .map(RoomVoucherAssignment::getVoucher)
+                .filter(Voucher::isCurrentlyValid)
+                .filter(voucher -> voucher.getVoucherScope() == VoucherScope.PARTNER_ROOM)
+                .forEach(voucher -> distinct.put(voucher.getId(), voucher));
+        return List.copyOf(distinct.values());
     }
 
     public List<Voucher> getAllVouchersForAdmin() {

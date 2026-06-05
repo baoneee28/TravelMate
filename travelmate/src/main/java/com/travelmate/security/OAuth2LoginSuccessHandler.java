@@ -62,6 +62,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             return;
         }
 
+        user = refreshGoogleProfile(user, oAuth2User);
+
         CustomUserDetails userDetails = new CustomUserDetails(user);
         UsernamePasswordAuthenticationToken travelMateAuth =
                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
@@ -89,8 +91,17 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         user.setPhone("");
         user.setRole(User.Role.USER);
         user.setStatus("ACTIVE");
-        user.setAvatarUrl(oAuth2User.getAttribute("picture"));
+        user.setAvatarUrl(optionalText(oAuth2User.getAttribute("picture")));
 
+        return userRepository.save(user);
+    }
+
+    private User refreshGoogleProfile(User user, OAuth2User oAuth2User) {
+        String picture = optionalText(oAuth2User.getAttribute("picture"));
+        if (picture == null || picture.equals(user.getAvatarUrl())) {
+            return user;
+        }
+        user.setAvatarUrl(picture);
         return userRepository.save(user);
     }
 
@@ -99,6 +110,13 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             return null;
         }
         return email.trim().toLowerCase();
+    }
+
+    private String optionalText(Object value) {
+        if (value instanceof String text && !text.isBlank()) {
+            return text.trim();
+        }
+        return null;
     }
 
     private String firstText(Object... values) {

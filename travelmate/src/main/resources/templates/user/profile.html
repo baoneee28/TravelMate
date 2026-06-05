@@ -161,7 +161,7 @@
 
 <body>
     <script src="/assets/js/main.js"></script>
-    <script src="/assets/js/user.js"></script>
+    <script src="/assets/js/user.js?v=20260603-preview"></script>
     <div th:replace="~{fragments/user-header :: header(true, 'profile')}"></div>
 
     <main class="pf-main">
@@ -184,10 +184,13 @@
             <!-- Avatar + tên hiển thị -->
             <div class="pf-avatar-wrap" onclick="document.getElementById('avatarFileInput').click()">
                 <div class="pf-avatar" id="avatarPreviewWrap">
-                    <img th:if="${user.avatarUrl != null}"
+                    <img th:if="${!#strings.isEmpty(user.avatarUrl)}"
                          th:src="${user.avatarUrl}"
-                         id="avatarPreview" alt="Avatar" />
-                    <i th:unless="${user.avatarUrl != null}" class="fa-solid fa-user" id="avatarIcon"></i>
+                         id="avatarPreview"
+                         alt="Avatar"
+                         referrerpolicy="no-referrer"
+                         onerror="this.remove();document.getElementById('avatarPreviewWrap').innerHTML='<i class=&quot;fa-solid fa-user&quot; id=&quot;avatarIcon&quot;></i>';" />
+                    <i th:unless="${!#strings.isEmpty(user.avatarUrl)}" class="fa-solid fa-user" id="avatarIcon"></i>
                 </div>
                 <div class="pf-avatar-overlay">
                     <i class="fa-solid fa-camera"></i>

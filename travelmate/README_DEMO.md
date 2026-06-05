@@ -152,8 +152,8 @@ vẫn được ghi UTF-8 để đối soát khi cần.
 3. Chọn **Cọc 30%** hoặc **Thanh toán toàn bộ**
 4. Nhập mã voucher (thử: `SUMMER10`, `WELCOME50`, `TRAVEL15`)
 5. Thanh toán qua VNPAY Sandbox → dùng thẻ test
-6. VNPAY thành công → TravelMate tự xác nhận thanh toán, booking chuyển sang **Đã thanh toán / Chờ đối tác xác nhận giữ phòng**
-7. Đăng nhập Partner → `/partner/bookings` → xác nhận giữ phòng, check-in/check-out
+6. VNPAY thành công → TravelMate tự xác nhận thanh toán và giữ phòng/căn
+7. Đăng nhập Partner → `/partner/bookings` → check-in/check-out
 
 ### 6.2 Flow Admin
 - `/admin/bookings` — Danh sách booking, theo dõi trạng thái, xử lý đối soát ngoại lệ, partner hủy, hoàn tiền/no-show
@@ -164,7 +164,7 @@ vẫn được ghi UTF-8 để đối soát khi cần.
 - `/admin/revenue` — Tổng quan doanh thu, commission và số tiền chờ quyết toán
 
 ### 6.3 Flow Partner
-- `/partner/bookings` — Xác nhận giữ phòng / Check-in / Check-out
+- `/partner/bookings` — Phòng/căn đã được TravelMate giữ / Check-in / Check-out
 - `/partner/revenue` — Doanh thu cá nhân
 - `/partner/settlements` — Lịch sử quyết toán
 - `/partner/wallet` — Ví quyết toán, lịch sử tiền vào/ra, cập nhật ngân hàng, yêu cầu rút tiền
@@ -242,13 +242,13 @@ Rule bảo vệ:
 ### 6.7 Demo Dữ Liệu Có Sẵn
 | Booking code | Trạng thái | Kịch bản demo |
 |---|---|---|
-| BK-LATA-STD-0001 | CONFIRMED / PENDING_PARTNER_CONFIRMATION | Đã cọc 30% — chờ đối tác xác nhận giữ phòng |
-| BK-TLP-SUP-0001 | CONFIRMED / PENDING_PARTNER_CONFIRMATION | Đã thanh toán 100% — chờ đối tác xác nhận giữ phòng |
+| BK-LATA-STD-0001 | CONFIRMED / PARTNER_CONFIRMED | Đã cọc 30% — TravelMate đã giữ phòng/căn |
+| BK-TLP-SUP-0001 | CONFIRMED / PARTNER_CONFIRMED | Đã thanh toán 100% — TravelMate đã giữ phòng/căn |
 | BK-ANM-GDN-0001 | PENDING_ADMIN_APPROVAL | Ngoại lệ đối soát để Admin xử lý thủ công |
 | BK-TLP-STD-0001 | NO_SHOW / DEPOSIT_FORFEITED | Demo mất cọc no-show |
 | BK-LATA-FAM-0001 | COMPLETED | Đã có review |
 | BK-TMG-PRE-0001 | CHECKED_IN | Đang lưu trú |
-| BK-TLP-SUP-0002 | CONFIRMED / PARTNER_CANCELLED | Demo Admin xử lý đối tác từ chối giữ phòng |
+| BK-TLP-SUP-0002 | CONFIRMED / PARTNER_CANCELLED | Demo Admin xử lý đối tác báo không thể tiếp nhận khách |
 
 ---
 
@@ -296,7 +296,7 @@ mvn test
 ```
 
 Test bao gồm:
-- Tổng hiện tại: **247 tests PASS** (247 pass, 0 fail, 0 error, 0 skipped theo surefire, chạy ngày 29/05/2026)
+- Tổng hiện tại: **279 tests PASS** (279 pass, 0 fail, 0 error, 0 skipped theo surefire, chạy ngày 05/06/2026)
 - `DataInitializerTest` — Phục hồi snapshot tiền tại cơ sở của đơn cọc cũ theo Hướng A
 - `BookingCalculationTest` — Tính tiền DEPOSIT_30 / FULL_PAYMENT
 - `VoucherCalculationTest` — Logic voucher PERCENT / FIXED_AMOUNT / VNPAY guard

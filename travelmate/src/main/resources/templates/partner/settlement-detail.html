@@ -87,9 +87,9 @@
                     <div th:if="${settlement.settlementStatus.name()!='PAID'}" class="stats-card__icon stats-card__icon--amber">⏳</div>
                     <div>
                         <div class="stats-card__value" style="font-size:16px;"
-                             th:if="${settlement.settlementStatus.name()=='PAID'}" th:text="'Đã thanh toán'">—</div>
+                             th:if="${settlement.settlementStatus.name()=='PAID'}" th:text="'Đã ghi nhận chi trả'">—</div>
                         <div class="stats-card__value" style="font-size:16px;"
-                             th:if="${settlement.settlementStatus.name()!='PAID'}" th:text="'Chờ thanh toán'">—</div>
+                             th:if="${settlement.settlementStatus.name()!='PAID'}" th:text="'Chờ chi trả'">—</div>
                         <div class="stats-card__label">Trạng thái quyết toán</div>
                     </div>
                 </div>
@@ -127,8 +127,8 @@
                     <tr style="border-bottom:1px solid #f3f4f6;">
                         <td style="padding:10px 0;color:#6b7280;">Trạng thái:</td>
                         <td style="padding:10px 0;">
-                            <span th:if="${settlement.settlementStatus.name()=='PAID'}" class="badge badge--success">✅ Đã thanh toán</span>
-                            <span th:if="${settlement.settlementStatus.name()!='PAID'}" class="badge badge--warning">⏳ Chờ thanh toán</span>
+                            <span th:if="${settlement.settlementStatus.name()=='PAID'}" class="badge badge--success">✅ Đã ghi nhận chi trả</span>
+                            <span th:if="${settlement.settlementStatus.name()!='PAID'}" class="badge badge--warning">⏳ Chờ chi trả</span>
                         </td>
                     </tr>
                     <tr th:if="${settlement.scheduledPayoutDate != null}" style="border-bottom:1px solid #f3f4f6;">
@@ -199,7 +199,7 @@
                                 <td style="padding:10px 14px;font-size:12px;color:#6b7280;line-height:1.2;white-space:nowrap;">
                                     <span th:text="${#strings.substringBefore(item.commissionRateDisplay, ' (')}">15%</span>
                                     <br/>
-                                    <span style="font-size:11px;color:#6b7280;" th:text="'(' + ${#strings.substringAfter(item.commissionRateDisplay, ' (')}">(mặc định), HH trên cọc bị giữ</span>
+                                    <span style="font-size:11px;color:#6b7280;" th:text="'(' + ${#strings.substringAfter(item.commissionRateDisplay, ' (')}">(mặc định), HH trên tổng đơn gốc</span>
                                 </td>
                                 <td style="padding:10px 14px;color:#dc2626;font-weight:600;"
                                     th:text="${#numbers.formatDecimal(item.commissionAmount,0,'COMMA',0,'POINT')}">0</td>

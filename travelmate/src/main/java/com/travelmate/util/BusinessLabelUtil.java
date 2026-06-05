@@ -9,9 +9,9 @@ import org.springframework.stereotype.Component;
  * Dùng trong Thymeleaf: ${@businessLabelUtil.bookingStatusLabel(b.bookingStatus)}
  *
  * Nguyên tắc đặt tên:
- *   - "Xác nhận thanh toán" dùng cho payment (không gọi là "Duyệt")
+ *   - "Ghi nhận thanh toán" dùng cho payment (không gọi là "Duyệt")
  *   - "Duyệt" chỉ dùng cho listing / room / nội dung
- *   - "Chờ chuyển khoản" / "Đã chuyển khoản" cho settlement
+ *   - "Chờ ghi nhận chi trả" / "Đã ghi nhận chi trả" cho settlement
  *   - "Chặn bán trên TravelMate" cho MANUAL_BLOCK
  */
 @Component("businessLabelUtil")
@@ -23,9 +23,9 @@ public class BusinessLabelUtil {
         if (status == null) return "—";
         return switch (status) {
             case PENDING_PAYMENT        -> "⏳ Chờ thanh toán VNPAY";
-            case PENDING_ADMIN_APPROVAL -> "⚠ Cần đối soát thanh toán";
-            case CONFIRMED              -> "✅ Đã thanh toán — chờ đối tác xác nhận giữ phòng";
-            case CHECKED_IN             -> "🏨 Đang lưu trú";
+            case PENDING_ADMIN_APPROVAL -> "⚠ Cần Admin đối soát";
+            case CONFIRMED              -> "✅ Booking đã được ghi nhận";
+            case CHECKED_IN             -> "🏨 Khách đang lưu trú";
             case NO_SHOW                -> "🚫 Khách không đến";
             case CANCELLED              -> "❌ Đã hủy";
             case COMPLETED              -> "🏁 Đã hoàn tất";
@@ -50,16 +50,16 @@ public class BusinessLabelUtil {
         if (status == null) return "—";
         return switch (status) {
             case PENDING_PAYMENT        -> "⏳ Đang chờ thanh toán VNPAY";
-            case SUBMITTED              -> "⏳ Chờ xác nhận thanh toán";   // legacy
+            case SUBMITTED              -> "⏳ Chờ đối soát thanh toán";   // legacy
             case PENDING_ADMIN_APPROVAL -> "⚠ Cần Admin đối soát";
-            case APPROVED               -> "✅ VNPAY đã xác nhận thanh toán";
+            case APPROVED               -> "✅ TravelMate đã ghi nhận thanh toán";
             case FAILED                 -> "❌ Thanh toán VNPAY thất bại";
             case EXPIRED                -> "⌛ Quá hạn thanh toán";
             case REJECTED               -> "❌ Thanh toán bị từ chối";
             case CANCELLED              -> "🚫 Đã hủy";
             case DEPOSIT_FORFEITED      -> "💰 Giữ cọc 30% (hủy/no-show)";
-            case REFUND_PENDING         -> "🔄 Đang chờ hoàn tiền";
-            case REFUNDED               -> "✅ Đã hoàn tiền";
+            case REFUND_PENDING         -> "🔄 Chờ Admin xử lý hoàn tiền";
+            case REFUNDED               -> "✅ Đã ghi nhận hoàn tiền";
             case NOT_REQUIRED           -> "—  Không qua TravelMate";
         };
     }
@@ -67,17 +67,17 @@ public class BusinessLabelUtil {
     public String paymentStatusLabelShort(PaymentStatus status) {
         if (status == null) return "—";
         return switch (status) {
-            case PENDING_PAYMENT        -> "Chờ TT VNPAY";
-            case SUBMITTED              -> "Chờ xác nhận";
+            case PENDING_PAYMENT        -> "Chờ thanh toán VNPAY";
+            case SUBMITTED              -> "Chờ đối soát";
             case PENDING_ADMIN_APPROVAL -> "Cần đối soát";
-            case APPROVED               -> "VNPAY đã xác nhận";
-            case FAILED                 -> "TT VNPAY thất bại";
+            case APPROVED               -> "Đã ghi nhận thanh toán";
+            case FAILED                 -> "Thanh toán VNPAY thất bại";
             case EXPIRED                -> "Quá hạn thanh toán";
             case REJECTED               -> "Từ chối thanh toán";
             case CANCELLED              -> "Đã hủy";
             case DEPOSIT_FORFEITED      -> "Giữ cọc 30%";
-            case REFUND_PENDING         -> "Chờ hoàn tiền";
-            case REFUNDED               -> "Đã hoàn tiền";
+            case REFUND_PENDING         -> "Chờ xử lý hoàn";
+            case REFUNDED               -> "Đã ghi nhận hoàn";
             case NOT_REQUIRED           -> "Không áp dụng";
         };
     }
@@ -105,10 +105,10 @@ public class BusinessLabelUtil {
     public String partnerStatusLabel(PartnerBookingStatus status) {
         if (status == null) return "—";
         return switch (status) {
-            case PENDING_PARTNER_CONFIRMATION -> "⏳ Chờ đối tác xác nhận giữ phòng";
-            case PARTNER_CONFIRMED            -> "✅ Đối tác đã xác nhận giữ phòng";
+            case PENDING_PARTNER_CONFIRMATION -> "⚠️ Cần kiểm tra trạng thái giữ phòng/căn";
+            case PARTNER_CONFIRMED            -> "✅ TravelMate đã giữ phòng/căn";
             case PARTNER_COMPLETED            -> "🏁 Đã trả phòng / Hoàn tất";
-            case PARTNER_CANCELLED            -> "❌ Đối tác từ chối giữ phòng";
+            case PARTNER_CANCELLED            -> "❌ Không thể tiếp nhận khách";
         };
     }
 
@@ -128,8 +128,8 @@ public class BusinessLabelUtil {
     public String settlementStatusLabel(SettlementStatus status) {
         if (status == null) return "—";
         return switch (status) {
-            case PENDING   -> "⏳ Chờ chuyển khoản";
-            case PAID      -> "✅ Đã chuyển khoản";
+            case PENDING   -> "⏳ Chờ ghi nhận chi trả";
+            case PAID      -> "✅ Đã ghi nhận chi trả";
             case CANCELLED -> "❌ Đã hủy";
         };
     }

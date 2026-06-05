@@ -20,7 +20,7 @@
         .prev-kpi-card__label { font-size:12px; color:#6b7280; margin-bottom:4px; }
         .prev-kpi-card__value { font-size:22px; font-weight:700; }
         .prev-kpi-card__sub { font-size:11px; color:#9ca3af; margin-top:3px; }
-        .formula-box { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; font-family:monospace; font-size:13px; margin-top:8px; color:#374151; }
+        .formula-box { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; font-size:13px; margin-top:8px; color:#374151; }
         .info-box { background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:12px 16px; margin-bottom:20px; font-size:13px; line-height:1.7; }
         .rev-table-wrap { overflow-x:auto; }
         .rev-table { width:100%; border-collapse:collapse; font-size:13px; min-width:1040px; }
@@ -77,10 +77,10 @@
                 Booking trực tiếp (DIRECT) và <span th:text="${blockUnitLabel ?: 'chặn phòng'}">chặn phòng</span> (MANUAL_BLOCK) không tính vào doanh thu TravelMate.
                 Chiết khấu được tính theo <strong>rate hiệu lực</strong>: ưu tiên rate riêng của từng <span th:text="${unitLabel ?: 'phòng'}">phòng</span>, nếu không có dùng rate mặc định theo loại lưu trú.
                 <div class="formula-box">
-                    Số tiền bạn nhận = Tiền TravelMate thu online − Commission nền tảng − Voucher partner chịu
+                    Số tiền đối tác nhận được lấy từ phần TravelMate đã thu online, sau khi hệ thống tách hoa hồng nền tảng và voucher do đối tác chịu.
                 </div>
                 <div style="font-size:12px;color:#1d4ed8;margin-top:8px;">
-                    TravelMate chỉ tính hoa hồng trên <strong>khoản đã thu online</strong>. Với đơn cọc 30%, hoa hồng chỉ tính trên phần cọc 30%; 70% khách trả tại cơ sở không tính hoa hồng và không vào quyết toán online.
+                    Hoa hồng của mọi booking online được tính theo tổng đơn gốc trước voucher. Với đơn cọc 30%, 70% khách trả tại cơ sở được hiển thị riêng và không đi vào ví TravelMate.
                 </div>
             </div>
 
@@ -129,7 +129,7 @@
 
                 <div th:if="${#lists.isEmpty(revenueItems)}" class="empty-state">
                     <i class="fa-solid fa-chart-line" style="font-size:40px;opacity:.25;margin-bottom:10px;"></i>
-                    <p>Chưa có doanh thu. Doanh thu được ghi nhận sau khi VNPAY xác nhận và khách hoàn tất lưu trú hoặc phát sinh hủy/no-show mất cọc hợp lệ.</p>
+                    <p>Chưa có doanh thu. Doanh thu được ghi nhận sau khi VNPAY ghi nhận thanh toán và khách hoàn tất lưu trú hoặc phát sinh hủy/no-show mất cọc hợp lệ.</p>
                 </div>
 
                 <div th:if="${!#lists.isEmpty(revenueItems)}" class="rev-table-wrap">

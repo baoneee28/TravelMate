@@ -5,9 +5,12 @@ import com.travelmate.entity.enums.BookingStatus;
 import com.travelmate.repository.AccommodationRepository;
 import com.travelmate.repository.BookingRepository;
 import com.travelmate.repository.ReviewRepository;
+import com.travelmate.repository.RoomRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,13 +31,19 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final BookingRepository bookingRepository;
     private final AccommodationRepository accommodationRepository;
+    private final RoomRepository roomRepository;
+    private final NotificationService notificationService;
 
     public ReviewService(ReviewRepository reviewRepository,
                          BookingRepository bookingRepository,
-                         AccommodationRepository accommodationRepository) {
+                         AccommodationRepository accommodationRepository,
+                         RoomRepository roomRepository,
+                         NotificationService notificationService) {
         this.reviewRepository = reviewRepository;
         this.bookingRepository = bookingRepository;
         this.accommodationRepository = accommodationRepository;
+        this.roomRepository = roomRepository;
+        this.notificationService = notificationService;
     }
 
     // ─── User: Tạo review ────────────────────────────────────────────────────
@@ -47,7 +56,7 @@ public class ReviewService {
      *   2. User phải là chủ booking
      *   3. BookingStatus phải là COMPLETED
      *   4. Booking chưa được review (1 booking = 1 review)
-     *   5. Rating phải trong khoảng 1-5
+     *   5. Rating phải trong khoảng 1-10
      *   6. Comment không được rỗng
      *
      * Side effect: cập nhật accommodation.rating + reviewCount
@@ -84,9 +93,9 @@ public class ReviewService {
             throw new RuntimeException("Bạn đã đánh giá đơn này rồi!");
         }
 
-        // Rule 5: Rating 1-5
-        if (rating < 1 || rating > 5) {
-            throw new RuntimeException("Điểm đánh giá phải từ 1 đến 5 sao!");
+        // Rule 5: Rating 1-10
+        if (rating < 1 || rating > 10) {
+            throw new RuntimeException("Điểm đánh giá phải từ 1 đến 10!");
         }
 
         // Rule 6: Comment không rỗng
@@ -107,6 +116,7 @@ public class ReviewService {
 
         // Cập nhật rating + reviewCount cho accommodation
         recalculateAccommodationRating(booking.getAccommodation());
+        assessLowRatingForRoom(booking.getRoom());
 
         return review;
     }
@@ -232,9 +242,7 @@ public class ReviewService {
      * Tính lại average rating và reviewCount cho accommodation.
      * Chỉ tính review chưa bị ẩn (isHidden = false).
      *
-     * Công thức: averageRating = sum(rating) / count
-     * Quy đổi sang thang 10 (giữ tương thích với dữ liệu demo ban đầu):
-     *   rating 1-5 sao → nhân 2 → 2.0 - 10.0
+     * Công thức: averageRating = sum(rating) / count, làm tròn 1 chữ số.
      *
      * Nếu không có review → giữ rating = 0.0, reviewCount = 0.
      */
@@ -249,13 +257,12 @@ public class ReviewService {
             accommodation.setRating(0.0);
             accommodation.setReviewCount(0);
         } else {
-            double averageStar = reviews.stream()
+            double averageRating = reviews.stream()
                     .mapToInt(Review::getRating)
                     .average()
                     .orElse(0.0);
 
-            // Quy đổi 1-5 sao → thang 10 (x2) để tương thích dữ liệu demo
-            double ratingOn10 = Math.round(averageStar * 2 * 10.0) / 10.0;
+            double ratingOn10 = Math.round(averageRating * 10.0) / 10.0;
 
             accommodation.setRating(ratingOn10);
             accommodation.setReviewCount(reviews.size());
@@ -263,4 +270,45 @@ public class ReviewService {
 
         accommodationRepository.save(accommodation);
     }
+
+    private void assessLowRatingForRoom(Room room) {
+        if (room == null || room.getId() == null) {
+            return;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        YearMonth currentMonth = YearMonth.from(now);
+        YearMonth previousMonth = currentMonth.minusMonths(1);
+
+        MonthStats currentStats = resolveMonthStats(room, currentMonth);
+        MonthStats previousStats = resolveMonthStats(room, previousMonth);
+
+        if (currentStats.count == 0 || currentStats.average >= 2.0) {
+            return;
+        }
+
+        User partner = room.getAccommodation() != null ? room.getAccommodation().getOwner() : null;
+        if (partner == null) {
+            return;
+        }
+
+        if (previousStats.count > 0 && previousStats.average < 2.0) {
+            if (Boolean.TRUE.equals(room.getAvailableForBooking())) {
+                room.setAvailableForBooking(false);
+                roomRepository.save(room);
+            }
+            notificationService.createLowRatingSuspension(partner, room, currentMonth, currentStats.average);
+        } else {
+            notificationService.createLowRatingWarning(partner, room, currentMonth, currentStats.average);
+        }
+    }
+
+    private MonthStats resolveMonthStats(Room room, YearMonth month) {
+        LocalDateTime from = month.atDay(1).atStartOfDay();
+        LocalDateTime to = month.plusMonths(1).atDay(1).atStartOfDay();
+        Double avg = reviewRepository.findAverageRatingByRoomAndCreatedAtBetweenAndIsHiddenFalse(room, from, to);
+        long count = reviewRepository.countByBooking_RoomAndCreatedAtBetweenAndIsHiddenFalse(room, from, to);
+        return new MonthStats(avg != null ? avg : 0.0, count);
+    }
+
+    private record MonthStats(double average, long count) {}
 }

@@ -45,21 +45,29 @@
         .bk-price-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; font-size: 0.875rem; margin-bottom: 10px; color: #475569; }
         .bk-price-row span:first-child { flex: 1; }
         .bk-price-row span:last-child { min-width: 130px; text-align: right; white-space: nowrap; font-weight: 600; color: #0f172a; }
-        .bk-price-total { display: flex; justify-content: space-between; font-size: 1rem; font-weight: 800; color: #0f172a; padding-top: 16px; border-top: 1px solid #e2e8f0; margin-top: 10px; }
-        .bk-price-total span:last-child { color: #f97316; font-size: 1.25rem; }
+        .bk-price-total { display: flex; justify-content: space-between; align-items:flex-start; gap:14px; font-size: 1rem; font-weight: 800; color: #0f172a; padding-top: 16px; border-top: 1px solid #e2e8f0; margin-top: 10px; }
+        .bk-price-total-copy { min-width:0; display:flex; flex-direction:column; gap:4px; }
+        #right-panel-label { white-space:nowrap; line-height:1.25; }
+        .bk-price-total-helper { color:#64748b; font-size:.74rem; font-weight:600; line-height:1.35; }
+        .bk-price-total-amount { color: #f97316; font-size: 1.25rem; font-weight:800; text-align:right; white-space:nowrap; line-height:1.25; }
+        .deposit-remainder-row { display:none; justify-content:space-between; align-items:flex-start; gap:12px; font-size:0.8rem; color:#334155; font-weight:700; padding:10px 0 0; border-top:1px dashed #cbd5e1; margin-top:10px; }
+        .deposit-remainder-copy { display:flex; flex-direction:column; gap:2px; min-width:0; }
+        .deposit-remainder-title { display:flex; align-items:center; gap:6px; color:#0f172a; line-height:1.35; }
+        .deposit-remainder-title i { color:#f97316; flex-shrink:0; }
+        .deposit-remainder-note { color:#64748b; font-size:.72rem; font-weight:600; line-height:1.35; }
+        .deposit-remainder-amount { color:#dc2626; font-weight:800; white-space:nowrap; text-align:right; line-height:1.35; }
         .btn-submit { width: 100%; background: #3b82f6; color: #fff; border: none; padding: 14px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 24px; transition: background 0.2s; }
         .btn-submit:hover { background: #2563eb; }
 
         /* Payment option radio */
         .payment-options { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
-        .payment-opt { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+        .payment-opt { display: flex; align-items: center; gap: 12px; padding: 18px 16px; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
         .payment-opt:hover { border-color: #93c5fd; }
         .payment-opt.selected { border-color: #2563eb; background: #eff6ff; }
         .payment-opt input[type="radio"] { accent-color: #2563eb; width: 18px; height: 18px; }
-        .payment-opt-info { flex: 1; }
-        .payment-opt-title { font-weight: 700; font-size: 0.9rem; color: #0f172a; }
-        .payment-opt-desc { font-size: 0.8rem; color: #64748b; margin-top: 2px; }
-        .payment-opt-amount { font-weight: 800; font-size: 1.05rem; color: #2563eb; white-space: nowrap; }
+        .payment-opt-info { flex: 1; min-width:0; }
+        .payment-opt-title { font-weight: 700; font-size: 0.95rem; color: #0f172a; line-height:1.3; }
+        .payment-opt-desc { margin-top:4px; font-size:0.78rem; color:#64748b; line-height:1.45; }
 
         /* Modal */
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 9999; align-items: center; justify-content: center; }
@@ -81,6 +89,7 @@
         /* Alert messages */
         .bk-alert { padding: 14px 18px; border-radius: 10px; font-size: 0.9rem; font-weight: 600; margin-bottom: 16px; }
         .bk-alert-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .bk-alert-info { background: #eff6ff; color: #1d4ed8; border: 1px solid #93c5fd; }
         .booking-preview { display:grid; grid-template-columns:180px 1fr; gap:18px; align-items:start; }
         .booking-preview-main { width:180px; height:135px; object-fit:cover; border-radius:10px; border:1px solid #e2e8f0; }
         .booking-preview-thumbs { display:flex; gap:6px; margin-top:8px; }
@@ -88,18 +97,108 @@
         .booking-preview-tags { display:flex; flex-wrap:wrap; gap:7px; margin:10px 0; }
         .booking-preview-tag { background:#eff6ff; color:#0369a1; padding:5px 9px; border-radius:14px; font-size:.75rem; font-weight:650; }
         .voucher-catalog { margin-bottom:14px; display:flex; flex-direction:column; gap:8px; }
+        .voucher-catalog-title { font-size:.8rem; font-weight:700; color:#334155; margin-bottom:2px; }
         .voucher-suggestion { display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; background:#fffbeb; border:1px dashed #fbbf24; border-radius:9px; padding:9px 11px; cursor:pointer; text-align:left; font-family:inherit; }
         .voucher-suggestion:hover { background:#fef3c7; }
-        .voucher-suggestion strong { display:block; color:#b45309; font-size:.82rem; }
-        .voucher-suggestion span { color:#64748b; font-size:.74rem; }
+        .voucher-suggestion.is-recommended { background:#eff6ff; border-color:#60a5fa; }
+        .voucher-suggestion-main { display:flex; flex-direction:column; gap:2px; align-items:flex-start; min-width:0; }
+        .voucher-suggestion-badge { display:inline-flex; align-items:center; gap:4px; font-size:.68rem !important; font-weight:800; color:#1d4ed8 !important; background:#dbeafe; padding:4px 8px; border-radius:999px; line-height:1; }
+        .voucher-suggestion-main strong { display:block; color:#b45309; font-size:.82rem; }
+        .voucher-suggestion-main > span:not(.voucher-suggestion-badge) { color:#64748b; font-size:.74rem; }
         .voucher-use { color:#2563eb !important; font-weight:700; white-space:nowrap; }
+        .voucher-panel { display:block; }
+        .voucher-panel summary { list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:14px; padding:0; user-select:none; }
+        .voucher-panel summary::-webkit-details-marker { display:none; }
+        .voucher-panel-header { display:flex; flex-direction:column; gap:4px; min-width:0; }
+        .voucher-panel-title { display:flex; align-items:center; gap:10px; font-size:1.08rem; font-weight:800; color:#0f172a; }
+        .voucher-panel-title i { color:#1d4ed8; }
+        .voucher-panel-subtitle { font-size:.82rem; color:#64748b; font-weight:600; line-height:1.4; }
+        .voucher-panel-arrow { width:32px; height:32px; border:1px solid #cbd5e1; border-radius:9px; display:inline-flex; align-items:center; justify-content:center; color:#1d4ed8; background:#eff6ff; font-size:1.05rem; font-weight:800; flex-shrink:0; transition:transform .18s ease, background .18s ease, border-color .18s ease; }
+        .voucher-panel[open] .voucher-panel-arrow { transform: rotate(90deg); background:#dbeafe; border-color:#93c5fd; }
+        .voucher-panel-body { border-top:1px solid #e2e8f0; margin-top:14px; padding-top:16px; display:flex; flex-direction:column; gap:12px; }
+        .voucher-catalog-scroll { max-height:280px; overflow-y:auto; padding-right:4px; display:flex; flex-direction:column; gap:8px; }
+        .voucher-empty { background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px; padding:12px 14px; font-size:.82rem; color:#64748b; font-weight:600; }
+        .voucher-entry { display:flex; gap:10px; }
         @media (max-width:680px) { .booking-preview { grid-template-columns:1fr; } .booking-preview-main { width:100%; height:200px; } }
+        @media (max-width:900px) {
+            .bk-main {
+                flex-direction: column;
+                margin: 24px auto;
+                padding: 0 12px 84px;
+                gap: 16px;
+            }
+            .bk-left,
+            .bk-right {
+                width: 100%;
+                flex: none;
+                min-width: 0;
+            }
+            .bk-right {
+                position: static;
+                top: auto;
+            }
+            .bk-card {
+                padding: 18px;
+                border-radius: 10px;
+            }
+            .bk-row,
+            .voucher-entry,
+            .modal-btns {
+                flex-direction: column;
+                gap: 12px;
+            }
+            .bk-info-grid {
+                grid-template-columns: 1fr;
+            }
+            .bk-price-total,
+            .deposit-remainder-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .bk-price-row span:last-child,
+            .bk-price-total-amount,
+            .deposit-remainder-amount {
+                min-width: 0;
+                text-align: left;
+                white-space: normal;
+            }
+            .payment-opt {
+                align-items: flex-start;
+            }
+            .voucher-use,
+            #right-panel-label {
+                white-space: normal;
+            }
+        }
+        @media (max-width:480px) {
+            .bk-main {
+                margin-top: 18px;
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+            .bk-card {
+                padding: 16px;
+            }
+            .bk-card-title,
+            .voucher-panel-title {
+                font-size: 1rem;
+                line-height: 1.35;
+            }
+            .bk-alert {
+                font-size: 0.82rem;
+                line-height: 1.45;
+            }
+            .booking-preview-main {
+                height: 180px;
+            }
+        }
     </style>
 </head>
 
 <body>
     <script src="/assets/js/main.js"></script>
-    <script src="/assets/js/user.js"></script>
+    <script src="/assets/js/user.js?v=20260603-preview"></script>
     <div th:replace="~{fragments/user-header :: header(true, 'bookings')}"></div>
 
 
@@ -108,6 +207,7 @@
         <div class="bk-left">
             <!-- Error message -->
             <div class="bk-alert bk-alert-error" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+            <div class="bk-alert bk-alert-info" th:if="${rebookNotice}" th:text="${rebookNotice}"></div>
 
             <!-- ── Availability status banner ── -->
             <!-- FULL: phòng đã hết chỗ cho ngày đã chọn -->
@@ -155,12 +255,14 @@
                 <h2 class="bk-card-title"><i class="fa-solid fa-image"></i> <span th:text="${isVilla ? 'Căn bạn đã chọn' : 'Phòng bạn đã chọn'}">Phòng bạn đã chọn</span></h2>
                 <div class="booking-preview">
                     <div>
-                        <img class="booking-preview-main"
+                        <img class="booking-preview-main tm-previewable-image"
                              th:src="${roomImages != null and !#lists.isEmpty(roomImages) ? roomImages[0].imageUrl : (room.imageUrl != null ? room.imageUrl : '/assets/images/homestay-o-da-lat.jpg')}"
                              th:alt="${room.roomName}"
+                             th:attr="data-tm-preview-caption=${room.roomName}"
                              onerror="this.onerror=null;this.src='/assets/images/homestay-o-da-lat.jpg'" />
                         <div class="booking-preview-thumbs" th:if="${roomImages != null and roomImages.size() > 1}">
-                            <img class="booking-preview-thumb" th:each="photo : ${roomImages}" th:src="${photo.imageUrl}"
+                            <img class="booking-preview-thumb tm-previewable-image" th:each="photo : ${roomImages}" th:src="${photo.imageUrl}"
+                                 th:attr="data-tm-preview-caption=${photo.caption != null ? photo.caption : room.roomName}"
                                  th:alt="${photo.caption != null ? photo.caption : room.roomName}" />
                         </div>
                     </div>
@@ -213,54 +315,84 @@
                     <label class="payment-opt selected" id="opt-full" onclick="selectPayment('FULL_PAYMENT')">
                         <input type="radio" name="paymentOptionUI" value="FULL_PAYMENT" checked />
                         <div class="payment-opt-info">
-                            <div class="payment-opt-title">Thanh toán 100%</div>
-                            <div class="payment-opt-desc">Đã thanh toán 100% qua VNPAY — chờ đối tác xác nhận giữ phòng/căn</div>
+                            <div class="payment-opt-title">Thanh toán toàn bộ</div>
+                            <div class="payment-opt-desc">Sau khi VNPAY thành công: Đã thanh toán 100% qua VNPAY, không cần thu thêm tại cơ sở.</div>
                         </div>
-                        <div class="payment-opt-amount" id="amount-full" th:text="${#numbers.formatDecimal(paidFull, 0, 'POINT', 0, 'COMMA')} + '₫'">0₫</div>
                     </label>
                     <label class="payment-opt" id="opt-deposit" onclick="selectPayment('DEPOSIT_30')">
                         <input type="radio" name="paymentOptionUI" value="DEPOSIT_30" />
                         <div class="payment-opt-info">
-                            <div class="payment-opt-title">Cọc trước 30%</div>
-                            <div class="payment-opt-desc">Đã cọc 30% qua VNPAY — 70% còn lại thanh toán tại cơ sở</div>
+                            <div class="payment-opt-title">Cọc thanh toán</div>
+                            <div class="payment-opt-desc">Sau khi VNPAY thành công: Đã cọc 30% qua VNPAY, 70% còn lại thanh toán tại cơ sở.</div>
                         </div>
-                        <div class="payment-opt-amount" id="amount-deposit" th:text="${#numbers.formatDecimal(paidDeposit, 0, 'POINT', 0, 'COMMA')} + '₫'">0₫</div>
                     </label>
                 </div>
             </div>
 
             <!-- Nhập Voucher -->
             <div class="bk-card">
-                <h2 class="bk-card-title"><i class="fa-solid fa-ticket"></i> Mã Giảm Giá (Tuỳ chọn)</h2>
-                <div class="bk-form-group" style="margin-bottom:0;">
-                    <div class="voucher-catalog" th:if="${applicableVouchers != null and !#lists.isEmpty(applicableVouchers)}">
-                        <div style="font-size:.8rem;font-weight:700;color:#334155;">
-                            Voucher đang áp dụng cho phòng/căn này
+                <details class="voucher-panel">
+                    <summary>
+                        <div class="voucher-panel-header">
+                            <div class="voucher-panel-title">
+                                <i class="fa-solid fa-ticket"></i>
+                                <span>Mã Giảm Giá (Tuỳ chọn)</span>
+                            </div>
+                            <div class="voucher-panel-subtitle"
+                                 th:if="${recommendedVoucherSummary != null}"
+                                 th:text="${recommendedVoucherSummary}">
+                                Tốt nhất: SUMMER10 · Tiết kiệm 130.000đ
+                            </div>
+                            <div class="voucher-panel-subtitle"
+                                 th:unless="${recommendedVoucherSummary != null}">
+                                Mở để xem danh sách voucher phù hợp cho phòng/căn này.
+                            </div>
                         </div>
-                        <button class="voucher-suggestion" type="button" th:each="voucher : ${applicableVouchers}"
-                                th:attr="data-code=${voucher.code}"
-                                onclick="chooseVoucher(this.dataset.code)">
-                            <span>
-                                <strong th:text="${voucher.code}">CODE</strong>
-                                <span th:text="${voucher.name}">Tên voucher</span>
-                            </span>
-                            <span class="voucher-use">Dùng mã</span>
-                        </button>
+                        <span class="voucher-panel-arrow" aria-hidden="true">&gt;</span>
+                    </summary>
+
+                    <div class="voucher-panel-body">
+                        <div class="voucher-catalog" th:if="${applicableVouchers != null and !#lists.isEmpty(applicableVouchers)}">
+                            <div class="voucher-catalog-title">
+                                Voucher đang áp dụng cho phòng/căn này
+                            </div>
+                            <div class="voucher-catalog-scroll">
+                                <button class="voucher-suggestion" type="button" th:each="voucher, stat : ${applicableVouchers}"
+                                        th:classappend="${stat.first} ? ' is-recommended' : ''"
+                                        th:attr="data-code=${voucher.code}"
+                                        onclick="chooseVoucher(this.dataset.code)">
+                                    <span class="voucher-suggestion-main">
+                                        <span class="voucher-suggestion-badge" th:if="${stat.first}">
+                                            <i class="fa-solid fa-star"></i> Lựa chọn tốt nhất
+                                        </span>
+                                        <strong th:text="${voucher.code}">CODE</strong>
+                                        <span th:text="${voucher.name}">Tên voucher</span>
+                                    </span>
+                                    <span class="voucher-use">Dùng mã</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="voucher-empty" th:if="${applicableVouchers == null or #lists.isEmpty(applicableVouchers)}">
+                            Chưa có voucher phù hợp cho phòng/căn này. Bạn vẫn có thể nhập mã thủ công nếu được cấp riêng.
+                        </div>
+                        <div>
+                            <label class="bk-label">Nhập mã voucher nếu bạn có</label>
+                            <div class="voucher-entry">
+                                <input type="text" class="bk-input" id="voucherCodeInput"
+                                       placeholder="VD: SUMMER10, WELCOME50..."
+                                       th:value="${prefillVoucherCode}"
+                                       style="text-transform:uppercase;letter-spacing:1px;"
+                                       oninput="this.value=this.value.toUpperCase(); resetVoucherOnInput();"
+                                       maxlength="50" />
+                                <button type="button" onclick="applyVoucher()"
+                                        style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:0 16px;font-weight:700;cursor:pointer;white-space:nowrap;">
+                                    Áp dụng
+                                </button>
+                            </div>
+                        </div>
+                        <div id="voucherMsg" style="font-size:13px;min-height:20px;"></div>
                     </div>
-                    <label class="bk-label">Nhập mã voucher nếu bạn có</label>
-                    <div style="display:flex;gap:10px;">
-                        <input type="text" class="bk-input" id="voucherCodeInput"
-                               placeholder="VD: SUMMER10, WELCOME50..."
-                               style="text-transform:uppercase;letter-spacing:1px;"
-                               oninput="this.value=this.value.toUpperCase(); resetVoucherOnInput();"
-                               maxlength="50" />
-                        <button type="button" onclick="applyVoucher()"
-                                style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:0 16px;font-weight:700;cursor:pointer;white-space:nowrap;">
-                            Áp dụng
-                        </button>
-                    </div>
-                    <div id="voucherMsg" style="font-size:13px;margin-top:8px;min-height:20px;"></div>
-                </div>
+                </details>
             </div>
 
             <!-- Chính sách & Hủy phòng/căn -->
@@ -303,8 +435,8 @@
                         <div style="display:flex;gap:10px;padding:10px 14px;background:#fef9c3;border-radius:8px;border:1px solid #fde047;">
                             <i class="fa-solid fa-headset" style="color:#b45309;margin-top:2px;flex-shrink:0;"></i>
                             <div style="font-size:0.8125rem;color:#713f12;">
-                                <strong>Sau khi VNPAY xác nhận thanh toán:</strong><br/>
-                                Đơn được chuyển ngay cho đối tác giữ phòng/căn. Yêu cầu hủy và hoàn tiền sẽ được xử lý qua <a href="/contact" style="color:#b45309;font-weight:700;">liên hệ hỗ trợ</a>.
+                                <strong>Sau khi VNPAY ghi nhận thanh toán:</strong><br/>
+                                TravelMate tự giữ phòng/căn trên hệ thống. Yêu cầu hủy và hoàn tiền sẽ được xử lý qua <a href="/contact" style="color:#b45309;font-weight:700;">liên hệ hỗ trợ</a>.
                             </div>
                         </div>
                     </div>
@@ -315,28 +447,35 @@
                      style="border-radius:12px;border:2px solid #fcd34d;overflow:hidden;margin-bottom:12px;display:none;">
                     <div style="background:#d97706;padding:10px 16px;display:flex;align-items:center;gap:8px;">
                         <i class="fa-solid fa-hand-holding-dollar" style="color:#fff;font-size:1rem;"></i>
-                        <span style="font-weight:800;font-size:0.875rem;color:#fff;">Chính sách hủy — Cọc trước 30%</span>
+                        <span style="font-weight:800;font-size:0.875rem;color:#fff;">Chính sách hủy — Cọc thanh toán 30%</span>
                     </div>
                     <div style="background:#fffbeb;padding:14px 16px;">
                         <div style="display:flex;gap:10px;margin-bottom:10px;padding:10px 14px;background:#dcfce7;border-radius:8px;border:1px solid #86efac;">
                             <i class="fa-solid fa-circle-check" style="color:#16a34a;margin-top:2px;flex-shrink:0;"></i>
                             <div style="font-size:0.8125rem;color:#14532d;">
-                                <strong>Trước khi hoàn tất cọc VNPAY:</strong><br/>
-                                Bạn có thể dừng thanh toán mà không phát sinh tiền cọc.
+                                <strong>Trước khi hoàn tất thanh toán VNPAY:</strong><br/>
+                                Bạn có thể dừng giao dịch; phòng/căn tạm giữ sẽ được mở lại tự động và không bị trừ tiền cọc.
                             </div>
                         </div>
-                        <div style="display:flex;gap:10px;margin-bottom:10px;padding:10px 14px;background:#fef2f2;border-radius:8px;border:1px solid #fca5a5;">
-                            <i class="fa-solid fa-triangle-exclamation" style="color:#dc2626;margin-top:2px;flex-shrink:0;"></i>
-                            <div style="font-size:0.8125rem;color:#7f1d1d;">
-                                <strong>Nếu không đến check-in (No-show):</strong><br/>
-                                Khoản cọc 30% sẽ <strong>bị giữ lại</strong> theo chính sách. Hệ thống sẽ ghi nhận trạng thái <em>Mất cọc / No-show</em>.
+                        <div style="display:flex;gap:10px;margin-bottom:10px;padding:10px 14px;background:#dbeafe;border-radius:8px;border:1px solid #93c5fd;">
+                            <i class="fa-solid fa-headset" style="color:#2563eb;margin-top:2px;flex-shrink:0;"></i>
+                            <div style="font-size:0.8125rem;color:#1e3a8a;">
+                                <strong>Sau khi VNPAY ghi nhận cọc:</strong><br/>
+                                TravelMate tự giữ phòng/căn trên hệ thống; đối tác sẽ tiếp nhận và check-in khi bạn đến. Nếu cần đổi lịch hoặc hủy, hãy <a href="/contact" style="color:#1d4ed8;font-weight:700;">liên hệ hỗ trợ</a> sớm để TravelMate kiểm tra theo tình trạng đơn.
                             </div>
                         </div>
-                        <div style="display:flex;gap:10px;padding:10px 14px;background:#f0fdf4;border-radius:8px;border:1px solid #86efac;">
+                        <div style="display:flex;gap:10px;margin-bottom:10px;padding:10px 14px;background:#f0fdf4;border-radius:8px;border:1px solid #86efac;">
                             <i class="fa-solid fa-wallet" style="color:#16a34a;margin-top:2px;flex-shrink:0;"></i>
                             <div style="font-size:0.8125rem;color:#14532d;">
-                                <strong>Số tiền còn lại (70%):</strong><br/>
-                                <span th:text="${isVilla ? 'Thanh toán trực tiếp tại cơ sở khi nhận căn. Vui lòng chuẩn bị sẵn tiền mặt hoặc thẻ.' : 'Thanh toán trực tiếp tại lễ tân khi nhận phòng. Vui lòng chuẩn bị sẵn tiền mặt hoặc thẻ.'}">Thanh toán trực tiếp tại lễ tân khi nhận phòng. Vui lòng chuẩn bị sẵn tiền mặt hoặc thẻ.</span>
+                                <strong>Khi đến nhận phòng/căn:</strong><br/>
+                                <span th:text="${isVilla ? 'Bạn thanh toán 70% còn lại trực tiếp tại cơ sở khi nhận căn. Vui lòng chuẩn bị sẵn tiền mặt hoặc thẻ.' : 'Bạn thanh toán 70% còn lại trực tiếp tại lễ tân khi nhận phòng. Vui lòng chuẩn bị sẵn tiền mặt hoặc thẻ.'}">Bạn thanh toán 70% còn lại trực tiếp tại lễ tân khi nhận phòng. Vui lòng chuẩn bị sẵn tiền mặt hoặc thẻ.</span>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:10px;padding:10px 14px;background:#fff7ed;border-radius:8px;border:1px solid #fdba74;">
+                            <i class="fa-solid fa-circle-exclamation" style="color:#ea580c;margin-top:2px;flex-shrink:0;"></i>
+                            <div style="font-size:0.8125rem;color:#7c2d12;">
+                                <strong>Nếu không đến nhận phòng/căn:</strong><br/>
+                                Khoản cọc 30% có thể được giữ lại theo chính sách no-show. Nếu kế hoạch thay đổi, bạn nên báo sớm qua <a href="/contact" style="color:#c2410c;font-weight:700;">liên hệ hỗ trợ</a>.
                             </div>
                         </div>
                     </div>
@@ -397,14 +536,20 @@
                 <div class="bk-price-total"
                      id="right-panel-total-wrap"
                      th:attr="data-full=${#numbers.formatDecimal(paidFull, 0, 'POINT', 0, 'COMMA')} + ' VND',data-deposit=${#numbers.formatDecimal(paidDeposit, 0, 'POINT', 0, 'COMMA')} + ' VND',data-remaining-deposit=${#numbers.formatDecimal(totalAmount - paidDeposit, 0, 'POINT', 0, 'COMMA')} + ' VND'">
-                    <span id="right-panel-label">Tổng thanh toán</span>
-                    <span id="right-panel-total"
+                    <div class="bk-price-total-copy">
+                        <span id="right-panel-label">Tổng thanh toán</span>
+                        <span class="bk-price-total-helper" id="right-panel-helper">Bạn thanh toán toàn bộ qua VNPAY hôm nay.</span>
+                    </div>
+                    <span class="bk-price-total-amount" id="right-panel-total"
                           th:text="${#numbers.formatDecimal(paidFull, 0, 'POINT', 0, 'COMMA')} + ' VND'">0 VND</span>
                 </div>
                 <!-- Còn lại khi check-in (chỉ hiện khi chọn Cọc 30%) -->
-                <div id="remaining-deposit-row" style="display:none;justify-content:space-between;font-size:0.8rem;color:#dc2626;font-weight:700;padding:6px 0;border-top:1px dashed #fca5a5;margin-top:4px;">
-                    <span><i class="fa-solid fa-clock" style="margin-right:4px;"></i><th:block th:text="${isVilla ? 'Còn lại tại cơ sở' : 'Còn lại tại lễ tân'}">Còn lại tại lễ tân</th:block></span>
-                    <span id="remaining-deposit-amount"
+                <div id="remaining-deposit-row" class="deposit-remainder-row">
+                    <div class="deposit-remainder-copy">
+                        <span class="deposit-remainder-title"><i class="fa-solid fa-circle-info"></i><th:block th:text="${isVilla ? 'Thanh toán khi nhận căn' : 'Thanh toán khi nhận phòng'}">Thanh toán khi nhận phòng</th:block></span>
+                        <span class="deposit-remainder-note" th:text="${isVilla ? 'Trả trực tiếp tại cơ sở phần còn lại.' : 'Trả trực tiếp tại lễ tân phần còn lại.'}">Trả trực tiếp tại lễ tân phần còn lại.</span>
+                    </div>
+                    <span class="deposit-remainder-amount" id="remaining-deposit-amount"
                           th:text="${#numbers.formatDecimal(totalAmount - paidDeposit, 0, 'POINT', 0, 'COMMA')} + ' VND'">0 VND</span>
                 </div>
 
@@ -495,7 +640,7 @@
                 </div>
                 <div class="modal-bank-row">
                     <span class="lbl">HÌNH THỨC:</span>
-                    <span class="val" id="modal-option-label">Thanh toán 100%</span>
+                    <span class="val" id="modal-option-label">Thanh toán toàn bộ</span>
                 </div>
                 <div class="modal-bank-row" id="modal-remaining-row" style="display:none;">
                     <span class="lbl" style="color:#dc2626;">CÒN LẠI TẠI LỄ TÂN:</span>
@@ -505,7 +650,7 @@
 
             <div class="modal-note" style="background:#e8f4fd;border-left:3px solid #2563eb;color:#1e3a5f;">
                 Sau khi xác nhận, bạn sẽ được chuyển sang cổng thanh toán VNPAY.
-                Khi VNPAY báo thành công, hệ thống tự xác nhận khoản thanh toán và gửi đơn cho đối tác giữ phòng/căn.
+                Khi VNPAY báo thành công, hệ thống tự ghi nhận khoản thanh toán và giữ phòng/căn trên TravelMate.
             </div>
 
             <div class="modal-btns">
@@ -543,6 +688,8 @@
         var BASE_TOTAL_RAW  = /*[[${totalAmount}]]*/ 0;
         var BASE_FULL_RAW   = /*[[${paidFull}]]*/ 0;
         var BASE_DEPOSIT_RAW = /*[[${paidDeposit}]]*/ 0;
+        var IS_VILLA        = /*[[${isVilla}]]*/ false;
+        var PREFILL_VOUCHER_CODE = /*[[${prefillVoucherCode}]]*/ '';
         /*]]>*/
     </script>
 
@@ -552,31 +699,47 @@
             return Math.round(Number(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         }
 
+        function toModalAmount(panelAmount) {
+            return (panelAmount || '0 VND').replace(/\s*VND$/, '₫');
+        }
+
+        let depositVoucherAllowed = true;
+        let depositVoucherBlockMessage = '';
+
         // === Chọn hình thức thanh toán ===
         function selectPayment(option) {
             document.querySelectorAll('.payment-opt').forEach(el => el.classList.remove('selected'));
             const wrap = document.getElementById('right-panel-total-wrap');
             const remainingRow   = document.getElementById('remaining-deposit-row');
             const modalRemRow    = document.getElementById('modal-remaining-row');
+            if (option === 'DEPOSIT_30' && !depositVoucherAllowed) {
+                const msg = document.getElementById('voucherMsg');
+                if (msg) {
+                    msg.innerHTML = '<span style="color:#dc2626;font-weight:700;">' + depositVoucherBlockMessage + '</span>';
+                }
+                option = 'FULL_PAYMENT';
+            }
             if (option === 'FULL_PAYMENT') {
                 document.getElementById('opt-full').classList.add('selected');
-                document.getElementById('modal-amount').textContent = document.getElementById('amount-full').textContent;
-                document.getElementById('modal-option-label').textContent = 'Thanh toán 100%';
+                document.getElementById('modal-amount').textContent = toModalAmount(wrap.dataset.full);
+                document.getElementById('modal-option-label').textContent = 'Thanh toán toàn bộ';
                 document.getElementById('right-panel-total').textContent = wrap.dataset.full;
                 document.getElementById('right-panel-label').textContent = 'Tổng thanh toán';
+                document.getElementById('right-panel-helper').textContent = 'Bạn thanh toán toàn bộ qua VNPAY hôm nay.';
                 if (remainingRow) remainingRow.style.display = 'none';
                 if (modalRemRow)  modalRemRow.style.display  = 'none';
             } else {
                 document.getElementById('opt-deposit').classList.add('selected');
-                document.getElementById('modal-amount').textContent = document.getElementById('amount-deposit').textContent;
-                document.getElementById('modal-option-label').textContent = 'Cọc trước 30%';
+                document.getElementById('modal-amount').textContent = toModalAmount(wrap.dataset.deposit);
+                document.getElementById('modal-option-label').textContent = 'Cọc thanh toán';
                 document.getElementById('right-panel-total').textContent = wrap.dataset.deposit;
-                document.getElementById('right-panel-label').textContent = 'Cọc thanh toán (30%)';
+                document.getElementById('right-panel-label').textContent = 'Cọc thanh toán';
+                document.getElementById('right-panel-helper').textContent = 'Bạn trả trước 30% qua VNPAY để giữ ' + (IS_VILLA ? 'căn' : 'phòng') + '.';
                 // Show remaining row
                 if (remainingRow) remainingRow.style.display = 'flex';
                 if (modalRemRow) {
                     modalRemRow.style.display = '';
-                    document.getElementById('modal-remaining-amount').textContent = wrap.dataset.remainingDeposit.replace(' VND', '₫');
+                    document.getElementById('modal-remaining-amount').textContent = toModalAmount(wrap.dataset.remainingDeposit);
                 }
             }
             document.getElementById('formPaymentOption').value = option;
@@ -711,36 +874,40 @@
 
                 if (data.valid) {
                     // ── Success ──
+                    depositVoucherAllowed = data.depositAllowed !== false;
+                    depositVoucherBlockMessage = data.depositBlockMessage || '';
+                    const curOpt = document.getElementById('formPaymentOption').value;
+                    const depositWarning = curOpt === 'DEPOSIT_30' && !depositVoucherAllowed ?
+                        '<br/><span style="color:#dc2626;font-weight:700;">' + depositVoucherBlockMessage + '</span>' : '';
                     msg.innerHTML =
-                        '<span style="color:#16a34a;font-weight:700;">✅ Voucher hợp lệ! ' + data.discountDesc + '</span>';
+                        '<span style="color:#16a34a;font-weight:700;">✅ Voucher hợp lệ! ' + data.discountDesc + '</span>' + depositWarning;
 
                     // Show discount row in summary
                     document.getElementById('discount-row').style.display = 'flex';
                     document.getElementById('discount-code').textContent   = code;
                     document.getElementById('discount-amount').textContent = '-' + formatVnd(data.discountAmount) + ' VND';
 
-                    // Update payment option amounts
-                    document.getElementById('amount-full').textContent    = formatVnd(data.newFull)    + '₫';
-                    document.getElementById('amount-deposit').textContent = formatVnd(data.newDeposit) + '₫';
-
                     // Update right-panel data-* for selectPayment()
                     const wrap = document.getElementById('right-panel-total-wrap');
                     wrap.dataset.full    = formatVnd(data.newFull)    + ' VND';
                     wrap.dataset.deposit = formatVnd(data.newDeposit) + ' VND';
                     // newRemaining = newTotal - newDeposit (remaining after 30% cọc)
-                    const newRemaining = data.newTotal - data.newDeposit;
+                    const newRemaining = data.newRemainingDeposit ?? (data.newTotal - data.newDeposit);
                     wrap.dataset.remainingDeposit = formatVnd(newRemaining) + ' VND';
 
                     // Refresh displayed total based on current selection
-                    const curOpt = document.getElementById('formPaymentOption').value;
-                    if (curOpt === 'FULL_PAYMENT') {
+                    if (curOpt === 'DEPOSIT_30' && !depositVoucherAllowed) {
+                        selectPayment('FULL_PAYMENT');
+                    } else if (curOpt === 'FULL_PAYMENT') {
                         document.getElementById('right-panel-total').textContent = formatVnd(data.newFull)    + ' VND';
                         document.getElementById('modal-amount').textContent      = formatVnd(data.newFull)    + '₫';
                         document.getElementById('right-panel-label').textContent = 'Tổng thanh toán';
+                        document.getElementById('right-panel-helper').textContent = 'Bạn thanh toán toàn bộ qua VNPAY hôm nay.';
                     } else {
                         document.getElementById('right-panel-total').textContent = formatVnd(data.newDeposit) + ' VND';
                         document.getElementById('modal-amount').textContent      = formatVnd(data.newDeposit) + '₫';
-                        document.getElementById('right-panel-label').textContent = 'Cọc thanh toán (30%)';
+                        document.getElementById('right-panel-label').textContent = 'Cọc thanh toán';
+                        document.getElementById('right-panel-helper').textContent = 'Bạn trả trước 30% qua VNPAY để giữ ' + (IS_VILLA ? 'căn' : 'phòng') + '.';
                         // Update remaining row
                         const remEl = document.getElementById('remaining-deposit-amount');
                         if (remEl) remEl.textContent = formatVnd(newRemaining) + ' VND';
@@ -778,6 +945,8 @@
             document.getElementById('voucherMsg').textContent    = '';
             document.getElementById('formVoucherCode').value     = '';
             document.getElementById('discount-row').style.display = 'none';
+            depositVoucherAllowed = true;
+            depositVoucherBlockMessage = '';
             resetPrices();
         }
 
@@ -789,28 +958,38 @@
                 document.getElementById('formVoucherCode').value = '';
                 document.getElementById('voucherMsg').textContent = '';
                 document.getElementById('discount-row').style.display = 'none';
+                depositVoucherAllowed = true;
+                depositVoucherBlockMessage = '';
                 resetPrices();
             }
         }
 
         // === Reset prices back to base (no voucher) ===
         function resetPrices() {
-            document.getElementById('amount-full').textContent    = formatVnd(BASE_FULL_RAW)    + '₫';
-            document.getElementById('amount-deposit').textContent = formatVnd(BASE_DEPOSIT_RAW) + '₫';
+            depositVoucherAllowed = true;
+            depositVoucherBlockMessage = '';
 
             const wrap = document.getElementById('right-panel-total-wrap');
+            const baseRemaining = BASE_TOTAL_RAW - BASE_DEPOSIT_RAW;
             wrap.dataset.full    = formatVnd(BASE_FULL_RAW)    + ' VND';
             wrap.dataset.deposit = formatVnd(BASE_DEPOSIT_RAW) + ' VND';
+            wrap.dataset.remainingDeposit = formatVnd(baseRemaining) + ' VND';
 
             const curOpt = document.getElementById('formPaymentOption').value;
             if (curOpt === 'FULL_PAYMENT') {
                 document.getElementById('right-panel-total').textContent = formatVnd(BASE_FULL_RAW)    + ' VND';
                 document.getElementById('modal-amount').textContent      = formatVnd(BASE_FULL_RAW)    + '₫';
                 document.getElementById('right-panel-label').textContent = 'Tổng thanh toán';
+                document.getElementById('right-panel-helper').textContent = 'Bạn thanh toán toàn bộ qua VNPAY hôm nay.';
             } else {
                 document.getElementById('right-panel-total').textContent = formatVnd(BASE_DEPOSIT_RAW) + ' VND';
                 document.getElementById('modal-amount').textContent      = formatVnd(BASE_DEPOSIT_RAW) + '₫';
-                document.getElementById('right-panel-label').textContent = 'Cọc thanh toán (30%)';
+                document.getElementById('right-panel-label').textContent = 'Cọc thanh toán';
+                document.getElementById('right-panel-helper').textContent = 'Bạn trả trước 30% qua VNPAY để giữ ' + (IS_VILLA ? 'căn' : 'phòng') + '.';
+                const remEl = document.getElementById('remaining-deposit-amount');
+                if (remEl) remEl.textContent = formatVnd(baseRemaining) + ' VND';
+                const modalRemAmt = document.getElementById('modal-remaining-amount');
+                if (modalRemAmt) modalRemAmt.textContent = formatVnd(baseRemaining) + '₫';
             }
         }
 
@@ -824,10 +1003,28 @@
 
         // Allow pressing Enter in voucher input to trigger Apply
         document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('voucherCodeInput').addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') { e.preventDefault(); applyVoucher(); }
-            });
+            const voucherInput = document.getElementById('voucherCodeInput');
+            if (voucherInput) {
+                voucherInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') { e.preventDefault(); applyVoucher(); }
+                });
+            }
 
+            const voucherPanel = document.querySelector('.voucher-panel');
+            if (PREFILL_VOUCHER_CODE && voucherInput) {
+                voucherInput.value = PREFILL_VOUCHER_CODE.toUpperCase();
+                if (voucherPanel) voucherPanel.open = true;
+                window.setTimeout(applyVoucher, 180);
+            }
+            if (voucherPanel) {
+                voucherPanel.addEventListener('toggle', function () {
+                    if (!voucherPanel.open) return;
+                    window.setTimeout(function () {
+                        const body = voucherPanel.querySelector('.voucher-panel-body') || voucherPanel;
+                        body.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 120);
+                });
+            }
         });
     </script>
 

@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
  *   - 1 booking chỉ được review 1 lần (unique constraint trên booking_id)
  *   - Booking phải ở trạng thái COMPLETED mới được review
  *   - User phải là người sở hữu booking
- *   - Rating: 1-5 sao
+ *   - Rating: 1-10 điểm
  *
  * Quan hệ:
  *   - ManyToOne → User (người đánh giá)
@@ -55,7 +55,7 @@ public class Review {
     @JoinColumn(name = "booking_id", nullable = false, unique = true)
     private Booking booking;
 
-    /** Điểm đánh giá 1-5 sao */
+    /** Điểm đánh giá 1-10 */
     @Column(nullable = false)
     private Integer rating;
 

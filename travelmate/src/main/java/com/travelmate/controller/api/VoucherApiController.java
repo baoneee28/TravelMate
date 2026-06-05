@@ -4,6 +4,7 @@ import com.travelmate.entity.Room;
 import com.travelmate.entity.Voucher;
 import com.travelmate.entity.enums.DiscountType;
 import com.travelmate.entity.enums.PaymentOption;
+import com.travelmate.entity.enums.VoucherCostBearer;
 import com.travelmate.service.AccommodationService;
 import com.travelmate.service.BookingService;
 import com.travelmate.service.VoucherService;
@@ -52,16 +53,37 @@ public class VoucherApiController {
 
             Voucher voucher = voucherService.validateVoucher(code, totalAmount, room);
             BigDecimal discount = voucherService.calculateDiscount(voucher, totalAmount);
+            bookingService.validatePartnerPayout(
+                    PaymentOption.FULL_PAYMENT, room, voucher.getCostBearer(), discount, totalAmount);
             BigDecimal newTotal = totalAmount.subtract(discount).max(BigDecimal.ZERO);
 
             BigDecimal newFull    = bookingService.calculatePaidAmount(newTotal, PaymentOption.FULL_PAYMENT);
-            BigDecimal newDeposit = bookingService.calculatePaidAmount(newTotal, PaymentOption.DEPOSIT_30);
+            BigDecimal newDeposit = bookingService.calculatePaidAmount(totalAmount, PaymentOption.DEPOSIT_30)
+                    .min(newTotal);
+            BigDecimal newRemainingDeposit = newTotal.subtract(newDeposit).max(BigDecimal.ZERO);
+            boolean depositLimitAllowed = voucher.getCostBearer() != VoucherCostBearer.PARTNER
+                    || bookingService.isPartnerVoucherAllowedForDeposit(discount, totalAmount);
+            boolean depositPayoutAllowed = bookingService.isDepositPartnerPayoutNonNegative(
+                    room, voucher.getCostBearer(), discount, totalAmount);
+            boolean depositAllowed = depositLimitAllowed && depositPayoutAllowed;
+            String depositBlockMessage = null;
+            if (!depositLimitAllowed) {
+                depositBlockMessage = "Voucher này vượt quá giới hạn áp dụng cho hình thức đặt cọc 30%. "
+                        + "Vui lòng chọn voucher có giá trị tối đa 10% tổng đơn hoặc chọn thanh toán 100%.";
+            } else if (!depositPayoutAllowed) {
+                depositBlockMessage = "Khoản cọc 30% không đủ để đối soát hoa hồng và voucher này. "
+                        + "Vui lòng chọn thanh toán 100% hoặc chọn voucher nhỏ hơn.";
+            }
 
             result.put("valid",          true);
             result.put("discountAmount", discount.longValue());
             result.put("newTotal",       newTotal.longValue());
             result.put("newFull",        newFull.longValue());
             result.put("newDeposit",     newDeposit.longValue());
+            result.put("newRemainingDeposit", newRemainingDeposit.longValue());
+            result.put("depositAllowed", depositAllowed);
+            result.put("depositBlockMessage", depositBlockMessage);
+            result.put("voucherCostBearer", voucher.getCostBearer() != null ? voucher.getCostBearer().name() : null);
             result.put("discountDesc",   buildDiscountDesc(voucher, discount));
             result.put("errorMsg",       null);
 

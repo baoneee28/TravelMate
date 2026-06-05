@@ -11,7 +11,7 @@
 |---|---|
 | Actor chính | User |
 | Pre-condition | User đã đăng nhập; phòng/căn đang mở bán và còn số lượng |
-| Post-condition thành công | Booking `CONFIRMED`, Payment `APPROVED`, Partner status `PENDING_PARTNER_CONFIRMATION` |
+| Post-condition thành công | Booking `CONFIRMED`, Payment `APPROVED`, Partner status `PARTNER_CONFIRMED` |
 
 ### Luồng chính
 1. User chọn cơ sở lưu trú và phòng/căn.
@@ -25,9 +25,9 @@
 9. Nếu hợp lệ, hệ thống tự cập nhật:
    - Payment `APPROVED`
    - Booking `CONFIRMED`
-   - Partner status `PENDING_PARTNER_CONFIRMATION`
-10. User thấy kết quả "Đã thanh toán / Chờ đối tác xác nhận giữ phòng".
-11. Đối tác nhận booking mới để xác nhận giữ phòng.
+   - Partner status `PARTNER_CONFIRMED`
+10. User thấy kết quả thanh toán thành công và phòng/căn đã được giữ.
+11. Đối tác nhận booking mới để chuẩn bị check-in.
 
 ### Luồng thay thế
 - Phòng/căn không đủ: hiển thị lỗi và yêu cầu chọn lại.
@@ -56,7 +56,7 @@
 3. Nếu giao dịch hợp lệ:
    - Payment `APPROVED`
    - Booking `CONFIRMED`
-   - Partner status `PENDING_PARTNER_CONFIRMATION`
+   - Partner status `PARTNER_CONFIRMED`
    - Gửi thông báo cho đối tác.
 4. Nếu giao dịch không hợp lệ:
    - Booking `CANCELLED`
@@ -68,22 +68,22 @@ Ca sử dụng này chỉ dành cho ngoại lệ, không thay thế luồng VNPA
 
 ---
 
-## UC-08: Partner Xác Nhận Giữ Phòng
+## UC-08: Partner Tiếp Nhận Khách
 
 | Trường | Giá trị |
 |---|---|
 | Actor chính | Partner |
-| Pre-condition | Booking `CONFIRMED`, Partner status `PENDING_PARTNER_CONFIRMATION` |
-| Post-condition | Partner status `PARTNER_CONFIRMED` hoặc `PARTNER_CANCELLED` |
+| Pre-condition | Booking `CONFIRMED`, Partner status `PARTNER_CONFIRMED` |
+| Post-condition | Booking `CHECKED_IN` khi khách đến |
 
 ### Luồng chính
 1. Partner vào `/partner/bookings`.
-2. Hệ thống hiển thị booking đã thanh toán và đang chờ xác nhận giữ phòng.
-3. Partner bấm "Xác nhận giữ phòng".
-4. Hệ thống cập nhật `PARTNER_CONFIRMED` và thông báo cho User.
+2. Hệ thống hiển thị booking đã thanh toán và đã giữ phòng/căn.
+3. Khi tới ngày nhận phòng/căn, Partner bấm "Check-in khách".
+4. Hệ thống cập nhật booking sang `CHECKED_IN`.
 
 ### Luồng thay thế
-- Đối tác từ chối giữ phòng: `PARTNER_CANCELLED`, Admin xử lý hủy/hoàn tiền/trao đổi với khách.
+- Khách không đến với đơn cọc 30%: Partner báo no-show theo chính sách giữ cọc.
 
 ---
 
@@ -92,7 +92,7 @@ Ca sử dụng này chỉ dành cho ngoại lệ, không thay thế luồng VNPA
 | Trường | Giá trị |
 |---|---|
 | Actor chính | Partner |
-| Pre-condition | Booking đã được Partner xác nhận |
+| Pre-condition | Booking `CONFIRMED`, Partner status `PARTNER_CONFIRMED` |
 | Post-condition | Booking `CHECKED_IN` hoặc `COMPLETED` |
 
 ### Luồng chính

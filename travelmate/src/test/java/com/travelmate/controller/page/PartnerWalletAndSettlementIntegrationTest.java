@@ -64,6 +64,22 @@ class PartnerWalletAndSettlementIntegrationTest {
     }
 
     @Test
+    @DisplayName("ROLE_PARTNER truy cập settlements của Admin bị 403 Forbidden")
+    @WithMockUser(username = "partner@travelmate.vn", roles = "PARTNER")
+    void partnerAccessingAdminSettlements_shouldReturnForbidden() throws Exception {
+        mockMvc.perform(get("/admin/settlements"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("ROLE_ADMIN truy cập wallet của Partner bị 403 Forbidden")
+    @WithMockUser(username = "admin@travelmate.vn", roles = "ADMIN")
+    void adminAccessingPartnerWallet_shouldReturnForbidden() throws Exception {
+        mockMvc.perform(get("/partner/wallet"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @DisplayName("Khách chưa đăng nhập được chuyển về login và các trang xác thực EN render được")
     void anonymousAccessingAdminSettlements_shouldRedirectToLogin() throws Exception {
         mockMvc.perform(get("/admin/settlements"))

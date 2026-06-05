@@ -124,12 +124,14 @@ public class AccommodationPageController {
             @RequestParam(required = false, defaultValue = "2") int adults,
             @RequestParam(required = false, defaultValue = "0") int children,
             @RequestParam(required = false, defaultValue = "1") int rooms,
+            @RequestParam(required = false, defaultValue = "") String voucherCode,
             Model model) {
 
         // Parse type string → PropertyType enum, fallback HOTEL nếu sai
         PropertyType propertyType = parsePropertyType(type);
+        String safeVoucherCode = normalizeVoucherCode(voucherCode);
         String effectiveKeyword = (keyword == null || keyword.trim().isBlank())
-                ? "Đà Lạt"
+                ? (safeVoucherCode.isBlank() ? "Đà Lạt" : "")
                 : keyword.trim();
 
         // Tìm kiếm theo loại hình + keyword
@@ -211,7 +213,7 @@ public class AccommodationPageController {
         model.addAttribute("cardSideImagesByAccommodationId", buildListingCardSideImages(hotels));
         model.addAttribute("keyword", effectiveKeyword);
         model.addAttribute("keywordDisplay", keywordDisplay);
-        model.addAttribute("currentType", type.toUpperCase());
+        model.addAttribute("currentType", propertyType.name());
         model.addAttribute("checkIn", checkIn);
         model.addAttribute("checkOut", checkOut);
         model.addAttribute("checkInDisplay", formatDateVN(checkIn));
@@ -219,6 +221,7 @@ public class AccommodationPageController {
         model.addAttribute("adults", adults);
         model.addAttribute("children", children);
         model.addAttribute("rooms", rooms);
+        model.addAttribute("voucherCode", safeVoucherCode);
         model.addAttribute("totalResults", hotels.size());
         model.addAttribute("accAvailMap", accAvailMap);
         model.addAttribute("datesSelectedListing", datesSelectedListing);
@@ -231,6 +234,11 @@ public class AccommodationPageController {
         model.addAttribute("showTravelSuggestSection", showTravelSuggestSection);
 
         return "user/hotels";
+    }
+
+    public String listHotels(String type, String keyword, String checkIn, String checkOut,
+                             int adults, int children, int rooms, Model model) {
+        return listHotels(type, keyword, checkIn, checkOut, adults, children, rooms, "", model);
     }
 
     /**
@@ -248,6 +256,7 @@ public class AccommodationPageController {
             @RequestParam(required = false, defaultValue = "2") int adults,
             @RequestParam(required = false, defaultValue = "0") int children,
             @RequestParam(required = false, defaultValue = "1") int rooms,
+            @RequestParam(required = false, defaultValue = "") String voucherCode,
             Model model) {
 
         // Tìm khách sạn theo ID
@@ -262,6 +271,12 @@ public class AccommodationPageController {
         // A4: Chặn truy cập nếu accommodation chưa được duyệt
         if (hotel.getApprovalStatus() != ApprovalStatus.APPROVED) {
             return "redirect:/accommodations";
+        }
+
+        List<Room> galleryRooms = accommodationService.getAllApprovedRooms(hotel);
+        if (galleryRooms.isEmpty()) {
+            PropertyType type = hotel.getPropertyType() == null ? PropertyType.HOTEL : hotel.getPropertyType();
+            return "redirect:/accommodations?type=" + type.name();
         }
 
         // ── Phòng hiển thị + tình trạng theo ngày ──────────────────────────────
@@ -281,7 +296,7 @@ public class AccommodationPageController {
                         availabilityMap.put(dto.getRoomId(), dto);
                     }
                     // Khi có ngày: hiển thị TẤT CẢ phòng APPROVED (kể cả FULL) để user thấy rõ tình trạng
-                    displayRooms = accommodationService.getAllApprovedRooms(hotel);
+                    displayRooms = galleryRooms;
                     datesSelected = true;
                 } else {
                     displayRooms = accommodationService.getAvailableRooms(hotel);
@@ -295,7 +310,6 @@ public class AccommodationPageController {
         }
 
         // Gallery luôn dùng toàn bộ phòng/căn đang mở bán, kể cả loại phòng đã hết suất ở ngày đang chọn.
-        List<Room> galleryRooms = accommodationService.getAllApprovedRooms(hotel);
         Map<Long, List<RoomImage>> roomImagesMap = roomImageService.getImagesForRooms(galleryRooms);
         List<Map<String, String>> galleryImages = buildDetailGallery(hotel, galleryRooms, roomImagesMap);
 
@@ -352,6 +366,7 @@ public class AccommodationPageController {
         model.addAttribute("adults", adults);
         model.addAttribute("children", children);
         model.addAttribute("rooms", rooms);
+        model.addAttribute("voucherCode", normalizeVoucherCode(voucherCode));
         model.addAttribute("bookedRanges", bookedRanges);
         model.addAttribute("roomTotalQtyMap", roomTotalQtyMap);
         model.addAttribute("travelSuggestions", travelPostService.getTopVisibleByDestination(hotel.getCity()));
@@ -359,6 +374,11 @@ public class AccommodationPageController {
         model.addAttribute("travelDestinationSlug", travelPostService.normalizeDestination(hotel.getCity()));
 
         return "user/hotel-detail";
+    }
+
+    public String hotelDetail(Long id, String checkIn, String checkOut,
+                              int adults, int children, int rooms, Model model) {
+        return hotelDetail(id, checkIn, checkOut, adults, children, rooms, "", model);
     }
 
     private List<Map<String, String>> buildDetailGallery(Accommodation hotel, List<Room> galleryRooms,
@@ -369,8 +389,6 @@ public class AccommodationPageController {
             for (Map.Entry<String, String> image : LATA_DETAIL_GALLERY_IMAGES) {
                 addGalleryImage(gallery, usedUrls, image.getKey(), image.getValue());
             }
-        } else {
-            addGalleryImage(gallery, usedUrls, hotel.getThumbnailUrl(), hotel.getName());
         }
 
         for (Room room : galleryRooms) {
@@ -382,6 +400,10 @@ public class AccommodationPageController {
             }
             addGalleryImage(gallery, usedUrls, room.getImageUrl(),
                     hotel.getName() + " - " + room.getRoomName());
+        }
+
+        if (!LATA_HOTEL_NAME.equalsIgnoreCase(hotel.getName())) {
+            addGalleryImage(gallery, usedUrls, hotel.getThumbnailUrl(), hotel.getName());
         }
 
         PropertyType propertyType = hotel.getPropertyType() == null ? PropertyType.HOTEL : hotel.getPropertyType();
@@ -471,5 +493,9 @@ public class AccommodationPageController {
         } catch (Exception e) {
             return "";
         }
+    }
+
+    private String normalizeVoucherCode(String voucherCode) {
+        return voucherCode == null ? "" : voucherCode.trim().toUpperCase();
     }
 }

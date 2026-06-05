@@ -74,9 +74,9 @@ VnpaySvc --> PayCtrl : valid/invalid
 alt Chữ ký hợp lệ và responseCode = "00"
     PayCtrl -> DB : Load Payment theo vnp_TxnRef
     PayCtrl -> DB : UPDATE Payment\nstatus=APPROVED\npaidAt=now\napprovedAt=now
-    PayCtrl -> DB : UPDATE Booking\nstatus=CONFIRMED\npaymentStatus=APPROVED\npartnerStatus=PENDING_PARTNER_CONFIRMATION
-    PayCtrl -> NotifySvc : Thông báo cho Partner\n"Booking mới cần xác nhận giữ phòng"
-    PayCtrl --> Browser : payment-result.html\nĐã thanh toán — chờ đối tác xác nhận giữ phòng
+    PayCtrl -> DB : UPDATE Booking\nstatus=CONFIRMED\npaymentStatus=APPROVED\npartnerStatus=PARTNER_CONFIRMED
+    PayCtrl -> NotifySvc : Thông báo cho User\n"Đã thanh toán và đã giữ phòng/căn"
+    PayCtrl --> Browser : payment-result.html\nĐã thanh toán — đã giữ phòng/căn
 else VNPAY thất bại / hủy / hết hạn
     PayCtrl -> DB : UPDATE Payment\nFAILED/CANCELLED/EXPIRED
     PayCtrl -> DB : UPDATE Booking CANCELLED\nMở lại phòng/căn
@@ -86,16 +86,16 @@ else Chữ ký/dữ liệu bất thường
     PayCtrl --> Browser : payment-result.html\nCần TravelMate đối soát
 end
 
-== 4. Partner xác nhận giữ phòng ==
+== 4. Partner tiếp nhận khách ==
 
 PartnerCtrl -> DB : GET /partner/bookings
-DB --> PartnerCtrl : Booking CONFIRMED + PENDING_PARTNER_CONFIRMATION
-PartnerCtrl --> Browser : Hiển thị nút "Xác nhận giữ phòng"
+DB --> PartnerCtrl : Booking CONFIRMED + PARTNER_CONFIRMED
+PartnerCtrl --> Browser : Hiển thị nút "Check-in khách" khi tới ngày
 User -> Browser : Theo dõi /my-bookings
 
-Browser -> PartnerCtrl : POST /partner/bookings/{id}/confirm-hold
-PartnerCtrl -> DB : UPDATE partnerStatus=PARTNER_CONFIRMED
-PartnerCtrl -> NotifySvc : Thông báo User\n"Đối tác đã xác nhận giữ phòng"
+Browser -> PartnerCtrl : POST /partner/bookings/{id}/check-in
+PartnerCtrl -> DB : UPDATE bookingStatus=CHECKED_IN
+PartnerCtrl -> NotifySvc : Thông báo User\n"Khách đã check-in"
 
 == 5. Admin xử lý ngoại lệ ==
 

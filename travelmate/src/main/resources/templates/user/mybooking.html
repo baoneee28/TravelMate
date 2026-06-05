@@ -94,10 +94,45 @@
         .mb-reviewed-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; background: #fef3c7; color: #92400e; }
         .mb-support-btn { background: none; border: 1px solid #10b981; color: #059669; padding: 6px 14px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: background 0.15s; text-decoration: none; }
         .mb-support-btn:hover { background: #d1fae5; }
-        .mb-rebook-btn { background: none; border: 1px solid #94a3b8; color: #64748b; padding: 6px 14px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: background 0.15s; text-decoration: none; }
-        .mb-rebook-btn:hover { background: #f1f5f9; }
+        .mb-rebook-btn { background: #eff6ff; border: 1px solid #60a5fa; color: #1d4ed8; padding: 6px 14px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: background 0.15s; text-decoration: none; }
+        .mb-rebook-btn:hover { background: #dbeafe; }
+        .mb-rebook-note { max-width: 250px; text-align: right; font-size: 0.68rem; line-height: 1.45; color: #64748b; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 6px 8px; }
         .mb-pay-btn { background: #2563eb; border: 1px solid #2563eb; color: #fff; padding: 7px 16px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.15s; text-decoration: none; }
         .mb-pay-btn:hover { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+
+        @media (max-width: 640px) {
+            .mb-main { margin: 24px auto; padding: 0 12px 84px; }
+            .mb-card { grid-template-columns: 1fr; gap: 14px; padding: 16px; }
+            .mb-right { width: 100%; align-items: stretch; text-align: left; }
+            .mb-badge-row,
+            .mb-action-row { justify-content: flex-start; }
+            .mb-amount-row { align-items: flex-start; }
+            .mb-action-row {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px;
+            }
+            .mb-action-row > * {
+                width: 100%;
+                min-height: 38px;
+                justify-content: center;
+                scroll-margin-top: 112px;
+            }
+            .mb-rebook-btn { grid-column: 1 / -1; }
+            .mb-rebook-note {
+                width: 100%;
+                max-width: none;
+                text-align: left;
+                font-size: 0.72rem;
+            }
+            .mb-status,
+            .mb-payment-badge,
+            .mb-pstatus { max-width: 100%; }
+        }
+
+        @media (max-width: 420px) {
+            .mb-action-row { grid-template-columns: 1fr; }
+        }
 
         /* ===== Feature 7: Invoice button ===== */
         .mb-invoice-btn { background:none; border:1px solid #2563eb; color:#2563eb; padding:6px 14px; border-radius:8px; font-size:0.78rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:5px; transition:background 0.15s; }
@@ -119,11 +154,13 @@
         .mb-review-form { display: none; grid-column: 1 / -1; background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 20px; margin-top: 12px; }
         .mb-review-form.show { display: block; }
         .mb-review-form h4 { font-size: 0.95rem; font-weight: 700; color: #92400e; margin-bottom: 12px; }
-        .mb-star-rating { display: flex; gap: 4px; margin-bottom: 12px; flex-direction: row-reverse; justify-content: flex-end; }
-        .mb-star-rating input { display: none; }
-        .mb-star-rating label { cursor: pointer; font-size: 1.5rem; color: #d1d5db; transition: color 0.15s; }
-        .mb-star-rating label:hover, .mb-star-rating label:hover ~ label,
-        .mb-star-rating input:checked ~ label { color: #f59e0b; }
+        .mb-score-rating { display: grid; grid-template-columns: repeat(auto-fit, minmax(42px, 1fr)); gap: 6px; max-width: 560px; margin-bottom: 8px; }
+        .mb-score-rating input { position: absolute; opacity: 0; pointer-events: none; }
+        .mb-score-rating label { min-height: 38px; border: 1px solid #fed7aa; border-radius: 8px; background: #fff; color: #92400e; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 800; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s; }
+        .mb-score-rating label:hover { background: #ffedd5; border-color: #f59e0b; }
+        .mb-score-rating input:focus-visible + label { outline: 2px solid #2563eb; outline-offset: 2px; }
+        .mb-score-rating input:checked + label { background: #f59e0b; border-color: #f59e0b; color: #fff; box-shadow: 0 6px 14px rgba(245, 158, 11, 0.22); }
+        .mb-score-hint { font-size: 0.75rem; color: #92400e; margin-bottom: 12px; }
         .mb-review-textarea { width: 100%; min-height: 80px; padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.875rem; font-family: inherit; resize: vertical; outline: none; }
         .mb-review-textarea:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.1); }
         .mb-review-actions { display: flex; gap: 10px; margin-top: 12px; }
@@ -162,7 +199,7 @@
 
 <body>
     <script src="/assets/js/main.js"></script>
-    <script src="/assets/js/user.js"></script>
+    <script src="/assets/js/user.js?v=20260603-preview"></script>
     <div th:replace="~{fragments/user-header :: header(true, 'bookings')}"></div>
 
 
@@ -230,6 +267,7 @@
         <!-- ===== Booking cards ===== -->
         <div class="mb-card"
              th:each="b : ${bookings}"
+             th:with="unitLabel=${b.accommodation.propertyType?.name() == 'VILLA' ? 'căn' : 'phòng'}"
              th:attr="data-status=${b.bookingStatus.name()},
                       data-pstatus=${b.paymentStatus.name()},
                       data-id=${b.id},
@@ -358,21 +396,21 @@
                                                                                                   'fa-flag-checkered')))))}"></i>
                         <span th:text="${b.bookingStatus.name() == 'PENDING_PAYMENT'        ? 'Chờ thanh toán'       :
                                         (b.bookingStatus.name() == 'PENDING_ADMIN_APPROVAL' ? 'Cần đối soát'         :
-                                        (b.bookingStatus.name() == 'CONFIRMED' and b.partnerStatus != null and b.partnerStatus.name() == 'PENDING_PARTNER_CONFIRMATION' ? 'Đã thanh toán — Chờ đối tác xác nhận giữ phòng' :
-                                        (b.bookingStatus.name() == 'CONFIRMED' and b.partnerStatus != null and b.partnerStatus.name() == 'PARTNER_CONFIRMED' ? 'Đối tác đã xác nhận giữ phòng' :
-                                        (b.bookingStatus.name() == 'CONFIRMED'              ? 'Đã thanh toán — Chờ cập nhật giữ phòng' :
-                                        (b.bookingStatus.name() == 'CHECKED_IN'             ? 'Đang lưu trú'          :
+                                        (b.bookingStatus.name() == 'CONFIRMED' and b.partnerStatus != null and b.partnerStatus.name() == 'PENDING_PARTNER_CONFIRMATION' ? 'Đang kiểm tra trạng thái giữ ' + unitLabel :
+                                        (b.bookingStatus.name() == 'CONFIRMED' and b.partnerStatus != null and b.partnerStatus.name() == 'PARTNER_CONFIRMED' ? 'Đã giữ ' + unitLabel :
+                                        (b.bookingStatus.name() == 'CONFIRMED'              ? 'Đã thanh toán' :
+                                        (b.bookingStatus.name() == 'CHECKED_IN'             ? 'Khách đang lưu trú'          :
                                         (b.bookingStatus.name() == 'NO_SHOW'                ? 'No-show'               :
                                         (b.bookingStatus.name() == 'CANCELLED'              ? 'Đã hủy'                :
-                                                                                              'Hoàn thành')))))))}">--</span>
+                                                                                               'Hoàn thành')))))))}">--</span>
                     </span>
                     <span th:if="${b.partnerStatus != null and b.partnerStatus.name() == 'PENDING_PARTNER_CONFIRMATION'}"
                           style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:0.7rem;font-weight:700;background:#fef9c3;color:#a16207;">
-                        <i class="fa-solid fa-clock"></i> Chờ đối tác xác nhận
+                        <i class="fa-solid fa-clock"></i> <span th:text="${'Đang kiểm tra trạng thái giữ ' + unitLabel}">Đang kiểm tra trạng thái giữ phòng</span>
                     </span>
                     <span th:if="${b.partnerStatus != null and b.partnerStatus.name() == 'PARTNER_CONFIRMED'}"
                           style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:0.7rem;font-weight:700;background:#dcfce7;color:#166534;">
-                        <i class="fa-solid fa-check"></i> Đối tác đã giữ phòng
+                        <i class="fa-solid fa-check"></i> <span th:text="${'Đã giữ ' + unitLabel}">Đã giữ phòng</span>
                     </span>
                 </div>
 
@@ -391,32 +429,32 @@
                                            (b.paymentStatus.name() == 'REFUNDED'               ? 'pst-refunded'  :
                                                                                                  'pst-cancelled')))))))))}">
                         <i class="fa-solid fa-circle-dollar-to-slot"></i>
-                        <span th:text="${b.paymentStatus.name() == 'PENDING_PAYMENT' and b.paymentOption != null and b.paymentOption.name() == 'DEPOSIT_30' ? 'Chờ TT cọc 30% VNPAY' :
-                                        (b.paymentStatus.name() == 'PENDING_PAYMENT' ? 'Chờ TT 100% VNPAY' :
+                        <span th:text="${b.paymentStatus.name() == 'PENDING_PAYMENT' and b.paymentOption != null and b.paymentOption.name() == 'DEPOSIT_30' ? 'Chờ thanh toán cọc 30% VNPAY' :
+                                        (b.paymentStatus.name() == 'PENDING_PAYMENT' ? 'Chờ thanh toán VNPAY' :
                                         (b.paymentStatus.name() == 'PENDING_ADMIN_APPROVAL' and b.paymentOption != null and b.paymentOption.name() == 'DEPOSIT_30' ? 'Cọc cần đối soát' :
                                         (b.paymentStatus.name() == 'PENDING_ADMIN_APPROVAL' ? 'Thanh toán cần đối soát' :
                                         (b.paymentStatus.name() == 'APPROVED' and b.paymentOption != null and b.paymentOption.name() == 'DEPOSIT_30' ? 'Đã cọc 30% VNPAY' :
                                         (b.paymentStatus.name() == 'APPROVED'               ? 'Đã thanh toán 100% VNPAY'  :
-                                        (b.paymentStatus.name() == 'FAILED'                 ? 'TT thất bại'                :
-                                        (b.paymentStatus.name() == 'CANCELLED'              ? 'Đã hủy GD'                  :
+                                        (b.paymentStatus.name() == 'FAILED'                 ? 'Thanh toán thất bại'        :
+                                        (b.paymentStatus.name() == 'CANCELLED'              ? 'Đã hủy giao dịch'           :
                                         (b.paymentStatus.name() == 'EXPIRED'                ? 'Quá hạn thanh toán'         :
-                                        (b.paymentStatus.name() == 'REJECTED'               ? 'TT bị từ chối'              :
+                                        (b.paymentStatus.name() == 'REJECTED'               ? 'Thanh toán bị từ chối'      :
                                         (b.paymentStatus.name() == 'DEPOSIT_FORFEITED'      ? 'Cọc bị giữ'                 :
                                         (b.paymentStatus.name() == 'REFUND_PENDING'         ? 'Chờ hoàn tiền'              :
-                                        (b.paymentStatus.name() == 'REFUNDED'               ? 'Đã hoàn tiền'               :
+                                        (b.paymentStatus.name() == 'REFUNDED'               ? 'Đã ghi nhận hoàn tiền'      :
                                                                                               'N/A'))))))))))))}">--</span>
                     </span>
                     <span class="mb-payment-badge"
                           th:if="${b.bookingStatus.name() != 'PENDING_PAYMENT'}"
                           th:classappend="${b.paymentOption.name() == 'DEPOSIT_30' ? 'mb-payment-badge-deposit' : ''}">
                         <i class="fa-solid fa-wallet"></i>
-                        <span th:text="${b.paymentOption.name() == 'FULL_PAYMENT' ? 'TT 100%' : 'Cọc 30%'}">--</span>
+                        <span th:text="${b.paymentOption.name() == 'FULL_PAYMENT' ? 'Thanh toán 100%' : 'Cọc 30%'}">--</span>
                     </span>
                     <span class="mb-payment-badge"
                           th:if="${b.bookingStatus.name() == 'PENDING_PAYMENT'}"
                           th:classappend="${b.paymentOption.name() == 'DEPOSIT_30' ? 'mb-payment-badge-deposit' : ''}">
                         <i class="fa-solid fa-credit-card"></i>
-                        <span th:text="${b.paymentOption.name() == 'DEPOSIT_30' ? 'Cọc 30% VNPAY' : 'TT 100% VNPAY'}">--</span>
+                        <span th:text="${b.paymentOption.name() == 'DEPOSIT_30' ? 'Cọc 30% VNPAY' : 'Thanh toán 100% VNPAY'}">--</span>
                     </span>
                 </div>
 
@@ -428,7 +466,7 @@
                          th:text="${b.paymentStatus.name() == 'PENDING_ADMIN_APPROVAL'
                                         ? 'Đã gửi: ' + #numbers.formatDecimal(b.paidAmount, 0, 'POINT', 0, 'COMMA') + ' VND'
                                         : (b.paymentStatus.name() == 'APPROVED'
-                                            ? 'VNPAY đã xác nhận: ' + #numbers.formatDecimal(b.paidAmount, 0, 'POINT', 0, 'COMMA') + ' VND'
+                                            ? 'VNPAY đã ghi nhận: ' + #numbers.formatDecimal(b.paidAmount, 0, 'POINT', 0, 'COMMA') + ' VND'
                                             : (b.paymentStatus.name() == 'DEPOSIT_FORFEITED'
                                                 ? 'Cọc giữ lại: ' + #numbers.formatDecimal(b.paidAmount, 0, 'POINT', 0, 'COMMA') + ' VND'
                                                 : 'Đã TT: ' + #numbers.formatDecimal(b.paidAmount, 0, 'POINT', 0, 'COMMA') + ' VND'))}"
@@ -437,7 +475,7 @@
                                      (b.paymentStatus.name() == 'DEPOSIT_FORFEITED' ? 'color:#dc2626;font-weight:600;' : ''))}">--</div>
                     <div class="mb-remaining"
                          th:if="${b.remainingAmount != null and b.remainingAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0}"
-                         th:text="'Còn lại: ' + ${#numbers.formatDecimal(b.remainingAmount, 0, 'POINT', 0, 'COMMA')} + ' VND'">--</div>
+                         th:text="'Còn lại tại cơ sở: ' + ${#numbers.formatDecimal(b.remainingAmount, 0, 'POINT', 0, 'COMMA')} + ' VND'">--</div>
                     <div th:if="${b.bookingStatus.name() == 'PENDING_PAYMENT'}"
                          style="font-size:0.68rem;color:#1e40af;background:#eff6ff;border:1px solid #93c5fd;border-radius:7px;padding:5px 9px;text-align:right;line-height:1.5;max-width:210px;">
                         <i class="fa-solid fa-clock" style="margin-right:3px;"></i>
@@ -490,20 +528,23 @@
                         <i class="fa-solid fa-headset"></i> Hỗ trợ
                     </a>
 
-                    <!-- CANCELLED / NO_SHOW: Đặt lại -->
+                    <!-- CANCELLED / NO_SHOW: Đặt lại thành đơn mới độc lập -->
                     <a th:if="${b.bookingStatus.name() == 'CANCELLED' or b.bookingStatus.name() == 'NO_SHOW'}"
-                       th:href="@{/accommodations/{id}(id=${b.accommodation.id})}"
+                       th:href="@{/my-bookings/{id}/rebook(id=${b.id})}"
                        class="mb-rebook-btn">
-                        <i class="fa-solid fa-rotate-right"></i> Đặt lại
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span th:text="${b.paymentStatus.name() == 'REFUND_PENDING'
+                                ? (unitLabel == 'căn' ? 'Đặt căn mới' : 'Đặt phòng mới')
+                                : (unitLabel == 'căn' ? 'Đặt lại căn này' : 'Đặt lại phòng này')}">Đặt lại phòng này</span>
                     </a>
 
                     <!-- COMPLETED: Review -->
                     <span th:if="${b.bookingStatus.name() == 'COMPLETED' and reviewedBookingIds.contains(b.id)}"
-                          class="mb-reviewed-badge">⭐ Đã đánh giá</span>
+                          class="mb-reviewed-badge"><i class="fa-solid fa-circle-check"></i> Đã đánh giá</span>
                     <button th:if="${b.bookingStatus.name() == 'COMPLETED' and !reviewedBookingIds.contains(b.id)}"
                             class="mb-review-btn" type="button"
                             th:attr="onclick='toggleReviewForm(' + ${b.id} + ')'">
-                        <i class="fa-solid fa-star"></i> Đánh giá
+                        <i class="fa-solid fa-pen-to-square"></i> Đánh giá
                     </button>
 
                     <!-- Biên nhận / Hóa đơn -->
@@ -532,21 +573,31 @@
                         <span th:text="${b.bookingStatus.name() == 'PENDING_ADMIN_APPROVAL' ? 'Biên nhận' : 'Hóa đơn'}">Hóa đơn</span>
                     </button>
                 </div><!-- end mb-action-row -->
+                <div class="mb-rebook-note"
+                     th:if="${b.bookingStatus.name() == 'CANCELLED' or b.bookingStatus.name() == 'NO_SHOW'}">
+                    Đơn mới dùng lại ngày, số khách và số lượng nếu còn phù hợp. Thanh toán, voucher hoặc hoàn tiền của đơn cũ không chuyển sang đơn mới.
+                </div>
             </div><!-- end mb-right -->
 
             <!-- Inline review form -->
             <div th:if="${b.bookingStatus.name() == 'COMPLETED' and !reviewedBookingIds.contains(b.id)}"
                  th:id="'review-form-' + ${b.id}"
                  class="mb-review-form" style="grid-column: 1 / -1;">
-                <h4><i class="fa-solid fa-pen-to-square"></i> Đánh giá <span th:text="${b.accommodation.name}">Khách sạn</span></h4>
+                <h4><i class="fa-solid fa-pen-to-square"></i> Đánh giá <span th:text="${b.accommodation.name}">Khách sạn</span> theo thang 10</h4>
                 <form th:action="@{/my-bookings/{id}/review(id=${b.id})}" method="post">
-                    <div class="mb-star-rating">
-                        <input type="radio" name="rating" value="5" th:id="'star5-' + ${b.id}" required /><label th:for="'star5-' + ${b.id}" title="5 sao"><i class="fa-solid fa-star"></i></label>
-                        <input type="radio" name="rating" value="4" th:id="'star4-' + ${b.id}" /><label th:for="'star4-' + ${b.id}" title="4 sao"><i class="fa-solid fa-star"></i></label>
-                        <input type="radio" name="rating" value="3" th:id="'star3-' + ${b.id}" /><label th:for="'star3-' + ${b.id}" title="3 sao"><i class="fa-solid fa-star"></i></label>
-                        <input type="radio" name="rating" value="2" th:id="'star2-' + ${b.id}" /><label th:for="'star2-' + ${b.id}" title="2 sao"><i class="fa-solid fa-star"></i></label>
-                        <input type="radio" name="rating" value="1" th:id="'star1-' + ${b.id}" /><label th:for="'star1-' + ${b.id}" title="1 sao"><i class="fa-solid fa-star"></i></label>
+                    <div class="mb-score-rating" role="radiogroup" aria-label="Điểm đánh giá thang 10">
+                        <input type="radio" name="rating" value="1" th:id="'score1-' + ${b.id}" required /><label th:for="'score1-' + ${b.id}" title="1 điểm">1</label>
+                        <input type="radio" name="rating" value="2" th:id="'score2-' + ${b.id}" /><label th:for="'score2-' + ${b.id}" title="2 điểm">2</label>
+                        <input type="radio" name="rating" value="3" th:id="'score3-' + ${b.id}" /><label th:for="'score3-' + ${b.id}" title="3 điểm">3</label>
+                        <input type="radio" name="rating" value="4" th:id="'score4-' + ${b.id}" /><label th:for="'score4-' + ${b.id}" title="4 điểm">4</label>
+                        <input type="radio" name="rating" value="5" th:id="'score5-' + ${b.id}" /><label th:for="'score5-' + ${b.id}" title="5 điểm">5</label>
+                        <input type="radio" name="rating" value="6" th:id="'score6-' + ${b.id}" /><label th:for="'score6-' + ${b.id}" title="6 điểm">6</label>
+                        <input type="radio" name="rating" value="7" th:id="'score7-' + ${b.id}" /><label th:for="'score7-' + ${b.id}" title="7 điểm">7</label>
+                        <input type="radio" name="rating" value="8" th:id="'score8-' + ${b.id}" /><label th:for="'score8-' + ${b.id}" title="8 điểm">8</label>
+                        <input type="radio" name="rating" value="9" th:id="'score9-' + ${b.id}" /><label th:for="'score9-' + ${b.id}" title="9 điểm">9</label>
+                        <input type="radio" name="rating" value="10" th:id="'score10-' + ${b.id}" /><label th:for="'score10-' + ${b.id}" title="10 điểm">10</label>
                     </div>
+                    <div class="mb-score-hint">Chọn điểm từ 1 đến 10 cho trải nghiệm lưu trú.</div>
                     <textarea name="comment" class="mb-review-textarea" placeholder="Chia sẻ trải nghiệm của bạn tại đây..." required></textarea>
                     <div class="mb-review-actions">
                         <button type="submit" class="mb-review-submit"><i class="fa-solid fa-paper-plane"></i> Gửi đánh giá</button>
@@ -704,12 +755,12 @@
                     <i class="fa-solid fa-circle-check" style="margin-right:6px;"></i> Hoàn tiền theo chính sách — Thanh toán 100%
                 </div>
                 <p style="font-size:0.8125rem;color:#14532d;margin:0 0 6px;">
-                    Với đơn đã thanh toán 100%, hệ thống sẽ ghi nhận yêu cầu hủy và xử lý hoàn tiền theo chính sách:
+                    Với đơn đã thanh toán 100%, hệ thống sẽ ghi nhận yêu cầu hủy và chờ TravelMate xử lý hoàn tiền theo chính sách:
                 </p>
                 <div style="font-size:0.85rem;color:#14532d;text-align:center;">Số tiền dự kiến hoàn: <strong>70%</strong> &nbsp;|&nbsp; Phí hủy: <strong>30%</strong></div>
                 <div style="font-size:1.1rem;font-weight:800;color:#16a34a;text-align:center;" id="cancel-refund-amount">0 VND</div>
                 <p style="font-size:0.75rem;color:#64748b;margin:8px 0 0;font-style:italic;">
-                    (Sau khi xác nhận hủy, TravelMate sẽ xử lý hoàn tiền trong 1–3 ngày làm việc)
+                    (Sau khi xác nhận hủy, TravelMate sẽ ghi nhận yêu cầu hoàn tiền để Admin xử lý ngoài hệ thống)
                 </p>
             </div>
 
@@ -1002,16 +1053,16 @@
         function getStatusInfo(status, partnerStatus, unitLabel) {
             if (status === 'CONFIRMED') {
                 if (partnerStatus === 'PENDING_PARTNER_CONFIRMATION') {
-                    return { label:'✅ Đã thanh toán — Chờ đối tác xác nhận giữ ' + (unitLabel || 'phòng'), bg:'#fef9c3', color:'#92400e' };
+                    return { label:'⚠️ Đang kiểm tra trạng thái giữ ' + (unitLabel || 'phòng'), bg:'#fef9c3', color:'#92400e' };
                 }
                 if (partnerStatus === 'PARTNER_CONFIRMED') {
-                    return { label:'✅ Đối tác đã xác nhận giữ ' + (unitLabel || 'phòng'), bg:'#dcfce7', color:'#166534' };
+                    return { label:'✅ Đã giữ ' + (unitLabel || 'phòng'), bg:'#dcfce7', color:'#166534' };
                 }
-                return { label:'✅ Đã thanh toán — Chờ cập nhật giữ ' + (unitLabel || 'phòng'), bg:'#d1fae5', color:'#065f46' };
+                return { label:'✅ Đã thanh toán', bg:'#d1fae5', color:'#065f46' };
             }
             const map = {
                 'PENDING_ADMIN_APPROVAL': { label:'⚠ Cần TravelMate đối soát thanh toán',    bg:'#fef3c7', color:'#b45309' },
-                'CHECKED_IN':             { label:'🔑 Đã check-in',         bg:'#e0f2fe', color:'#0369a1' },
+                'CHECKED_IN':             { label:'🔑 Khách đang lưu trú',  bg:'#e0f2fe', color:'#0369a1' },
                 'NO_SHOW':                { label:'❌ Mất cọc / No-show',   bg:'#fde8d8', color:'#c2410c' },
                 'CANCELLED':              { label:'🚫 Đã hủy',              bg:'#f1f5f9', color:'#64748b' },
                 'COMPLETED':              { label:'🏁 Hoàn thành',          bg:'#dbeafe', color:'#1e40af' },
@@ -1171,14 +1222,14 @@
             const pstMap = {
                 'PENDING_PAYMENT':        { label:'⏳ Đang chờ thanh toán VNPAY',               bg:'#e0f2fe', color:'#0369a1' },
                 'PENDING_ADMIN_APPROVAL': { label:'⚠ Cần TravelMate đối soát thanh toán',       bg:'#fef9c3', color:'#a16207' },
-                'APPROVED':               { label:'✅ VNPAY đã xác nhận thanh toán',             bg:'#dcfce7', color:'#166534' },
+                'APPROVED':               { label:'✅ VNPAY đã ghi nhận thanh toán',             bg:'#dcfce7', color:'#166534' },
                 'REJECTED':               { label:'❌ Thanh toán bị từ chối',                   bg:'#fee2e2', color:'#991b1b' },
                 'DEPOSIT_FORFEITED':      { label:'💸 Cọc bị giữ lại (Hủy/no-show)',             bg:'#fde8d8', color:'#9a3412' },
                 'CANCELLED':              { label:'🚫 Đã hủy thanh toán',                       bg:'#f1f5f9', color:'#64748b' },
                 'EXPIRED':                { label:'⌛ Quá hạn thanh toán',                     bg:'#f1f5f9', color:'#64748b' },
                 'FAILED':                 { label:'❌ Thanh toán VNPAY thất bại',               bg:'#fee2e2', color:'#991b1b' },
                 'REFUND_PENDING':         { label:'🔄 Chờ TravelMate xử lý hoàn tiền',          bg:'#f5f3ff', color:'#6d28d9' },
-                'REFUNDED':               { label:'↩ Đã hoàn tiền thành công',                  bg:'#d1fae5', color:'#065f46' },
+                'REFUNDED':               { label:'↩ Đã ghi nhận hoàn tiền',                    bg:'#d1fae5', color:'#065f46' },
             };
             const psInfo = pstMap[pstatus] || { label: pstatus || '—', bg:'#f1f5f9', color:'#334155' };
             const pstatusEl = document.getElementById('detail-pstatus');
@@ -1194,9 +1245,9 @@
             if (partner && partner !== '') {
                 partnerRow.style.display = '';
                 const pMap = {
-                    'PENDING_PARTNER_CONFIRMATION': '⏳ Chờ đối tác xác nhận giữ ' + unitLabel,
-                    'PARTNER_CONFIRMED':            '✅ Đối tác đã xác nhận giữ ' + unitLabel,
-                    'PARTNER_CANCELLED':            '❌ Đối tác đã từ chối giữ ' + unitLabel,
+                    'PENDING_PARTNER_CONFIRMATION': '⚠️ Đang kiểm tra trạng thái giữ ' + unitLabel,
+                    'PARTNER_CONFIRMED':            '✅ Đã giữ ' + unitLabel,
+                    'PARTNER_CANCELLED':            '❌ Không thể tiếp nhận khách',
                     'PARTNER_COMPLETED':            '🏁 Đối tác đã hoàn tất lưu trú'
                 };
                 partnerEl.textContent = pMap[partner] || partner;

@@ -55,6 +55,14 @@ class UserPortalFlowTemplateTest {
         assertThat(booking).contains("Dùng mã");
         assertThat(booking).contains("Đã thanh toán 100% qua VNPAY");
         assertThat(booking).contains("70% còn lại thanh toán tại cơ sở");
+        assertThat(booking).contains(
+                "@media (max-width:900px)",
+                ".bk-main",
+                "flex-direction: column",
+                ".bk-right",
+                "position: static",
+                ".bk-price-total",
+                ".deposit-remainder-row");
     }
 
     @Test
@@ -70,6 +78,21 @@ class UserPortalFlowTemplateTest {
         assertThat(rooms).contains("name=\"imageFiles\"");
         assertThat(rooms).contains("Chỉ hỗ trợ JPG, PNG, WEBP");
         assertThat(rooms).contains("refreshUploadedImagePreview");
+    }
+
+    @Test
+    @DisplayName("Partner thêm phòng/căn bằng ảnh upload từ máy và có preview")
+    void partnerRoomFormUsesLocalImageUploadInsteadOfRequiredUrl() throws IOException {
+        String roomForm = read("partner/room-form.html");
+
+        assertThat(roomForm).contains(
+                "enctype=\"multipart/form-data\"",
+                "name=\"roomImages\"",
+                "accept=\"image/png,image/jpeg,image/webp\"",
+                "previewRoomImages",
+                "Tải lên tối đa 3 ảnh JPG, PNG hoặc WEBP",
+                "Ảnh đầu tiên sẽ làm ảnh đại diện");
+        assertThat(roomForm).doesNotContain("URL ảnh phòng", "Nhập URL ảnh phòng");
     }
 
     @Test
@@ -93,7 +116,7 @@ class UserPortalFlowTemplateTest {
     }
 
     @Test
-    @DisplayName("Partner revenue hiển thị rõ cơ sở hoa hồng online theo Hướng A")
+    @DisplayName("Partner revenue hiển thị rõ cơ sở hoa hồng theo tổng đơn gốc")
     void partnerRevenueMakesOnlineCommissionBaseVisible() throws IOException {
         String revenue = read("partner/revenue.html");
 
@@ -101,8 +124,35 @@ class UserPortalFlowTemplateTest {
                 "Cơ sở tính",
                 "item.commissionBase",
                 "item.commissionBaseLabel",
-                "hoa hồng chỉ tính trên phần cọc 30%",
-                "70% khách trả tại cơ sở không tính hoa hồng");
+                "Hoa hồng của mọi booking online được tính theo tổng đơn gốc trước voucher",
+                "70% khách trả tại cơ sở được hiển thị riêng");
+    }
+
+    @Test
+    @DisplayName("Partner UI không mở check-in/no-show trước ngày nhận phòng")
+    void partnerBookingUiGuardsActionsBeforeCheckInDate() throws IOException {
+        String bookings = read("partner/bookings.html");
+        String detail = read("partner/booking-detail.html");
+
+        assertThat(bookings).contains(
+                "checkInReady",
+                "Chưa tới ngày nhận",
+                "Check-in / No-show mở từ",
+                "Check-in mở từ",
+                "✅ Đã giữ ");
+        assertThat(detail).contains(
+                "checkInReady",
+                "Chưa tới ngày nhận",
+                "thao tác check-in/no-show sẽ mở từ",
+                "booking.partnerStatus.name()=='PARTNER_CONFIRMED'");
+        assertThat(bookings).doesNotContain(
+                "Đã giữ phòng — chờ khách đến",
+                "Đã thanh toán 100% — liên hệ Admin",
+                "Xác nhận giữ phòng");
+        assertThat(detail).doesNotContain(
+                "Đã giữ phòng — chờ khách đến",
+                "Khách đã thanh toán 100%. Nếu khách không đến",
+                "Xác nhận giữ phòng");
     }
 
     @Test
@@ -119,9 +169,18 @@ class UserPortalFlowTemplateTest {
                 "Hủy đơn chưa thanh toán",
                 "Không phát sinh yêu cầu hoàn tiền",
                 "Quá hạn thanh toán",
+                "Còn lại tại cơ sở",
                 "Số tiền dự kiến hoàn: <strong>70%</strong>",
                 "tiền cọc <strong>không được hoàn lại</strong>",
-                "Cọc bị giữ lại (Hủy/no-show)");
+                "Cọc bị giữ lại (Hủy/no-show)",
+                "@{/my-bookings/{id}/rebook",
+                "Đặt lại phòng này",
+                "Đơn mới dùng lại ngày, số khách và số lượng nếu còn phù hợp",
+                "@media (max-width: 640px)",
+                ".mb-rebook-btn { grid-column: 1 / -1; }",
+                "scroll-margin-top: 112px",
+                ".mb-rebook-note",
+                "max-width: none");
     }
 
     @Test
@@ -143,6 +202,12 @@ class UserPortalFlowTemplateTest {
         String roomStatus = read("partner/room-status.html");
 
         assertThat(accommodations).contains("Ngừng bán nhanh", "Tình trạng phòng");
+        assertThat(accommodations).contains(
+                "approvedRoomCountMap",
+                "pendingRoomCountMap",
+                "Listing đã duyệt — chờ duyệt phòng",
+                "Chưa public phòng",
+                "Khách hàng chưa thấy phòng/căn mới cho tới khi Admin duyệt");
         assertThat(roomStatus).contains(
                 "@{/partner/rooms/{roomId}/toggle-selling",
                 "Tạm ngừng bán",
@@ -151,17 +216,50 @@ class UserPortalFlowTemplateTest {
     }
 
     @Test
+    @DisplayName("Admin xem trang user có thanh quay về Admin và không đặt phòng như User")
+    void adminPreviewBarKeepsAdminOutOfUserBookingFlow() throws IOException {
+        String header = read("fragments/user-header.html");
+        String footer = read("fragments/user-footer.html");
+        String detail = read("user/hotel-detail.html");
+
+        assertThat(header).contains(
+                "showAdminPreviewBar",
+                "Đang xem trang người dùng với vai trò Admin",
+                "Quay về Admin",
+                "@{/admin/dashboard}",
+                "@{/admin/bookings}",
+                "@{/admin/vouchers}");
+        assertThat(footer).contains(
+                "th:if=\"${!isAdmin}\"",
+                "@{/my-bookings}",
+                "th:if=\"${isAdmin}\"",
+                "@{/admin/bookings}",
+                "Quản lý booking");
+        assertThat(detail).contains(
+                "btn-choose--disabled",
+                "Đang xem trước",
+                "Dùng tài khoản User để đặt phòng thử.",
+                "Admin đang xem trước");
+    }
+
+    @Test
     @DisplayName("Header có đổi ngôn ngữ gọn và login dẫn tới quên mật khẩu thật")
     void headerSupportsLocaleSwitchAndForgotPasswordFlowIsVisible() throws IOException {
         String header = read("fragments/user-header.html");
         String login = read("auth/login.html");
         String register = read("auth/register.html");
+        String profile = read("user/profile.html");
         String forgot = read("auth/forgot-password.html");
         String reset = read("auth/reset-password.html");
         String defaultMessages = Files.readString(Path.of("src/main/resources/messages.properties"));
         String englishMessages = Files.readString(Path.of("src/main/resources/messages_en.properties"));
 
         assertThat(header).contains("language-switch", "?lang=vi", "?lang=en", "#{nav.home}");
+        assertThat(header).contains(
+                "header-avatar-fallback",
+                "referrerpolicy=\"no-referrer\"",
+                "onerror=\"this.remove();this.closest('.header-avatar').classList.remove('has-photo');\"");
+        assertThat(profile).contains("referrerpolicy=\"no-referrer\"", "avatarPreviewWrap", "avatarIcon");
         assertThat(defaultMessages).contains("nav.function=Chức năng", "auth.login=ĐĂNG NHẬP",
                 "auth.forgot.heading=Quên mật khẩu", "auth.reset.heading=Đặt lại mật khẩu");
         assertThat(englishMessages).contains("auth.login.heading=Log in", "auth.register.heading=Create an account",
@@ -178,6 +276,30 @@ class UserPortalFlowTemplateTest {
                 .doesNotContain("demoResetLink");
         assertThat(reset).contains("tokenValid", "/auth/reset-password", "Liên kết không còn hiệu lực",
                 "#{auth.reset.heading}");
+    }
+
+    @Test
+    @DisplayName("Review/support user input dùng th:text để tránh render HTML/script")
+    void userGeneratedReviewAndSupportContentUsesEscapedTextRendering() throws IOException {
+        String hotelDetail = read("user/hotel-detail.html");
+        String adminReviews = read("admin/reviews.html");
+        String partnerSupport = read("partner/support.html");
+        String adminSupport = read("admin/support.html");
+
+        assertThat(hotelDetail).contains("th:text=\"${review.comment}\"");
+        assertThat(adminReviews).contains("th:text=\"${r.comment}\"");
+        assertThat(partnerSupport).contains(
+                "th:text=\"${t.subject}\"",
+                "th:text=\"${t.description}\"",
+                "th:text=\"${t.adminResponse}\"");
+        assertThat(adminSupport).contains(
+                "th:text=\"${t.subject}\"",
+                "th:text=\"${t.description}\"");
+
+        assertThat(hotelDetail).doesNotContain("th:utext");
+        assertThat(adminReviews).doesNotContain("th:utext");
+        assertThat(partnerSupport).doesNotContain("th:utext");
+        assertThat(adminSupport).doesNotContain("th:utext");
     }
 
     private static String read(String relative) throws IOException {

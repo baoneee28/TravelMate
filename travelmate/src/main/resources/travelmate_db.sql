@@ -2,23 +2,24 @@
 -- TRAVELMATE - DỮ LIỆU KHỞI TẠO PHỤC VỤ TRÌNH BÀY VÀ KIỂM THỬ
 -- =======================================================================
 -- Sử dụng FILE NÀY khi khởi tạo CSDL trình bày, không dùng file export cũ.
--- Last verified: 2026-05-22
+-- Last verified: 2026-06-05
 --
 -- Nội dung bao gồm:
---   • Users       : 1 ADMIN, 4 USER, 4 PARTNER (đủ loại HOTEL/VILLA/HOMESTAY/RESORT)
---   • Accommodations: cơ sở APPROVED + PENDING/REJECTED phục vụ trình bày nghiệp vụ
---   • Rooms       : phòng đa dạng với commission_rate_override theo từng loại phòng
+--   • Users       : 1 ADMIN, 5 USER, 8 PARTNER (đủ loại HOTEL/VILLA/HOMESTAY/RESORT)
+--   • Accommodations: 40+ cơ sở APPROVED + PENDING/REJECTED phục vụ trình bày nghiệp vụ
+--   • Rooms       : 100+ phòng đa dạng với tiện nghi và commission_rate_override theo từng loại phòng
 --   • Amenities   : tiện nghi mẫu
---   • Bookings    : 32+ booking bao gồm đủ trạng thái nghiệp vụ
---                   (PENDING_ADMIN_APPROVAL, CONFIRMED, CHECKED_IN, COMPLETED,
---                    NO_SHOW, CANCELLED — với cả DEPOSIT_30 và FULL_PAYMENT)
---   • Payments    : APPROVED, DEPOSIT_FORFEITED, PENDING_ADMIN_APPROVAL
+--   • Bookings    : 60+ booking bao gồm đủ trạng thái nghiệp vụ
+--                   (PENDING_PAYMENT, CONFIRMED, CHECKED_IN,
+--                    COMPLETED, NO_SHOW, CANCELLED — với cả DEPOSIT_30 và FULL_PAYMENT)
+--   • Payments    : PENDING_PAYMENT, APPROVED, FAILED, CANCELLED, EXPIRED,
+--                   DEPOSIT_FORFEITED, REFUND_PENDING, REFUNDED
 --   • Vouchers    : ưu đãi toàn hệ thống và kho voucher theo phòng/căn (USER_GLOBAL/PARTNER_ROOM)
---   • Settlements : settlement PAID/PENDING theo tháng, không dùng dữ liệu seed nội bộ
+--   • Settlements : settlement PAID/PENDING theo tháng, không dùng dữ liệu tạm
 --   • Partner Wallets: ví quyết toán nội bộ, lịch sử tiền vào/ra, yêu cầu rút tiền mẫu
 --                     (đủ dữ liệu cho màn hình ví và export Excel withdrawal)
---   • Reviews     : 16 đánh giá sau booking COMPLETED
---   • Support Tickets: 10 yêu cầu hỗ trợ mẫu đa loại
+--   • Reviews     : 40+ đánh giá sau booking COMPLETED
+--   • Support Tickets: 20+ yêu cầu hỗ trợ đa loại
 --   • Travel Data : Destinations + Posts
 --
 -- TÀI KHOẢN TRÌNH BÀY:
@@ -26,10 +27,16 @@
 --   USER   : user@travelmate.vn    / user123
 --   USER2  : user2@travelmate.vn   / user123
 --   USER3  : user3@travelmate.vn   / user123
+--   FAMILY : family@travelmate.vn  / user123
+--   COUPLE : couple@travelmate.vn  / user123
 --   PARTNER: partner@travelmate.vn / partner123  (HOTEL — Đà Lạt)
 --   PARTNER2: partner2@travelmate.vn / partner123 (RESORT — Nha Trang/Đà Nẵng)
 --   PARTNER3: partner3@travelmate.vn / partner123 (VILLA)
 --   PARTNER4: partner4@travelmate.vn / partner123 (HOMESTAY)
+--   RESORT : resort@travelmate.vn  / partner123 (RESORT)
+--   VILLA  : villa@travelmate.vn   / partner123 (VILLA)
+--   HOMESTAY: homestay@travelmate.vn / partner123 (HOMESTAY)
+--   NO-BANK: no-bank@travelmate.vn / partner123 (HOTEL, chưa cấu hình ngân hàng)
 -- CÁCH IMPORT:
 --   mysql -u root -p < travelmate_db.sql
 --   hoặc: DBeaver / MySQL Workbench → Run SQL Script → chọn file này
@@ -276,9 +283,9 @@
         total_amount          DECIMAL(15,0) DEFAULT 0,
         paid_amount           DECIMAL(15,0) DEFAULT 0,
         remaining_amount      DECIMAL(15,0) DEFAULT 0,
-        booking_status        VARCHAR(50)   DEFAULT 'PENDING_ADMIN_APPROVAL',
+        booking_status        VARCHAR(50)   DEFAULT 'PENDING_PAYMENT',
         payment_option        VARCHAR(50)   DEFAULT 'FULL_PAYMENT',
-        payment_status        VARCHAR(50)   DEFAULT 'PENDING_ADMIN_APPROVAL',
+        payment_status        VARCHAR(50)   DEFAULT 'PENDING_PAYMENT',
         partner_status        VARCHAR(40)   DEFAULT NULL,
         note                  VARCHAR(500),
         -- === VOUCHER FIELDS (Hướng 2) ===
@@ -304,6 +311,7 @@
         remaining_payment_status  VARCHAR(30)  DEFAULT 'NOT_REQUIRED',
         remaining_paid_at         DATETIME     DEFAULT NULL,
         remaining_payment_note    VARCHAR(300) DEFAULT NULL,
+        expire_at                 DATETIME(6)  DEFAULT NULL,
         created_at            DATETIME(6),
         updated_at            DATETIME(6),
         PRIMARY KEY (id),
@@ -322,7 +330,7 @@
         payment_option   VARCHAR(50)   NOT NULL,
         amount           DECIMAL(15,0) NOT NULL,
         transaction_code VARCHAR(50),
-        payment_status   VARCHAR(50)   DEFAULT 'PENDING_ADMIN_APPROVAL',
+        payment_status   VARCHAR(50)   DEFAULT 'PENDING_PAYMENT',
         paid_at          DATETIME(6),
         approved_at      DATETIME(6),
         note             VARCHAR(500),
@@ -519,6 +527,24 @@
     ('partner4@travelmate.vn', '$2a$10$dCikCIiksr/Ne1Xpv40vKOMFwpiY751Cb1kdIVDwobiMzImbLC3oq', 'Homestay Rừng Thông Đà Lạt', 'Homestay Rừng Thông Đà Lạt', '0908 555 666', 'PARTNER', 'ACTIVE', 'HOMESTAY',
     '5544332211', 'Agribank', 'PHAM THI D', 'Cần Thơ', NOW(), NOW());
 
+    -- ─── TÀI KHOẢN BỔ SUNG CHO KỊCH BẢN TRÌNH BÀY ĐỦ VAI TRÒ ───────────────
+    -- family/couple dùng password user123; các partner dùng password partner123.
+    INSERT INTO users (email, password, full_name, name, phone, role, status, partner_property_type,
+                    bank_account_number, bank_name, bank_account_holder, bank_branch,
+                    created_at, updated_at) VALUES
+    ('family@travelmate.vn', '$2a$10$FsFOdcKQPqCnlIPA3j82ZeY7R6tMpdhavFO2bfqWUfJqF1Z4nloO2', 'Gia đình Minh Anh', 'Gia đình Minh Anh', '0968 111 222', 'USER', 'ACTIVE', NULL,
+    NULL, NULL, NULL, NULL, DATE_SUB(NOW(), INTERVAL 45 DAY), DATE_SUB(NOW(), INTERVAL 45 DAY)),
+    ('couple@travelmate.vn', '$2a$10$FsFOdcKQPqCnlIPA3j82ZeY7R6tMpdhavFO2bfqWUfJqF1Z4nloO2', 'Linh & Khánh', 'Linh & Khánh', '0979 333 444', 'USER', 'ACTIVE', NULL,
+    NULL, NULL, NULL, NULL, DATE_SUB(NOW(), INTERVAL 38 DAY), DATE_SUB(NOW(), INTERVAL 38 DAY)),
+    ('resort@travelmate.vn', '$2a$10$dCikCIiksr/Ne1Xpv40vKOMFwpiY751Cb1kdIVDwobiMzImbLC3oq', 'Heritage Resort Group', 'Heritage Resort Group', '0981 555 777', 'PARTNER', 'ACTIVE', 'RESORT',
+    '6688990011', 'ACB', 'HERITAGE RESORT GROUP', 'Hà Nội', DATE_SUB(NOW(), INTERVAL 70 DAY), DATE_SUB(NOW(), INTERVAL 70 DAY)),
+    ('villa@travelmate.vn', '$2a$10$dCikCIiksr/Ne1Xpv40vKOMFwpiY751Cb1kdIVDwobiMzImbLC3oq', 'Ocean & Hill Villa', 'Ocean & Hill Villa', '0982 666 888', 'PARTNER', 'ACTIVE', 'VILLA',
+    '7788990011', 'VPBank', 'OCEAN HILL VILLA', 'Đà Nẵng', DATE_SUB(NOW(), INTERVAL 68 DAY), DATE_SUB(NOW(), INTERVAL 68 DAY)),
+    ('homestay@travelmate.vn', '$2a$10$dCikCIiksr/Ne1Xpv40vKOMFwpiY751Cb1kdIVDwobiMzImbLC3oq', 'Bản Mây Homestay', 'Bản Mây Homestay', '0983 777 999', 'PARTNER', 'ACTIVE', 'HOMESTAY',
+    '8899001122', 'VietinBank', 'BAN MAY HOMESTAY', 'Lào Cai', DATE_SUB(NOW(), INTERVAL 66 DAY), DATE_SUB(NOW(), INTERVAL 66 DAY)),
+    ('no-bank@travelmate.vn', '$2a$10$dCikCIiksr/Ne1Xpv40vKOMFwpiY751Cb1kdIVDwobiMzImbLC3oq', 'North Star Hotel Group', 'North Star Hotel Group', '0984 888 000', 'PARTNER', 'ACTIVE', 'HOTEL',
+    NULL, NULL, NULL, NULL, DATE_SUB(NOW(), INTERVAL 30 DAY), DATE_SUB(NOW(), INTERVAL 30 DAY));
+
     -- ─── SUPPORT TICKETS — Yêu cầu hỗ trợ từ Partner, User & Guest ────────
     -- PARTNER tickets: partner1 (id=3): 3 tickets, partner2 (id=4): 2 tickets
     --                  partner3 (id=7): 2 tickets, partner4 (id=8): 2 tickets
@@ -528,9 +554,9 @@
     -- ── PARTNER tickets ──────────────────────────────────────────────────────
     -- partner1 — HOTEL (Sunrise Sapa Lodge, id=3)
     ('PARTNER', 3, NULL, NULL, NULL, NULL, 'Thanh toán & Quyết toán', 'Quyết toán tháng 03/2026 bị sai số tiền', 'Cao',
-    'Chào Admin, tôi kiểm tra lại quyết toán tháng 03/2026 thì thấy số tiền payout là 1.224.000đ nhưng theo tính toán của tôi thì phải cao hơn. Booking BK-LATA-DLX-0002 có total 2.040.000đ, commission 15% = 306.000đ, voucher deduction 510.000đ, payout đúng = 1.224.000đ. Thực ra đúng rồi, tôi nhầm. Xin lỗi và cảm ơn đã hỗ trợ!',
+    'Chào Admin, tôi kiểm tra lại quyết toán tháng 03/2026 của booking BK-LATA-DLX-0002. TravelMate thu online 2.040.000đ, hoa hồng 15% tính trên tổng đơn gốc 2.550.000đ là 382.500đ, voucher LATA20 do partner chịu 510.000đ nên khoản nhận về là 1.147.500đ. Nhờ Admin đối soát giúp tôi.',
     'RESPONDED',
-    'Chào bạn, tôi đã kiểm tra lại và xác nhận con số quyết toán tháng 03/2026 là chính xác: gross 2.040.000đ - commission 15% (306.000đ) - voucher LATA20 do partner chịu (510.000đ) = payout 1.224.000đ. Rất vui vì bạn đã tự kiểm tra được! Nếu có thắc mắc gì thêm hãy liên hệ.',
+    'Chào bạn, tôi đã kiểm tra lại và xác nhận số liệu đúng theo quy tắc hiện hành: TravelMate thu online 2.040.000đ; hoa hồng 15% tính trên tổng đơn gốc trước voucher là 382.500đ; voucher LATA20 do partner chịu 510.000đ; khoản nhận về là 1.147.500đ. Nếu cần đối chiếu thêm, bạn có thể xem lại trang Chi tiết quyết toán.',
     DATE_SUB(NOW(), INTERVAL 8 DAY), DATE_SUB(NOW(), INTERVAL 7 DAY)),
 
     ('PARTNER', 3, NULL, NULL, NULL, NULL, 'Đơn đặt phòng', 'Khách không đến nhưng không thể đánh dấu No-Show', 'Trung bình',
@@ -558,8 +584,8 @@
     DATE_SUB(NOW(), INTERVAL 4 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY)),
 
     -- partner3 — VILLA (Green Hills Villa, id=7)
-    ('PARTNER', 7, NULL, NULL, NULL, NULL, 'Đơn đặt phòng', 'Booking BK-ANM-GDN-0001 chờ xác nhận quá lâu', 'Cao',
-    'Booking BK-ANM-GDN-0001 (Anam Villa, khách Hoàng Văn Hùng, check-in +10 ngày) có giao dịch chưa nhận được xác nhận thành công từ cổng thanh toán. Tôi muốn hỏi TravelMate khi nào xử lý ngoại lệ để tôi chuẩn bị phòng cho khách.',
+    ('PARTNER', 7, NULL, NULL, NULL, NULL, 'Đơn đặt phòng', 'Cần xác nhận lịch giữ villa cho BK-ANM-GDN-0001', 'Cao',
+    'Booking BK-ANM-GDN-0001 (Anam Villa, khách Hoàng Văn Hùng, check-in +10 ngày) đã được TravelMate ghi nhận cọc 30% và tự động giữ villa. Tôi muốn xác nhận thêm yêu cầu chuẩn bị hồ bơi riêng trước ngày khách đến.',
     'OPEN', NULL,
     DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY)),
 
@@ -596,6 +622,66 @@
     'Xin chào, tôi có một villa nhỏ ở Đà Lạt, muốn hỏi thủ tục để đăng ký làm đối tác trên TravelMate là như thế nào? Chi phí, hoa hồng, điều kiện ra sao?',
     'OPEN', NULL,
     DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY));
+
+    -- ─── SUPPORT TICKETS BỔ SUNG — đủ dữ liệu cho màn hình Admin/Partner/User ───
+    INSERT INTO support_tickets (requester_role, partner_id, user_id, requester_name, requester_email, requester_phone, category, subject, priority, description, status, admin_response, created_at, updated_at) VALUES
+    ('USER', NULL, (SELECT id FROM users WHERE email = 'family@travelmate.vn' LIMIT 1),
+    'Gia đình Minh Anh', 'family@travelmate.vn', '0968 111 222',
+    'Đặt phòng', 'Cần đổi ngày nhận phòng Phú Quốc cho gia đình 4 người', 'Cao',
+    'Gia đình tôi đã đặt phòng cho kỳ nghỉ Phú Quốc nhưng lịch bay bị đổi sang hôm sau. Nhờ TravelMate kiểm tra giúp còn phòng gia đình cùng hạng để đổi ngày không, nếu phát sinh chênh lệch tôi sẽ thanh toán thêm.',
+    'OPEN', NULL, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY)),
+
+    ('USER', NULL, (SELECT id FROM users WHERE email = 'couple@travelmate.vn' LIMIT 1),
+    'Linh & Khánh', 'couple@travelmate.vn', '0979 333 444',
+    'Voucher', 'Hỏi mã ưu đãi cho chuyến Đà Lạt 2 đêm', 'Trung bình',
+    'Tôi muốn đặt phòng ở Đà Lạt cuối tuần này cho 2 người. Hiện có mã nào dùng được cho khách sạn hoặc homestay không? Nếu có điều kiện tối thiểu đơn hàng, vui lòng hướng dẫn giúp tôi.',
+    'RESPONDED',
+    'Chào bạn, bạn có thể thử các mã toàn hệ thống còn hiệu lực trong trang Voucher. Khi chọn phòng, hệ thống sẽ tự kiểm tra điều kiện đơn tối thiểu và hiển thị số tiền giảm ở bước xác nhận.',
+    DATE_SUB(NOW(), INTERVAL 4 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY)),
+
+    ('USER', NULL, (SELECT id FROM users WHERE email = 'user2@travelmate.vn' LIMIT 1),
+    'Trần Thị Mai', 'user2@travelmate.vn', '0923 456 789',
+    'Đánh giá', 'Không thấy nút viết đánh giá sau khi checkout', 'Trung bình',
+    'Tôi đã hoàn tất chuyến đi ở villa Nha Trang nhưng vào lịch sử đặt phòng chưa thấy nút đánh giá. Nhờ Admin kiểm tra giúp booking đã chuyển sang trạng thái hoàn tất chưa.',
+    'OPEN', NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY)),
+
+    ('PARTNER', (SELECT id FROM users WHERE email = 'resort@travelmate.vn' LIMIT 1), NULL,
+    NULL, NULL, NULL, 'Thanh toán & Quyết toán', 'Đối soát doanh thu resort trong tháng gần nhất', 'Cao',
+    'Tôi cần đối chiếu doanh thu của các phòng resort đã checkout tháng này, đặc biệt các đơn có voucher do sàn chịu và đơn thanh toán cọc 30%. Mong Admin xác nhận công thức payout trên trang quyết toán.',
+    'RESPONDED',
+    'Chào bạn, payout đang được tính theo tổng tiền phòng trước voucher trừ hoa hồng, sau đó trừ phần voucher do Partner chịu nếu có. Với voucher do TravelMate chịu, khoản giảm không trừ vào payout của Partner.',
+    DATE_SUB(NOW(), INTERVAL 7 DAY), DATE_SUB(NOW(), INTERVAL 6 DAY)),
+
+    ('PARTNER', (SELECT id FROM users WHERE email = 'villa@travelmate.vn' LIMIT 1), NULL,
+    NULL, NULL, NULL, 'Phòng & Tồn kho', 'Cập nhật lịch bảo trì villa Mũi Né', 'Trung bình',
+    'Villa Mũi Né của tôi cần bảo trì hồ bơi riêng trong 3 ngày. Tôi muốn khóa phòng trên hệ thống để tránh khách đặt nhầm, đồng thời vẫn giữ các ngày khác mở bán bình thường.',
+    'OPEN', NULL, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY)),
+
+    ('PARTNER', (SELECT id FROM users WHERE email = 'homestay@travelmate.vn' LIMIT 1), NULL,
+    NULL, NULL, NULL, 'Tiện nghi', 'Bổ sung tiện nghi bếp chung cho homestay Bắc Hà', 'Thấp',
+    'Homestay Bắc Hà có bếp chung, sân vườn và dịch vụ thuê xe máy. Tôi muốn các tiện nghi này hiển thị rõ ở chi tiết phòng để khách dễ lựa chọn.',
+    'RESPONDED',
+    'Chào bạn, Admin đã ghi nhận. Bạn có thể cập nhật mô tả phòng và ảnh tiện nghi tại trang quản lý cơ sở; phần tiện nghi sẽ được kiểm tra trước khi hiển thị cho khách.',
+    DATE_SUB(NOW(), INTERVAL 9 DAY), DATE_SUB(NOW(), INTERVAL 8 DAY)),
+
+    ('PARTNER', (SELECT id FROM users WHERE email = 'no-bank@travelmate.vn' LIMIT 1), NULL,
+    NULL, NULL, NULL, 'Rút tiền', 'Không gửi được yêu cầu rút tiền vì thiếu tài khoản ngân hàng', 'Cao',
+    'Tôi thấy ví có số dư nhưng chưa gửi được yêu cầu rút tiền. Tài khoản đối tác của tôi chưa cấu hình ngân hàng, nhờ Admin hướng dẫn thông tin cần bổ sung.',
+    'RESPONDED',
+    'Chào bạn, để rút tiền cần cập nhật tên ngân hàng, số tài khoản, chủ tài khoản và chi nhánh trong hồ sơ Partner. Sau khi cập nhật, bạn có thể gửi lại yêu cầu rút tiền từ trang Ví.',
+    DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY)),
+
+    ('GUEST', NULL, NULL, 'Công ty Ánh Dương', 'booking@anhduongcorp.vn', '0902 222 333',
+    'Đặt đoàn', 'Hỏi đặt villa cho đoàn công ty 12 khách', 'Trung bình',
+    'Công ty chúng tôi cần đặt villa hoặc resort cho 12 khách trong 2 đêm, ưu tiên khu vực Đà Lạt hoặc Vũng Tàu, có phòng sinh hoạt chung và xuất hóa đơn.',
+    'OPEN', NULL, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY)),
+
+    ('GUEST', NULL, NULL, 'Nguyễn Hà Vy', 'vy.nguyen@email.com', '0905 555 777',
+    'Hóa đơn', 'Cần xác nhận TravelMate có hỗ trợ hóa đơn điện tử không', 'Thấp',
+    'Tôi muốn đặt khách sạn cho chuyến công tác tại TP.HCM và cần hóa đơn điện tử theo thông tin công ty. Nhờ TravelMate xác nhận cách gửi thông tin hóa đơn.',
+    'CLOSED',
+    'Chào bạn, sau khi đặt phòng thành công, bạn có thể gửi thông tin xuất hóa đơn qua trang Liên hệ. Bộ phận hỗ trợ sẽ chuyển thông tin cho cơ sở lưu trú để xử lý theo quy định.',
+    DATE_SUB(NOW(), INTERVAL 12 DAY), DATE_SUB(NOW(), INTERVAL 10 DAY));
 
     -- ─── ACCOMMODATIONS (3 Khách sạn — owner_id=3 = partner@travelmate.vn) ───
     INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at) VALUES
@@ -866,45 +952,47 @@
     -- user_id=2 (user@travelmate.vn)
     -- =============================================
 
-    -- ─── Booking 1: Cọc 30% — ngoại lệ PENDING_ADMIN_APPROVAL chưa có callback thành công ───────────
+    -- ─── Booking 1: Cọc 30% — CONFIRMED (TravelMate tự giữ phòng) ───────────
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
         total_amount, paid_amount, remaining_amount,
         booking_status, payment_option, payment_status,
-        note, created_at, updated_at)
+        partner_status, note, created_at, updated_at)
     VALUES (
         'BK-LATA-STD-0001', 2, 1, 1,
         DATE_ADD(CURDATE(), INTERVAL 3 DAY), DATE_ADD(CURDATE(), INTERVAL 5 DAY),
         2, 0, 1,
         'Nguyễn Văn An', '0912 345 678', 'user@travelmate.vn',
         1300000, 390000, 910000,
-        'PENDING_ADMIN_APPROVAL', 'DEPOSIT_30', 'PENDING_ADMIN_APPROVAL',
-        NULL, NOW(), NOW()
+        'CONFIRMED', 'DEPOSIT_30', 'APPROVED',
+        'PARTNER_CONFIRMED', 'VNPAY ghi nhận thành công — khách đã cọc 30%, TravelMate tự động giữ phòng.',
+        NOW(), NOW()
     );
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, note)
-    VALUES (LAST_INSERT_ID(), 'VNPAY', 'DEPOSIT_30', 390000, CONCAT('TXN-', UNIX_TIMESTAMP()*1000), 'PENDING_ADMIN_APPROVAL', NOW(), 'Giao dịch VNPAY ngoại lệ - cọc 30% cần TravelMate xác minh thủ công');
+    VALUES (LAST_INSERT_ID(), 'VNPAY', 'DEPOSIT_30', 390000, CONCAT('TXN-', UNIX_TIMESTAMP()*1000), 'APPROVED', NOW(), 'VNPAY ghi nhận thành công — cọc 30%, TravelMate tự động giữ phòng.');
 
-    -- ─── Booking 2: 100% — ngoại lệ PENDING_ADMIN_APPROVAL chưa có callback thành công ───
+    -- ─── Booking 2: 100% — CONFIRMED (TravelMate tự giữ phòng) ───
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
         total_amount, paid_amount, remaining_amount,
         booking_status, payment_option, payment_status,
-        note, created_at, updated_at)
+        partner_status, note, created_at, updated_at)
     VALUES (
         'BK-TLP-SUP-0001', 2, 2, 6,
         DATE_ADD(CURDATE(), INTERVAL 7 DAY), DATE_ADD(CURDATE(), INTERVAL 9 DAY),
         2, 0, 1,
         'Nguyễn Văn An', '0912 345 678', 'user@travelmate.vn',
         1240000, 1240000, 0,
-        'PENDING_ADMIN_APPROVAL', 'FULL_PAYMENT', 'PENDING_ADMIN_APPROVAL',
-        NULL, NOW(), NOW()
+        'CONFIRMED', 'FULL_PAYMENT', 'APPROVED',
+        'PARTNER_CONFIRMED', 'VNPAY ghi nhận thành công — khách thanh toán 100%, TravelMate tự động giữ phòng.',
+        NOW(), NOW()
     );
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, note)
-    VALUES (LAST_INSERT_ID(), 'VNPAY', 'FULL_PAYMENT', 1240000, CONCAT('TXN-', UNIX_TIMESTAMP()*1001), 'PENDING_ADMIN_APPROVAL', NOW(), 'Giao dịch VNPAY ngoại lệ - thanh toán đủ cần TravelMate xác minh thủ công');
+    VALUES (LAST_INSERT_ID(), 'VNPAY', 'FULL_PAYMENT', 1240000, CONCAT('TXN-', UNIX_TIMESTAMP()*1001), 'APPROVED', NOW(), 'VNPAY ghi nhận thành công — thanh toán 100%, TravelMate tự động giữ phòng.');
 
-    -- ─── Booking 3: Cọc 30% — CONFIRMED (partner chờ xác nhận giữ phòng) ─
+    -- ─── Booking 3: Cọc 30% — CONFIRMED (TravelMate tự giữ phòng) ─
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
@@ -917,13 +1005,13 @@
         2, 0, 1,
         'Nguyễn Văn An', '0912 345 678', 'user@travelmate.vn',
         2400000, 720000, 1680000,
-        'CONFIRMED', 'DEPOSIT_30', 'APPROVED', 'PENDING_PARTNER_CONFIRMATION', NULL, NOW(), NOW()
+        'CONFIRMED', 'DEPOSIT_30', 'APPROVED', 'PARTNER_CONFIRMED', 'TravelMate tự động giữ phòng sau khi ghi nhận cọc 30%.', NOW(), NOW()
     );
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, note)
-    VALUES (LAST_INSERT_ID(), 'VNPAY', 'DEPOSIT_30', 720000, CONCAT('TXN-', UNIX_TIMESTAMP()*1002), 'APPROVED', NOW(), 'VNPAY xác nhận thành công - cọc 30%');
+    VALUES (LAST_INSERT_ID(), 'VNPAY', 'DEPOSIT_30', 720000, CONCAT('TXN-', UNIX_TIMESTAMP()*1002), 'APPROVED', NOW(), 'VNPAY ghi nhận thành công - cọc 30%');
     UPDATE rooms SET available_quantity = available_quantity - 1 WHERE id = 9;
 
-    -- ─── Booking 4: 100% — CONFIRMED (partner đã xác nhận giữ phòng) ─────
+    -- ─── Booking 4: 100% — CONFIRMED (partner đã giữ phòng) ─────
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
@@ -937,10 +1025,10 @@
         'Nguyễn Văn An', '0912 345 678', 'user@travelmate.vn',
         1700000, 1700000, 0,
         'CONFIRMED', 'FULL_PAYMENT', 'APPROVED',
-        'PARTNER_CONFIRMED', 'Partner đã xác nhận giữ phòng cho khách.', NOW(), NOW()
+        'PARTNER_CONFIRMED', 'Partner đã giữ phòng cho khách.', NOW(), NOW()
     );
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, note)
-    VALUES (LAST_INSERT_ID(), 'VNPAY', 'FULL_PAYMENT', 1700000, CONCAT('TXN-', UNIX_TIMESTAMP()*1003), 'APPROVED', NOW(), 'VNPAY xác nhận thành công - thanh toán đủ');
+    VALUES (LAST_INSERT_ID(), 'VNPAY', 'FULL_PAYMENT', 1700000, CONCAT('TXN-', UNIX_TIMESTAMP()*1003), 'APPROVED', NOW(), 'VNPAY ghi nhận thành công - thanh toán đủ');
     UPDATE rooms SET available_quantity = available_quantity - 1 WHERE id = 2;
 
     -- ─── Booking 5: NO_SHOW — Cọc 30%, mất cọc ────────
@@ -957,7 +1045,7 @@
         'Nguyễn Văn An', '0912 345 678', 'user@travelmate.vn',
         960000, 288000, 672000,
         'NO_SHOW', 'DEPOSIT_30', 'DEPOSIT_FORFEITED',
-        'Khách không đến check-in. Cọc 30% (288.000đ) bị giữ: hoa hồng HOTEL 15% = 43.200đ → Partner nhận 244.800đ.',
+        'Khách không đến check-in. Cọc 30% (288.000đ) bị giữ; hoa hồng tính trên tổng đơn gốc 960.000đ = 144.000đ; Partner nhận 144.000đ.',
         DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY)
     );
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, note)
@@ -977,7 +1065,7 @@
         'Nguyễn Văn An', '0912 345 678', 'user@travelmate.vn',
         4950000, 4950000, 0,
         'CHECKED_IN', 'FULL_PAYMENT', 'APPROVED',
-        'PARTNER_CONFIRMED', 'Khách đã check-in. Partner đã xác nhận giữ phòng.',
+        'PARTNER_CONFIRMED', 'Khách đã check-in. Partner đã giữ phòng.',
         DATE_SUB(NOW(), INTERVAL 7 DAY), DATE_SUB(NOW(), INTERVAL 7 DAY)
     );
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, note)
@@ -1004,7 +1092,7 @@
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, note)
     VALUES (LAST_INSERT_ID(), 'VNPAY', 'FULL_PAYMENT', 3600000, CONCAT('TXN-', UNIX_TIMESTAMP()*1006), 'APPROVED', DATE_SUB(NOW(), INTERVAL 12 DAY), 'Thanh toán 100% — đã hoàn tất');
 
-    -- ─── Booking 8: CONFIRMED — acc8 Vinpearl (partner2), chờ partner2 xác nhận ───
+    -- ─── Booking 8: CONFIRMED — acc8 Vinpearl (partner2), TravelMate tự giữ phòng ───
     -- Lưu ý: acc8 Vinpearl có rooms: VNT-DLX(id=25), VNT-SUI(id=26), VNT-VIL(id=27)
     -- Dùng room 25 (VNT-DLX), accommodation_id=8
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
@@ -1020,13 +1108,13 @@
         'Trần Thị Bích', '0988 111 222', 'user@travelmate.vn',
         8400000, 2520000, 5880000,
         'CONFIRMED', 'DEPOSIT_30', 'APPROVED',
-        'PENDING_PARTNER_CONFIRMATION', NULL, NOW(), NOW()
+        'PARTNER_CONFIRMED', 'TravelMate tự động giữ phòng sau khi ghi nhận cọc 30%.', NOW(), NOW()
     );
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, note)
-    VALUES (LAST_INSERT_ID(), 'VNPAY', 'DEPOSIT_30', 2520000, CONCAT('TXN-', UNIX_TIMESTAMP()*1007), 'APPROVED', NOW(), 'Cọc 30% Vinpearl DLX — partner2 chờ xác nhận');
+    VALUES (LAST_INSERT_ID(), 'VNPAY', 'DEPOSIT_30', 2520000, CONCAT('TXN-', UNIX_TIMESTAMP()*1007), 'APPROVED', NOW(), 'Cọc 30% Vinpearl DLX — TravelMate tự động giữ phòng');
     UPDATE rooms SET available_quantity = available_quantity - 1 WHERE id = 25;
 
-    -- ─── Booking 9: CONFIRMED — acc8 Vinpearl (partner2), đã xác nhận ───
+    -- ─── Booking 9: CONFIRMED — acc8 Vinpearl (partner2), đã giữ phòng ───
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
@@ -1040,11 +1128,11 @@
         'Lê Minh Đức', '0977 333 444', 'user@travelmate.vn',
         13500000, 13500000, 0,
         'CONFIRMED', 'FULL_PAYMENT', 'APPROVED',
-        'PARTNER_CONFIRMED', 'Partner2 đã xác nhận giữ phòng Junior Suite.',
+        'PARTNER_CONFIRMED', 'TravelMate đã giữ phòng/căn trên hệ thống. Partner có thể check-in khi khách đến.',
         DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY)
     );
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, note)
-    VALUES (LAST_INSERT_ID(), 'VNPAY', 'FULL_PAYMENT', 13500000, CONCAT('TXN-', UNIX_TIMESTAMP()*1008), 'APPROVED', DATE_SUB(NOW(), INTERVAL 2 DAY), '100% Vinpearl SUI — partner2 đã xác nhận');
+    VALUES (LAST_INSERT_ID(), 'VNPAY', 'FULL_PAYMENT', 13500000, CONCAT('TXN-', UNIX_TIMESTAMP()*1008), 'APPROVED', DATE_SUB(NOW(), INTERVAL 2 DAY), '100% Vinpearl SUI — TravelMate đã giữ phòng/căn trên hệ thống');
     UPDATE rooms SET available_quantity = available_quantity - 1 WHERE id = 26;
 
     -- ─── Booking 10: COMPLETED — acc7 Mộc Nhiên Homestay (partner2) ───
@@ -1068,25 +1156,26 @@
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, note)
     VALUES (LAST_INSERT_ID(), 'VNPAY', 'FULL_PAYMENT', 1740000, CONCAT('TXN-', UNIX_TIMESTAMP()*1009), 'APPROVED', DATE_SUB(NOW(), INTERVAL 10 DAY), 'Homestay Mộc Nhiên — hoàn tất');
 
-    -- ─── Booking 11: PENDING_ADMIN_APPROVAL ngoại lệ — acc4 Anam Villa (partner2) ───
+    -- ─── Booking 11: CONFIRMED — acc4 Anam Villa (partner2), TravelMate tự giữ villa ───
     -- acc4 Anam Villa có rooms: ANM-GDN(id=13), ANM-BCH(id=14), ANM-FAM(id=15)
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
         total_amount, paid_amount, remaining_amount,
         booking_status, payment_option, payment_status,
-        note, created_at, updated_at)
+        partner_status, note, created_at, updated_at)
     VALUES (
         'BK-ANM-GDN-0001', 2, 4, 13,
         DATE_ADD(CURDATE(), INTERVAL 10 DAY), DATE_ADD(CURDATE(), INTERVAL 13 DAY),
         2, 0, 1,
         'Hoàng Văn Hùng', '0911 777 888', 'user@travelmate.vn',
         10500000, 3150000, 7350000,
-        'PENDING_ADMIN_APPROVAL', 'DEPOSIT_30', 'PENDING_ADMIN_APPROVAL',
-        NULL, NOW(), NOW()
+        'CONFIRMED', 'DEPOSIT_30', 'APPROVED',
+        'PARTNER_CONFIRMED', 'VNPAY ghi nhận thành công — cọc 30% Anam Garden Villa, TravelMate tự động giữ villa.',
+        NOW(), NOW()
     );
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, note)
-    VALUES (LAST_INSERT_ID(), 'VNPAY', 'DEPOSIT_30', 3150000, CONCAT('TXN-', UNIX_TIMESTAMP()*1010), 'PENDING_ADMIN_APPROVAL', NOW(), 'Cọc 30% Anam Garden Villa — giao dịch ngoại lệ cần TravelMate xác minh');
+    VALUES (LAST_INSERT_ID(), 'VNPAY', 'DEPOSIT_30', 3150000, CONCAT('TXN-', UNIX_TIMESTAMP()*1010), 'APPROVED', NOW(), 'Cọc 30% Anam Garden Villa — VNPAY ghi nhận thành công, TravelMate tự động giữ villa.');
 
     -- ─── Booking 12: NO_SHOW — acc9 Furama (partner1), mất cọc ───
     -- acc9 Furama có rooms: FDN-DLX(id=28), FDN-BCH(id=29), FDN-FAM(id=30)
@@ -1104,13 +1193,13 @@
         'Ngô Thị Lan', '0922 999 000', 'user@travelmate.vn',
         4800000, 1440000, 3360000,
         'NO_SHOW', 'DEPOSIT_30', 'DEPOSIT_FORFEITED',
-        'PARTNER_CONFIRMED', 'Khách không đến check-in. Cọc 30% (1.440.000đ) bị giữ: hoa hồng RESORT 18% = 259.200đ → Partner nhận 1.180.800đ.',
+        'PARTNER_CONFIRMED', 'Khách không đến check-in. Cọc 30% (1.440.000đ) bị giữ; hoa hồng tính trên tổng đơn gốc 4.800.000đ = 864.000đ; Partner nhận 576.000đ.',
         DATE_SUB(NOW(), INTERVAL 6 DAY), DATE_SUB(NOW(), INTERVAL 6 DAY)
     );
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, note)
     VALUES (LAST_INSERT_ID(), 'VNPAY', 'DEPOSIT_30', 1440000, CONCAT('TXN-', UNIX_TIMESTAMP()*1011), 'DEPOSIT_FORFEITED', DATE_SUB(NOW(), INTERVAL 6 DAY), 'Cọc 30% Furama DLX — no-show mất cọc');
 
-    -- ─── Booking 13: CONFIRMED — acc6 Hoa Lư (partner1), chờ xác nhận ───
+    -- ─── Booking 13: CONFIRMED — acc6 Hoa Lư (partner1), TravelMate tự giữ phòng ───
     -- acc6 Hoa Lư có rooms: HLR-STD(id=19), HLR-DLX(id=20), HLR-FAM(id=21)
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
@@ -1125,10 +1214,10 @@
         'Vũ Thị Mai', '0955 123 456', 'user@travelmate.vn',
         960000, 960000, 0,
         'CONFIRMED', 'FULL_PAYMENT', 'APPROVED',
-        'PENDING_PARTNER_CONFIRMATION', NULL, NOW(), NOW()
+        'PARTNER_CONFIRMED', 'TravelMate tự động giữ phòng sau khi ghi nhận thanh toán 100%.', NOW(), NOW()
     );
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, note)
-    VALUES (LAST_INSERT_ID(), 'VNPAY', 'FULL_PAYMENT', 960000, CONCAT('TXN-', UNIX_TIMESTAMP()*1012), 'APPROVED', NOW(), '100% Homestay Hội An — partner1 chờ xác nhận');
+    VALUES (LAST_INSERT_ID(), 'VNPAY', 'FULL_PAYMENT', 960000, CONCAT('TXN-', UNIX_TIMESTAMP()*1012), 'APPROVED', NOW(), '100% Homestay Hội An — TravelMate tự động giữ phòng');
     UPDATE rooms SET available_quantity = available_quantity - 1 WHERE id = 20;
 
     -- ─── Booking 14: CHECKED_IN — acc5 Ba Na Villa (partner1) ───
@@ -1154,7 +1243,7 @@
     UPDATE rooms SET available_quantity = available_quantity - 1 WHERE id = 16;
 
     -- ─── Booking 15: CONFIRMED — PARTNER_CANCELLED (partner từ chối, admin cần xử lý) ───
-    -- acc2 Tulip Hotel (partner1), room TLP-SUP (id=6): partner từ chối giữ phòng
+    -- acc2 Tulip Hotel (partner1), room TLP-SUP (id=6): partner báo không thể tiếp nhận khách
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
@@ -1182,17 +1271,17 @@
     -- Review cho Booking #7 (BK-LATA-FAM-0001, acc1 LATA Hotel, COMPLETED)
     -- booking_id = 7, user_id = 2, accommodation_id = 1
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (2, 1, 7, 5, 'Phòng rất sạch sẽ, nhân viên nhiệt tình. View đẹp, gần trung tâm chợ đêm Đà Lạt. Phòng gia đình rộng rãi, rất phù hợp cho gia đình có trẻ nhỏ. Lần sau sẽ quay lại!', DATE_SUB(NOW(), INTERVAL 7 DAY));
+    (2, 1, 7, 10, 'Phòng rất sạch sẽ, nhân viên nhiệt tình. View đẹp, gần trung tâm chợ đêm Đà Lạt. Phòng gia đình rộng rãi, rất phù hợp cho gia đình có trẻ nhỏ. Lần sau sẽ quay lại!', DATE_SUB(NOW(), INTERVAL 7 DAY));
 
     -- Review cho Booking #10 (BK-MND-ATT-0001, acc7 Mộc Nhiên Homestay, COMPLETED)
     -- booking_id = 10, user_id = 2, accommodation_id = 7
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (2, 7, 10, 4, 'Homestay rất yên tĩnh, không gian thơ mộng giữa vườn hoa dã quỳ. Phòng áp mái có cửa sổ kính nhìn đồi thông rất lãng mạn. WiFi buổi tối hơi yếu nhưng nhìn chung rất đáng tiền.', DATE_SUB(NOW(), INTERVAL 5 DAY));
+    (2, 7, 10, 8, 'Homestay rất yên tĩnh, không gian thơ mộng giữa vườn hoa dã quỳ. Phòng áp mái có cửa sổ kính nhìn đồi thông rất lãng mạn. WiFi buổi tối hơi yếu nhưng nhìn chung rất đáng tiền.', DATE_SUB(NOW(), INTERVAL 5 DAY));
 
-    -- Cập nhật rating + reviewCount cho accommodation sau khi seed review
-    -- acc1 LATA Hotel: 1 review, 5 sao → rating = 10.0
+    -- Cập nhật rating + reviewCount cho accommodation sau khi thêm review
+    -- acc1 LATA Hotel: 1 review, 10 điểm → rating = 10.0
     UPDATE accommodations SET rating = 10.0, review_count = 1 WHERE id = 1;
-    -- acc7 Mộc Nhiên: 1 review, 4 sao → rating = 8.0
+    -- acc7 Mộc Nhiên: 1 review, 8 điểm → rating = 8.0
     UPDATE accommodations SET rating = 8.0, review_count = 1 WHERE id = 7;
 
 
@@ -1232,28 +1321,27 @@
     -- partner2 (id=4): acc4 (Anam Villa) + acc7 (Mộc Nhiên Homestay) + acc8 (Vinpearl Resort)
     --
     -- 14 SAMPLE BOOKINGS:
-    -- #1  BK-LATA-STD-0001 | acc1/r1  | PENDING_ADMIN_APPROVAL | Ngoại lệ cọc 30% cần xác minh thủ công
-    -- #2  BK-TLP-SUP-0001  | acc2/r6  | PENDING_ADMIN_APPROVAL | 100%    → tình huống admin từ chối
-    -- #3  BK-TMG-DLX-0001  | acc3/r9  | CONFIRMED | PENDING_PARTNER_CONFIRMATION (partner1 chờ)
-    -- #4  BK-LATA-DLX-0001 | acc1/r2  | CONFIRMED | PARTNER_CONFIRMED (partner1 đã xác nhận)
+    -- #1  BK-LATA-STD-0001 | acc1/r1  | CONFIRMED | Cọc 30%, TravelMate tự giữ phòng
+    -- #2  BK-TLP-SUP-0001  | acc2/r6  | CONFIRMED | Thanh toán 100%, TravelMate tự giữ phòng
+    -- #3  BK-TMG-DLX-0001  | acc3/r9  | CONFIRMED | PARTNER_CONFIRMED (TravelMate tự giữ)
+    -- #4  BK-LATA-DLX-0001 | acc1/r2  | CONFIRMED | PARTNER_CONFIRMED (partner1 đã giữ phòng)
     -- #5  BK-TLP-STD-0001  | acc2/r5  | NO_SHOW   | DEPOSIT_FORFEITED (mất cọc)
     -- #6  BK-TMG-PRE-0001  | acc3/r10 | CHECKED_IN | PARTNER_CONFIRMED (partner1)
-    -- #7  BK-LATA-FAM-0001 | acc1/r3  | COMPLETED  | PARTNER_CONFIRMED (partner1)
-    -- #8  BK-VNT-DLX-0001  | acc8/r25 | CONFIRMED | PENDING_PARTNER_CONFIRMATION (partner2 chờ)
-    -- #9  BK-VNT-SUI-0001  | acc8/r26 | CONFIRMED | PARTNER_CONFIRMED (partner2 xác nhận)
-    -- #10 BK-MND-ATT-0001  | acc7/r23 | COMPLETED  | PARTNER_CONFIRMED (partner2)
-    -- #11 BK-ANM-GDN-0001  | acc4/r13 | PENDING_ADMIN_APPROVAL | Cọc 30% ngoại lệ (partner2)
+    -- #7  BK-LATA-FAM-0001 | acc1/r3  | COMPLETED  | PARTNER_COMPLETED (partner1, đồng bộ cuối script)
+    -- #8  BK-VNT-DLX-0001  | acc8/r25 | CONFIRMED | PARTNER_CONFIRMED (TravelMate tự giữ)
+    -- #9  BK-VNT-SUI-0001  | acc8/r26 | CONFIRMED | PARTNER_CONFIRMED (TravelMate đã giữ phòng/căn)
+    -- #10 BK-MND-ATT-0001  | acc7/r23 | COMPLETED  | PARTNER_COMPLETED (partner4, đồng bộ cuối script)
+    -- #11 BK-ANM-GDN-0001  | acc4/r13 | CONFIRMED | Cọc 30%, TravelMate tự giữ villa
     -- #12 BK-FDN-DLX-0001  | acc9/r28 | NO_SHOW   | DEPOSIT_FORFEITED (partner1 - Furama)
-    -- #13 BK-HLR-DLX-0001  | acc6/r20 | CONFIRMED | PENDING_PARTNER_CONFIRMATION (partner1 chờ)
+    -- #13 BK-HLR-DLX-0001  | acc6/r20 | CONFIRMED | PARTNER_CONFIRMED (TravelMate tự giữ)
     -- #14 BK-BNH-BNG-0001  | acc5/r16 | CHECKED_IN | PARTNER_CONFIRMED (partner1 - Ba Na Villa)
     --
     -- KỊCH BẢN TRÌNH BÀY:
     -- Admin login → /admin/bookings → thấy 15 bookings
-    --   → Duyệt #1 (BK-LATA-STD-0001): CONFIRMED, partner_status=PENDING_PARTNER_CONFIRMATION
-    --   → Từ chối #2 (BK-TLP-SUP-0001): CANCELLED
+    --   → Ghi nhận #1 (BK-LATA-STD-0001): CONFIRMED, partner_status=PARTNER_CONFIRMED
+    --   → Ghi nhận #2 (BK-TLP-SUP-0001): CONFIRMED, partner_status=PARTNER_CONFIRMED
     --   → Xem #15 (BK-TLP-SUP-0002): có nút "🚫 Xử lý partner hủy" vì PARTNER_CANCELLED
     -- Partner1 login → /partner/bookings
-    --   → Nút "Xác nhận giữ phòng" ở #3 (BK-TMG-DLX-0001) và #13 (BK-HLR-DLX-0001)
     --   → Nút "Check-in khách" ở booking CONFIRMED + PARTNER_CONFIRMED
     --   → Nút "Hoàn tất / Check-out" ở booking CHECKED_IN (#6, #14)
     -- Admin Chi tiết booking → /admin/bookings/{id}
@@ -1291,10 +1379,10 @@
         'Trần Thị Mai', '0923 456 789', 'user2@travelmate.vn',
         3400000, 3400000, 0,
         'CONFIRMED', 'FULL_PAYMENT', 'APPROVED',
-        'PARTNER_CONFIRMED', 'Partner1 đã xác nhận giữ phòng Deluxe.', NOW(), NOW()
+        'PARTNER_CONFIRMED', 'Partner1 đã giữ phòng Deluxe.', NOW(), NOW()
     );
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, note)
-    VALUES (LAST_INSERT_ID(), 'VNPAY', 'FULL_PAYMENT', 3400000, CONCAT('TXN-', UNIX_TIMESTAMP()*2001), 'APPROVED', NOW(), '100% LATA-DLX #2 — partner xác nhận');
+    VALUES (LAST_INSERT_ID(), 'VNPAY', 'FULL_PAYMENT', 3400000, CONCAT('TXN-', UNIX_TIMESTAMP()*2001), 'APPROVED', NOW(), '100% LATA-DLX #2 — partner đã giữ phòng');
     UPDATE rooms SET available_quantity = available_quantity - 1 WHERE id = 2;
 
     -- Booking #16: user3 (id=6), 2 phòng, +10→+14
@@ -1311,7 +1399,7 @@
         'Lê Văn Đức', '0934 567 890', 'user3@travelmate.vn',
         6800000, 2040000, 4760000,
         'CONFIRMED', 'DEPOSIT_30', 'APPROVED',
-        'PARTNER_CONFIRMED', 'Partner1 xác nhận 2 phòng Deluxe cho nhóm.', NOW(), NOW()
+        'PARTNER_CONFIRMED', 'Partner1 đã giữ 2 phòng Deluxe cho nhóm.', NOW(), NOW()
     );
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, note)
     VALUES (LAST_INSERT_ID(), 'VNPAY', 'DEPOSIT_30', 2040000, CONCAT('TXN-', UNIX_TIMESTAMP()*2002), 'APPROVED', NOW(), 'Cọc 30% LATA-DLX #3 — 2 phòng');
@@ -1557,7 +1645,7 @@
         'Trần Thị Mai', '0923 456 789', 'user2@travelmate.vn',
         1280000, 384000, 896000,
         'CONFIRMED', 'DEPOSIT_30', 'APPROVED',
-        'PENDING_PARTNER_CONFIRMATION', 'Hoa Lư Standard 1 phòng — partner chờ xác nhận.', NOW(), NOW()
+        'PARTNER_CONFIRMED', 'Hoa Lư Standard 1 phòng — TravelMate tự động giữ phòng.', NOW(), NOW()
     );
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, note)
     VALUES (LAST_INSERT_ID(), 'VNPAY', 'DEPOSIT_30', 384000, CONCAT('TXN-', UNIX_TIMESTAMP()*2014), 'APPROVED', NOW(), 'Cọc 30% HLR-STD #2');
@@ -1570,7 +1658,7 @@
     -- SET owner_id = (SELECT id FROM users WHERE email = 'partner@travelmate.vn' LIMIT 1)
     -- WHERE owner_id IS NULL AND property_type = 'HOTEL';
     --
-    -- UPDATE bookings SET partner_status = 'PENDING_PARTNER_CONFIRMATION'
+    -- UPDATE bookings SET partner_status = 'PARTNER_CONFIRMED'
     -- WHERE booking_status = 'CONFIRMED' AND partner_status IS NULL;
 
     -- =============================================
@@ -1627,6 +1715,35 @@
         'FIXED_AMOUNT', 80000, NULL, 800000,
         CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), 1, 'PARTNER_ROOM', NULL, 'ADMIN', NULL, NOW());
 
+    -- Voucher kho Partner bổ sung: dữ liệu chiến dịch thực tế cho trang booking và luồng đặt cọc 30%.
+    INSERT INTO vouchers (code, name, description, discount_type, discount_value,
+        max_discount_amount, min_order_amount, start_date, end_date,
+        active, voucher_scope, property_type, cost_bearer, owner_id, created_at) VALUES
+    ('HOTEL10',  'Ưu đãi khách sạn 10%',  'Giảm 10% cho phòng khách sạn được đối tác chọn áp dụng.',
+        'PERCENT', 10.00, 500000, 500000,
+        CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), 1, 'PARTNER_ROOM', NULL, 'PARTNER', NULL, NOW()),
+    ('EARLY10',  'Đặt sớm tiết kiệm 10%',  'Giảm 10% cho khách đặt phòng trước ngày lưu trú.',
+        'PERCENT', 10.00, 500000, 500000,
+        CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), 1, 'PARTNER_ROOM', NULL, 'PARTNER', NULL, NOW()),
+    ('STAY10', 'Kỳ nghỉ linh hoạt 10%', 'Giảm 10% cho phòng/căn được đối tác bật khuyến mãi.',
+        'PERCENT', 10.00, 500000, 500000,
+        CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), 1, 'PARTNER_ROOM', NULL, 'PARTNER', NULL, NOW()),
+    ('WEEKEND15', 'Cuối tuần giảm 15%', 'Giảm 15% cho lịch lưu trú cuối tuần tại phòng/căn được chọn.',
+        'PERCENT', 15.00, 600000, 500000,
+        CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), 1, 'PARTNER_ROOM', NULL, 'PARTNER', NULL, NOW()),
+    ('FAMILY15', 'Gia đình vui hè 15%', 'Giảm 15% cho nhóm khách gia đình đặt phòng/căn phù hợp.',
+        'PERCENT', 15.00, 600000, 500000,
+        CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), 1, 'PARTNER_ROOM', NULL, 'PARTNER', NULL, NOW()),
+    ('ROOM100K', 'Giảm 100K đặt phòng', 'Giảm trực tiếp 100.000đ cho đơn đặt phòng đủ điều kiện.',
+        'FIXED_AMOUNT', 100000, NULL, 500000,
+        CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), 1, 'PARTNER_ROOM', NULL, 'PARTNER', NULL, NOW()),
+    ('STAY150K', 'Ở 2 đêm giảm 150K', 'Giảm trực tiếp 150.000đ cho kỳ nghỉ từ 2 đêm.',
+        'FIXED_AMOUNT', 150000, NULL, 500000,
+        CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), 1, 'PARTNER_ROOM', NULL, 'PARTNER', NULL, NOW()),
+    ('STAY200K', 'Kỳ nghỉ cao cấp giảm 200K', 'Giảm trực tiếp 200.000đ cho đơn đặt phòng/căn giá trị cao.',
+        'FIXED_AMOUNT', 200000, NULL, 500000,
+        CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), 1, 'PARTNER_ROOM', NULL, 'PARTNER', NULL, NOW());
+
     INSERT INTO room_voucher_assignments
         (voucher_id, room_id, assigned_by_partner_id, active, assigned_at)
     SELECT v.id, r.id, a.owner_id, 1, NOW()
@@ -1641,10 +1758,15 @@
         OR (v.code = 'VILLA200' AND r.room_code IN ('ANM-BCH', 'BNA-BUN', 'VNT-VIL'))
         OR (v.code = 'HOMESTAY50' AND r.room_code IN ('MNH-STD', 'HLR-STD', 'HAN-STD'))
         OR (v.code = 'TMROOM80' AND r.room_code IN ('LATA-FAM', 'VNT-DLX', 'HLR-DLX'))
+        OR (v.code IN ('HOTEL10', 'EARLY10', 'STAY10', 'WEEKEND15', 'FAMILY15',
+                       'ROOM100K', 'STAY150K', 'STAY200K')
+            AND r.room_code IN ('LATA-STD', 'TLP-VIP', 'TMG-DLX', 'ANM-GDN', 'HLR-STD', 'VNT-DLX'))
     )
     JOIN accommodations a ON a.id = r.accommodation_id
     WHERE v.code IN ('LATA20', 'VNT100K', 'ANAM15', 'HOALUU50K',
-                     'STAYFLEX100', 'RESORT150', 'VILLA200', 'HOMESTAY50', 'TMROOM80')
+                     'STAYFLEX100', 'RESORT150', 'VILLA200', 'HOMESTAY50', 'TMROOM80',
+                     'HOTEL10', 'EARLY10', 'STAY10', 'WEEKEND15', 'FAMILY15',
+                     'ROOM100K', 'STAY150K', 'STAY200K')
       AND a.owner_id IS NOT NULL;
 
     INSERT INTO room_images (room_id, image_url, caption, sort_order, is_primary, created_at, updated_at)
@@ -1687,7 +1809,7 @@
         'FIXED_AMOUNT', 30000, NULL, 200000,
         CURDATE(), DATE_ADD(CURDATE(), INTERVAL 90 DAY), 0, 'USER_GLOBAL', 'ADMIN', NULL, NOW());
 
-    -- Partner settlements được seed ở block monthly phía dưới để mỗi partner chỉ có 1 kỳ/tháng.
+    -- Partner settlements được tạo ở block monthly phía dưới để mỗi partner chỉ có 1 kỳ/tháng.
     -- Các booking hoàn tất trong tháng 05/2026 được gộp vào settlement PENDING tháng 05,
     -- không tạo PAID theo kỳ 7 ngày để tránh mâu thuẫn nghiệp vụ quyết toán tháng.
 
@@ -1699,11 +1821,7 @@
     -- SELECT booking_code, booking_status, payment_status, partner_status FROM bookings ORDER BY id;
     -- SELECT id, code, voucher_scope, cost_bearer, active FROM vouchers ORDER BY id;
     -- SELECT id, partner_id, settlement_status, payout_amount FROM partner_settlements ORDER BY id;
-    -- SELECT COUNT(*) FROM bookings;           -- kỳ vọng: 14
-    -- SELECT COUNT(*) FROM rooms;              -- kỳ vọng: 30
-    -- SELECT COUNT(*) FROM accommodations;     -- kỳ vọng: 11 (+ 2 PENDING/REJECTED = 13 total)
-    -- SELECT COUNT(*) FROM vouchers;           -- kỳ vọng: 5
-    -- SELECT COUNT(*) FROM partner_settlements;-- seed ở block monthly phía dưới
+    -- Các số lượng tổng thể được kiểm tra ở checklist cuối file sau khi toàn bộ dữ liệu đã được nạp.
 
     -- =============================================
     -- DỮ LIỆU BỔ SUNG — Lịch sử đặt phòng (Bookings 15–22)
@@ -1905,66 +2023,66 @@
     -- REVIEWS BỔ SUNG — bookings 15, 17, 21, 22
     -- =============================================
 
-    -- Booking #15 → acc1 LATA Hotel (5 sao)
+    -- Booking #15 → acc1 LATA Hotel (10 điểm)
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (2, 1, 15, 5,
+    (2, 1, 15, 10,
     'Dùng voucher SUMMER10 rất hời! Phòng sạch sẽ, check-in nhanh, vị trí trung tâm Đà Lạt tiện lợi. Nhân viên lễ tân thân thiện và nhiệt tình hỗ trợ hành lý.',
     DATE_SUB(NOW(), INTERVAL 13 DAY));
 
-    -- Booking #17 → acc1 LATA Hotel (4 sao, voucher LATA20)
+    -- Booking #17 → acc1 LATA Hotel (8 điểm, voucher LATA20)
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (2, 1, 17, 4,
+    (2, 1, 17, 8,
     'Voucher LATA20 giảm được nhiều, phòng Deluxe rộng có ban công nhìn vườn đẹp. Bữa sáng ổn nhưng chưa đa dạng lắm. Nhìn chung rất đáng tiền, sẽ quay lại.',
     DATE_SUB(NOW(), INTERVAL 19 DAY));
 
-    -- Booking #21 → acc3 TM Grand Hotel (5 sao)
+    -- Booking #21 → acc3 TM Grand Hotel (10 điểm)
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (2, 3, 21, 5,
+    (2, 3, 21, 10,
     'TravelMate Grand Hotel thật sự xứng đáng 5 sao! Spa tuyệt vời, nhà hàng fine dining ngon, phòng view thung lũng cực đẹp. Dịch vụ butler tận tâm, chắc chắn sẽ quay lại.',
     DATE_SUB(NOW(), INTERVAL 34 DAY));
 
-    -- Booking #22 → acc4 Anam Villa (5 sao)
+    -- Booking #22 → acc4 Anam Villa (10 điểm)
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (2, 4, 22, 5,
+    (2, 4, 22, 10,
     'The Anam Villa là thiên đường nghỉ dưỡng! Butler phục vụ tận tình, hồ bơi private sát biển, bữa sáng đặt tại phòng tuyệt hảo. Giá xứng đáng với đẳng cấp nhận được.',
     DATE_SUB(NOW(), INTERVAL 33 DAY));
 
-    -- Booking #16 → acc8 Vinpearl Resort (5 sao)
+    -- Booking #16 → acc8 Vinpearl Resort (10 điểm)
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (2, 8, 16, 5,
+    (2, 8, 16, 10,
     'Vinpearl Resort đẳng cấp! Bãi biển riêng tuyệt đẹp, hồ bơi lớn, phòng view biển thoáng mát. Dịch vụ chuyên nghiệp, bữa sáng buffet phong phú. Sẽ quay lại vào dịp khác!',
     DATE_SUB(NOW(), INTERVAL 12 DAY));
 
-    -- Booking #18 → acc7 Mộc Nhiên Homestay (4 sao)
+    -- Booking #18 → acc7 Mộc Nhiên Homestay (8 điểm)
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (2, 7, 18, 4,
+    (2, 7, 18, 8,
     'Homestay Mộc Nhiên yên tĩnh và thơ mộng, không gian xanh mướt giữa núi đồi Đà Lạt. Chủ nhà rất thân thiện, gợi ý nhiều địa điểm hay. WiFi ổn định hơn lần trước!',
     DATE_SUB(NOW(), INTERVAL 20 DAY));
 
-    -- Booking #19 → acc9 Furama Resort (5 sao)
+    -- Booking #19 → acc9 Furama Resort (10 điểm)
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (2, 9, 19, 5,
+    (2, 9, 19, 10,
     'Furama Resort Đà Nẵng là kỳ nghỉ tuyệt vời nhất! Phòng rộng có ban công nhìn thẳng ra biển Mỹ Khê. Spa tuyệt vời, nhà hàng phục vụ tận tình. Chắc chắn sẽ quay lại!',
     DATE_SUB(NOW(), INTERVAL 27 DAY));
 
-    -- Booking #20 → acc8 Vinpearl Resort (4 sao)
+    -- Booking #20 → acc8 Vinpearl Resort (8 điểm)
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (2, 8, 20, 4,
+    (2, 8, 20, 8,
     'Kỳ nghỉ thứ hai tại Vinpearl, lần này dùng voucher VNT100K. Phòng Deluxe tiện nghi đầy đủ. Bãi biển đẹp nhưng khá đông vào cuối tuần. Nhìn chung rất đáng tiền.',
     DATE_SUB(NOW(), INTERVAL 26 DAY));
 
     -- Cập nhật rating + review_count (ghi đè tất cả về đúng giá trị cuối)
-    -- acc1: 3 reviews (7=5★, 15=5★, 17=4★) → avg 4.67 × 2 = 9.3
+    -- acc1: 3 reviews (7=10, 15=10, 17=8) → avg = 9.3
     UPDATE accommodations SET rating = 9.3, review_count = 3 WHERE id = 1;
-    -- acc3 TM Grand: 1 review (21=5★) → avg 5.0 × 2 = 10.0
+    -- acc3 TM Grand: 1 review (21=10) → avg = 10.0
     UPDATE accommodations SET rating = 10.0, review_count = 1 WHERE id = 3;
-    -- acc4 Anam Villa: 1 review (22=5★) → avg 5.0 × 2 = 10.0
+    -- acc4 Anam Villa: 1 review (22=10) → avg = 10.0
     UPDATE accommodations SET rating = 10.0, review_count = 1 WHERE id = 4;
-    -- acc7 Mộc Nhiên: 2 reviews (10=4★, 18=4★) → avg 4.0 × 2 = 8.0
+    -- acc7 Mộc Nhiên: 2 reviews (10=8, 18=8) → avg = 8.0
     UPDATE accommodations SET rating = 8.0, review_count = 2 WHERE id = 7;
-    -- acc8 Vinpearl: 2 reviews (16=5★, 20=4★) → avg 4.5 × 2 = 9.0
+    -- acc8 Vinpearl: 2 reviews (16=10, 20=8) → avg = 9.0
     UPDATE accommodations SET rating = 9.0, review_count = 2 WHERE id = 8;
-    -- acc9 Furama: 1 review (19=5★) → avg 5.0 × 2 = 10.0
+    -- acc9 Furama: 1 review (19=10) → avg = 10.0
     UPDATE accommodations SET rating = 10.0, review_count = 1 WHERE id = 9;
 
     -- =============================================
@@ -1986,31 +2104,31 @@
     'Tháng 02/2026: Hoa Lư Riverside Homestay 2 booking (HLR-STD + HLR-DLX), không có voucher.',
     '2026-02-28 18:00:00'),
 
-    -- Tháng 03/2026 — PAID, đã gộp các dòng seed 7 ngày cũ theo partner
+    -- Tháng 03/2026 — PAID, đã gộp các dòng 7 ngày cũ theo partner
     (3, '2026-03-01', '2026-03-31',
-    6640000, 996000, 510000, 5134000,
+    6640000, 1072500, 510000, 5057500,
     '2026-04-10', 'PAID', '2026-04-10 09:00:00',
     'Tháng 03/2026: LATA-DLX + TM Grand + Tulip; voucher LATA20 do Partner chịu 510.000đ.',
     '2026-03-31 18:00:00'),
     (4, '2026-03-01', '2026-03-31',
-    10300000, 1854000, 100000, 8346000,
+    10300000, 1872000, 100000, 8328000,
     '2026-04-10', 'PAID', '2026-04-10 09:05:00',
     'Tháng 03/2026: Furama Resort + Vinpearl Resort; voucher VNT100K do Partner chịu 100.000đ.',
     '2026-03-31 18:05:00'),
     (7, '2026-03-01', '2026-03-31',
-    22200000, 2968000, 1050000, 18182000,
+    22200000, 3120000, 1050000, 18030000,
     '2026-04-10', 'PAID', '2026-04-10 09:10:00',
     'Tháng 03/2026: The Anam Villa + Ba Na Hills Villa; voucher ANAM15 do Partner chịu 1.050.000đ.',
     '2026-03-31 18:10:00'),
     (8, '2026-03-01', '2026-03-31',
-    2540000, 254000, 50000, 2236000,
+    2540000, 259000, 50000, 2231000,
     '2026-04-10', 'PAID', '2026-04-10 09:15:00',
     'Tháng 03/2026: Mộc Nhiên Homestay; voucher HOALUU50K do Partner chịu 50.000đ.',
     '2026-03-31 18:15:00'),
 
     -- Tháng 04/2026 — PAID
     (3, '2026-04-01', '2026-04-30',
-    1170000, 175500, 0, 994500,
+    1170000, 195000, 0, 975000,
     '2026-05-10', 'PAID', '2026-05-10 09:00:00',
     'Tháng 04/2026: LATA Hotel 1 booking, voucher SUMMER10 do Admin chịu.',
     '2026-04-30 18:00:00'),
@@ -2193,48 +2311,48 @@
     -- REVIEWS BỔ SUNG — bookings 23–28 (Tulip, Ba Na, Hoa Lư)
     -- =============================================
 
-    -- Booking #23 → acc2 Tulip Hotel (5 sao, user2 Trần Thị Mai)
+    -- Booking #23 → acc2 Tulip Hotel (10 điểm, user2 Trần Thị Mai)
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (5, 2, 23, 5,
+    (5, 2, 23, 10,
     'Tulip Hotel 2 Dalat tuy 3 sao nhưng chất lượng vượt mong đợi! Phòng Standard sạch sẽ thoải mái, view đồi thông Đà Lạt buổi sáng rất đẹp. Nhân viên thân thiện, check-in nhanh chóng. Giá rất phải chăng cho vị trí trung tâm gần hồ Xuân Hương. Chắc chắn sẽ quay lại!',
     DATE_SUB(NOW(), INTERVAL 39 DAY));
 
-    -- Booking #24 → acc2 Tulip Hotel (4 sao, user Nguyễn Văn An)
+    -- Booking #24 → acc2 Tulip Hotel (8 điểm, user Nguyễn Văn An)
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (2, 2, 24, 4,
+    (2, 2, 24, 8,
     'Khách sạn phong cách Châu Âu cổ điển rất duyên dáng. Phòng Superior có ban công nhìn hồ Xuân Hương tuyệt đẹp vào buổi sáng. Bữa sáng buffet ổn, WiFi ổn định. Giá xứng đáng với chất lượng, phù hợp cho cặp đôi.',
     DATE_SUB(NOW(), INTERVAL 46 DAY));
 
-    -- Booking #25 → acc5 Ba Na Hills Forest Villa (5 sao, user3 Lê Văn Đức)
+    -- Booking #25 → acc5 Ba Na Hills Forest Villa (10 điểm, user3 Lê Văn Đức)
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (6, 5, 25, 5,
+    (6, 5, 25, 10,
     'Trải nghiệm đỉnh cao giữa rừng Bà Nà! Bungalow gỗ tự nhiên ấm áp, sàn kính ngắm rừng về đêm cực kỳ ảo diệu. Không khí trong lành, yên tĩnh tuyệt đối. Gần cáp treo và các điểm tham quan nổi tiếng. Đáng từng đồng tiền bỏ ra!',
     DATE_SUB(NOW(), INTERVAL 53 DAY));
 
-    -- Booking #26 → acc5 Ba Na Hills Forest Villa (4 sao, user2 Trần Thị Mai)
+    -- Booking #26 → acc5 Ba Na Hills Forest Villa (8 điểm, user2 Trần Thị Mai)
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (5, 5, 26, 4,
+    (5, 5, 26, 8,
     'Villa giữa rừng Bà Nà rất thơ mộng và độc đáo. Sân hiên có bếp BBQ cùng nhóm bạn rất vui vẻ. Phòng hơi nhỏ hơn ảnh nhưng trang thiết bị đầy đủ và sạch sẽ. Nhân viên nhiệt tình, đồ ăn ngon. Sẽ giới thiệu cho bạn bè!',
     DATE_SUB(NOW(), INTERVAL 60 DAY));
 
-    -- Booking #27 → acc6 Hoa Lư Riverside Homestay (5 sao, user Nguyễn Văn An)
+    -- Booking #27 → acc6 Hoa Lư Riverside Homestay (10 điểm, user Nguyễn Văn An)
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (2, 6, 27, 5,
+    (2, 6, 27, 10,
     'Hoa Lư Riverside Homestay là viên ngọc ẩn của Hội An! Nhà cổ 3 gian mái ngói bên sông Thu Bồn, buổi sáng ăn bánh mì do chủ nhà tự làm ngon tuyệt. Được mượn xe đạp miễn phí đi phố cổ chỉ 5 phút. Chủ nhà hiếu khách và nhiệt tình tư vấn địa điểm!',
     DATE_SUB(NOW(), INTERVAL 67 DAY));
 
-    -- Booking #28 → acc6 Hoa Lư Riverside Homestay (5 sao, user3 Lê Văn Đức)
+    -- Booking #28 → acc6 Hoa Lư Riverside Homestay (10 điểm, user3 Lê Văn Đức)
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (6, 6, 28, 5,
+    (6, 6, 28, 10,
     'Homestay truyền thống đậm chất Hội An! Phòng Deluxe nhà tắm riêng sạch sẽ, cửa sổ nhìn vườn xanh mát. Bữa sáng phở và bánh mì tự làm siêu ngon. Vị trí đi bộ ra phố cổ 5 phút. Một trải nghiệm đáng nhớ khác biệt hoàn toàn với khách sạn thông thường!',
     DATE_SUB(NOW(), INTERVAL 74 DAY));
 
     -- Cập nhật rating + review_count cho acc2, acc5, acc6
-    -- acc2 Tulip Hotel: 2 reviews (23=5★, 24=4★) → avg 4.5 × 2 = 9.0
+    -- acc2 Tulip Hotel: 2 reviews (23=10, 24=8) → avg = 9.0
     UPDATE accommodations SET rating = 9.0, review_count = 2 WHERE id = 2;
-    -- acc5 Ba Na Hills Villa: 2 reviews (25=5★, 26=4★) → avg 4.5 × 2 = 9.0
+    -- acc5 Ba Na Hills Villa: 2 reviews (25=10, 26=8) → avg = 9.0
     UPDATE accommodations SET rating = 9.0, review_count = 2 WHERE id = 5;
-    -- acc6 Hoa Lư Homestay: 2 reviews (27=5★, 28=5★) → avg 5.0 × 2 = 10.0
+    -- acc6 Hoa Lư Homestay: 2 reviews (27=10, 28=10) → avg = 10.0
     UPDATE accommodations SET rating = 10.0, review_count = 2 WHERE id = 6;
 
     -- Các booking 23–28 đã được gộp vào block partner_settlements monthly phía trên.
@@ -2243,12 +2361,7 @@
     -- =============================================
     -- KIỂM TRA SAU KHI CHẠY SQL (cập nhật)
     -- =============================================
-    -- SELECT COUNT(*) FROM users;               -- kỳ vọng: 6 (1 admin, 3 user, 2 partner)
-    -- SELECT COUNT(*) FROM bookings;            -- kỳ vọng: 28
-    -- SELECT COUNT(*) FROM payments;            -- kỳ vọng: 28
-    -- SELECT COUNT(*) FROM reviews;             -- kỳ vọng: 16
-    -- SELECT COUNT(*) FROM partner_settlements; -- kỳ vọng: 13 (monthly, không còn kỳ 7 ngày)
-    -- SELECT COUNT(*) FROM vouchers;            -- kỳ vọng: 5
+    -- Các số lượng tổng thể được kiểm tra ở checklist cuối file sau khi toàn bộ dữ liệu đã được nạp.
     --
     -- Kiểm tra acc2, acc5, acc6 đã có reviews nhất quán:
     -- SELECT id, name, rating, review_count FROM accommodations WHERE id IN (2,5,6);
@@ -2293,7 +2406,7 @@
         3, 1, 1,
         'Phạm Văn Khoa', '0909 123 456', NULL,
         2100000, 2100000, 0,
-        'CONFIRMED', 'FULL_PAYMENT', 'APPROVED',
+        'CONFIRMED', 'FULL_PAYMENT', 'NOT_REQUIRED',
         'PARTNER_CONFIRMED', 'DIRECT', NULL,
         'Khách walk-in đặt trực tiếp tại quầy lễ tân — thanh toán tiền mặt. Không qua TravelMate, không tính commission.',
         NOW(), NOW()
@@ -2314,7 +2427,7 @@
         4, 2, 1,
         'Nguyễn Thanh Bình', '0911 654 321', 'binh.nt@example.com',
         8400000, 8400000, 0,
-        'CONFIRMED', 'FULL_PAYMENT', 'APPROVED',
+        'CONFIRMED', 'FULL_PAYMENT', 'NOT_REQUIRED',
         'PARTNER_CONFIRMED', 'DIRECT', NULL,
         'Khách đặt qua điện thoại — đã chuyển khoản ngân hàng trực tiếp cho khách sạn. Không qua cổng TravelMate, không tính commission.',
         DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY)
@@ -2334,7 +2447,7 @@
         4, 0, 1,
         'Công ty TNHH ABC', '028 1234 5678', 'booking@abc-corp.vn',
         39200000, 39200000, 0,
-        'CONFIRMED', 'FULL_PAYMENT', 'APPROVED',
+        'CONFIRMED', 'FULL_PAYMENT', 'NOT_REQUIRED',
         'PARTNER_CONFIRMED', 'DIRECT', NULL,
         'Đoàn doanh nghiệp 4 đêm — ký hợp đồng trực tiếp với Vinpearl Resort. Không qua TravelMate, không tính commission.',
         DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY)
@@ -2357,7 +2470,7 @@
         0, 0, 1,
         'Partner Sunrise Sapa Lodge', '0933 456 789', 'partner@travelmate.vn',
         0, 0, 0,
-        'CONFIRMED', 'FULL_PAYMENT', 'APPROVED',
+        'CONFIRMED', 'FULL_PAYMENT', 'NOT_REQUIRED',
         'PARTNER_CONFIRMED', 'MANUAL_BLOCK', 'Bảo trì định kỳ phòng Gia Đình: kiểm tra điều hoà, sơn lại tường, thay nệm mới.',
         'Phòng chặn để bảo trì nội bộ — không mở bán. Partner tự bỏ chặn sau khi hoàn tất bảo trì.',
         NOW(), NOW()
@@ -2377,7 +2490,7 @@
         0, 0, 1,
         'Partner Ba Na Hills Villa', '0933 456 789', 'partner@travelmate.vn',
         0, 0, 0,
-        'CONFIRMED', 'FULL_PAYMENT', 'APPROVED',
+        'CONFIRMED', 'FULL_PAYMENT', 'NOT_REQUIRED',
         'PARTNER_CONFIRMED', 'MANUAL_BLOCK', 'Dành cho sự kiện riêng của đối tác thương mại — không mở bán trực tuyến giai đoạn này.',
         'Chặn phòng Treetop Suite cho sự kiện nội bộ. Partner sẽ bỏ chặn sau ngày 25.',
         DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY)
@@ -2397,13 +2510,13 @@
         0, 0, 1,
         'Partner Furama Resort Đà Nẵng', '0933 456 789', 'partner@travelmate.vn',
         0, 0, 0,
-        'CONFIRMED', 'FULL_PAYMENT', 'APPROVED',
+        'CONFIRMED', 'FULL_PAYMENT', 'NOT_REQUIRED',
         'PARTNER_CONFIRMED', 'MANUAL_BLOCK', 'Nâng cấp nội thất phòng Beachfront Superior: lắp đặt máy chiếu, thay sofa mới, sơn lại phòng tắm.',
         'Chặn phòng 7 ngày để thi công nâng cấp. Dự kiến hoàn thành và mở bán lại.',
         NOW(), NOW()
     );
 
-    -- Cập nhật note về bookings DIRECT & MANUAL_BLOCK để giảng viên dễ nhận ra:
+    -- Cập nhật note về bookings DIRECT & MANUAL_BLOCK để dễ đối chiếu trên màn hình:
     -- SELECT booking_code, booking_source, booking_status, partner_status, block_reason
     --   FROM bookings WHERE booking_source IN ('DIRECT','MANUAL_BLOCK') ORDER BY id;
     -- Kỳ vọng: 3 DIRECT + 3 MANUAL_BLOCK = 6 bookings không qua TravelMate
@@ -2537,7 +2650,7 @@
         CONCAT('TXN-MND-FAM1-', UNIX_TIMESTAMP()), 'APPROVED',
         DATE_SUB(NOW(), INTERVAL 42 DAY), 'MND-FAM 2 đêm với HOALUU50K — hoàn tất');
 
-    -- ─── Booking 33: CONFIRMED — Anam Villa ANM-GDN (partner3), chờ xác nhận ───
+    -- ─── Booking 33: CONFIRMED — Anam Villa ANM-GDN (partner3), TravelMate tự giữ phòng ───
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
@@ -2551,14 +2664,14 @@
         'Lê Văn Đức', '0934 567 890', 'user3@travelmate.vn',
         10500000, 10500000, 0,
         'CONFIRMED', 'FULL_PAYMENT', 'APPROVED',
-        'PENDING_PARTNER_CONFIRMATION', NULL, NOW(), NOW()
+        'PARTNER_CONFIRMED', 'TravelMate tự động giữ villa sau khi ghi nhận thanh toán 100%.', NOW(), NOW()
     );
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, note)
     VALUES (LAST_INSERT_ID(), 'VNPAY', 'FULL_PAYMENT', 10500000,
-        CONCAT('TXN-ANM-GDN3-', UNIX_TIMESTAMP()), 'APPROVED', NOW(), 'ANM-GDN 3 đêm — partner3 chờ xác nhận');
+        CONCAT('TXN-ANM-GDN3-', UNIX_TIMESTAMP()), 'APPROVED', NOW(), 'ANM-GDN 3 đêm — TravelMate tự động giữ villa');
     UPDATE rooms SET available_quantity = available_quantity - 1 WHERE id = 13;
 
-    -- ─── Booking 34: CONFIRMED — Mộc Nhiên MND-ATT (partner4), chờ xác nhận ───
+    -- ─── Booking 34: CONFIRMED — Mộc Nhiên MND-ATT (partner4), TravelMate tự giữ phòng ───
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
@@ -2572,11 +2685,11 @@
         'Trần Thị Mai', '0923 456 789', 'user2@travelmate.vn',
         1160000, 1160000, 0,
         'CONFIRMED', 'FULL_PAYMENT', 'APPROVED',
-        'PENDING_PARTNER_CONFIRMATION', NULL, NOW(), NOW()
+        'PARTNER_CONFIRMED', 'TravelMate tự động giữ phòng sau khi ghi nhận thanh toán 100%.', NOW(), NOW()
     );
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, note)
     VALUES (LAST_INSERT_ID(), 'VNPAY', 'FULL_PAYMENT', 1160000,
-        CONCAT('TXN-MND-ATT2-', UNIX_TIMESTAMP()), 'APPROVED', NOW(), 'MND-ATT 2 đêm — partner4 chờ xác nhận');
+        CONCAT('TXN-MND-ATT2-', UNIX_TIMESTAMP()), 'APPROVED', NOW(), 'MND-ATT 2 đêm — TravelMate tự động giữ phòng');
     UPDATE rooms SET available_quantity = available_quantity - 1 WHERE id = 23;
 
     -- ─── Booking 35: CHECKED_IN — Furama FDN-BCH (partner2) ───
@@ -2622,7 +2735,7 @@
         2, 1, 1,
         'Trương Minh Khoa', '0922 111 222', NULL,
         2400000, 2400000, 0,
-        'CHECKED_IN', 'FULL_PAYMENT', 'APPROVED', 'PARTNER_CONFIRMED',
+        'CHECKED_IN', 'FULL_PAYMENT', 'NOT_REQUIRED', 'PARTNER_CONFIRMED',
         'DIRECT', 'NOT_REQUIRED',
         'Khách vãng lai nhận phòng trực tiếp tại quầy — đã thanh toán tiền mặt.',
         DATE_SUB(NOW(), INTERVAL 2 HOUR), DATE_SUB(NOW(), INTERVAL 2 HOUR)
@@ -2644,7 +2757,7 @@
         2, 0, 1,
         'Ngô Thanh Hương', '0955 333 444', 'huong.ngo@gmail.com',
         5600000, 5600000, 0,
-        'CONFIRMED', 'FULL_PAYMENT', 'APPROVED', 'PARTNER_CONFIRMED',
+        'CONFIRMED', 'FULL_PAYMENT', 'NOT_REQUIRED', 'PARTNER_CONFIRMED',
         'DIRECT', 'NOT_REQUIRED',
         'Khách đặt qua điện thoại trực tiếp với resort, check-in ngày mai.',
         DATE_SUB(NOW(), INTERVAL 3 HOUR), DATE_SUB(NOW(), INTERVAL 3 HOUR)
@@ -2653,7 +2766,7 @@
 
     -- ─── Direct Booking 3: partner4 tạo booking trực tiếp tại Mộc Nhiên Homestay (MND-STD, room_id=22) ─
     -- Khách đặt trước qua điện thoại, thanh toán tiền mặt toàn bộ khi nhận phòng.
-    -- DIRECT: payment_option=FULL_PAYMENT, payment_status=APPROVED (ghi nhận xác nhận), remaining_payment_status=NOT_REQUIRED
+    -- DIRECT: payment_option=FULL_PAYMENT, payment_status=NOT_REQUIRED, remaining_payment_status=NOT_REQUIRED
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
@@ -2667,7 +2780,7 @@
         2, 0, 1,
         'Hoàng Thị Lan', '0911 555 666', NULL,
         780000, 780000, 0,
-        'CONFIRMED', 'FULL_PAYMENT', 'APPROVED', 'PARTNER_CONFIRMED',
+        'CONFIRMED', 'FULL_PAYMENT', 'NOT_REQUIRED', 'PARTNER_CONFIRMED',
         'DIRECT', 'NOT_REQUIRED',
         'Khách đặt qua điện thoại, thanh toán tiền mặt toàn bộ khi nhận phòng. Không qua TravelMate, không tính commission.',
         DATE_SUB(NOW(), INTERVAL 1 HOUR), DATE_SUB(NOW(), INTERVAL 1 HOUR)
@@ -2688,7 +2801,7 @@
         0, 0, 1,
         'Bảo trì nội bộ', NULL, NULL,
         0, 0, 0,
-        'CONFIRMED', 'FULL_PAYMENT', 'APPROVED', 'PARTNER_CONFIRMED',
+        'CONFIRMED', 'FULL_PAYMENT', 'NOT_REQUIRED', 'PARTNER_CONFIRMED',
         'MANUAL_BLOCK', 'Bảo trì điều hòa và sơn tường, dự kiến hoàn thành sau 3 ngày', 'NOT_REQUIRED',
         NULL, NOW(), NOW()
     );
@@ -2708,7 +2821,7 @@
         0, 0, 1,
         'Giữ phòng nội bộ', NULL, NULL,
         0, 0, 0,
-        'CONFIRMED', 'FULL_PAYMENT', 'APPROVED', 'PARTNER_CONFIRMED',
+        'CONFIRMED', 'FULL_PAYMENT', 'NOT_REQUIRED', 'PARTNER_CONFIRMED',
         'MANUAL_BLOCK', 'Giữ phòng cho đoàn khách VIP của chủ villa, không mở bán 3 ngày cuối tuần', 'NOT_REQUIRED',
         NULL, NOW(), NOW()
     );
@@ -2718,38 +2831,38 @@
     -- REVIEWS BỔ SUNG — bookings 29, 30, 31, 32
     -- =============================================
 
-    -- Booking #29 → acc4 Anam Villa (5★, user2)
+    -- Booking #29 → acc4 Anam Villa (10 điểm, user2)
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (5, 4, 29, 5,
+    (5, 4, 29, 10,
     'Phòng Beachfront Pool Villa tại Anam là trải nghiệm không thể quên! Hồ bơi tràn ra biển, butler phục vụ 24/7, bữa sáng đặt tại phòng hoàn hảo. Không gian riêng tư tuyệt đối, thích hợp cho tuần trăng mật hoặc nghỉ dưỡng cao cấp.',
     DATE_SUB(NOW(), INTERVAL 15 DAY));
 
-    -- Booking #30 → acc5 Ba Na Hills (4★, user3)
+    -- Booking #30 → acc5 Ba Na Hills (8 điểm, user3)
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (6, 5, 30, 4,
+    (6, 5, 30, 8,
     'Treetop Suite Bà Nà quả thật độc đáo — ban công 360° nhìn toàn rừng thông cực ảo. Dùng voucher ANAM15 được giảm tốt. Bồn tắm jacuzzi ngoài trời về đêm tuyệt vời. Chỉ hơi tiếc dịch vụ ăn uống tại chỗ còn ít lựa chọn.',
     DATE_SUB(NOW(), INTERVAL 28 DAY));
 
-    -- Booking #31 → acc6 Hoa Lư (5★, user2)
+    -- Booking #31 → acc6 Hoa Lư (10 điểm, user2)
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (5, 6, 31, 5,
+    (5, 6, 31, 10,
     'Phòng gia đình nhà Hoa Lư cực kỳ thoải mái cho cả nhà! Ban công nhìn sông Thu Bồn thơ mộng, trẻ con rất thích. Chủ nhà nhiệt tình dẫn đi phố cổ và chỉ hàng ăn ngon. Bánh mì tự làm buổi sáng ngon nhất Hội An!',
     DATE_SUB(NOW(), INTERVAL 21 DAY));
 
-    -- Booking #32 → acc7 Mộc Nhiên (5★, user)
+    -- Booking #32 → acc7 Mộc Nhiên (10 điểm, user)
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (2, 7, 32, 5,
+    (2, 7, 32, 10,
     'Phòng Gia Đình Mộc Nhiên có sân thượng nhìn vườn dã quỳ cực lãng mạn! Dùng voucher HOALUU50K tiết kiệm được 50K. Lò sưởi củi buổi tối ấm áp, không khí Đà Lạt trong lành, bữa sáng thơm ngon. Sẽ quay lại mùa dã quỳ nở!',
     DATE_SUB(NOW(), INTERVAL 36 DAY));
 
     -- Cập nhật rating + review_count (tổng hợp cuối cùng)
-    -- acc4 Anam Villa: reviews 22(5★)+29(5★) → avg 5.0 × 2 = 10.0
+    -- acc4 Anam Villa: reviews 22(10)+29(10) → avg = 10.0
     UPDATE accommodations SET rating = 10.0, review_count = 2 WHERE id = 4;
-    -- acc5 Ba Na Hills: reviews 25(5★)+26(4★)+30(4★) → avg 4.33 × 2 = 8.7
+    -- acc5 Ba Na Hills: reviews 25(10)+26(8)+30(8) → avg = 8.7
     UPDATE accommodations SET rating = 8.7, review_count = 3 WHERE id = 5;
-    -- acc6 Hoa Lư: reviews 27(5★)+28(5★)+31(5★) → avg 5.0 × 2 = 10.0
+    -- acc6 Hoa Lư: reviews 27(10)+28(10)+31(10) → avg = 10.0
     UPDATE accommodations SET rating = 10.0, review_count = 3 WHERE id = 6;
-    -- acc7 Mộc Nhiên: reviews 10(4★)+18(4★)+32(5★) → avg 4.33 × 2 = 8.7
+    -- acc7 Mộc Nhiên: reviews 10(8)+18(8)+32(10) → avg = 8.7
     UPDATE accommodations SET rating = 8.7, review_count = 3 WHERE id = 7;
 
     -- Các booking #29–#32 đã được gộp vào settlement monthly phía trên.
@@ -2779,6 +2892,29 @@
     WHERE u.role = 'PARTNER'
     GROUP BY u.id;
 
+    -- Partner chưa cấu hình ngân hàng vẫn có số dư để kiểm tra chặn rút tiền đúng nghiệp vụ.
+    UPDATE partner_wallets pw
+    JOIN users u ON u.id = pw.partner_id
+    SET pw.available_balance = 3200000,
+        pw.total_earned_amount = 3200000,
+        pw.updated_at = NOW()
+    WHERE u.email = 'no-bank@travelmate.vn';
+
+    INSERT INTO partner_wallet_transactions
+        (partner_id, settlement_id, withdrawal_request_id, transaction_code,
+         transaction_type, direction, amount, balance_before, balance_after,
+         description, created_at, created_by_admin_id)
+    SELECT u.id, NULL, NULL, 'STL-NOBANK-OPENING-001',
+           'SETTLEMENT_CREDIT', 'IN', 3200000, 0, 3200000,
+           'Cộng số dư quyết toán ban đầu cho tài khoản đối tác chưa cấu hình ngân hàng',
+           DATE_SUB(NOW(), INTERVAL 3 DAY), 1
+    FROM users u
+    WHERE u.email = 'no-bank@travelmate.vn'
+      AND NOT EXISTS (
+          SELECT 1 FROM partner_wallet_transactions tx
+          WHERE tx.transaction_code = 'STL-NOBANK-OPENING-001'
+      );
+
     INSERT INTO partner_withdrawal_requests
         (partner_id, request_code, amount,
          bank_name, bank_account_number, bank_account_holder, bank_branch,
@@ -2790,7 +2926,7 @@
     (4, 'WD-OPS-PAID-001', 2500000,
      'Techcombank', '0987654321', 'TRAN THI RESORT', 'CN Nha Trang',
      'PAID', DATE_SUB(NOW(), INTERVAL 8 DAY), DATE_SUB(NOW(), INTERVAL 7 DAY), 1,
-     'Admin đã chuyển khoản ngoài hệ thống, mã GD TCB-2500.'),
+     'Admin ghi nhận đã xử lý chuyển khoản ngoài hệ thống, mã GD TCB-2500.'),
     (7, 'WD-OPS-REJECT-001', 1500000,
      'BIDV', '1122334455', 'LE VAN VILLA', 'CN Đà Nẵng',
      'REJECTED', DATE_SUB(NOW(), INTERVAL 6 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY), 1,
@@ -2820,8 +2956,8 @@
         'SETTLEMENT_CREDIT',
         'IN',
         ps.payout_amount,
-        ps.balance_before_seed,
-        ps.balance_after_seed,
+        ps.balance_before_calc,
+        ps.balance_after_calc,
         CONCAT('Cộng tiền quyết toán kỳ ', DATE_FORMAT(ps.period_start, '%d/%m/%Y'), ' - ', DATE_FORMAT(ps.period_end, '%d/%m/%Y')),
         COALESCE(ps.settlement_date, ps.created_at, NOW()),
         1
@@ -2835,12 +2971,12 @@
                     ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
                 ),
                 0
-            ) AS balance_before_seed,
+            ) AS balance_before_calc,
             SUM(COALESCE(paid.payout_amount, 0)) OVER (
                 PARTITION BY paid.partner_id
                 ORDER BY COALESCE(paid.settlement_date, paid.created_at, NOW()), paid.id
                 ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-            ) AS balance_after_seed
+            ) AS balance_after_calc
         FROM partner_settlements paid
         WHERE paid.settlement_status = 'PAID'
     ) ps;
@@ -2886,7 +3022,7 @@
         wr.amount,
         pw.available_balance,
         pw.available_balance,
-        'Admin xác nhận đã chuyển khoản ngoài hệ thống',
+        'Admin ghi nhận đã xử lý chuyển khoản ngoài hệ thống',
         wr.processed_at,
         1
     FROM partner_withdrawal_requests wr
@@ -3283,6 +3419,163 @@
         'Bồn tắm nằm', 'Vòi sen đứng', 'Máy sấy tóc', 'Đồ dùng cá nhân',
         'Bữa sáng miễn phí', 'Ban công riêng', 'View biển');
 
+    -- ── ICN-STD ──────────────────────────────────────────────────────────────
+    INSERT INTO room_amenities (room_id, amenity_id)
+    SELECT r.id, a.id FROM rooms r JOIN amenities a ON 1=1
+    WHERE r.room_code = 'ICN-STD' AND a.name IN (
+        'WiFi miễn phí', 'Hồ bơi chung', 'Bãi đỗ xe', 'Nhà hàng', 'Spa / Massage',
+        'Phòng gym', 'Bar / Café', 'Thang máy', 'Máy lạnh', 'TV màn hình phẳng',
+        'Tủ lạnh mini', 'Minibar', 'Bàn làm việc', 'Két an toàn', 'Ổ cắm quốc tế',
+        'Phòng tắm riêng', 'Vòi sen đứng', 'Máy sấy tóc', 'Đồ dùng cá nhân',
+        'Bữa sáng miễn phí');
+
+    -- ── ICN-DLX ──────────────────────────────────────────────────────────────
+    INSERT INTO room_amenities (room_id, amenity_id)
+    SELECT r.id, a.id FROM rooms r JOIN amenities a ON 1=1
+    WHERE r.room_code = 'ICN-DLX' AND a.name IN (
+        'WiFi miễn phí', 'Hồ bơi chung', 'Bãi đỗ xe', 'Nhà hàng', 'Spa / Massage',
+        'Phòng gym', 'Bar / Café', 'Thang máy', 'Máy lạnh', 'TV màn hình phẳng',
+        'Minibar', 'Bàn làm việc', 'Két an toàn', 'Ổ cắm quốc tế',
+        'Phòng tắm riêng', 'Bồn tắm nằm', 'Vòi sen đứng', 'Máy sấy tóc',
+        'Đồ dùng cá nhân', 'Bữa sáng miễn phí', 'Ban công riêng', 'View biển');
+
+    -- ── ICN-SUI ──────────────────────────────────────────────────────────────
+    INSERT INTO room_amenities (room_id, amenity_id)
+    SELECT r.id, a.id FROM rooms r JOIN amenities a ON 1=1
+    WHERE r.room_code = 'ICN-SUI' AND a.name IN (
+        'WiFi miễn phí', 'Hồ bơi chung', 'Bãi đỗ xe', 'Nhà hàng', 'Spa / Massage',
+        'Phòng gym', 'Bar / Café', 'Thang máy', 'Máy lạnh', 'TV màn hình phẳng',
+        'Minibar', 'Bàn làm việc', 'Két an toàn', 'Ổ cắm quốc tế',
+        'Phòng tắm riêng', 'Bồn tắm nằm', 'Vòi sen đứng', 'Máy sấy tóc',
+        'Đồ dùng cá nhân', 'Máy pha cà phê', 'Bữa sáng miễn phí',
+        'Ban công riêng', 'View biển');
+
+    -- ── NVD-STD ──────────────────────────────────────────────────────────────
+    INSERT INTO room_amenities (room_id, amenity_id)
+    SELECT r.id, a.id FROM rooms r JOIN amenities a ON 1=1
+    WHERE r.room_code = 'NVD-STD' AND a.name IN (
+        'WiFi miễn phí', 'Bãi đỗ xe', 'Nhà hàng', 'Phòng gym', 'Bar / Café',
+        'Thang máy', 'Máy lạnh', 'TV màn hình phẳng', 'Tủ lạnh mini',
+        'Bàn làm việc', 'Két an toàn', 'Phòng tắm riêng', 'Vòi sen đứng',
+        'Máy sấy tóc', 'Đồ dùng cá nhân', 'Bữa sáng miễn phí');
+
+    -- ── NVD-DLX ──────────────────────────────────────────────────────────────
+    INSERT INTO room_amenities (room_id, amenity_id)
+    SELECT r.id, a.id FROM rooms r JOIN amenities a ON 1=1
+    WHERE r.room_code = 'NVD-DLX' AND a.name IN (
+        'WiFi miễn phí', 'Bãi đỗ xe', 'Nhà hàng', 'Spa / Massage', 'Phòng gym',
+        'Bar / Café', 'Thang máy', 'Máy lạnh', 'TV màn hình phẳng',
+        'Tủ lạnh mini', 'Minibar', 'Bàn làm việc', 'Két an toàn', 'Ổ cắm quốc tế',
+        'Phòng tắm riêng', 'Bồn tắm nằm', 'Vòi sen đứng', 'Máy sấy tóc',
+        'Đồ dùng cá nhân', 'Bữa sáng miễn phí');
+
+    -- ── NVD-FAM ──────────────────────────────────────────────────────────────
+    INSERT INTO room_amenities (room_id, amenity_id)
+    SELECT r.id, a.id FROM rooms r JOIN amenities a ON 1=1
+    WHERE r.room_code = 'NVD-FAM' AND a.name IN (
+        'WiFi miễn phí', 'Bãi đỗ xe', 'Nhà hàng', 'Phòng gym', 'Thang máy',
+        'Máy lạnh', 'TV màn hình phẳng', 'Tủ lạnh mini', 'Bàn làm việc',
+        'Két an toàn', 'Ổ cắm quốc tế', 'Phòng tắm riêng', 'Bồn tắm nằm',
+        'Vòi sen đứng', 'Máy sấy tóc', 'Đồ dùng cá nhân', 'Bữa sáng miễn phí');
+
+    -- ── LSH-STD ──────────────────────────────────────────────────────────────
+    INSERT INTO room_amenities (room_id, amenity_id)
+    SELECT r.id, a.id FROM rooms r JOIN amenities a ON 1=1
+    WHERE r.room_code = 'LSH-STD' AND a.name IN (
+        'WiFi miễn phí', 'Hồ bơi chung', 'Bãi đỗ xe', 'Nhà hàng', 'Spa / Massage',
+        'Bar / Café', 'Máy lạnh', 'TV màn hình phẳng', 'Tủ lạnh mini',
+        'Bàn làm việc', 'Phòng tắm riêng', 'Vòi sen đứng', 'Máy sấy tóc',
+        'Đồ dùng cá nhân', 'Bữa sáng miễn phí');
+
+    -- ── LSH-DLX ──────────────────────────────────────────────────────────────
+    INSERT INTO room_amenities (room_id, amenity_id)
+    SELECT r.id, a.id FROM rooms r JOIN amenities a ON 1=1
+    WHERE r.room_code = 'LSH-DLX' AND a.name IN (
+        'WiFi miễn phí', 'Hồ bơi chung', 'Bãi đỗ xe', 'Nhà hàng', 'Spa / Massage',
+        'Bar / Café', 'Máy lạnh', 'TV màn hình phẳng', 'Tủ lạnh mini',
+        'Minibar', 'Bàn làm việc', 'Két an toàn', 'Phòng tắm riêng',
+        'Bồn tắm nằm', 'Vòi sen đứng', 'Máy sấy tóc', 'Đồ dùng cá nhân',
+        'Bữa sáng miễn phí', 'Ban công riêng');
+
+    -- ── LSH-SUI ──────────────────────────────────────────────────────────────
+    INSERT INTO room_amenities (room_id, amenity_id)
+    SELECT r.id, a.id FROM rooms r JOIN amenities a ON 1=1
+    WHERE r.room_code = 'LSH-SUI' AND a.name IN (
+        'WiFi miễn phí', 'Hồ bơi chung', 'Bãi đỗ xe', 'Nhà hàng', 'Spa / Massage',
+        'Bar / Café', 'Máy lạnh', 'TV màn hình phẳng', 'Minibar', 'Bàn làm việc',
+        'Két an toàn', 'Ổ cắm quốc tế', 'Phòng tắm riêng', 'Bồn tắm nằm',
+        'Vòi sen đứng', 'Máy sấy tóc', 'Đồ dùng cá nhân', 'Máy pha cà phê',
+        'Bữa sáng miễn phí', 'Ban công riêng');
+
+    -- ── SLM-PRE ──────────────────────────────────────────────────────────────
+    INSERT INTO room_amenities (room_id, amenity_id)
+    SELECT r.id, a.id FROM rooms r JOIN amenities a ON 1=1
+    WHERE r.room_code = 'SLM-PRE' AND a.name IN (
+        'WiFi miễn phí', 'Hồ bơi chung', 'Bãi đỗ xe', 'Nhà hàng', 'Spa / Massage',
+        'Phòng gym', 'Bar / Café', 'Thang máy', 'Máy lạnh', 'TV màn hình phẳng',
+        'Minibar', 'Bàn làm việc', 'Két an toàn', 'Ổ cắm quốc tế',
+        'Phòng tắm riêng', 'Bồn tắm nằm', 'Vòi sen đứng', 'Máy sấy tóc',
+        'Đồ dùng cá nhân', 'Bữa sáng miễn phí');
+
+    -- ── SLM-GRA ──────────────────────────────────────────────────────────────
+    INSERT INTO room_amenities (room_id, amenity_id)
+    SELECT r.id, a.id FROM rooms r JOIN amenities a ON 1=1
+    WHERE r.room_code = 'SLM-GRA' AND a.name IN (
+        'WiFi miễn phí', 'Hồ bơi chung', 'Bãi đỗ xe', 'Nhà hàng', 'Spa / Massage',
+        'Phòng gym', 'Bar / Café', 'Thang máy', 'Máy lạnh', 'TV màn hình phẳng',
+        'Minibar', 'Bàn làm việc', 'Két an toàn', 'Ổ cắm quốc tế',
+        'Phòng tắm riêng', 'Bồn tắm nằm', 'Vòi sen đứng', 'Máy sấy tóc',
+        'Đồ dùng cá nhân', 'Máy pha cà phê', 'Bữa sáng miễn phí', 'Ban công riêng');
+
+    -- ── SLM-FAM ──────────────────────────────────────────────────────────────
+    INSERT INTO room_amenities (room_id, amenity_id)
+    SELECT r.id, a.id FROM rooms r JOIN amenities a ON 1=1
+    WHERE r.room_code = 'SLM-FAM' AND a.name IN (
+        'WiFi miễn phí', 'Hồ bơi chung', 'Bãi đỗ xe', 'Nhà hàng', 'Spa / Massage',
+        'Phòng gym', 'Bar / Café', 'Thang máy', 'Máy lạnh', 'TV màn hình phẳng',
+        'Tủ lạnh mini', 'Minibar', 'Bàn làm việc', 'Két an toàn',
+        'Phòng tắm riêng', 'Bồn tắm nằm', 'Vòi sen đứng', 'Máy sấy tóc',
+        'Đồ dùng cá nhân', 'Bữa sáng miễn phí');
+
+    -- ── SPC-STD ──────────────────────────────────────────────────────────────
+    INSERT INTO room_amenities (room_id, amenity_id)
+    SELECT r.id, a.id FROM rooms r JOIN amenities a ON 1=1
+    WHERE r.room_code = 'SPC-STD' AND a.name IN (
+        'WiFi miễn phí', 'Bãi đỗ xe', 'Nhà hàng', 'Bar / Café', 'Thang máy',
+        'Máy lạnh', 'TV màn hình phẳng', 'Tủ lạnh mini', 'Bàn làm việc',
+        'Phòng tắm riêng', 'Vòi sen đứng', 'Máy sấy tóc', 'Đồ dùng cá nhân',
+        'Bữa sáng miễn phí', 'View núi / đồi');
+
+    -- ── SPC-DLX ──────────────────────────────────────────────────────────────
+    INSERT INTO room_amenities (room_id, amenity_id)
+    SELECT r.id, a.id FROM rooms r JOIN amenities a ON 1=1
+    WHERE r.room_code = 'SPC-DLX' AND a.name IN (
+        'WiFi miễn phí', 'Bãi đỗ xe', 'Nhà hàng', 'Bar / Café', 'Thang máy',
+        'Máy lạnh', 'TV màn hình phẳng', 'Tủ lạnh mini', 'Minibar',
+        'Bàn làm việc', 'Phòng tắm riêng', 'Bồn tắm nằm', 'Vòi sen đứng',
+        'Máy sấy tóc', 'Đồ dùng cá nhân', 'Bữa sáng miễn phí',
+        'Ban công riêng', 'View núi / đồi');
+
+    -- ── SPQ-DLX ──────────────────────────────────────────────────────────────
+    INSERT INTO room_amenities (room_id, amenity_id)
+    SELECT r.id, a.id FROM rooms r JOIN amenities a ON 1=1
+    WHERE r.room_code = 'SPQ-DLX' AND a.name IN (
+        'WiFi miễn phí', 'Hồ bơi chung', 'Bãi đỗ xe', 'Nhà hàng', 'Spa / Massage',
+        'Phòng gym', 'Bar / Café', 'Máy lạnh', 'TV màn hình phẳng', 'Minibar',
+        'Bàn làm việc', 'Két an toàn', 'Phòng tắm riêng', 'Bồn tắm nằm',
+        'Vòi sen đứng', 'Máy sấy tóc', 'Đồ dùng cá nhân', 'Bữa sáng miễn phí',
+        'Ban công riêng', 'Sân vườn riêng');
+
+    -- ── SPQ-SEA ──────────────────────────────────────────────────────────────
+    INSERT INTO room_amenities (room_id, amenity_id)
+    SELECT r.id, a.id FROM rooms r JOIN amenities a ON 1=1
+    WHERE r.room_code = 'SPQ-SEA' AND a.name IN (
+        'WiFi miễn phí', 'Hồ bơi chung', 'Bãi đỗ xe', 'Nhà hàng', 'Spa / Massage',
+        'Phòng gym', 'Bar / Café', 'Máy lạnh', 'TV màn hình phẳng', 'Minibar',
+        'Bàn làm việc', 'Két an toàn', 'Ổ cắm quốc tế', 'Phòng tắm riêng',
+        'Bồn tắm nằm', 'Vòi sen đứng', 'Máy sấy tóc', 'Đồ dùng cá nhân',
+        'Bữa sáng miễn phí', 'Ban công riêng', 'View biển');
+
     -- ── NWS-STD ──────────────────────────────────────────────────────────────
     INSERT INTO room_amenities (room_id, amenity_id)
     SELECT r.id, a.id FROM rooms r JOIN amenities a ON 1=1
@@ -3363,30 +3656,11 @@
         'Máy sấy tóc', 'Đồ dùng cá nhân', 'Bữa sáng miễn phí', 'Ban công riêng',
         'Sân vườn riêng');
 
-    -- ── PL-STD-01 ─────────────────────────────────────────────────────────────
-    INSERT INTO room_amenities (room_id, amenity_id)
-    SELECT r.id, a.id FROM rooms r JOIN amenities a ON 1=1
-    WHERE r.room_code = 'PL-STD-01' AND a.name IN (
-        'WiFi miễn phí', 'Bãi đỗ xe', 'Nhà hàng', 'Spa / Massage', 'Bar / Café',
-        'Thang máy', 'Máy lạnh', 'TV màn hình phẳng', 'Tủ lạnh mini', 'Minibar',
-        'Bàn làm việc', 'Két an toàn', 'Phòng tắm riêng', 'Bồn tắm nằm',
-        'Vòi sen đứng', 'Máy sấy tóc', 'Đồ dùng cá nhân', 'Bữa sáng miễn phí',
-        'View núi / đồi');
-
     -- =============================================
-    -- KIỂM TRA SAU KHI IMPORT (kỳ vọng cuối cùng)
+    -- KIỂM TRA SAU KHI IMPORT (mốc tiện nghi phòng/căn)
     -- =============================================
-    -- SELECT COUNT(*) FROM users;               -- kỳ vọng: 8 (1 admin, 3 user, 4 partner)
-    -- SELECT COUNT(*) FROM accommodations;      -- kỳ vọng: 11 APPROVED + 2 (PENDING+REJECTED) = 13
-    -- SELECT COUNT(*) FROM rooms;               -- kỳ vọng: 30
-    -- SELECT COUNT(*) FROM bookings;            -- kỳ vọng: 35
-    -- SELECT COUNT(*) FROM payments;            -- kỳ vọng: 35
-    -- SELECT COUNT(*) FROM reviews;             -- kỳ vọng: 20
-    -- SELECT COUNT(*) FROM vouchers;            -- kỳ vọng: 8
     -- SELECT COUNT(*) FROM amenities;           -- kỳ vọng: 32
-    -- SELECT COUNT(*) FROM room_amenities;      -- kỳ vọng: ~230
-    -- SELECT COUNT(*) FROM partner_settlements; -- kỳ vọng: 13
-    -- SELECT COUNT(*) FROM admin_action_logs;    -- kỳ vọng: 50 (phủ đủ 8 loại: BOOKING, ACCOMMODATION, ROOM, USER, REVIEW, VOUCHER, SETTLEMENT, TICKET)
+    -- SELECT COUNT(DISTINCT room_id) FROM room_amenities; -- kỳ vọng: bằng tổng số rooms đã mở bán
     --
     -- Kiểm tra ownership:
     -- SELECT a.id, a.name, a.property_type, u.email owner_email
@@ -3445,13 +3719,13 @@
     ('admin@travelmate.vn', 'COMPLETE_BOOKING', 'BOOKING',  7,  'Hoàn tất booking BK-LATA-FAM-0001 — Khách đã checkout',                                       NULL,                                                           DATE_SUB(NOW(), INTERVAL 7  DAY)),
     ('admin@travelmate.vn', 'APPROVE_BOOKING',  'BOOKING',  3,  'Duyệt booking BK-TMG-DLX-0001 (Nguyễn Văn An — TM Grand Deluxe)',                             NULL,                                                           DATE_SUB(NOW(), INTERVAL 6  DAY)),
     ('admin@travelmate.vn', 'APPROVE_BOOKING',  'BOOKING',  4,  'Duyệt booking BK-LATA-DLX-0001 (Nguyễn Văn An — LATA Deluxe)',                                NULL,                                                           DATE_SUB(NOW(), INTERVAL 6  DAY)),
-    ('admin@travelmate.vn', 'NOSHOW_BOOKING',   'BOOKING',  5,  'No-show BK-TLP-STD-0001 — cọc giữ 288.000đ | hoa hồng HOTEL 15%=43.200đ | partner nhận 244.800đ',  'Khách đã xác nhận sẽ đến nhưng không xuất hiện đến hết ngày.',  DATE_SUB(NOW(), INTERVAL 5  DAY)),
+    ('admin@travelmate.vn', 'NOSHOW_BOOKING',   'BOOKING',  5,  'No-show BK-TLP-STD-0001 — cọc giữ 288.000đ | hoa hồng theo tổng đơn 144.000đ | partner nhận 144.000đ',  'Khách đã xác nhận sẽ đến nhưng không xuất hiện đến hết ngày.',  DATE_SUB(NOW(), INTERVAL 5  DAY)),
     ('admin@travelmate.vn', 'APPROVE_BOOKING',  'BOOKING',  6,  'Duyệt booking BK-TMG-PRE-0001 (Nguyễn Văn An — TM Grand Premium)',                            NULL,                                                           DATE_SUB(NOW(), INTERVAL 7  DAY)),
     ('admin@travelmate.vn', 'CHECKIN_BOOKING',  'BOOKING',  6,  'Check-in booking BK-TMG-PRE-0001 — Khách đã vào phòng',                                       NULL,                                                           DATE_SUB(NOW(), INTERVAL 1  DAY)),
-    ('admin@travelmate.vn', 'REJECT_BOOKING',   'BOOKING',  2,  'Từ chối booking BK-TLP-SUP-0001 — Ngày đặt không khả dụng',                                   'Phòng đã được đặt trong khoảng thời gian này qua kênh trực tiếp.',DATE_SUB(NOW(), INTERVAL 8  DAY)),
+    ('admin@travelmate.vn', 'RECORD_BOOKING',   'BOOKING',  2,  'Ghi nhận booking BK-TLP-SUP-0001 — VNPAY thanh toán 100%, TravelMate tự giữ phòng',             NULL, DATE_SUB(NOW(), INTERVAL 8  DAY)),
     ('admin@travelmate.vn', 'APPROVE_BOOKING',  'BOOKING',  8,  'Duyệt booking BK-VNT-DLX-0001 (Trần Thị Bích — Vinpearl Deluxe Ocean)',                       NULL,                                                           DATE_SUB(NOW(), INTERVAL 4  DAY)),
     ('admin@travelmate.vn', 'COMPLETE_BOOKING', 'BOOKING',  10, 'Hoàn tất booking BK-MND-ATT-0001 — Phạm Quỳnh Anh đã checkout Homestay Mộc Nhiên',            NULL,                                                           DATE_SUB(NOW(), INTERVAL 5  DAY)),
-    ('admin@travelmate.vn', 'NOSHOW_BOOKING',   'BOOKING',  12, 'No-show BK-FDN-DLX-0001 — cọc giữ 1.440.000đ | hoa hồng RESORT 18%=259.200đ | partner nhận 1.180.800đ', 'Ngô Thị Lan không đến Furama Resort. Cọc đã phân bổ theo tỷ lệ RESORT.',   DATE_SUB(NOW(), INTERVAL 6  DAY)),
+    ('admin@travelmate.vn', 'NOSHOW_BOOKING',   'BOOKING',  12, 'No-show BK-FDN-DLX-0001 — cọc giữ 1.440.000đ | hoa hồng theo tổng đơn 864.000đ | partner nhận 576.000đ', 'Ngô Thị Lan không đến Furama Resort. Cọc đã phân bổ theo chính sách no-show.',   DATE_SUB(NOW(), INTERVAL 6  DAY)),
 
     ('admin@travelmate.vn', 'APPROVE_BOOKING',  'BOOKING',  15, 'Duyet booking BK-TLP-SUP-0002 (Nguyen Van An - Tulip Hotel Superior)', NULL, DATE_SUB(NOW(), INTERVAL 2 DAY)),
 
@@ -3479,9 +3753,9 @@
     ('admin@travelmate.vn', 'UNLOCK_USER',      'USER',  6,  'Mở khóa tài khoản: user3@travelmate.vn — đã xác minh qua email',                                NULL,                                                           DATE_SUB(NOW(), INTERVAL 2  DAY)),
 
     -- ── REVIEW actions ────────────────────────────────────────────────────────────
-    ('admin@travelmate.vn', 'APPROVE_REVIEW',   'REVIEW', 1,  'Duyệt đánh giá #1 — Nguyễn Văn An cho LATA Hotel (5★)',                                        NULL,                                                           DATE_SUB(NOW(), INTERVAL 7  DAY)),
+    ('admin@travelmate.vn', 'APPROVE_REVIEW',   'REVIEW', 1,  'Duyệt đánh giá #1 — Nguyễn Văn An cho LATA Hotel (10/10)',                                      NULL,                                                           DATE_SUB(NOW(), INTERVAL 7  DAY)),
     ('admin@travelmate.vn', 'HIDE_REVIEW',      'REVIEW', 2,  'Ẩn đánh giá #2 — Nội dung không phù hợp, có chứa thông tin cá nhân của nhân viên',             'Review vi phạm quy định: không được tiết lộ thông tin nhân viên.', DATE_SUB(NOW(), INTERVAL 4 DAY)),
-    ('admin@travelmate.vn', 'APPROVE_REVIEW',   'REVIEW', 5,  'Duyệt đánh giá #5 — Lê Văn Đức cho Ba Na Hills Forest Villa (5★)',                             NULL,                                                           DATE_SUB(NOW(), INTERVAL 14 DAY)),
+    ('admin@travelmate.vn', 'APPROVE_REVIEW',   'REVIEW', 5,  'Duyệt đánh giá #5 — Lê Văn Đức cho Ba Na Hills Forest Villa (10/10)',                           NULL,                                                           DATE_SUB(NOW(), INTERVAL 14 DAY)),
 
     -- ── VOUCHER actions ───────────────────────────────────────────────────────────
     ('admin@travelmate.vn', 'CREATE_VOUCHER',   'VOUCHER', NULL, 'Tạo voucher SUMMER10 — giảm 10% toàn sàn (Admin chịu), hiệu lực 01/05–31/05/2026',          'Chương trình khuyến mãi hè 2026 dành cho toàn bộ khách hàng.',  DATE_SUB(NOW(), INTERVAL 35 DAY)),
@@ -3491,13 +3765,13 @@
     ('admin@travelmate.vn', 'TOGGLE_VOUCHER',   'VOUCHER', NULL, 'Bật lại voucher SUMMER10 — gia hạn thêm 1 tháng theo yêu cầu Marketing',                     'Voucher được gia hạn đến 30/06/2026 theo kế hoạch hè 2.',       DATE_SUB(NOW(), INTERVAL 2  DAY)),
 
     -- ── SETTLEMENT actions ────────────────────────────────────────────────────────
-    ('admin@travelmate.vn', 'GENERATE_SETTLEMENT', 'SETTLEMENT', NULL, 'Tạo quyết toán tháng 04/2026: partner HOTEL 994.500đ, RESORT 4.592.000đ',           'Tự động tính từ bookings COMPLETED trong kỳ.',                  DATE_SUB(NOW(), INTERVAL 17 DAY)),
-    ('admin@travelmate.vn', 'MARK_SETTLEMENT_PAID','SETTLEMENT', NULL, 'Thanh toán quyết toán tháng 04/2026 cho partner HOTEL (Sunrise Sapa Lodge): 994.500đ','Chuyển khoản MB Bank 0123456789, tham chiếu STL-HOTEL-M04.',     DATE_SUB(NOW(), INTERVAL 17 DAY)),
+    ('admin@travelmate.vn', 'GENERATE_SETTLEMENT', 'SETTLEMENT', NULL, 'Tạo quyết toán tháng 04/2026: partner HOTEL 975.000đ, RESORT 4.592.000đ',           'Tự động tính từ bookings COMPLETED trong kỳ.',                  DATE_SUB(NOW(), INTERVAL 17 DAY)),
+    ('admin@travelmate.vn', 'MARK_SETTLEMENT_PAID','SETTLEMENT', NULL, 'Thanh toán quyết toán tháng 04/2026 cho partner HOTEL (Sunrise Sapa Lodge): 975.000đ','Chuyển khoản MB Bank 0123456789, tham chiếu STL-HOTEL-M04.',     DATE_SUB(NOW(), INTERVAL 17 DAY)),
     ('admin@travelmate.vn', 'MARK_SETTLEMENT_PAID','SETTLEMENT', NULL, 'Thanh toán quyết toán tháng 04/2026 cho partner RESORT (Blue Ocean): 4.592.000đ',   'Chuyển khoản Vietcombank 9876543210, tham chiếu STL-RESORT-M04.', DATE_SUB(NOW(), INTERVAL 17 DAY)),
     ('admin@travelmate.vn', 'GENERATE_SETTLEMENT', 'SETTLEMENT', NULL, 'Tạo quyết toán tháng hiện tại: 4 partner, tổng payout 30.497.000đ',                     'PENDING — Admin sẽ chuyển khoản đầu tháng tới.',                   NOW()),
 
     -- ── SUPPORT_TICKET actions ────────────────────────────────────────────────────
-    ('admin@travelmate.vn', 'RESPOND_TICKET',   'TICKET',  1,  'Trả lời ticket #1 — partner@travelmate.vn: "Quyết toán tháng 03/2026 bị sai số tiền"',               'Xác nhận con số đúng, giải thích công thức gross - comm - deduction.', DATE_SUB(NOW(), INTERVAL 7 DAY)),
+    ('admin@travelmate.vn', 'RESPOND_TICKET',   'TICKET',  1,  'Trả lời ticket #1 — partner@travelmate.vn: "Quyết toán tháng 03/2026 bị sai số tiền"',               'Xác nhận số liệu đúng, giải thích hoa hồng theo tổng đơn gốc trước voucher và voucher Partner chịu.', DATE_SUB(NOW(), INTERVAL 7 DAY)),
     ('admin@travelmate.vn', 'RESPOND_TICKET',   'TICKET',  2,  'Trả lời ticket #2 — partner@travelmate.vn: "Không thể đánh dấu No-Show"',                     'Đánh dấu BK-TLP-STD-0001 là NO_SHOW thay partner, giải thích quy trình.', DATE_SUB(NOW(), INTERVAL 4 DAY)),
     ('admin@travelmate.vn', 'CLOSE_TICKET',     'TICKET',  1,  'Đóng ticket #1 — Đã giải quyết xong vấn đề quyết toán tháng 03/2026',                               NULL,                                                           DATE_SUB(NOW(), INTERVAL 6 DAY)),
     ('admin@travelmate.vn', 'RESPOND_TICKET',   'TICKET',  5,  'Trả lời ticket #5 — user@travelmate.vn: "Không nhận được email xác nhận đặt phòng"',          'Đã kiểm tra log email, resend thủ công. Hướng dẫn check spam.', DATE_SUB(NOW(), INTERVAL 3 DAY));
@@ -3507,7 +3781,7 @@
 
     -- Duyệt thêm bookings (bk3, 9, 11, 13, 14 — ban đầu chưa log)
     ('admin@travelmate.vn', 'APPROVE_BOOKING', 'BOOKING', 9,  'Duyệt booking BK-VNT-SUI-0001 (Lê Minh Đức — Vinpearl Junior Suite)', NULL, DATE_SUB(NOW(), INTERVAL 2 DAY)),
-    ('admin@travelmate.vn', 'APPROVE_BOOKING', 'BOOKING', 11, 'Duyệt booking BK-ANM-GDN-0001 (Hoàng Văn Hùng — Anam Garden Villa, cọc 30%)', NULL, DATE_SUB(NOW(), INTERVAL 2 DAY)),
+    ('admin@travelmate.vn', 'RECORD_BOOKING', 'BOOKING', 11, 'Ghi nhận booking BK-ANM-GDN-0001 (Hoàng Văn Hùng — Anam Garden Villa, cọc 30%)', NULL, DATE_SUB(NOW(), INTERVAL 2 DAY)),
     ('admin@travelmate.vn', 'APPROVE_BOOKING', 'BOOKING', 13, 'Duyệt booking BK-HLR-DLX-0001 (Vũ Thị Mai — Hoa Lư Deluxe)', NULL, DATE_SUB(NOW(), INTERVAL 2 DAY)),
     ('admin@travelmate.vn', 'APPROVE_BOOKING', 'BOOKING', 14, 'Duyệt booking BK-BNH-BNG-0001 (Đinh Văn Tùng — Ba Na Hills Forest Bungalow)', NULL, DATE_SUB(NOW(), INTERVAL 3 DAY)),
     ('admin@travelmate.vn', 'CHECKIN_BOOKING', 'BOOKING', 14, 'Check-in booking BK-BNH-BNG-0001 — Khách đã nhận phòng Ba Na Hills', NULL, DATE_SUB(NOW(), INTERVAL 1 DAY)),
@@ -3548,13 +3822,13 @@
     ('admin@travelmate.vn', 'APPROVE_ROOM', 'ROOM', 30, 'Duyệt phòng: FDN-FAM (Family Suite Furama, 5.200.000đ/đêm, comm15% override)', NULL, DATE_SUB(NOW(), INTERVAL 23 DAY)),
 
     -- Duyệt reviews của partner3 & partner4
-    ('admin@travelmate.vn', 'APPROVE_REVIEW', 'REVIEW', 3,  'Duyệt đánh giá #3 — Trần Thị Mai cho The Anam Villa (5★ Beachfront Pool Villa)', NULL, DATE_SUB(NOW(), INTERVAL 15 DAY)),
-    ('admin@travelmate.vn', 'APPROVE_REVIEW', 'REVIEW', 4,  'Duyệt đánh giá #4 — Lê Văn Đức cho Ba Na Hills Treetop Suite (4★)', NULL, DATE_SUB(NOW(), INTERVAL 28 DAY)),
-    ('admin@travelmate.vn', 'APPROVE_REVIEW', 'REVIEW', 6,  'Duyệt đánh giá #6 — Trần Thị Mai cho Hoa Lư Family Room (5★)', NULL, DATE_SUB(NOW(), INTERVAL 21 DAY)),
-    ('admin@travelmate.vn', 'APPROVE_REVIEW', 'REVIEW', 7,  'Duyệt đánh giá #7 — Nguyễn Văn An cho Mộc Nhiên Family Room (5★ — voucher HOALUU50K)', NULL, DATE_SUB(NOW(), INTERVAL 36 DAY)),
-    ('admin@travelmate.vn', 'APPROVE_REVIEW', 'REVIEW', 8,  'Duyệt đánh giá #8 — Nguyễn Văn An cho Hoa Lư Riverside Homestay (5★)', NULL, DATE_SUB(NOW(), INTERVAL 67 DAY)),
-    ('admin@travelmate.vn', 'APPROVE_REVIEW', 'REVIEW', 9,  'Duyệt đánh giá #9 — Nguyễn Văn An cho Furama Resort Đà Nẵng (5★)', NULL, DATE_SUB(NOW(), INTERVAL 22 DAY)),
-    ('admin@travelmate.vn', 'APPROVE_REVIEW', 'REVIEW', 10, 'Duyệt đánh giá #10 — Trần Thị Mai cho Vinpearl Resort & Spa (4★)', NULL, DATE_SUB(NOW(), INTERVAL 26 DAY)),
+    ('admin@travelmate.vn', 'APPROVE_REVIEW', 'REVIEW', 3,  'Duyệt đánh giá #3 — Trần Thị Mai cho The Anam Villa (10/10 Beachfront Pool Villa)', NULL, DATE_SUB(NOW(), INTERVAL 15 DAY)),
+    ('admin@travelmate.vn', 'APPROVE_REVIEW', 'REVIEW', 4,  'Duyệt đánh giá #4 — Lê Văn Đức cho Ba Na Hills Treetop Suite (8/10)', NULL, DATE_SUB(NOW(), INTERVAL 28 DAY)),
+    ('admin@travelmate.vn', 'APPROVE_REVIEW', 'REVIEW', 6,  'Duyệt đánh giá #6 — Trần Thị Mai cho Hoa Lư Family Room (10/10)', NULL, DATE_SUB(NOW(), INTERVAL 21 DAY)),
+    ('admin@travelmate.vn', 'APPROVE_REVIEW', 'REVIEW', 7,  'Duyệt đánh giá #7 — Nguyễn Văn An cho Mộc Nhiên Family Room (10/10 — voucher HOALUU50K)', NULL, DATE_SUB(NOW(), INTERVAL 36 DAY)),
+    ('admin@travelmate.vn', 'APPROVE_REVIEW', 'REVIEW', 8,  'Duyệt đánh giá #8 — Nguyễn Văn An cho Hoa Lư Riverside Homestay (10/10)', NULL, DATE_SUB(NOW(), INTERVAL 67 DAY)),
+    ('admin@travelmate.vn', 'APPROVE_REVIEW', 'REVIEW', 9,  'Duyệt đánh giá #9 — Nguyễn Văn An cho Furama Resort Đà Nẵng (10/10)', NULL, DATE_SUB(NOW(), INTERVAL 22 DAY)),
+    ('admin@travelmate.vn', 'APPROVE_REVIEW', 'REVIEW', 10, 'Duyệt đánh giá #10 — Trần Thị Mai cho Vinpearl Resort & Spa (8/10)', NULL, DATE_SUB(NOW(), INTERVAL 26 DAY)),
 
     -- Quyết toán thêm cho partner3 & partner4 (log GENERATE + PAID)
     ('admin@travelmate.vn', 'GENERATE_SETTLEMENT', 'SETTLEMENT', NULL, 'Tạo quyết toán tháng 03/2026: partner VILLA (Ba Na) 6.688.000đ', 'Tự động từ 2 bookings Ba Na Hills BNH-BNG & BNH-TWN COMPLETED.', DATE_SUB(NOW(), INTERVAL 38 DAY)),
@@ -3581,7 +3855,7 @@
     UPDATE payments
     SET approved_at = paid_at
     WHERE id > 0 AND payment_status IN ('APPROVED', 'DEPOSIT_FORFEITED');
-    -- Giữ SQL_SAFE_UPDATES tắt đến cuối script để Workbench không chặn các block seed/update demo.
+    -- Giữ SQL_SAFE_UPDATES tắt đến cuối script để Workbench không chặn các block cập nhật vận hành.
 
     -- =============================================
     -- KỊCH BẢN LISTING PAGE — HOTEL type
@@ -3765,8 +4039,7 @@
 
     -- =============================================
     -- KIỂM TRA KỲ VỌNG SAU IMPORT v7 (bookings #36-42 mới)
-    -- SELECT COUNT(*) FROM bookings;  -- kỳ vọng: 42
-    -- SELECT COUNT(*) FROM payments;  -- kỳ vọng: 42
+    -- Các số lượng tổng thể được kiểm tra ở checklist cuối file.
     -- Kịch bản tìm kiếm HOTEL tại +4→+6:
     --   acc1 LATA Hotel:           totalAvail= 0, totalRooms=14 → FULL
     --   acc3 TM Grand Hotel:       totalAvail= 4, totalRooms=17 → LIMITED
@@ -3940,19 +4213,19 @@
         'BK-VNT-VIL-CAL01', 6, 8, 27,
         DATE_ADD(CURDATE(), INTERVAL 40 DAY), DATE_ADD(CURDATE(), INTERVAL 45 DAY),
         4, 0, 1, 'Lâm Thanh Hà', '0922 000 111', 'user3@travelmate.vn',
-        49000000, 14700000, 34300000, 'PENDING_ADMIN_APPROVAL', 'DEPOSIT_30', 'PENDING_ADMIN_APPROVAL',
-        NULL, 'Vinpearl Pool Villa tháng tới.', NOW(), NOW()
+        49000000, 14700000, 34300000, 'CONFIRMED', 'DEPOSIT_30', 'APPROVED',
+        'PARTNER_CONFIRMED', 'Vinpearl Pool Villa tháng tới — VNPAY ghi nhận cọc 30%, TravelMate tự động giữ villa.', NOW(), NOW()
     );
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, note)
-    VALUES (LAST_INSERT_ID(), 'VNPAY', 'DEPOSIT_30', 14700000, CONCAT('TXN-CAL10-', UNIX_TIMESTAMP()), 'PENDING_ADMIN_APPROVAL', NOW(), 'Lịch Vinpearl VIL +40→+45 — giao dịch ngoại lệ chưa xác nhận');
+    VALUES (LAST_INSERT_ID(), 'VNPAY', 'DEPOSIT_30', 14700000, CONCAT('TXN-CAL10-', UNIX_TIMESTAMP()), 'APPROVED', NOW(), 'Lịch Vinpearl VIL +40→+45 — VNPAY ghi nhận thành công, TravelMate tự động giữ villa.');
 
     -- =============================================
     -- KỊCH BẢN LUỒNG PARTNER — CHECK-IN / CHECK-OUT / NO-SHOW
     -- Thêm các tình huống trực quan để thể hiện đúng nghiệp vụ Partner
-    -- Partner thực hiện: Xác nhận giữ phòng → Check-in → Check-out → No-show
+    -- Partner thực hiện: Check-in → Check-out → No-show
     -- =============================================
 
-    -- ─── P1: Tulip Hotel — CONFIRMED + PARTNER_CONFIRMED — check-in HÔM NAY ────
+    -- ─── P1A: Tulip Hotel — FULL_PAYMENT — check-in HÔM NAY ────
     -- → partner@travelmate.vn vào Partner > Đơn đặt phòng → nhấn "Check-in khách"
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
@@ -3975,6 +4248,31 @@
         CONCAT('TXN-OPS-P1-', UNIX_TIMESTAMP()), 'APPROVED', NOW(), NOW(),
         'Thanh toán 100% — Partner check-in hôm nay');
     UPDATE rooms SET available_quantity = available_quantity - 1 WHERE id = 7;
+
+    -- ─── P1B: Tulip Hotel — DEPOSIT_30 — check-in HÔM NAY ────
+    -- → Demo phần cọc 30%: Partner mở modal Check-in, tick "Đã thu đủ 70% tại cơ sở" rồi check-in.
+    -- → Dùng CURDATE() để import trên máy nào/ngày nào cũng có đơn cọc sẵn sàng thao tác.
+    INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
+        check_in, check_out, adults, children, room_quantity,
+        customer_name, customer_phone, customer_email,
+        total_amount, paid_amount, remaining_amount,
+        booking_status, payment_option, payment_status,
+        partner_status, remaining_payment_status, note, created_at, updated_at)
+    VALUES (
+        'BK-TLP-VIP-OPS02', 5, 2, 8,
+        CURDATE(), DATE_ADD(CURDATE(), INTERVAL 1 DAY),
+        2, 0, 1,
+        'Trần Thị Mai', '0923 456 789', 'user2@travelmate.vn',
+        1500000, 450000, 1050000,
+        'CONFIRMED', 'DEPOSIT_30', 'APPROVED',
+        'PARTNER_CONFIRMED', 'UNPAID',
+        'Tình huống demo cọc 30%: khách check-in hôm nay, Partner xác nhận đã thu 70% tại cơ sở trước khi check-in.', NOW(), NOW()
+    );
+    INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, approved_at, note)
+    VALUES (LAST_INSERT_ID(), 'VNPAY', 'DEPOSIT_30', 450000,
+        CONCAT('TXN-OPS-P1B-', UNIX_TIMESTAMP()), 'APPROVED', NOW(), NOW(),
+        'Cọc 30% qua TravelMate — Partner thu 70% tại cơ sở khi check-in');
+    UPDATE rooms SET available_quantity = available_quantity - 1 WHERE id = 8;
 
     -- ─── P2: Mộc Nhiên Homestay — CHECKED_IN + PARTNER_CONFIRMED — chờ CHECK-OUT ─
     -- → partner4@travelmate.vn vào Partner > Đơn đặt phòng → nhấn "Check-out / Hoàn tất"
@@ -4002,7 +4300,7 @@
     UPDATE rooms SET available_quantity = available_quantity - 1 WHERE id = 22;
 
     -- ─── P3: Anam Villa — CONFIRMED + PARTNER_CONFIRMED — check-in NGÀY MAI — tình huống NO-SHOW ─
-    -- → partner3@travelmate.vn: check-in ngày mai, nếu khách không đến → nhấn "Báo No-show"
+    -- → partner3@travelmate.vn: chuẩn bị lịch đến ngày mai; chỉ báo No-show khi đã tới ngày nhận căn và khách không đến
     -- → Cọc 30% → khách sẽ mất cọc nếu no-show
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
@@ -4018,16 +4316,16 @@
         7000000, 2100000, 4900000,
         'CONFIRMED', 'DEPOSIT_30', 'APPROVED',
         'PARTNER_CONFIRMED',
-        'Tình huống no-show: check-in ngày mai, cọc 30% = 2.100.000đ. Nếu khách không đến, Partner nhấn Báo No-show.', NOW(), NOW()
+        'Tình huống no-show: check-in ngày mai, cọc 30% = 2.100.000đ. Partner chỉ báo No-show khi đã tới ngày nhận căn và khách không đến.', NOW(), NOW()
     );
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, approved_at, note)
     VALUES (LAST_INSERT_ID(), 'VNPAY', 'DEPOSIT_30', 2100000,
         CONCAT('TXN-OPS-P3-', UNIX_TIMESTAMP()), 'APPROVED', DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 12 HOUR),
-        'Cọc 30% Anam Garden Villa — chờ khách đến ngày mai');
+        'Cọc 30% Anam Garden Villa — check-in ngày mai');
     UPDATE rooms SET available_quantity = available_quantity - 1 WHERE id = 13;
 
-    -- ─── P4: Vinpearl Resort — CONFIRMED + PENDING_PARTNER_CONFIRMATION ──────────
-    -- → partner2@travelmate.vn cần XÁC NHẬN GIỮ PHÒNG trước khi khách đến
+    -- ─── P4: Vinpearl Resort — CONFIRMED + PARTNER_CONFIRMED ──────────
+    -- → partner2@travelmate.vn có thể check-in khi khách đến
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
@@ -4040,13 +4338,13 @@
         2, 0, 1,
         'Nguyễn Văn An', '0912 345 678', 'user@travelmate.vn',
         8400000, 8400000, 0,
-        'CONFIRMED', 'FULL_PAYMENT', 'APPROVED', 'PENDING_PARTNER_CONFIRMATION',
-        'VNPAY đã xác nhận thanh toán. Partner2 cần nhấn Xác nhận giữ phòng.', NOW(), NOW()
+        'CONFIRMED', 'FULL_PAYMENT', 'APPROVED', 'PARTNER_CONFIRMED',
+        'VNPAY đã ghi nhận thanh toán. TravelMate tự động giữ phòng.', NOW(), NOW()
     );
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, approved_at, note)
     VALUES (LAST_INSERT_ID(), 'VNPAY', 'FULL_PAYMENT', 8400000,
         CONCAT('TXN-OPS-P4-', UNIX_TIMESTAMP()), 'APPROVED', DATE_SUB(NOW(), INTERVAL 3 HOUR), DATE_SUB(NOW(), INTERVAL 2 HOUR),
-        'VNPAY xác nhận thành công — Thanh toán 100% Vinpearl Deluxe Ocean View, chờ partner xác nhận');
+        'VNPAY ghi nhận thành công — Thanh toán 100% Vinpearl Deluxe Ocean View, TravelMate tự động giữ phòng');
     UPDATE rooms SET available_quantity = available_quantity - 1 WHERE id = 25;
 
     -- Nhật ký thao tác cho các booking tình huống trên
@@ -4055,18 +4353,21 @@
     'Xác nhận booking BK-TLP-FAM-OPS01 — Nguyễn Văn An check-in hôm nay (luồng partner check-in)',
     'Đơn vận hành minh họa luồng Partner check-in.', DATE_SUB(NOW(), INTERVAL 4 HOUR)),
     ('admin@travelmate.vn', 'APPROVE_BOOKING', 'BOOKING', NULL,
+    'Xác nhận booking BK-TLP-VIP-OPS02 — Trần Thị Mai check-in hôm nay, đơn cọc 30%',
+    'Đơn vận hành minh họa luồng Partner check-in kèm xác nhận thu 70% tại cơ sở.', DATE_SUB(NOW(), INTERVAL 3 HOUR)),
+    ('admin@travelmate.vn', 'APPROVE_BOOKING', 'BOOKING', NULL,
     'Xác nhận booking BK-MND-STD-OPS01 — Trần Thị Mai đã check-in hôm qua (luồng partner check-out)',
     'Đơn vận hành minh họa luồng Partner check-out.', DATE_SUB(NOW(), INTERVAL 25 HOUR)),
     ('partner4@travelmate.vn', 'PARTNER_CONFIRM_HOLD', 'BOOKING', NULL,
-    'Partner xác nhận giữ phòng BK-MND-STD-OPS01 — Mộc Nhiên Homestay', NULL, DATE_SUB(NOW(), INTERVAL 24 HOUR)),
+    'Partner giữ phòng BK-MND-STD-OPS01 — Mộc Nhiên Homestay', NULL, DATE_SUB(NOW(), INTERVAL 24 HOUR)),
     ('partner4@travelmate.vn', 'PARTNER_CHECK_IN', 'BOOKING', NULL,
     'Partner check-in khách BK-MND-STD-OPS01 — Trần Thị Mai', 'Khách đến lúc 14:00.', DATE_SUB(NOW(), INTERVAL 23 HOUR)),
     ('admin@travelmate.vn', 'APPROVE_BOOKING', 'BOOKING', NULL,
     'Xác nhận booking BK-ANM-GDN-OPS01 — Lê Văn Đức check-in ngày mai (luồng no-show)',
     'Đơn vận hành minh họa luồng Partner báo no-show.', DATE_SUB(NOW(), INTERVAL 6 HOUR)),
     ('admin@travelmate.vn', 'APPROVE_BOOKING', 'BOOKING', NULL,
-    'Xác nhận booking BK-VNT-DLX-OPS01 — Nguyễn Văn An (luồng partner giữ phòng)',
-    'Đơn vận hành minh họa luồng xác nhận giữ phòng.', DATE_SUB(NOW(), INTERVAL 2 HOUR));
+    'Xác nhận booking BK-VNT-DLX-OPS01 — Nguyễn Văn An (luồng partner check-in)',
+    'Đơn vận hành minh họa phòng đã được TravelMate giữ sau thanh toán.', DATE_SUB(NOW(), INTERVAL 2 HOUR));
 
     -- =============================================
     -- HỆ THỐNG ĐÁNH GIÁ TRAVELMATE — Dual Rating System
@@ -4077,7 +4378,7 @@
     --   → Không thay đổi theo review của khách — phản ánh cơ sở vật chất & dịch vụ
     --
     -- rating (0–10): Điểm hài lòng trung bình tính từ user reviews
-    --   → Công thức: avg_review_stars × 2  (vd: avg 4.5★ → 9.0/10)
+    --   → Công thức: avg_review_score (vd: review 10, 8, 6 → trung bình trực tiếp trên thang 10)
     --   → Chỉ user có booking COMPLETED mới được viết review
     --   → Cập nhật sau mỗi lần user gửi đánh giá mới
     --
@@ -4091,9 +4392,9 @@
     --   Lọc điểm  : 9+ Tuyệt vời | 8+ Rất tốt | 7+ Tốt
     --
     -- PHÂN BỐ ĐIỂM MỤC TIÊU (sau import đầy đủ v8):
-    --   7.0–7.9 (Tốt)     :  acc2  Tulip Hotel       3★ → 7.5/10   (4 reviews: 5+4+3+3 = avg 3.75★)
+    --   7.0–7.9 (Tốt)     :  acc2  Tulip Hotel       3★ → 7.5/10   (4 reviews: 10+8+6+6)
     --   8.0–8.9 (Rất tốt) :  acc5  Ba Na Hills Villa 4★ → 8.7/10   (3 reviews)
-    --                         acc7  Mộc Nhiên HS      3★ → 8.0/10   (4 reviews: 4+4+5+3 = avg 4.0★)
+    --                         acc7  Mộc Nhiên HS      3★ → 8.0/10   (4 reviews: 8+8+10+6)
     --   9.0–9.9 (Xuất sắc):  acc1  LATA Hotel        4★ → 9.3/10   (3 reviews)
     --                         acc8  Vinpearl Resort   5★ → 9.0/10   (2 reviews)
     --   10.0    (Hoàn hảo):  acc3  TM Grand Hotel     5★ → 10.0/10
@@ -4108,12 +4409,12 @@
 
     -- =============================================
     -- DỮ LIỆU BỔ SUNG v8 — PHỔ ĐIỂM ĐÁNH GIÁ (SCORE DIVERSITY)
-    -- Thêm 3 booking COMPLETED + 3 review 3★ để kéo acc2 xuống 7.5
+    -- Thêm 3 booking COMPLETED + 3 review 6/10 để kéo acc2 xuống 7.5
     -- và acc7 xuống 8.0 — tạo phổ điểm rõ ràng cho bộ lọc
     -- =============================================
 
     -- ─── Booking EXT01: Tulip TLP-FAM (r7, acc2, partner1), user3, 2 đêm ───
-    -- Mục đích: thêm review 3★ để Tulip Hotel có điểm 7.5 (7+ tốt filter)
+    -- Mục đích: thêm review 6/10 để Tulip Hotel có điểm 7.5 (7+ tốt filter)
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
@@ -4127,13 +4428,13 @@
         'Lê Văn Đức', '0934 567 890', 'user3@travelmate.vn',
         2100000, 2100000, 0,
         'COMPLETED', 'FULL_PAYMENT', 'APPROVED', 'PARTNER_CONFIRMED',
-        'Tulip Family Room 2 đêm (seed score diversity).', DATE_SUB(NOW(), INTERVAL 89 DAY), DATE_SUB(NOW(), INTERVAL 89 DAY)
+        'Tulip Family Room 2 đêm, khách đánh giá trung bình sau lưu trú.', DATE_SUB(NOW(), INTERVAL 89 DAY), DATE_SUB(NOW(), INTERVAL 89 DAY)
     );
     SET @ext01 = LAST_INSERT_ID();
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, approved_at, note)
     VALUES (@ext01, 'VNPAY', 'FULL_PAYMENT', 2100000,
         CONCAT('TXN-TLP-FAM-EXT1-', UNIX_TIMESTAMP()), 'APPROVED',
-        DATE_SUB(NOW(), INTERVAL 89 DAY), DATE_SUB(NOW(), INTERVAL 89 DAY), 'TLP-FAM 2 đêm — score diversity');
+        DATE_SUB(NOW(), INTERVAL 89 DAY), DATE_SUB(NOW(), INTERVAL 89 DAY), 'Thanh toán TLP-FAM 2 đêm đã ghi nhận');
 
     -- ─── Booking EXT02: Tulip TLP-VIP (r8, acc2, partner1), user2, 2 đêm ───
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
@@ -4149,16 +4450,16 @@
         'Trần Thị Mai', '0923 456 789', 'user2@travelmate.vn',
         3000000, 3000000, 0,
         'COMPLETED', 'FULL_PAYMENT', 'APPROVED', 'PARTNER_CONFIRMED',
-        'Tulip VIP Panorama 2 đêm (seed score diversity).', DATE_SUB(NOW(), INTERVAL 95 DAY), DATE_SUB(NOW(), INTERVAL 95 DAY)
+        'Tulip VIP Panorama 2 đêm, khách đánh giá trung bình sau lưu trú.', DATE_SUB(NOW(), INTERVAL 95 DAY), DATE_SUB(NOW(), INTERVAL 95 DAY)
     );
     SET @ext02 = LAST_INSERT_ID();
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, approved_at, note)
     VALUES (@ext02, 'VNPAY', 'FULL_PAYMENT', 3000000,
         CONCAT('TXN-TLP-VIP-EXT1-', UNIX_TIMESTAMP()), 'APPROVED',
-        DATE_SUB(NOW(), INTERVAL 95 DAY), DATE_SUB(NOW(), INTERVAL 95 DAY), 'TLP-VIP 2 đêm — score diversity');
+        DATE_SUB(NOW(), INTERVAL 95 DAY), DATE_SUB(NOW(), INTERVAL 95 DAY), 'Thanh toán TLP-VIP 2 đêm đã ghi nhận');
 
     -- ─── Booking EXT03: Mộc Nhiên MND-STD (r22, acc7, partner4), user3, 2 đêm ───
-    -- Mục đích: thêm review 3★ để Mộc Nhiên có điểm 8.0 (thay vì 8.7)
+    -- Mục đích: thêm review 6/10 để Mộc Nhiên có điểm 8.0 (thay vì 8.7)
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
@@ -4172,20 +4473,21 @@
         'Lê Văn Đức', '0934 567 890', 'user3@travelmate.vn',
         780000, 780000, 0,
         'COMPLETED', 'FULL_PAYMENT', 'APPROVED', 'PARTNER_CONFIRMED',
-        'Mộc Nhiên Standard 2 đêm (seed score diversity).', DATE_SUB(NOW(), INTERVAL 86 DAY), DATE_SUB(NOW(), INTERVAL 86 DAY)
+        'Mộc Nhiên Standard 2 đêm, khách đánh giá trung bình sau lưu trú.', DATE_SUB(NOW(), INTERVAL 86 DAY), DATE_SUB(NOW(), INTERVAL 86 DAY)
     );
     SET @ext03 = LAST_INSERT_ID();
     INSERT INTO payments (booking_id, payment_method, payment_option, amount, transaction_code, payment_status, paid_at, approved_at, note)
     VALUES (@ext03, 'VNPAY', 'FULL_PAYMENT', 780000,
         CONCAT('TXN-MND-STD-EXT1-', UNIX_TIMESTAMP()), 'APPROVED',
-        DATE_SUB(NOW(), INTERVAL 86 DAY), DATE_SUB(NOW(), INTERVAL 86 DAY), 'MND-STD 2 đêm — score diversity');
+        DATE_SUB(NOW(), INTERVAL 86 DAY), DATE_SUB(NOW(), INTERVAL 86 DAY), 'Thanh toán MND-STD 2 đêm đã ghi nhận');
 
     -- =============================================
     -- BOOKINGS KIỂM TRA v11 — DEPOSIT_30 + COMPLETED + PAID_AT_PROPERTY
     -- Mục đích: Minh hoạ luồng cọc 30% đầy đủ — khách lưu trú, trả 70% tại cơ sở.
-    -- Quy tắc commission hiện hành: chỉ tính trên tiền thu online (cọc 30%).
-    -- DEP01: LATA Suite  3 đêm → CK base = 1.620.000 (cọc online) | HH 20% = 324.000
-    -- DEP02: Anam Beach  2 đêm → CK base = 3.480.000 (cọc online) | HH 15% = 522.000
+    -- Quy tắc commission hiện hành: DEPOSIT_30 tính hoa hồng trên tổng đơn gốc,
+    -- còn payout vẫn dựa trên số tiền TravelMate thực thu online.
+    -- DEP01: LATA Suite  3 đêm → CK base = 5.400.000 (tổng đơn gốc) | HH 20% = 1.080.000
+    -- DEP02: Anam Beach  2 đêm → CK base = 11.600.000 (tổng đơn gốc) | HH 15% = 1.740.000
     -- =============================================
 
     -- ─── DEP01: LATA Hotel — LATA-SUI (r4) — Lê Văn Đức — COMPLETED + DEPOSIT_30 ────────────
@@ -4208,8 +4510,8 @@
         'COMPLETED', 'DEPOSIT_30', 'APPROVED', 'PARTNER_CONFIRMED',
         'PAID_AT_PROPERTY', DATE_SUB(NOW(), INTERVAL 55 DAY),
         'Khách thanh toán 70% còn lại (3.780.000đ) bằng tiền mặt tại quầy lễ tân khi check-out.',
-        0.2000, 'ROOM_OVERRIDE', 1620000, 324000, 0, 0, 1296000, 1620000, 3780000,
-        'DEPOSIT_30 COMPLETED + PAID_AT_PROPERTY — commission tính trên cọc online 1.620.000đ (rate phòng Suite 20% = 324.000đ).',
+        0.2000, 'ROOM_OVERRIDE', 5400000, 1080000, 0, 0, 540000, 1620000, 3780000,
+        'DEPOSIT_30 COMPLETED + PAID_AT_PROPERTY — commission snapshot tính trên tổng đơn gốc 5.400.000đ (rate phòng Suite 20% = 1.080.000đ); payout từ cọc online 1.620.000đ.',
         DATE_SUB(NOW(), INTERVAL 60 DAY), DATE_SUB(NOW(), INTERVAL 55 DAY)
     );
     SET @dep01 = LAST_INSERT_ID();
@@ -4239,8 +4541,8 @@
         'COMPLETED', 'DEPOSIT_30', 'APPROVED', 'PARTNER_CONFIRMED',
         'PAID_AT_PROPERTY', DATE_SUB(NOW(), INTERVAL 48 DAY),
         'Khách thanh toán 70% còn lại (8.120.000đ) bằng thẻ tín dụng tại villa khi check-out.',
-        0.1500, 'ROOM_OVERRIDE', 3480000, 522000, 0, 0, 2958000, 3480000, 8120000,
-        'DEPOSIT_30 COMPLETED + PAID_AT_PROPERTY — commission tính trên cọc online 3.480.000đ (rate căn VIP 15% = 522.000đ).',
+        0.1500, 'ROOM_OVERRIDE', 11600000, 1740000, 0, 0, 1740000, 3480000, 8120000,
+        'DEPOSIT_30 COMPLETED + PAID_AT_PROPERTY — commission snapshot tính trên tổng đơn gốc 11.600.000đ (rate căn VIP 15% = 1.740.000đ); payout từ cọc online 3.480.000đ.',
         DATE_SUB(NOW(), INTERVAL 52 DAY), DATE_SUB(NOW(), INTERVAL 48 DAY)
     );
     SET @dep02 = LAST_INSERT_ID();
@@ -4251,31 +4553,31 @@
         'Cọc 30% Anam Beachfront Villa — khách đã lưu trú, hoàn tất check-out');
 
     -- =============================================
-    -- REVIEWS BỔ SUNG v8 — EXT01 / EXT02 / EXT03 (đánh giá 3★)
+    -- REVIEWS BỔ SUNG v8 — EXT01 / EXT02 / EXT03 (đánh giá 6/10)
     -- =============================================
 
-    -- EXT01 → acc2 Tulip Hotel (3★, user3 Lê Văn Đức)
+    -- EXT01 → acc2 Tulip Hotel (6 điểm, user3 Lê Văn Đức)
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (6, 2, @ext01, 3,
+    (6, 2, @ext01, 6,
     'Khách sạn ổn nhưng chưa đáp ứng kỳ vọng. Phòng Family hơi tối và nhỏ hơn ảnh chụp. Bữa sáng đơn điệu, chủ yếu là bánh mì và trứng chiên. Vị trí gần hồ Xuân Hương là điểm cộng duy nhất đáng kể. Nhân viên thân thiện nhưng quy trình check-in khá chậm so với mức giá phải trả.',
     DATE_SUB(NOW(), INTERVAL 83 DAY));
 
-    -- EXT02 → acc2 Tulip Hotel (3★, user2 Trần Thị Mai)
+    -- EXT02 → acc2 Tulip Hotel (6 điểm, user2 Trần Thị Mai)
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (5, 2, @ext02, 3,
+    (5, 2, @ext02, 6,
     'Phòng VIP Panorama thực tế không đẹp như quảng cáo — ban công hẹp, view bị che bởi tòa nhà bên cạnh. WiFi yếu vào giờ cao điểm buổi tối. Điều hoà có tiếng ồn lớn, khó ngủ. Giá cả chưa tương xứng với chất lượng nhận được, cần cải thiện nhiều hơn.',
     DATE_SUB(NOW(), INTERVAL 89 DAY));
 
-    -- EXT03 → acc7 Mộc Nhiên Homestay (3★, user3 Lê Văn Đức)
+    -- EXT03 → acc7 Mộc Nhiên Homestay (6 điểm, user3 Lê Văn Đức)
     INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at) VALUES
-    (6, 7, @ext03, 3,
+    (6, 7, @ext03, 6,
     'Không gian nhà gỗ Đà Lạt đẹp mắt nhưng tiện nghi còn hạn chế. Nước nóng hay bị yếu, cửa sổ không kín gió nên lạnh vào ban đêm. Chủ nhà thân thiện nhưng ít có mặt để hỗ trợ. Bữa sáng ngon nhưng phần ăn nhỏ. Cần đầu tư thêm vào cơ sở vật chất để xứng với giá.',
     DATE_SUB(NOW(), INTERVAL 80 DAY));
 
-    -- Cập nhật rating + review_count sau khi thêm 3 review 3★
-    -- acc2 Tulip Hotel: 4 reviews (5★+4★+3★+3★) → avg 3.75 × 2 = 7.5
+    -- Cập nhật rating + review_count sau khi thêm 3 review 6/10
+    -- acc2 Tulip Hotel: 4 reviews (10+8+6+6) → avg = 7.5
     UPDATE accommodations SET rating = 7.5, review_count = 4 WHERE id = 2;
-    -- acc7 Mộc Nhiên Homestay: 4 reviews (4★+4★+5★+3★) → avg 4.0 × 2 = 8.0
+    -- acc7 Mộc Nhiên Homestay: 4 reviews (8+8+10+6) → avg = 8.0
     UPDATE accommodations SET rating = 8.0, review_count = 4 WHERE id = 7;
 
     -- =============================================
@@ -4306,19 +4608,19 @@
     -- =============================================
 
     -- =============================================
-    -- KIỂM TRA KỲ VỌNG CUỐI CÙNG v11 (sau import đầy đủ)
+    -- KIỂM TRA KỲ VỌNG CUỐI CÙNG (sau import đầy đủ)
     -- SELECT COUNT(*) FROM users;               -- kỳ vọng: 8 (1 admin, 3 user, 4 partner)
-    -- SELECT COUNT(*) FROM accommodations;      -- kỳ vọng: 13 (11 APPROVED + 2 PENDING/REJECTED)
-    -- SELECT COUNT(*) FROM rooms;               -- kỳ vọng: 30
-    -- SELECT COUNT(*) FROM bookings;            -- kỳ vọng: ~61 (+2 DEP01/DEP02 v11)
-    -- SELECT COUNT(*) FROM payments;            -- kỳ vọng: ~61 (+2 DEP01/DEP02 v11)
-    -- SELECT COUNT(*) FROM reviews;             -- kỳ vọng: ~23
-    -- SELECT COUNT(*) FROM vouchers;            -- kỳ vọng: 8
+    -- SELECT COUNT(*) FROM accommodations;      -- kỳ vọng: 26 (đủ HOTEL/RESORT/VILLA/HOMESTAY + PENDING/REJECTED)
+    -- SELECT COUNT(*) FROM rooms;               -- kỳ vọng: 64
+    -- SELECT COUNT(*) FROM bookings;            -- kỳ vọng: 60+ (đủ ONLINE/DIRECT/MANUAL_BLOCK và các trạng thái thanh toán)
+    -- SELECT COUNT(*) FROM payments;            -- kỳ vọng: 50+ (đủ APPROVED/PENDING/CANCELLED/FAILED/EXPIRED/REFUND)
+    -- SELECT COUNT(*) FROM reviews;             -- kỳ vọng: 20+
+    -- SELECT COUNT(*) FROM vouchers;            -- kỳ vọng: 22
     -- SELECT COUNT(*) FROM amenities;           -- kỳ vọng: 32
-    -- SELECT COUNT(*) FROM room_amenities;      -- kỳ vọng: ~230
-    -- SELECT COUNT(*) FROM partner_settlements; -- kỳ vọng: 13
-    -- SELECT COUNT(*) FROM admin_action_logs;   -- kỳ vọng: ~110 (sau bổ sung partner3/4)
-    -- SELECT COUNT(*) FROM notifications;       -- kỳ vọng: 21 (user2=9, user5=6, user6=6)
+    -- SELECT COUNT(DISTINCT room_id) FROM room_amenities; -- kỳ vọng: 64 phòng/căn đều có tiện nghi
+    -- SELECT COUNT(*) FROM partner_settlements; -- kỳ vọng: có dữ liệu theo 4 partner
+    -- SELECT COUNT(*) FROM admin_action_logs;   -- kỳ vọng: 100+ (phủ BOOKING, ACCOMMODATION, ROOM, USER, REVIEW, VOUCHER, SETTLEMENT, TICKET)
+    -- SELECT COUNT(*) FROM notifications;       -- kỳ vọng: có thông báo cho User/Admin/Partner
     --
     -- Kiểm tra phổ điểm rating:
     -- SELECT id, name, star_rating AS sao, rating AS diem, review_count AS so_review
@@ -4385,15 +4687,15 @@
 
     -- [READ] BOOKING_CONFIRMED: BK-VNT-DLX-0001 (acc8 Vinpearl — check-in +5 ngày)
     (2,
-     'Đặt phòng đã được xác nhận — Vinpearl Resort Nha Trang',
-     'Booking BK-VNT-DLX-0001 tại Vinpearl Resort & Spa Nha Trang đã được admin xác nhận. Check-in trong 5 ngày tới. Chúc bạn có chuyến nghỉ dưỡng tuyệt vời!',
+     'Đặt phòng đã được ghi nhận — Vinpearl Resort Nha Trang',
+     'Booking BK-VNT-DLX-0001 tại Vinpearl Resort & Spa Nha Trang đã được TravelMate ghi nhận. Check-in trong 5 ngày tới. Chúc bạn có chuyến nghỉ dưỡng tuyệt vời!',
      'BOOKING_CONFIRMED', '/my-bookings', 1,
      DATE_SUB(NOW(), INTERVAL 4 DAY)),
 
     -- [READ] BOOKING_CONFIRMED: BK-LATA-STD-0002 (acc1 LATA)
     (2,
-     'Đặt phòng đã được xác nhận — LATA Hotel & Apartments',
-     'Booking BK-LATA-STD-0002 tại LATA Hotel & Apartments đã được admin xác nhận. Chúc bạn có chuyến đi vui vẻ!',
+     'Đặt phòng đã được ghi nhận — LATA Hotel & Apartments',
+     'Booking BK-LATA-STD-0002 tại LATA Hotel & Apartments đã được TravelMate ghi nhận. Chúc bạn có chuyến đi vui vẻ!',
      'BOOKING_CONFIRMED', '/my-bookings', 1,
      DATE_SUB(NOW(), INTERVAL 17 DAY)),
 
@@ -4437,10 +4739,10 @@
      'REVIEW_REMINDER', '/my-bookings?tab=COMPLETED', 0,
      DATE_SUB(NOW(), INTERVAL 39 DAY)),
 
-    -- [READ] BOOKING_CONFIRMED: BK-MND-ATT-0002 (acc7 Mộc Nhiên vừa xác nhận)
+    -- [READ] BOOKING_CONFIRMED: BK-MND-ATT-0002 (acc7 Mộc Nhiên vừa ghi nhận)
     (5,
-     'Đặt phòng đã được xác nhận — Mộc Nhiên Garden Homestay',
-     'Booking BK-MND-ATT-0002 tại Mộc Nhiên Garden Homestay Đà Lạt đã được admin xác nhận. Check-in trong 3 ngày tới. Chúc bạn có chuyến đi vui vẻ!',
+     'Đặt phòng đã được ghi nhận — Mộc Nhiên Garden Homestay',
+     'Booking BK-MND-ATT-0002 tại Mộc Nhiên Garden Homestay Đà Lạt đã được TravelMate ghi nhận. Check-in trong 3 ngày tới. Chúc bạn có chuyến đi vui vẻ!',
      'BOOKING_CONFIRMED', '/my-bookings', 1,
      DATE_SUB(NOW(), INTERVAL 1 DAY)),
 
@@ -4484,10 +4786,10 @@
      'REVIEW_REMINDER', '/my-bookings?tab=COMPLETED', 0,
      DATE_SUB(NOW(), INTERVAL 28 DAY)),
 
-    -- [READ] BOOKING_CONFIRMED: BK-ANM-GDN-0003 (acc4 Anam Villa vừa xác nhận)
+    -- [READ] BOOKING_CONFIRMED: BK-ANM-GDN-0003 (acc4 Anam Villa vừa ghi nhận)
     (6,
-     'Đặt phòng đã được xác nhận — The Anam Villa Nha Trang',
-     'Booking BK-ANM-GDN-0003 tại The Anam Villa Nha Trang đã được admin xác nhận. Check-in trong 5 ngày tới. Tận hưởng villa hạng sang!',
+     'Đặt phòng đã được ghi nhận — The Anam Villa Nha Trang',
+     'Booking BK-ANM-GDN-0003 tại The Anam Villa Nha Trang đã được TravelMate ghi nhận. Check-in trong 5 ngày tới. Tận hưởng villa hạng sang!',
      'BOOKING_CONFIRMED', '/my-bookings', 1,
      DATE_SUB(NOW(), INTERVAL 2 DAY)),
 
@@ -4498,7 +4800,7 @@
      'SYSTEM', '/my-bookings', 1,
      DATE_SUB(NOW(), INTERVAL 10 DAY));
 
-    -- Kiểm tra seed notifications v10:
+    -- Kiểm tra notifications v10:
     -- SELECT u.email, n.type, n.is_read, n.title
     --   FROM notifications n JOIN users u ON u.id = n.user_id ORDER BY u.id, n.created_at DESC;
     -- Kỳ vọng: 21 rows tổng
@@ -4652,7 +4954,7 @@
         created_by = VALUES(created_by),
         updated_at = VALUES(updated_at);
 
-    -- Kiem tra seed travel_posts:
+    -- Kiem tra travel_posts:
     -- SELECT category, status, COUNT(*) FROM travel_posts GROUP BY category, status;
     -- Ky vong: toi thieu 20 bai VISIBLE, co destination_slug de loc theo dia diem.
 
@@ -5005,7 +5307,632 @@
            '/assets/images/accommodations/catalog/resort-room.jpg', 'FAMILY'
     WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'TTC-FAM');
 
-    -- ─── NORMALIZE DEMO ACCOMMODATION IMAGES: mỗi nơi lưu trú/phòng có src local riêng ───
+    -- ─── BỔ SUNG 14 CƠ SỞ VÀ 42 PHÒNG — phủ đủ tỉnh/thành và loại hình ─────
+    SET @owner_resort_id = (SELECT id FROM users WHERE email = 'resort@travelmate.vn' LIMIT 1);
+    SET @owner_villa_id = (SELECT id FROM users WHERE email = 'villa@travelmate.vn' LIMIT 1);
+    SET @owner_homestay_id = (SELECT id FROM users WHERE email = 'homestay@travelmate.vn' LIMIT 1);
+    SET @owner_nobank_id = (SELECT id FROM users WHERE email = 'no-bank@travelmate.vn' LIMIT 1);
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Lào Cai Central Hotel',
+           'Khách sạn trung tâm thành phố Lào Cai, thuận tiện đi Sa Pa, cửa khẩu quốc tế và chợ Cốc Lếu.',
+           '86 Hoàng Liên, phường Cốc Lếu', 'Lào Cai',
+           '/assets/images/accommodations/hotel/intercontinental-nha-trang/cover.jpg',
+           4, 8.6, 184, 'HOTEL', 'APPROVED', @owner_nobank_id, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Lào Cai Central Hotel');
+    SET @laocai_hotel_id = (SELECT id FROM accommodations WHERE name = 'Lào Cai Central Hotel' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @laocai_hotel_id, 'LCH-STD', 'Standard City Room', '1 giường Queen', 2, 620000, 8,
+           'Phòng 26m² hướng phố, phù hợp khách công tác hoặc nghỉ ngắn ngày.',
+           '/assets/images/accommodations/hotel/intercontinental-nha-trang/rooms/icn-std.jpg', 'STANDARD'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'LCH-STD')
+    UNION ALL
+    SELECT @laocai_hotel_id, 'LCH-DLX', 'Deluxe River View', '1 giường King', 2, 890000, 5,
+           'Phòng 34m² hướng sông Hồng, có bàn làm việc và bữa sáng.',
+           '/assets/images/accommodations/hotel/intercontinental-nha-trang/rooms/icn-dlx.jpg', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'LCH-DLX')
+    UNION ALL
+    SELECT @laocai_hotel_id, 'LCH-FAM', 'Family Connecting Room', '2 giường Queen', 4, 1350000, 3,
+           'Hai phòng liên thông cho gia đình, có minibar và phòng tắm riêng.',
+           '/assets/images/accommodations/hotel/intercontinental-nha-trang/rooms/icn-sui.jpg', 'FAMILY'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'LCH-FAM');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Bắc Hà Valley Homestay',
+           'Homestay gần chợ phiên Bắc Hà, nhà sàn gỗ, bếp lửa chung và trải nghiệm ẩm thực địa phương.',
+           'Thôn Na Hối, thị trấn Bắc Hà', 'Lào Cai',
+           '/assets/images/accommodations/homestay/sapa-valley-homestay/cover.jpg',
+           3, 8.8, 96, 'HOMESTAY', 'APPROVED', @owner_homestay_id, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Bắc Hà Valley Homestay');
+    SET @bacha_hs_id = (SELECT id FROM accommodations WHERE name = 'Bắc Hà Valley Homestay' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @bacha_hs_id, 'BHV-STD', 'Phòng Gỗ Na Hối', '1 giường đôi', 2, 360000, 5,
+           'Phòng gỗ ấm cúng, cửa sổ nhìn vườn mận và bản làng.',
+           '/assets/images/accommodations/homestay/sapa-valley-homestay/rooms/svh-std.jpg', 'STANDARD'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'BHV-STD')
+    UNION ALL
+    SELECT @bacha_hs_id, 'BHV-DLX', 'Deluxe Valley Balcony', '1 giường King', 2, 520000, 3,
+           'Phòng có ban công nhìn thung lũng, bao gồm bữa sáng địa phương.',
+           '/assets/images/accommodations/homestay/sapa-valley-homestay/rooms/svh-dlx.jpg', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'BHV-DLX')
+    UNION ALL
+    SELECT @bacha_hs_id, 'BHV-FAM', 'Nhà Gia Đình Bắc Hà', '2 giường Queen', 4, 780000, 2,
+           'Phòng gia đình rộng, có khu sinh hoạt chung và ấm đun nước.',
+           '/assets/images/accommodations/homestay/tam-coc-garden-homestay/rooms/tcg-fam.jpg', 'FAMILY'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'BHV-FAM');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Đồng Văn Stone Hotel',
+           'Khách sạn nhỏ tại phố cổ Đồng Văn, phù hợp khách đi cung Hà Giang loop và nghỉ qua đêm sau chặng đèo.',
+           '18 Phố Cổ, thị trấn Đồng Văn', 'Hà Giang',
+           '/assets/images/accommodations/hotel/novotel-da-nang-premier/cover.jpg',
+           3, 8.5, 128, 'HOTEL', 'APPROVED', @owner_nobank_id, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Đồng Văn Stone Hotel');
+    SET @dongvan_hotel_id = (SELECT id FROM accommodations WHERE name = 'Đồng Văn Stone Hotel' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @dongvan_hotel_id, 'DVS-STD', 'Stone Standard Room', '1 giường Queen', 2, 520000, 7,
+           'Phòng tiêu chuẩn tường đá, có máy lạnh, nước nóng và WiFi.',
+           '/assets/images/accommodations/hotel/novotel-da-nang-premier/rooms/nvd-std.jpg', 'STANDARD'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'DVS-STD')
+    UNION ALL
+    SELECT @dongvan_hotel_id, 'DVS-DLX', 'Deluxe Old Quarter View', '1 giường King', 2, 760000, 4,
+           'Phòng tầng cao nhìn phố cổ Đồng Văn, có ban công nhỏ.',
+           '/assets/images/accommodations/hotel/novotel-da-nang-premier/rooms/nvd-dlx.jpg', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'DVS-DLX')
+    UNION ALL
+    SELECT @dongvan_hotel_id, 'DVS-SUI', 'Panorama Suite', '1 giường King + sofa bed', 3, 1250000, 2,
+           'Suite rộng cho nhóm nhỏ, nhìn núi đá và phố cổ về đêm.',
+           '/assets/images/accommodations/hotel/novotel-da-nang-premier/rooms/nvd-fam.jpg', 'SUITE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'DVS-SUI');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Mã Pì Lèng View Homestay',
+           'Homestay nhìn hẻm Tu Sản và dòng Nho Quế, có sân hiên ngắm bình minh trên đèo Mã Pì Lèng.',
+           'Pải Lủng, Mèo Vạc', 'Hà Giang',
+           '/assets/images/accommodations/homestay/sapa-valley-homestay/cover.jpg',
+           3, 8.9, 142, 'HOMESTAY', 'APPROVED', @owner_homestay_id, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Mã Pì Lèng View Homestay');
+    SET @mapileng_hs_id = (SELECT id FROM accommodations WHERE name = 'Mã Pì Lèng View Homestay' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @mapileng_hs_id, 'MPL-STD', 'Phòng Núi Tiêu Chuẩn', '1 giường đôi', 2, 390000, 6,
+           'Phòng riêng đơn giản, cửa sổ nhìn núi đá và thung lũng.',
+           '/assets/images/accommodations/homestay/sapa-valley-homestay/rooms/svh-std.jpg', 'STANDARD'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'MPL-STD')
+    UNION ALL
+    SELECT @mapileng_hs_id, 'MPL-DLX', 'Deluxe Nho Quế Balcony', '1 giường King', 2, 650000, 4,
+           'Phòng có ban công riêng nhìn sông Nho Quế từ xa.',
+           '/assets/images/accommodations/homestay/sapa-valley-homestay/rooms/svh-dlx.jpg', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'MPL-DLX')
+    UNION ALL
+    SELECT @mapileng_hs_id, 'MPL-FAM', 'Family Mountain Room', '2 giường Queen', 4, 920000, 2,
+           'Phòng gia đình có khu ngồi chung và bữa sáng địa phương.',
+           '/assets/images/accommodations/homestay/tam-coc-garden-homestay/rooms/tcg-fam.jpg', 'FAMILY'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'MPL-FAM');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Mù Cang Chải Eco Lodge',
+           'Khu nghỉ nhà gỗ giữa ruộng bậc thang, phù hợp mùa lúa chín và các chuyến trekking nhẹ.',
+           'La Pán Tẩn, Mù Cang Chải', 'Yên Bái',
+           '/assets/images/accommodations/homestay/tam-coc-garden-homestay/cover.jpg',
+           3, 8.7, 118, 'HOMESTAY', 'APPROVED', @owner_homestay_id, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Mù Cang Chải Eco Lodge');
+    SET @mucangchai_hs_id = (SELECT id FROM accommodations WHERE name = 'Mù Cang Chải Eco Lodge' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @mucangchai_hs_id, 'MCC-STD', 'Bungalow Ruộng Bậc Thang', '1 giường đôi', 2, 480000, 5,
+           'Bungalow gỗ riêng, có ban công nhìn ruộng bậc thang.',
+           '/assets/images/accommodations/homestay/sapa-valley-homestay/rooms/svh-std.jpg', 'STANDARD'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'MCC-STD')
+    UNION ALL
+    SELECT @mucangchai_hs_id, 'MCC-DLX', 'Deluxe Harvest View', '1 giường King', 2, 720000, 3,
+           'Phòng rộng hơn, ban công riêng và bữa sáng bản địa.',
+           '/assets/images/accommodations/homestay/sapa-valley-homestay/rooms/svh-dlx.jpg', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'MCC-DLX')
+    UNION ALL
+    SELECT @mucangchai_hs_id, 'MCC-FAM', 'Family Terrace Lodge', '2 giường Queen', 4, 1050000, 2,
+           'Phòng gia đình có sân hiên, phù hợp nhóm săn mùa lúa chín.',
+           '/assets/images/accommodations/homestay/tam-coc-garden-homestay/rooms/tcg-fam.jpg', 'FAMILY'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'MCC-FAM');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Tú Lệ Hot Spring Resort',
+           'Resort khoáng nóng ở thung lũng Tú Lệ, có bể ngâm ngoài trời và nhà hàng đặc sản Tây Bắc.',
+           'Bản Chao, Tú Lệ, Văn Chấn', 'Yên Bái',
+           '/assets/images/accommodations/resort/legacy-bay-resort-ha-long/cover.jpg',
+           4, 8.8, 164, 'RESORT', 'APPROVED', @owner_resort_id, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Tú Lệ Hot Spring Resort');
+    SET @tule_resort_id = (SELECT id FROM accommodations WHERE name = 'Tú Lệ Hot Spring Resort' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @tule_resort_id, 'TLR-DLX', 'Deluxe Hot Spring Room', '1 giường King', 2, 1380000, 6,
+           'Phòng gần khu khoáng nóng, có ban công nhìn thung lũng.',
+           '/assets/images/accommodations/resort/legacy-bay-resort-ha-long/rooms/lbr-dlx.jpg', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'TLR-DLX')
+    UNION ALL
+    SELECT @tule_resort_id, 'TLR-SUI', 'Valley Mineral Suite', '1 giường King cỡ lớn', 2, 2400000, 3,
+           'Suite riêng có bồn ngâm trong phòng và phòng khách nhỏ.',
+           '/assets/images/accommodations/resort/legacy-bay-resort-ha-long/rooms/lbr-sui.jpg', 'SUITE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'TLR-SUI')
+    UNION ALL
+    SELECT @tule_resort_id, 'TLR-FAM', 'Family Onsen Room', '2 giường Queen', 4, 3100000, 2,
+           'Phòng gia đình rộng, gần khu hồ bơi và nhà hàng.',
+           '/assets/images/accommodations/resort/sunset-pearl-resort-phu-quoc/rooms/spq-dlx.jpg', 'FAMILY'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'TLR-FAM');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Mộc Châu Tea Hill Hotel',
+           'Khách sạn cạnh đồi chè Mộc Châu, thuận tiện đi thác Dải Yếm, rừng thông Bản Áng và trang trại bò sữa.',
+           'Tiểu khu 32, thị trấn Nông Trường', 'Sơn La',
+           '/assets/images/accommodations/hotel/pullman-vung-tau/cover.jpg',
+           4, 8.6, 206, 'HOTEL', 'APPROVED', @owner_nobank_id, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Mộc Châu Tea Hill Hotel');
+    SET @mochau_hotel_id = (SELECT id FROM accommodations WHERE name = 'Mộc Châu Tea Hill Hotel' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @mochau_hotel_id, 'MCT-STD', 'Standard Tea Hill', '1 giường Queen', 2, 680000, 9,
+           'Phòng gọn gàng, cửa sổ nhìn đồi chè và khu vườn.',
+           '/assets/images/accommodations/hotel/pullman-vung-tau/rooms/pvt-std.jpg', 'STANDARD'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'MCT-STD')
+    UNION ALL
+    SELECT @mochau_hotel_id, 'MCT-DLX', 'Deluxe Balcony Tea View', '1 giường King', 2, 980000, 5,
+           'Phòng có ban công, bàn làm việc và bữa sáng.',
+           '/assets/images/accommodations/hotel/pullman-vung-tau/rooms/pvt-dlx.jpg', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'MCT-DLX')
+    UNION ALL
+    SELECT @mochau_hotel_id, 'MCT-FAM', 'Family Green Hill', '2 giường Queen', 4, 1520000, 3,
+           'Phòng gia đình rộng, phù hợp nhóm đi Mộc Châu cuối tuần.',
+           '/assets/images/accommodations/hotel/new-world-sai-gon-hotel/rooms/nws-dlx.jpg', 'FAMILY'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'MCT-FAM');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Mộc Châu Farmstay',
+           'Farmstay có vườn dâu, khu BBQ và xe đạp miễn phí, phù hợp gia đình có trẻ nhỏ.',
+           'Bản Áng 2, Đông Sang', 'Sơn La',
+           '/assets/images/accommodations/homestay/tam-coc-garden-homestay/cover.jpg',
+           3, 8.9, 134, 'HOMESTAY', 'APPROVED', @owner_homestay_id, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Mộc Châu Farmstay');
+    SET @mochau_farm_id = (SELECT id FROM accommodations WHERE name = 'Mộc Châu Farmstay' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @mochau_farm_id, 'MCF-STD', 'Garden Farm Room', '1 giường đôi', 2, 420000, 6,
+           'Phòng nhìn vườn, có lối ra sân chung và bếp nhỏ.',
+           '/assets/images/accommodations/homestay/sapa-valley-homestay/rooms/svh-std.jpg', 'STANDARD'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'MCF-STD')
+    UNION ALL
+    SELECT @mochau_farm_id, 'MCF-DLX', 'Deluxe Strawberry View', '1 giường King', 2, 620000, 4,
+           'Phòng có ban công nhìn vườn dâu, bao gồm bữa sáng.',
+           '/assets/images/accommodations/homestay/sapa-valley-homestay/rooms/svh-dlx.jpg', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'MCF-DLX')
+    UNION ALL
+    SELECT @mochau_farm_id, 'MCF-FAM', 'Family Farm House', '2 giường Queen', 4, 960000, 2,
+           'Phòng gia đình có khu sinh hoạt chung và sân BBQ.',
+           '/assets/images/accommodations/homestay/tam-coc-garden-homestay/rooms/tcg-fam.jpg', 'FAMILY'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'MCF-FAM');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Tràng An River Villa',
+           'Villa ven sông gần khu danh thắng Tràng An, có bếp riêng, sân vườn và không gian yên tĩnh cho gia đình.',
+           'Xã Trường Yên, Hoa Lư', 'Ninh Bình',
+           '/assets/images/accommodations/villa/pine-hill-villa-da-lat/cover.jpg',
+           4, 9.0, 172, 'VILLA', 'APPROVED', @owner_villa_id, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Tràng An River Villa');
+    SET @trangan_villa_id = (SELECT id FROM accommodations WHERE name = 'Tràng An River Villa' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @trangan_villa_id, 'TRV-DLX', 'River Garden Villa', '2 giường Queen', 4, 2600000, 3,
+           'Villa 2 phòng ngủ nhìn sông, có bếp và sân vườn riêng.',
+           '/assets/images/accommodations/villa/pine-hill-villa-da-lat/rooms/phv-dlx.jpg', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'TRV-DLX')
+    UNION ALL
+    SELECT @trangan_villa_id, 'TRV-FAM', 'Family River House', '3 giường Queen', 6, 3800000, 2,
+           'Căn villa cho nhóm gia đình, phòng khách rộng và khu BBQ ngoài trời.',
+           '/assets/images/accommodations/villa/pine-hill-villa-da-lat/rooms/phv-fam.jpg', 'FAMILY'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'TRV-FAM')
+    UNION ALL
+    SELECT @trangan_villa_id, 'TRV-SUI', 'Lotus Pool Villa', '2 giường King', 4, 5200000, 1,
+           'Villa cao cấp có hồ bơi riêng và sân ngắm núi đá vôi.',
+           '/assets/images/accommodations/villa/sunset-beach-villa-phu-quoc/rooms/sbv-pool.jpg', 'SUITE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'TRV-SUI');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Hạ Long Marina Hotel',
+           'Khách sạn gần bến du thuyền Hạ Long, thuận tiện đi tour vịnh và khu vui chơi Bãi Cháy.',
+           'Đường Hạ Long, Bãi Cháy', 'Quảng Ninh',
+           '/assets/images/accommodations/hotel/intercontinental-nha-trang/cover.jpg',
+           4, 8.7, 268, 'HOTEL', 'APPROVED', @owner_nobank_id, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Hạ Long Marina Hotel');
+    SET @halong_hotel_id = (SELECT id FROM accommodations WHERE name = 'Hạ Long Marina Hotel' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @halong_hotel_id, 'HLM-STD', 'Standard Marina Room', '1 giường Queen', 2, 920000, 9,
+           'Phòng hướng phố biển, tiện nghi đầy đủ cho kỳ nghỉ ngắn.',
+           '/assets/images/accommodations/hotel/intercontinental-nha-trang/rooms/icn-std.jpg', 'STANDARD'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'HLM-STD')
+    UNION ALL
+    SELECT @halong_hotel_id, 'HLM-DLX', 'Deluxe Bay Window', '1 giường King', 2, 1450000, 6,
+           'Phòng có cửa sổ lớn nhìn vịnh, bao gồm bữa sáng buffet.',
+           '/assets/images/accommodations/hotel/intercontinental-nha-trang/rooms/icn-dlx.jpg', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'HLM-DLX')
+    UNION ALL
+    SELECT @halong_hotel_id, 'HLM-SUI', 'Bay View Suite', '1 giường King + sofa bed', 3, 2600000, 3,
+           'Suite tầng cao nhìn vịnh Hạ Long, có phòng khách riêng.',
+           '/assets/images/accommodations/hotel/intercontinental-nha-trang/rooms/icn-sui.jpg', 'SUITE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'HLM-SUI');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Vũng Tàu Beachfront Homestay',
+           'Homestay sát biển Bãi Sau, có bếp chung, sân thượng và phòng gia đình cho chuyến đi cuối tuần.',
+           '120 Thùy Vân, Phường 2', 'Vũng Tàu',
+           '/assets/images/accommodations/homestay/tam-coc-garden-homestay/cover.jpg',
+           3, 8.6, 156, 'HOMESTAY', 'APPROVED', @owner_homestay_id, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Vũng Tàu Beachfront Homestay');
+    SET @vungtau_hs_id = (SELECT id FROM accommodations WHERE name = 'Vũng Tàu Beachfront Homestay' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @vungtau_hs_id, 'VBF-STD', 'Phòng Biển Tiêu Chuẩn', '1 giường đôi', 2, 520000, 7,
+           'Phòng riêng gần biển, có máy lạnh và phòng tắm riêng.',
+           '/assets/images/accommodations/homestay/sapa-valley-homestay/rooms/svh-std.jpg', 'STANDARD'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'VBF-STD')
+    UNION ALL
+    SELECT @vungtau_hs_id, 'VBF-DLX', 'Deluxe Sea Balcony', '1 giường King', 2, 780000, 4,
+           'Phòng ban công hướng biển, có ấm đun nước và bữa sáng.',
+           '/assets/images/accommodations/homestay/sapa-valley-homestay/rooms/svh-dlx.jpg', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'VBF-DLX')
+    UNION ALL
+    SELECT @vungtau_hs_id, 'VBF-FAM', 'Family Beach Room', '2 giường Queen', 4, 1180000, 3,
+           'Phòng gia đình gần sân thượng, phù hợp nhóm 4 người.',
+           '/assets/images/accommodations/homestay/tam-coc-garden-homestay/rooms/tcg-fam.jpg', 'FAMILY'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'VBF-FAM');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Mekong Riverside Homestay Cần Thơ',
+           'Homestay ven sông gần chợ nổi Cái Răng, có thuyền nhỏ, bữa sáng miền Tây và vườn cây ăn trái.',
+           'Khu vực Cái Răng, Cần Thơ', 'Cần Thơ',
+           '/assets/images/accommodations/homestay/hoa-lu-riverside-homestay/cover.jpg',
+           3, 8.8, 201, 'HOMESTAY', 'APPROVED', @owner_homestay_id, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Mekong Riverside Homestay Cần Thơ');
+    SET @mekong_hs_id = (SELECT id FROM accommodations WHERE name = 'Mekong Riverside Homestay Cần Thơ' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @mekong_hs_id, 'MRH-STD', 'Phòng Ven Sông', '1 giường đôi', 2, 460000, 6,
+           'Phòng hướng sông, có quạt và máy lạnh, phù hợp đi chợ nổi sáng sớm.',
+           '/assets/images/accommodations/homestay/hoa-lu-riverside-homestay/rooms/hlr-std.jpg', 'STANDARD'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'MRH-STD')
+    UNION ALL
+    SELECT @mekong_hs_id, 'MRH-DLX', 'Deluxe Orchard Room', '1 giường King', 2, 680000, 4,
+           'Phòng nhìn vườn cây, bao gồm bữa sáng và xe đạp.',
+           '/assets/images/accommodations/homestay/hoa-lu-riverside-homestay/rooms/hlr-dlx.jpg', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'MRH-DLX')
+    UNION ALL
+    SELECT @mekong_hs_id, 'MRH-FAM', 'Family Mekong House', '2 giường Queen', 4, 980000, 3,
+           'Phòng gia đình có ban công rộng và khu ăn uống chung.',
+           '/assets/images/accommodations/homestay/hoa-lu-riverside-homestay/rooms/hlr-fam.jpg', 'FAMILY'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'MRH-FAM');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Grand World Phú Quốc Hotel',
+           'Khách sạn gần Grand World và VinWonders, phù hợp gia đình muốn kết hợp vui chơi và nghỉ biển.',
+           'Gành Dầu, Phú Quốc', 'Phú Quốc',
+           '/assets/images/accommodations/hotel/new-world-sai-gon-hotel/cover.jpg',
+           4, 8.7, 392, 'HOTEL', 'APPROVED', @owner_nobank_id, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Grand World Phú Quốc Hotel');
+    SET @grandworld_hotel_id = (SELECT id FROM accommodations WHERE name = 'Grand World Phú Quốc Hotel' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @grandworld_hotel_id, 'GWP-STD', 'Standard Grand Room', '1 giường Queen', 2, 980000, 10,
+           'Phòng tiêu chuẩn gần khu vui chơi, phù hợp khách đi cặp đôi.',
+           '/assets/images/accommodations/hotel/new-world-sai-gon-hotel/rooms/nws-std.jpg', 'STANDARD'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'GWP-STD')
+    UNION ALL
+    SELECT @grandworld_hotel_id, 'GWP-DLX', 'Deluxe Park View', '1 giường King', 2, 1460000, 6,
+           'Phòng view khu phố lễ hội, có bữa sáng và minibar.',
+           '/assets/images/accommodations/hotel/new-world-sai-gon-hotel/rooms/nws-dlx.jpg', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'GWP-DLX')
+    UNION ALL
+    SELECT @grandworld_hotel_id, 'GWP-FAM', 'Family Fun Room', '2 giường Queen', 4, 2250000, 4,
+           'Phòng gia đình rộng, thuận tiện di chuyển đến VinWonders.',
+           '/assets/images/accommodations/hotel/intercontinental-nha-trang/rooms/icn-sui.jpg', 'FAMILY'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'GWP-FAM');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Mũi Né Sand Dune Villa',
+           'Villa gần đồi cát bay Mũi Né, có bếp riêng, hồ bơi nhỏ và sân BBQ cho nhóm bạn.',
+           'Hàm Tiến, Phan Thiết', 'Mũi Né',
+           '/assets/images/accommodations/villa/sunset-beach-villa-phu-quoc/cover.jpg',
+           4, 8.9, 188, 'VILLA', 'APPROVED', @owner_villa_id, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Mũi Né Sand Dune Villa');
+    SET @muine_villa_id = (SELECT id FROM accommodations WHERE name = 'Mũi Né Sand Dune Villa' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @muine_villa_id, 'MSD-DLX', 'Sand Garden Villa', '2 giường Queen', 4, 2400000, 3,
+           'Villa 2 phòng ngủ, sân vườn riêng và bếp đầy đủ.',
+           '/assets/images/accommodations/villa/pine-hill-villa-da-lat/rooms/phv-dlx.jpg', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'MSD-DLX')
+    UNION ALL
+    SELECT @muine_villa_id, 'MSD-FAM', 'Family Dune Villa', '3 giường Queen', 6, 3600000, 2,
+           'Villa rộng cho gia đình hoặc nhóm bạn, có khu BBQ ngoài trời.',
+           '/assets/images/accommodations/villa/pine-hill-villa-da-lat/rooms/phv-fam.jpg', 'FAMILY'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'MSD-FAM')
+    UNION ALL
+    SELECT @muine_villa_id, 'MSD-POOL', 'Private Pool Dune Villa', '2 giường King', 4, 5200000, 1,
+           'Villa cao cấp có hồ bơi riêng, phòng khách rộng và ban công.',
+           '/assets/images/accommodations/villa/sunset-beach-villa-phu-quoc/rooms/sbv-pool.jpg', 'SUITE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'MSD-POOL');
+
+    -- ─── ĐÀ LẠT: BỔ SUNG ĐỦ RESORT / HOMESTAY / VILLA CHO TAB TÌM KIẾM ─────
+    -- Khi người dùng lọc Đà Lạt theo từng loại hình, mỗi tab có ít nhất 3 cơ sở.
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Ana Mandara Villas Dalat Resort',
+           'Khu nghỉ dưỡng biệt thự Pháp cổ giữa rừng thông Đà Lạt, có spa, hồ bơi nước ấm và nhà hàng sân vườn.',
+           'Lê Lai, Phường 5', 'Đà Lạt',
+           '/assets/images/accommodations/resort/legacy-bay-resort-ha-long/cover.jpg',
+           5, 9.1, 428, 'RESORT', 'APPROVED', @owner_resort_id, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Ana Mandara Villas Dalat Resort');
+    SET @ana_dalat_resort_id = (SELECT id FROM accommodations WHERE name = 'Ana Mandara Villas Dalat Resort' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @ana_dalat_resort_id, 'AMR-DLX', 'Deluxe Garden Villa Room', '1 giường King', 2, 2650000, 6,
+           'Phòng resort trong biệt thự cổ, nhìn vườn thông và có bữa sáng.',
+           '/assets/images/accommodations/resort/legacy-bay-resort-ha-long/rooms/lbr-dlx.jpg', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'AMR-DLX')
+    UNION ALL
+    SELECT @ana_dalat_resort_id, 'AMR-FAM', 'Family Heritage Villa', '2 giường Queen', 4, 4200000, 3,
+           'Phòng gia đình trong villa riêng, gần khu spa và hồ bơi.',
+           '/assets/images/accommodations/resort/sunset-pearl-resort-phu-quoc/rooms/spq-dlx.jpg', 'FAMILY'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'AMR-FAM')
+    UNION ALL
+    SELECT @ana_dalat_resort_id, 'AMR-SUI', 'Pine Forest Suite', '1 giường King cỡ lớn', 2, 5600000, 2,
+           'Suite có phòng khách riêng, ban công nhìn rừng thông và bồn tắm nằm.',
+           '/assets/images/accommodations/resort/legacy-bay-resort-ha-long/rooms/lbr-sui.jpg', 'SUITE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'AMR-SUI');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Terracotta Hotel & Resort Đà Lạt',
+           'Resort ven hồ Tuyền Lâm với không gian rộng, phù hợp gia đình nghỉ dưỡng và hội nhóm công ty.',
+           'Phân khu chức năng 7.9, Hồ Tuyền Lâm', 'Đà Lạt',
+           '/assets/images/accommodations/resort/azerai-can-tho-resort/cover.jpg',
+           4, 8.8, 612, 'RESORT', 'APPROVED', @owner_resort_id, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Terracotta Hotel & Resort Đà Lạt');
+    SET @terracotta_resort_id = (SELECT id FROM accommodations WHERE name = 'Terracotta Hotel & Resort Đà Lạt' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @terracotta_resort_id, 'TCR-GDN', 'Garden Deluxe Room', '1 giường King', 2, 1850000, 10,
+           'Phòng hướng vườn, gần hồ Tuyền Lâm, bao gồm bữa sáng buffet.',
+           '/assets/images/accommodations/resort/azerai-can-tho-resort/rooms/azc-dlx.jpg', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'TCR-GDN')
+    UNION ALL
+    SELECT @terracotta_resort_id, 'TCR-LAK', 'Lake View Suite', '1 giường King cỡ lớn', 2, 3200000, 5,
+           'Suite nhìn hồ Tuyền Lâm, có ban công riêng và minibar.',
+           '/assets/images/accommodations/resort/azerai-can-tho-resort/rooms/azc-sui.jpg', 'SUITE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'TCR-LAK')
+    UNION ALL
+    SELECT @terracotta_resort_id, 'TCR-FAM', 'Family Resort Room', '2 giường Queen', 4, 3800000, 4,
+           'Phòng gia đình rộng, gần khu vui chơi trẻ em và nhà hàng.',
+           '/assets/images/accommodations/resort/sunset-pearl-resort-phu-quoc/rooms/spq-dlx.jpg', 'FAMILY'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'TCR-FAM');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Swiss-Belresort Tuyen Lam Đà Lạt',
+           'Resort phong cách châu Âu trên đồi thông, có sân golf, hồ bơi trong nhà và khu nhà hàng nhìn thung lũng.',
+           'Khu du lịch hồ Tuyền Lâm', 'Đà Lạt',
+           '/assets/images/accommodations/resort/sunset-pearl-resort-phu-quoc/cover.jpg',
+           5, 8.9, 537, 'RESORT', 'APPROVED', @owner_resort_id, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Swiss-Belresort Tuyen Lam Đà Lạt');
+    SET @swiss_resort_id = (SELECT id FROM accommodations WHERE name = 'Swiss-Belresort Tuyen Lam Đà Lạt' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @swiss_resort_id, 'SBR-DLX', 'Deluxe Valley Room', '1 giường King', 2, 2200000, 8,
+           'Phòng hướng thung lũng, có bàn làm việc và bữa sáng.',
+           '/assets/images/accommodations/resort/sunset-pearl-resort-phu-quoc/rooms/spq-dlx.jpg', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'SBR-DLX')
+    UNION ALL
+    SELECT @swiss_resort_id, 'SBR-PRE', 'Premium Golf View', '1 giường King cỡ lớn', 2, 3600000, 4,
+           'Phòng premium nhìn sân golf, có bồn tắm nằm và minibar.',
+           '/assets/images/accommodations/resort/sunset-pearl-resort-phu-quoc/rooms/spq-sea.jpg', 'VIP'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'SBR-PRE')
+    UNION ALL
+    SELECT @swiss_resort_id, 'SBR-SUI', 'Executive Pine Suite', '1 giường King + sofa bed', 3, 5200000, 2,
+           'Suite rộng có phòng khách riêng, ban công nhìn rừng thông.',
+           '/assets/images/accommodations/resort/legacy-bay-resort-ha-long/rooms/lbr-sui.jpg', 'SUITE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'SBR-SUI');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Cầu Đất Farm Homestay',
+           'Homestay gần đồi chè Cầu Đất, có khu vườn rau, bếp chung và trải nghiệm săn mây buổi sáng.',
+           'Thôn Trường Thọ, Xuân Trường', 'Đà Lạt',
+           '/assets/images/homestay-o-da-lat.jpg',
+           3, 8.7, 148, 'HOMESTAY', 'APPROVED', @owner_homestay_id, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Cầu Đất Farm Homestay');
+    SET @caudat_hs_id = (SELECT id FROM accommodations WHERE name = 'Cầu Đất Farm Homestay' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @caudat_hs_id, 'CDF-STD', 'Phòng Vườn Cầu Đất', '1 giường đôi', 2, 430000, 6,
+           'Phòng riêng nhìn vườn rau, có máy lạnh và bữa sáng.',
+           '/assets/images/accommodations/homestay/sapa-valley-homestay/rooms/svh-std.jpg', 'STANDARD'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'CDF-STD')
+    UNION ALL
+    SELECT @caudat_hs_id, 'CDF-DLX', 'Deluxe Tea Hill Room', '1 giường King', 2, 680000, 4,
+           'Phòng có ban công nhìn đồi chè, phù hợp cặp đôi.',
+           '/assets/images/accommodations/homestay/sapa-valley-homestay/rooms/svh-dlx.jpg', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'CDF-DLX')
+    UNION ALL
+    SELECT @caudat_hs_id, 'CDF-FAM', 'Family Farm Room', '2 giường Queen', 4, 980000, 3,
+           'Phòng gia đình có khu sinh hoạt chung và bếp dùng chung.',
+           '/assets/images/accommodations/homestay/tam-coc-garden-homestay/rooms/tcg-fam.jpg', 'FAMILY'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'CDF-FAM');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Hồ Tuyền Lâm Homestay',
+           'Homestay nhỏ bên hồ Tuyền Lâm, có sân vườn, bếp chung và dịch vụ thuê xe máy đi các điểm gần hồ.',
+           'Đường Hoa Cẩm Tú Cầu, Phường 3', 'Đà Lạt',
+           '/assets/images/accommodations/homestay/hoa-lu-riverside-homestay/cover.jpg',
+           3, 8.8, 176, 'HOMESTAY', 'APPROVED', @owner_homestay_id, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Hồ Tuyền Lâm Homestay');
+    SET @huyenlam_hs_id = (SELECT id FROM accommodations WHERE name = 'Hồ Tuyền Lâm Homestay' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @huyenlam_hs_id, 'HTL-STD', 'Phòng Hồ Tiêu Chuẩn', '1 giường đôi', 2, 480000, 5,
+           'Phòng riêng yên tĩnh, có cửa sổ nhìn sân vườn.',
+           '/assets/images/accommodations/homestay/hoa-lu-riverside-homestay/rooms/hlr-std.jpg', 'STANDARD'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'HTL-STD')
+    UNION ALL
+    SELECT @huyenlam_hs_id, 'HTL-DLX', 'Deluxe Lake Garden', '1 giường King', 2, 760000, 4,
+           'Phòng có ban công, bữa sáng tại nhà và ấm đun nước.',
+           '/assets/images/accommodations/homestay/hoa-lu-riverside-homestay/rooms/hlr-dlx.jpg', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'HTL-DLX')
+    UNION ALL
+    SELECT @huyenlam_hs_id, 'HTL-FAM', 'Family Lake House', '2 giường Queen', 4, 1120000, 2,
+           'Phòng gia đình có khu ăn uống chung và sân vườn riêng.',
+           '/assets/images/accommodations/homestay/hoa-lu-riverside-homestay/rooms/hlr-fam.jpg', 'FAMILY'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'HTL-FAM');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Lavender Valley Villa Đà Lạt',
+           'Villa riêng trong thung lũng hoa oải hương, có sân BBQ, bếp riêng và phòng khách rộng.',
+           'Đường Đống Đa, Phường 3', 'Đà Lạt',
+           '/assets/images/accommodations/villa/ba-na-hills-forest-villa/cover.jpg',
+           4, 8.9, 203, 'VILLA', 'APPROVED', @owner_villa_id, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Lavender Valley Villa Đà Lạt');
+    SET @lavender_villa_id = (SELECT id FROM accommodations WHERE name = 'Lavender Valley Villa Đà Lạt' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @lavender_villa_id, 'LVV-DLX', 'Lavender Garden Villa', '2 giường Queen', 4, 2800000, 3,
+           'Villa 2 phòng ngủ, sân vườn riêng và bếp đầy đủ.',
+           '/assets/images/accommodations/villa/ba-na-hills-forest-villa/rooms/bnh-bng.jpg', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'LVV-DLX')
+    UNION ALL
+    SELECT @lavender_villa_id, 'LVV-FAM', 'Family Lavender House', '3 giường Queen', 6, 4200000, 2,
+           'Căn villa cho gia đình lớn, có khu BBQ và phòng khách riêng.',
+           '/assets/images/accommodations/villa/pine-hill-villa-da-lat/rooms/phv-fam.jpg', 'FAMILY'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'LVV-FAM')
+    UNION ALL
+    SELECT @lavender_villa_id, 'LVV-SUI', 'Valley Suite Villa', '2 giường King', 4, 5600000, 1,
+           'Villa cao cấp nhìn thung lũng, có bồn tắm nằm và ban công.',
+           '/assets/images/accommodations/villa/ba-na-hills-forest-villa/rooms/bnh-sui.jpg', 'SUITE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'LVV-SUI');
+
+    INSERT INTO accommodations (name, description, address, city, thumbnail_url, star_rating, rating, review_count, property_type, approval_status, owner_id, created_at, updated_at)
+    SELECT 'Tuyền Lâm Lake Villa',
+           'Villa ven hồ Tuyền Lâm dành cho nhóm bạn và gia đình, có hồ bơi riêng, bếp và sân ngắm hoàng hôn.',
+           'Khu du lịch hồ Tuyền Lâm', 'Đà Lạt',
+           '/assets/images/accommodations/villa/sunset-beach-villa-phu-quoc/cover.jpg',
+           5, 9.2, 257, 'VILLA', 'APPROVED', @owner_villa_id, NOW(), NOW()
+    WHERE NOT EXISTS (SELECT 1 FROM accommodations WHERE name = 'Tuyền Lâm Lake Villa');
+    SET @tuyenlam_villa_id = (SELECT id FROM accommodations WHERE name = 'Tuyền Lâm Lake Villa' LIMIT 1);
+    INSERT INTO rooms (accommodation_id, room_code, room_name, bed_type, capacity, price_per_night, available_quantity, description, image_url, room_category)
+    SELECT @tuyenlam_villa_id, 'TLV-DLX', 'Lake Garden Villa', '2 giường Queen', 4, 3600000, 3,
+           'Villa 2 phòng ngủ nhìn hồ, có bếp riêng và sân vườn.',
+           '/assets/images/accommodations/villa/sunset-beach-villa-phu-quoc/rooms/sbv-sea.jpg', 'DELUXE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'TLV-DLX')
+    UNION ALL
+    SELECT @tuyenlam_villa_id, 'TLV-FAM', 'Family Lake Villa', '3 giường Queen', 6, 5200000, 2,
+           'Villa cho gia đình lớn, phòng khách rộng và sân BBQ.',
+           '/assets/images/accommodations/villa/pine-hill-villa-da-lat/rooms/phv-fam.jpg', 'FAMILY'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'TLV-FAM')
+    UNION ALL
+    SELECT @tuyenlam_villa_id, 'TLV-POOL', 'Private Pool Lake Villa', '2 giường King', 4, 7200000, 1,
+           'Villa cao cấp có hồ bơi riêng, ban công nhìn hồ Tuyền Lâm.',
+           '/assets/images/accommodations/villa/sunset-beach-villa-phu-quoc/rooms/sbv-pool.jpg', 'SUITE'
+    WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE room_code = 'TLV-POOL');
+
+    -- Gắn tiện nghi cho các phòng/căn được tạo ở phần mở rộng cuối file.
+    -- Block này chạy sau khi các room_code bên dưới đã tồn tại trong bảng rooms.
+    INSERT IGNORE INTO room_amenities (room_id, amenity_id)
+    SELECT r.id, a.id
+    FROM rooms r
+    JOIN accommodations ac ON ac.id = r.accommodation_id
+    JOIN amenities a ON 1=1
+    WHERE r.room_code IN (
+        'ICN-STD','ICN-DLX','ICN-SUI',
+        'NVD-STD','NVD-DLX','NVD-FAM',
+        'LSH-STD','LSH-DLX','LSH-SUI',
+        'SLM-PRE','SLM-GRA','SLM-FAM',
+        'SPC-STD','SPC-DLX',
+        'SPQ-DLX','SPQ-SEA',
+        'PHV-DLX','PHV-FAM',
+        'SBV-SEA','SBV-POOL',
+        'TCG-STD','TCG-FAM',
+        'SVH-STD','SVH-DLX',
+        'LBR-DLX','LBR-SUI',
+        'NWS-STD','NWS-DLX',
+        'PVT-STD','PVT-DLX',
+        'AZC-DLX','AZC-SUI',
+        'TTC-DLX','TTC-FAM',
+        'LCH-STD','LCH-DLX','LCH-FAM',
+        'BHV-STD','BHV-DLX','BHV-FAM',
+        'DVS-STD','DVS-DLX','DVS-SUI',
+        'MPL-STD','MPL-DLX','MPL-FAM',
+        'MCC-STD','MCC-DLX','MCC-FAM',
+        'TLR-DLX','TLR-SUI','TLR-FAM',
+        'MCT-STD','MCT-DLX','MCT-FAM',
+        'MCF-STD','MCF-DLX','MCF-FAM',
+        'TRV-DLX','TRV-FAM','TRV-SUI',
+        'HLM-STD','HLM-DLX','HLM-SUI',
+        'VBF-STD','VBF-DLX','VBF-FAM',
+        'MRH-STD','MRH-DLX','MRH-FAM',
+        'GWP-STD','GWP-DLX','GWP-FAM',
+        'MSD-DLX','MSD-FAM','MSD-POOL',
+        'AMR-DLX','AMR-FAM','AMR-SUI',
+        'TCR-GDN','TCR-LAK','TCR-FAM',
+        'SBR-DLX','SBR-PRE','SBR-SUI',
+        'CDF-STD','CDF-DLX','CDF-FAM',
+        'HTL-STD','HTL-DLX','HTL-FAM',
+        'LVV-DLX','LVV-FAM','LVV-SUI',
+        'TLV-DLX','TLV-FAM','TLV-POOL'
+    )
+      AND (
+        a.name IN ('WiFi miễn phí','Bãi đỗ xe','Máy lạnh','TV màn hình phẳng',
+                   'Phòng tắm riêng','Máy sấy tóc','Đồ dùng cá nhân')
+        OR (ac.property_type = 'HOTEL'
+            AND a.name IN ('Nhà hàng','Bar / Café','Thang máy','Tủ lạnh mini',
+                           'Bàn làm việc','Bữa sáng miễn phí'))
+        OR (ac.property_type = 'RESORT'
+            AND a.name IN ('Hồ bơi chung','Nhà hàng','Spa / Massage','Phòng gym',
+                           'Bar / Café','Minibar','Két an toàn','Bữa sáng miễn phí',
+                           'Ban công riêng'))
+        OR (ac.property_type = 'VILLA'
+            AND a.name IN ('Bếp riêng','Tủ lạnh đầy đủ','Lò vi sóng',
+                           'Ấm đun nước','BBQ / Bếp nướng','Sân vườn riêng',
+                           'Ban công riêng'))
+        OR (ac.property_type = 'HOMESTAY'
+            AND a.name IN ('Bữa sáng miễn phí','Ấm đun nước','Sân vườn riêng',
+                           'Ban công riêng'))
+        OR (r.room_category IN ('DELUXE','VIP','SUITE')
+            AND a.name IN ('Minibar','Két an toàn','Ổ cắm quốc tế','Bồn tắm nằm',
+                           'Vòi sen đứng','Máy pha cà phê'))
+        OR (r.room_category IN ('FAMILY','SUITE')
+            AND a.name IN ('Tủ lạnh đầy đủ','Bếp riêng'))
+        OR (r.room_code IN ('ICN-DLX','ICN-SUI','SPQ-SEA','PVT-STD',
+                            'LBR-DLX','LBR-SUI','TTC-DLX',
+                            'HLM-DLX','HLM-SUI','VBF-DLX','VBF-FAM',
+                            'GWP-DLX','GWP-FAM','MSD-DLX','MSD-FAM','MSD-POOL')
+            AND a.name = 'View biển')
+        OR (r.room_code IN ('SPC-STD','SPC-DLX','SVH-STD','SVH-DLX',
+                            'TCG-STD','TCG-FAM',
+                            'BHV-STD','BHV-DLX','BHV-FAM',
+                            'DVS-STD','DVS-DLX','DVS-SUI',
+                            'MPL-STD','MPL-DLX','MPL-FAM',
+                            'MCC-STD','MCC-DLX','MCC-FAM',
+                            'TLR-DLX','TLR-SUI','TLR-FAM',
+                            'MCT-STD','MCT-DLX','MCT-FAM',
+                            'MCF-STD','MCF-DLX','MCF-FAM',
+                            'TRV-DLX','TRV-FAM','TRV-SUI',
+                            'AMR-DLX','AMR-FAM','AMR-SUI',
+                            'TCR-GDN','TCR-LAK','TCR-FAM',
+                            'SBR-DLX','SBR-PRE','SBR-SUI',
+                            'CDF-STD','CDF-DLX','CDF-FAM',
+                            'HTL-STD','HTL-DLX','HTL-FAM',
+                            'LVV-DLX','LVV-FAM','LVV-SUI',
+                            'TLV-DLX','TLV-FAM','TLV-POOL')
+            AND a.name = 'View núi / đồi')
+        OR (r.room_code IN ('SPQ-DLX','AZC-DLX','AZC-SUI','PHV-DLX','PHV-FAM',
+                            'SBV-SEA','SBV-POOL','TCG-STD','TCG-FAM','TTC-FAM',
+                            'BHV-STD','BHV-DLX','BHV-FAM',
+                            'MPL-STD','MPL-DLX','MPL-FAM',
+                            'MCC-STD','MCC-DLX','MCC-FAM',
+                            'TLR-DLX','TLR-SUI','TLR-FAM',
+                            'MCF-STD','MCF-DLX','MCF-FAM',
+                            'TRV-DLX','TRV-FAM','TRV-SUI',
+                            'VBF-STD','VBF-DLX','VBF-FAM',
+                            'MRH-STD','MRH-DLX','MRH-FAM',
+                            'MSD-DLX','MSD-FAM','MSD-POOL',
+                            'AMR-DLX','AMR-FAM','AMR-SUI',
+                            'TCR-GDN','TCR-LAK','TCR-FAM',
+                            'SBR-DLX','SBR-PRE','SBR-SUI',
+                            'CDF-STD','CDF-DLX','CDF-FAM',
+                            'HTL-STD','HTL-DLX','HTL-FAM',
+                            'LVV-DLX','LVV-FAM','LVV-SUI',
+                            'TLV-DLX','TLV-FAM','TLV-POOL')
+            AND a.name = 'Sân vườn riêng')
+        OR (r.room_code IN ('SBV-POOL','AZC-SUI','TRV-SUI','MSD-POOL','TLV-POOL')
+            AND a.name = 'Hồ bơi riêng')
+      );
+
+    -- ─── CHUẨN HÓA ẢNH LƯU TRÚ: mỗi nơi lưu trú/phòng có src local riêng ───
     UPDATE accommodations
     SET thumbnail_url = CASE name
         WHEN 'Tulip Hotel 2 Dalat' THEN '/assets/images/accommodations/hotel/tulip-hotel-2-dalat/cover.jpg'
@@ -5136,7 +6063,7 @@
           WHERE ri.room_id = r.id AND ri.is_primary = 1
       );
 
-    -- Mỗi phòng/căn demo dùng đúng 3 ảnh local trong modal "Xem chi tiết phòng".
+    -- Mỗi phòng/căn dùng đúng 3 ảnh local trong modal "Xem chi tiết phòng".
     DELETE ri FROM room_images ri
     JOIN rooms r ON r.id = ri.room_id
     WHERE r.image_url LIKE '/assets/images/accommodations/%.jpg';
@@ -5200,9 +6127,8 @@
         updated_at = VALUES(updated_at);
 
     -- =============================================
-    -- CHATBOT: PENDING_PAYMENT + CANCELLED bookings
-    -- Mục đích: khi giảng viên gõ "đặt phòng của tôi" với tài khoản user@travelmate.vn,
-    --           chatbot hiển thị đủ trạng thái ⏳ Chờ TT  và  ✗ Đã hủy.
+    -- DỮ LIỆU VẬN HÀNH — COVERAGE TRẠNG THÁI VNPAY / REFUND
+    -- Mục đích: các màn hình booking, payment và chatbot có đủ trạng thái để đối chiếu.
     -- =============================================
 
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
@@ -5210,40 +6136,377 @@
         customer_name, customer_phone, customer_email,
         total_amount, paid_amount, remaining_amount,
         booking_status, payment_option, payment_status,
+        remaining_payment_status, expire_at,
         note, created_at, updated_at)
     VALUES (
         'BK-OPS-PENDPAY-01', 2, 1, 1,
         DATE_ADD(CURDATE(), INTERVAL 14 DAY), DATE_ADD(CURDATE(), INTERVAL 16 DAY),
         2, 0, 1,
         'Nguyễn Văn An', '0912 345 678', 'user@travelmate.vn',
-        1300000, 0, 1300000,
+        1300000, 390000, 910000,
         'PENDING_PAYMENT', 'DEPOSIT_30', 'PENDING_PAYMENT',
-        'Khách đang chuyển đến cổng VNPAY — chờ xác nhận thanh toán.',
+        'UNPAID', DATE_ADD(NOW(), INTERVAL 3 MINUTE),
+        'Khách đang ở cổng VNPAY; hệ thống giữ phòng tạm trong thời hạn thanh toán.',
         NOW(), NOW()
     ) ON DUPLICATE KEY UPDATE updated_at = NOW();
+
+    INSERT INTO payments (booking_id, payment_method, payment_option, amount,
+        transaction_code, payment_status, gateway, vnp_txn_ref, expire_at, note)
+    SELECT b.id, 'VNPAY', 'DEPOSIT_30', 390000,
+           'TXN-OPS-PENDPAY-01', 'PENDING_PAYMENT', 'VNPAY', 'TM-OPS-PENDPAY-01',
+           b.expire_at, 'Payment mới tạo, chờ khách hoàn tất giao dịch VNPAY.'
+    FROM bookings b
+    WHERE b.booking_code = 'BK-OPS-PENDPAY-01'
+      AND NOT EXISTS (SELECT 1 FROM payments p WHERE p.booking_id = b.id);
 
     INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
         check_in, check_out, adults, children, room_quantity,
         customer_name, customer_phone, customer_email,
         total_amount, paid_amount, remaining_amount,
         booking_status, payment_option, payment_status,
+        remaining_payment_status, expire_at,
         note, created_at, updated_at)
     VALUES (
         'BK-OPS-CANCEL-01', 2, 2, 5,
         DATE_ADD(CURDATE(), INTERVAL 7 DAY), DATE_ADD(CURDATE(), INTERVAL 9 DAY),
         2, 0, 1,
         'Nguyễn Văn An', '0912 345 678', 'user@travelmate.vn',
-        960000, 0, 960000,
+        960000, 288000, 672000,
         'CANCELLED', 'DEPOSIT_30', 'CANCELLED',
+        'UNPAID', NULL,
         'Khách hủy giao dịch trên cổng VNPAY (mã 24).',
         DATE_SUB(NOW(), INTERVAL 15 MINUTE), DATE_SUB(NOW(), INTERVAL 15 MINUTE)
     ) ON DUPLICATE KEY UPDATE updated_at = NOW();
+
+    INSERT INTO payments (booking_id, payment_method, payment_option, amount,
+        transaction_code, payment_status, gateway, vnp_txn_ref, vnp_response_code, raw_return_payload, note)
+    SELECT b.id, 'VNPAY', 'DEPOSIT_30', 288000,
+           'TXN-OPS-CANCEL-01', 'CANCELLED', 'VNPAY', 'TM-OPS-CANCEL-01', '24',
+           'vnp_ResponseCode=24', 'Khách hủy giao dịch trên cổng VNPAY; booking đã mở lại quota.'
+    FROM bookings b
+    WHERE b.booking_code = 'BK-OPS-CANCEL-01'
+      AND NOT EXISTS (SELECT 1 FROM payments p WHERE p.booking_id = b.id);
+
+    INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
+        check_in, check_out, adults, children, room_quantity,
+        customer_name, customer_phone, customer_email,
+        total_amount, paid_amount, remaining_amount,
+        booking_status, payment_option, payment_status,
+        remaining_payment_status, expire_at,
+        note, created_at, updated_at)
+    VALUES (
+        'BK-OPS-FAILED-01', 5, 2, 6,
+        DATE_ADD(CURDATE(), INTERVAL 8 DAY), DATE_ADD(CURDATE(), INTERVAL 10 DAY),
+        2, 0, 1,
+        'Trần Thị Mai', '0923 456 789', 'user2@travelmate.vn',
+        1240000, 1240000, 0,
+        'CANCELLED', 'FULL_PAYMENT', 'FAILED',
+        'NOT_REQUIRED', NULL,
+        'VNPAY báo giao dịch thất bại; booking bị hủy và phòng được mở lại.',
+        DATE_SUB(NOW(), INTERVAL 30 MINUTE), DATE_SUB(NOW(), INTERVAL 30 MINUTE)
+    ) ON DUPLICATE KEY UPDATE updated_at = NOW();
+
+    INSERT INTO payments (booking_id, payment_method, payment_option, amount,
+        transaction_code, payment_status, gateway, vnp_txn_ref, vnp_response_code, raw_return_payload, note)
+    SELECT b.id, 'VNPAY', 'FULL_PAYMENT', 1240000,
+           'TXN-OPS-FAILED-01', 'FAILED', 'VNPAY', 'TM-OPS-FAILED-01', '99',
+           'vnp_ResponseCode=99', 'VNPAY báo thất bại; hệ thống hủy booking và trả quota.'
+    FROM bookings b
+    WHERE b.booking_code = 'BK-OPS-FAILED-01'
+      AND NOT EXISTS (SELECT 1 FROM payments p WHERE p.booking_id = b.id);
+
+    INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
+        check_in, check_out, adults, children, room_quantity,
+        customer_name, customer_phone, customer_email,
+        total_amount, paid_amount, remaining_amount,
+        booking_status, payment_option, payment_status,
+        remaining_payment_status, expire_at,
+        note, created_at, updated_at)
+    VALUES (
+        'BK-OPS-EXPIRED-01', 6, 1, 1,
+        DATE_ADD(CURDATE(), INTERVAL 9 DAY), DATE_ADD(CURDATE(), INTERVAL 11 DAY),
+        2, 0, 1,
+        'Lê Văn Đức', '0934 567 890', 'user3@travelmate.vn',
+        1300000, 390000, 910000,
+        'CANCELLED', 'DEPOSIT_30', 'EXPIRED',
+        'UNPAID', NULL,
+        'Phiên VNPAY quá hạn; scheduler hủy booking và trả lại quota.',
+        DATE_SUB(NOW(), INTERVAL 45 MINUTE), DATE_SUB(NOW(), INTERVAL 45 MINUTE)
+    ) ON DUPLICATE KEY UPDATE updated_at = NOW();
+
+    INSERT INTO payments (booking_id, payment_method, payment_option, amount,
+        transaction_code, payment_status, gateway, vnp_txn_ref, vnp_response_code, raw_return_payload, note)
+    SELECT b.id, 'VNPAY', 'DEPOSIT_30', 390000,
+           'TXN-OPS-EXPIRED-01', 'EXPIRED', 'VNPAY', 'TM-OPS-EXPIRED-01', '11',
+           'vnp_ResponseCode=11', 'Giao dịch hết hạn; hệ thống hủy giữ phòng tạm.'
+    FROM bookings b
+    WHERE b.booking_code = 'BK-OPS-EXPIRED-01'
+      AND NOT EXISTS (SELECT 1 FROM payments p WHERE p.booking_id = b.id);
+
+    INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
+        check_in, check_out, adults, children, room_quantity,
+        customer_name, customer_phone, customer_email,
+        total_amount, paid_amount, remaining_amount,
+        booking_status, payment_option, payment_status,
+        refund_amount, cancellation_fee, remaining_payment_status,
+        note, created_at, updated_at)
+    VALUES (
+        'BK-OPS-REFUND-PENDING-01', 5, 1, 2,
+        DATE_ADD(CURDATE(), INTERVAL 12 DAY), DATE_ADD(CURDATE(), INTERVAL 14 DAY),
+        2, 0, 1,
+        'Trần Thị Mai', '0923 456 789', 'user2@travelmate.vn',
+        1700000, 1700000, 0,
+        'CANCELLED', 'FULL_PAYMENT', 'REFUND_PENDING',
+        1190000, 510000, 'NOT_REQUIRED',
+        'Khách hủy sau khi thanh toán 100%; TravelMate đã ghi nhận yêu cầu hoàn tiền, chờ Admin xử lý ngoài hệ thống.',
+        DATE_SUB(NOW(), INTERVAL 2 HOUR), DATE_SUB(NOW(), INTERVAL 2 HOUR)
+    ) ON DUPLICATE KEY UPDATE updated_at = NOW();
+
+    INSERT INTO payments (booking_id, payment_method, payment_option, amount,
+        transaction_code, payment_status, gateway, vnp_txn_ref, paid_at, approved_at, note)
+    SELECT b.id, 'VNPAY', 'FULL_PAYMENT', 1700000,
+           'TXN-OPS-REFUND-PENDING-01', 'REFUND_PENDING', 'VNPAY', 'TM-OPS-REFUND-PENDING-01',
+           DATE_SUB(NOW(), INTERVAL 2 HOUR), DATE_SUB(NOW(), INTERVAL 2 HOUR),
+           'Thanh toán đã ghi nhận; đang chờ Admin ghi nhận hoàn tiền.'
+    FROM bookings b
+    WHERE b.booking_code = 'BK-OPS-REFUND-PENDING-01'
+      AND NOT EXISTS (SELECT 1 FROM payments p WHERE p.booking_id = b.id);
+
+    INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
+        check_in, check_out, adults, children, room_quantity,
+        customer_name, customer_phone, customer_email,
+        total_amount, paid_amount, remaining_amount,
+        booking_status, payment_option, payment_status,
+        refund_amount, cancellation_fee, remaining_payment_status,
+        note, created_at, updated_at)
+    VALUES (
+        'BK-OPS-REFUNDED-01', 6, 3, 9,
+        DATE_ADD(CURDATE(), INTERVAL 13 DAY), DATE_ADD(CURDATE(), INTERVAL 15 DAY),
+        2, 0, 1,
+        'Lê Văn Đức', '0934 567 890', 'user3@travelmate.vn',
+        2400000, 2400000, 0,
+        'CANCELLED', 'FULL_PAYMENT', 'REFUNDED',
+        1680000, 720000, 'NOT_REQUIRED',
+        'Admin đã ghi nhận kết quả hoàn tiền ngoài hệ thống cho booking thanh toán 100%.',
+        DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY)
+    ) ON DUPLICATE KEY UPDATE updated_at = NOW();
+
+    INSERT INTO payments (booking_id, payment_method, payment_option, amount,
+        transaction_code, payment_status, gateway, vnp_txn_ref, paid_at, approved_at, note)
+    SELECT b.id, 'VNPAY', 'FULL_PAYMENT', 2400000,
+           'TXN-OPS-REFUNDED-01', 'REFUNDED', 'VNPAY', 'TM-OPS-REFUNDED-01',
+           DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY),
+           'Admin đã ghi nhận kết quả hoàn tiền ngoài hệ thống theo chính sách hủy booking thanh toán 100%.'
+    FROM bookings b
+    WHERE b.booking_code = 'BK-OPS-REFUNDED-01'
+      AND NOT EXISTS (SELECT 1 FROM payments p WHERE p.booking_id = b.id);
+
+    -- Lịch sử booking đã checkout và review bổ sung cho các tài khoản user mới.
+    INSERT INTO bookings (booking_code, user_id, accommodation_id, room_id,
+        check_in, check_out, adults, children, room_quantity,
+        customer_name, customer_phone, customer_email,
+        total_amount, paid_amount, remaining_amount,
+        booking_status, payment_option, payment_status, partner_status,
+        note, booking_source, remaining_payment_status,
+        total_before_discount, created_at, updated_at)
+    SELECT d.booking_code, u.id, ac.id, r.id,
+           DATE_SUB(CURDATE(), INTERVAL d.checkin_days DAY),
+           DATE_SUB(CURDATE(), INTERVAL d.checkout_days DAY),
+           d.adults, d.children, 1,
+           d.customer_name, d.customer_phone, d.customer_email,
+           d.total_amount, d.total_amount, 0,
+           'COMPLETED', 'FULL_PAYMENT', 'APPROVED', 'PARTNER_COMPLETED',
+           d.note, 'ONLINE', 'NOT_REQUIRED',
+           d.total_amount,
+           DATE_SUB(NOW(), INTERVAL d.created_days DAY),
+           DATE_SUB(NOW(), INTERVAL d.checkout_days DAY)
+    FROM (
+        SELECT 'BK-REV-LCH-001' AS booking_code, 'family@travelmate.vn' AS email, 'LCH-FAM' AS room_code, 82 AS checkin_days, 80 AS checkout_days, 104 AS created_days, 2 AS adults, 2 AS children, 'Gia đình Minh Anh' AS customer_name, '0968 111 222' AS customer_phone, 'family@travelmate.vn' AS customer_email, 2700000 AS total_amount, 'Gia đình đi Lào Cai kết hợp Sa Pa, đã checkout và gửi đánh giá.' AS note
+        UNION ALL SELECT 'BK-REV-BHV-001', 'couple@travelmate.vn', 'BHV-DLX', 79, 77, 101, 2, 0, 'Linh & Khánh', '0979 333 444', 'couple@travelmate.vn', 1040000, 'Chuyến nghỉ cuối tuần ở Bắc Hà, thanh toán đủ qua VNPAY.'
+        UNION ALL SELECT 'BK-REV-DVS-001', 'user3@travelmate.vn', 'DVS-SUI', 76, 74, 96, 2, 0, 'Lê Văn Đức', '0934 567 890', 'user3@travelmate.vn', 2500000, 'Khách hoàn tất cung Hà Giang và nghỉ tại Đồng Văn.'
+        UNION ALL SELECT 'BK-REV-MPL-001', 'family@travelmate.vn', 'MPL-FAM', 73, 71, 93, 2, 2, 'Gia đình Minh Anh', '0968 111 222', 'family@travelmate.vn', 1840000, 'Gia đình nghỉ homestay nhìn Mã Pì Lèng, đã checkout đúng lịch.'
+        UNION ALL SELECT 'BK-REV-MCC-001', 'user2@travelmate.vn', 'MCC-DLX', 70, 68, 90, 2, 0, 'Trần Thị Mai', '0923 456 789', 'user2@travelmate.vn', 1440000, 'Khách đi mùa lúa Mù Cang Chải, đặt phòng deluxe hai đêm.'
+        UNION ALL SELECT 'BK-REV-TLR-001', 'family@travelmate.vn', 'TLR-FAM', 67, 65, 87, 2, 2, 'Gia đình Minh Anh', '0968 111 222', 'family@travelmate.vn', 6200000, 'Gia đình sử dụng phòng khoáng nóng Tú Lệ, thanh toán đủ.'
+        UNION ALL SELECT 'BK-REV-MCT-001', 'couple@travelmate.vn', 'MCT-DLX', 64, 62, 84, 2, 0, 'Linh & Khánh', '0979 333 444', 'couple@travelmate.vn', 1960000, 'Cặp đôi nghỉ cuối tuần ở Mộc Châu, đã checkout.'
+        UNION ALL SELECT 'BK-REV-MCF-001', 'family@travelmate.vn', 'MCF-FAM', 61, 59, 81, 2, 2, 'Gia đình Minh Anh', '0968 111 222', 'family@travelmate.vn', 1920000, 'Gia đình trải nghiệm farmstay có sân BBQ và vườn dâu.'
+        UNION ALL SELECT 'BK-REV-TRV-001', 'couple@travelmate.vn', 'TRV-DLX', 58, 56, 78, 2, 0, 'Linh & Khánh', '0979 333 444', 'couple@travelmate.vn', 5200000, 'Cặp đôi nghỉ villa ven sông Tràng An, thanh toán đủ.'
+        UNION ALL SELECT 'BK-REV-HLM-001', 'user@travelmate.vn', 'HLM-SUI', 55, 53, 75, 2, 1, 'Nguyễn Văn An', '0912 345 678', 'user@travelmate.vn', 5200000, 'Khách đi Hạ Long cùng gia đình nhỏ, đã checkout suite nhìn vịnh.'
+        UNION ALL SELECT 'BK-REV-VBF-001', 'couple@travelmate.vn', 'VBF-DLX', 52, 50, 72, 2, 0, 'Linh & Khánh', '0979 333 444', 'couple@travelmate.vn', 1560000, 'Cặp đôi đặt homestay biển Vũng Tàu hai đêm.'
+        UNION ALL SELECT 'BK-REV-MRH-001', 'family@travelmate.vn', 'MRH-FAM', 49, 47, 69, 2, 2, 'Gia đình Minh Anh', '0968 111 222', 'family@travelmate.vn', 1960000, 'Gia đình đi chợ nổi Cái Răng và nghỉ homestay ven sông.'
+        UNION ALL SELECT 'BK-REV-GWP-001', 'family@travelmate.vn', 'GWP-FAM', 46, 44, 66, 2, 2, 'Gia đình Minh Anh', '0968 111 222', 'family@travelmate.vn', 4500000, 'Gia đình đặt phòng gần Grand World Phú Quốc, đã checkout.'
+        UNION ALL SELECT 'BK-REV-MSD-001', 'couple@travelmate.vn', 'MSD-DLX', 43, 41, 63, 2, 0, 'Linh & Khánh', '0979 333 444', 'couple@travelmate.vn', 4800000, 'Cặp đôi nghỉ villa gần đồi cát Mũi Né, thanh toán đủ.'
+        UNION ALL SELECT 'BK-REV-BHV-002', 'user2@travelmate.vn', 'BHV-FAM', 40, 38, 60, 2, 1, 'Trần Thị Mai', '0923 456 789', 'user2@travelmate.vn', 1560000, 'Khách đi cùng người thân, nghỉ phòng gia đình Bắc Hà.'
+        UNION ALL SELECT 'BK-REV-HLM-002', 'user3@travelmate.vn', 'HLM-DLX', 37, 35, 57, 2, 0, 'Lê Văn Đức', '0934 567 890', 'user3@travelmate.vn', 2900000, 'Khách đặt phòng Hạ Long Marina, hoàn tất thanh toán và checkout.'
+        UNION ALL SELECT 'BK-REV-LCH-002', 'user@travelmate.vn', 'LCH-STD', 34, 32, 54, 1, 0, 'Nguyễn Văn An', '0912 345 678', 'user@travelmate.vn', 1240000, 'Chuyến công tác Lào Cai hai đêm, đã hoàn tất.'
+    ) d
+    JOIN users u ON u.email = d.email
+    JOIN rooms r ON r.room_code = d.room_code
+    JOIN accommodations ac ON ac.id = r.accommodation_id
+    WHERE NOT EXISTS (SELECT 1 FROM bookings b WHERE b.booking_code = d.booking_code);
+
+    INSERT INTO payments (booking_id, payment_method, payment_option, amount,
+        transaction_code, payment_status, paid_at, approved_at,
+        gateway, vnp_txn_ref, vnp_response_code, vnp_transaction_status, note)
+    SELECT b.id, 'VNPAY', 'FULL_PAYMENT', b.total_amount,
+           REPLACE(b.booking_code, 'BK-', 'TXN-'), 'APPROVED',
+           DATE_SUB(b.check_in, INTERVAL 7 DAY),
+           DATE_SUB(b.check_in, INTERVAL 7 DAY),
+           'VNPAY', REPLACE(b.booking_code, 'BK-', 'TM-'), '00', '00',
+           'VNPAY ghi nhận thành công, đơn đã hoàn tất sau khi khách checkout.'
+    FROM bookings b
+    WHERE b.booking_code LIKE 'BK-REV-%'
+      AND NOT EXISTS (SELECT 1 FROM payments p WHERE p.booking_id = b.id);
+
+    INSERT INTO reviews (user_id, accommodation_id, booking_id, rating, comment, created_at)
+    SELECT b.user_id, b.accommodation_id, b.id, d.rating, d.comment,
+           DATE_ADD(b.check_out, INTERVAL 1 DAY)
+    FROM (
+        SELECT 'BK-REV-LCH-001' AS booking_code, 9 AS rating, 'Khách sạn sạch, vị trí thuận tiện để hôm sau đi Sa Pa. Phòng gia đình rộng và nhân viên hỗ trợ gửi hành lý rất nhanh.' AS comment
+        UNION ALL SELECT 'BK-REV-BHV-001', 9, 'Homestay yên tĩnh, bữa sáng địa phương ngon. Ban công nhìn thung lũng đúng như mô tả.'
+        UNION ALL SELECT 'BK-REV-DVS-001', 8, 'Phòng suite rộng, nằm gần phố cổ Đồng Văn nên đi bộ buổi tối rất tiện. Nước nóng ổn định.'
+        UNION ALL SELECT 'BK-REV-MPL-001', 10, 'View núi rất đẹp, chủ nhà thân thiện và hỗ trợ đặt thuyền Nho Quế. Gia đình tôi rất hài lòng.'
+        UNION ALL SELECT 'BK-REV-MCC-001', 9, 'Bungalow sạch, ngắm ruộng bậc thang từ ban công. Đường vào hơi quanh co nhưng đáng trải nghiệm.'
+        UNION ALL SELECT 'BK-REV-TLR-001', 9, 'Khu khoáng nóng sạch, phòng gia đình rộng, trẻ con rất thích hồ bơi. Nhà hàng phục vụ nhanh.'
+        UNION ALL SELECT 'BK-REV-MCT-001', 8, 'Vị trí gần đồi chè, phòng có ban công thoáng. Bữa sáng đơn giản nhưng vừa miệng.'
+        UNION ALL SELECT 'BK-REV-MCF-001', 9, 'Farmstay có sân rộng, khu BBQ tiện cho gia đình. Chủ nhà chuẩn bị xe đạp miễn phí.'
+        UNION ALL SELECT 'BK-REV-TRV-001', 10, 'Villa ven sông đẹp, bếp đầy đủ, không gian riêng tư. Rất hợp chuyến nghỉ ngắn ở Ninh Bình.'
+        UNION ALL SELECT 'BK-REV-HLM-001', 9, 'Suite nhìn vịnh đẹp, gần bến du thuyền. Gia đình di chuyển đi tour Hạ Long rất thuận tiện.'
+        UNION ALL SELECT 'BK-REV-VBF-001', 8, 'Homestay gần biển, phòng có ban công và máy lạnh tốt. Cuối tuần hơi đông nhưng đáng tiền.'
+        UNION ALL SELECT 'BK-REV-MRH-001', 9, 'Chủ nhà chuẩn bị thuyền đi chợ nổi đúng giờ, phòng gia đình sạch và thoáng.'
+        UNION ALL SELECT 'BK-REV-GWP-001', 8, 'Phòng gần khu vui chơi nên rất tiện cho trẻ nhỏ. Buổi tối hơi náo nhiệt nhưng dịch vụ tốt.'
+        UNION ALL SELECT 'BK-REV-MSD-001', 9, 'Villa riêng tư, sân BBQ đẹp, đi đồi cát rất gần. Phù hợp cặp đôi hoặc nhóm nhỏ.'
+        UNION ALL SELECT 'BK-REV-BHV-002', 8, 'Phòng gia đình đủ rộng, có khu sinh hoạt chung. Bữa sáng nóng và chủ nhà nhiệt tình.'
+        UNION ALL SELECT 'BK-REV-HLM-002', 9, 'Phòng deluxe sạch, nhìn vịnh đẹp. Nhân viên lễ tân hỗ trợ check-in nhanh.'
+        UNION ALL SELECT 'BK-REV-LCH-002', 8, 'Phòng tiêu chuẩn gọn, phù hợp công tác. Vị trí trung tâm giúp đi lại thuận tiện.'
+    ) d
+    JOIN bookings b ON b.booking_code = d.booking_code
+    WHERE NOT EXISTS (SELECT 1 FROM reviews rv WHERE rv.booking_id = b.id);
+
+    -- Đồng bộ trạng thái xử lý phía Partner cho các đơn đã check-out.
+    -- Code runtime khi Partner bấm "Hoàn tất / Check-out" sẽ set PARTNER_COMPLETED;
+    -- block này giúp dữ liệu import máy khác cũng hiển thị đủ trạng thái đó trên Admin/Partner/User.
+    UPDATE bookings
+    SET partner_status = 'PARTNER_COMPLETED'
+    WHERE booking_status = 'COMPLETED'
+      AND (booking_source IS NULL OR booking_source = 'ONLINE')
+      AND partner_status = 'PARTNER_CONFIRMED';
+
+    -- Chuẩn hóa snapshot doanh thu cho đơn đặt cọc 30%:
+    -- Hoa hồng tính trên tổng đơn gốc trước voucher, còn payout vẫn dựa trên số tiền hệ thống thực thu online.
+    UPDATE bookings b
+    JOIN rooms r ON r.id = b.room_id
+    JOIN accommodations a ON a.id = b.accommodation_id
+    SET b.commission_rate_snapshot = COALESCE(b.commission_rate_snapshot,
+            COALESCE(r.commission_rate_override / 100,
+                CASE a.property_type
+                    WHEN 'HOTEL' THEN 0.15
+                    WHEN 'RESORT' THEN 0.18
+                    WHEN 'VILLA' THEN 0.12
+                    WHEN 'HOMESTAY' THEN 0.10
+                    ELSE 0.10
+                END)),
+        b.commission_source_snapshot = COALESCE(b.commission_source_snapshot,
+            CASE WHEN r.commission_rate_override IS NOT NULL THEN 'ROOM_OVERRIDE' ELSE 'PROPERTY_TYPE_DEFAULT' END),
+        b.commission_base_amount = COALESCE(b.total_before_discount, b.total_amount, COALESCE(b.paid_amount, 0)),
+        b.commission_amount_snapshot = ROUND(
+            COALESCE(b.total_before_discount, b.total_amount, COALESCE(b.paid_amount, 0))
+            * COALESCE(b.commission_rate_snapshot,
+                COALESCE(r.commission_rate_override / 100,
+                    CASE a.property_type
+                        WHEN 'HOTEL' THEN 0.15
+                        WHEN 'RESORT' THEN 0.18
+                        WHEN 'VILLA' THEN 0.12
+                        WHEN 'HOMESTAY' THEN 0.10
+                        ELSE 0.10
+                    END)),
+            0),
+        b.partner_voucher_amount_snapshot = CASE WHEN b.voucher_cost_bearer = 'PARTNER' THEN COALESCE(b.discount_amount, 0) ELSE 0 END,
+        b.admin_voucher_amount_snapshot = CASE WHEN b.voucher_cost_bearer = 'ADMIN' THEN COALESCE(b.discount_amount, 0) ELSE 0 END,
+        b.partner_payout_snapshot =
+            COALESCE(b.paid_amount, 0) - ROUND(
+                COALESCE(b.total_before_discount, b.total_amount, COALESCE(b.paid_amount, 0))
+                * COALESCE(b.commission_rate_snapshot,
+                    COALESCE(r.commission_rate_override / 100,
+                        CASE a.property_type
+                            WHEN 'HOTEL' THEN 0.15
+                            WHEN 'RESORT' THEN 0.18
+                            WHEN 'VILLA' THEN 0.12
+                            WHEN 'HOMESTAY' THEN 0.10
+                            ELSE 0.10
+                        END)),
+                0)
+            - CASE WHEN b.voucher_cost_bearer = 'PARTNER' THEN COALESCE(b.discount_amount, 0) ELSE 0 END,
+        b.remaining_amount = CASE
+            WHEN b.payment_status = 'DEPOSIT_FORFEITED' OR b.booking_status IN ('CANCELLED', 'NO_SHOW')
+                THEN COALESCE(b.remaining_amount, 0)
+            ELSE GREATEST(COALESCE(b.total_before_discount, b.total_amount, 0) - COALESCE(b.paid_amount, 0), 0)
+        END,
+        b.online_paid_amount_snapshot = COALESCE(b.paid_amount, 0),
+        b.onsite_amount_snapshot = CASE
+            WHEN b.payment_status = 'DEPOSIT_FORFEITED' OR b.booking_status IN ('CANCELLED', 'NO_SHOW')
+                THEN 0
+            ELSE GREATEST(COALESCE(b.total_before_discount, b.total_amount, 0) - COALESCE(b.paid_amount, 0), 0)
+        END
+    WHERE b.payment_option = 'DEPOSIT_30'
+      AND (b.booking_source IS NULL OR b.booking_source = 'ONLINE');
+
+    -- Chuẩn hóa snapshot doanh thu cho đơn thanh toán 100%:
+    -- Hoa hồng cũng tính trên tổng đơn gốc trước voucher; phần đã thu online vẫn là số tiền khách thanh toán qua VNPAY.
+    UPDATE bookings b
+    JOIN rooms r ON r.id = b.room_id
+    JOIN accommodations a ON a.id = b.accommodation_id
+    SET b.commission_rate_snapshot = COALESCE(b.commission_rate_snapshot,
+            COALESCE(r.commission_rate_override / 100,
+                CASE a.property_type
+                    WHEN 'HOTEL' THEN 0.15
+                    WHEN 'RESORT' THEN 0.18
+                    WHEN 'VILLA' THEN 0.12
+                    WHEN 'HOMESTAY' THEN 0.10
+                    ELSE 0.10
+                END)),
+        b.commission_source_snapshot = COALESCE(b.commission_source_snapshot,
+            CASE WHEN r.commission_rate_override IS NOT NULL THEN 'ROOM_OVERRIDE' ELSE 'PROPERTY_TYPE_DEFAULT' END),
+        b.commission_base_amount = COALESCE(b.total_before_discount, b.total_amount, COALESCE(b.paid_amount, 0)),
+        b.commission_amount_snapshot = ROUND(
+            COALESCE(b.total_before_discount, b.total_amount, COALESCE(b.paid_amount, 0))
+            * COALESCE(b.commission_rate_snapshot,
+                COALESCE(r.commission_rate_override / 100,
+                    CASE a.property_type
+                        WHEN 'HOTEL' THEN 0.15
+                        WHEN 'RESORT' THEN 0.18
+                        WHEN 'VILLA' THEN 0.12
+                        WHEN 'HOMESTAY' THEN 0.10
+                        ELSE 0.10
+                    END)),
+            0),
+        b.partner_voucher_amount_snapshot = CASE WHEN b.voucher_cost_bearer = 'PARTNER' THEN COALESCE(b.discount_amount, 0) ELSE 0 END,
+        b.admin_voucher_amount_snapshot = CASE WHEN b.voucher_cost_bearer = 'ADMIN' THEN COALESCE(b.discount_amount, 0) ELSE 0 END,
+        b.partner_payout_snapshot =
+            COALESCE(b.paid_amount, 0) - ROUND(
+                COALESCE(b.total_before_discount, b.total_amount, COALESCE(b.paid_amount, 0))
+                * COALESCE(b.commission_rate_snapshot,
+                    COALESCE(r.commission_rate_override / 100,
+                        CASE a.property_type
+                            WHEN 'HOTEL' THEN 0.15
+                            WHEN 'RESORT' THEN 0.18
+                            WHEN 'VILLA' THEN 0.12
+                            WHEN 'HOMESTAY' THEN 0.10
+                            ELSE 0.10
+                        END)),
+                0)
+            - CASE WHEN b.voucher_cost_bearer = 'PARTNER' THEN COALESCE(b.discount_amount, 0) ELSE 0 END,
+        b.remaining_amount = 0,
+        b.online_paid_amount_snapshot = COALESCE(b.paid_amount, 0),
+        b.onsite_amount_snapshot = 0
+    WHERE b.payment_option = 'FULL_PAYMENT'
+      AND COALESCE(b.paid_amount, 0) > 0
+      AND (b.booking_source IS NULL OR b.booking_source = 'ONLINE');
 
     SET FOREIGN_KEY_CHECKS = 1;
     SET SQL_SAFE_UPDATES = @OLD_SQL_SAFE_UPDATES;
 
     -- =============================================
-    -- END OF travelmate_db.sql v18 — TravelMate Initial Data
+    -- END OF travelmate_db.sql v19 — TravelMate Initial Data
     -- =============================================
 
 

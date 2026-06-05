@@ -2,6 +2,29 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 <th:block th:fragment="header(staticHeader, activeMenu)">
+    <div class="admin-preview-bar" th:if="${showAdminPreviewBar}">
+        <div class="admin-preview-bar__inner container">
+            <span class="admin-preview-bar__label">
+                <i class="fa-solid fa-shield-halved"></i>
+                Đang xem trang người dùng với vai trò Admin
+            </span>
+            <div class="admin-preview-bar__actions">
+                <a th:href="@{/admin/dashboard}">
+                    <i class="fa-solid fa-gauge-high"></i>
+                    Quay về Admin
+                </a>
+                <a th:href="@{/admin/bookings}">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    Booking
+                </a>
+                <a th:href="@{/admin/vouchers}">
+                    <i class="fa-solid fa-ticket"></i>
+                    Voucher
+                </a>
+            </div>
+        </div>
+    </div>
+
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <aside class="sidebar-menu" id="sidebarMenu" role="dialog" aria-label="Menu điều hướng">
@@ -37,9 +60,13 @@
                 <span class="s-icon"><i class="fa-solid fa-ticket"></i></span>
                 <span th:text="#{nav.voucher}">Kho voucher</span>
             </a>
-            <a th:href="@{/my-bookings}" th:classappend="${activeMenu == 'bookings'} ? 'active-sidebar' : ''">
+            <a th:if="${!isAdmin}" th:href="@{/my-bookings}" th:classappend="${activeMenu == 'bookings'} ? 'active-sidebar' : ''">
                 <span class="s-icon"><i class="fa-solid fa-suitcase-rolling"></i></span>
                 <span th:text="#{nav.myBookings}">Đặt phòng của tôi</span>
+            </a>
+            <a th:if="${isAdmin}" th:href="@{/admin/dashboard}">
+                <span class="s-icon"><i class="fa-solid fa-gauge-high"></i></span>
+                <span>Quay về Admin</span>
             </a>
         </nav>
 
@@ -81,9 +108,14 @@
                     <li><a th:href="@{/}" th:classappend="${activeMenu == 'home'} ? 'active-menu' : ''"><span th:text="#{nav.home}">TRANG CHỦ</span></a></li>
                     <li><a th:href="@{/travel}" th:classappend="${activeMenu == 'travel'} ? 'active-menu' : ''"><span th:text="#{nav.travel}">GỢI Ý DU LỊCH</span></a></li>
                     <li><a th:href="@{/news}" th:classappend="${activeMenu == 'news'} ? 'active-menu' : ''"><span th:text="#{nav.news}">TIN TỨC</span></a></li>
-                    <li>
+                    <li th:if="${!isAdmin}">
                         <a th:href="@{/my-bookings}" class="my-booking" th:classappend="${activeMenu == 'bookings'} ? 'active-menu' : ''">
                             <i class="fa-solid fa-bed"></i> <span th:text="#{nav.myBookings}">ĐẶT PHÒNG CỦA TÔI</span>
+                        </a>
+                    </li>
+                    <li th:if="${isAdmin}">
+                        <a th:href="@{/admin/dashboard}" class="my-booking">
+                            <i class="fa-solid fa-gauge-high"></i> <span>QUAY VỀ ADMIN</span>
                         </a>
                     </li>
                 </ul>
@@ -119,24 +151,38 @@
                 </div>
 
                 <div class="header-user" id="headerUser" sec:authorize="isAuthenticated()">
-                    <button class="header-user-btn" id="headerUserBtn" type="button">
-                        <div class="header-avatar">
-                            <img th:if="${#authentication.principal.avatarUrl != null}"
+                    <button class="header-user-btn" id="headerUserBtn" type="button"
+                            th:with="displayName=${!#strings.isEmpty(#authentication.principal.fullName) ? #authentication.principal.fullName : (!#strings.isEmpty(#authentication.principal.username) ? #authentication.principal.username : 'U')},
+                                     avatarInitial=${#strings.toUpperCase(#strings.substring(displayName, 0, 1))}">
+                        <div class="header-avatar"
+                             th:classappend="${!#strings.isEmpty(#authentication.principal.avatarUrl)} ? ' has-photo' : ''">
+                            <span class="header-avatar-fallback" th:text="${avatarInitial}">U</span>
+                            <img th:if="${!#strings.isEmpty(#authentication.principal.avatarUrl)}"
                                  th:src="${#authentication.principal.avatarUrl}"
-                                 alt="Avatar"
-                                 style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />
-                            <i th:unless="${#authentication.principal.avatarUrl != null}"
-                               class="fa-solid fa-user"></i>
+                                 th:alt="${displayName + ' avatar'}"
+                                 referrerpolicy="no-referrer"
+                                 loading="lazy"
+                                 decoding="async"
+                                 onerror="this.remove();this.closest('.header-avatar').classList.remove('has-photo');" />
                         </div>
-                        <span class="header-user-name" sec:authentication="principal.fullName">User</span>
+                        <span class="header-user-name" th:text="${displayName}">User</span>
                         <i class="fa-solid fa-chevron-down header-chevron"></i>
                     </button>
                     <div class="header-user-dropdown" id="headerUserDropdown">
-                        <a th:href="@{/profile}" class="dropdown-item">
+                        <a th:if="${!isAdmin}" th:href="@{/profile}" class="dropdown-item">
                             <i class="fa-solid fa-user-gear"></i> <span th:text="#{auth.profile}">Hồ sơ của tôi</span>
                         </a>
-                        <a th:href="@{/my-bookings}" class="dropdown-item">
+                        <a th:if="${!isAdmin}" th:href="@{/my-bookings}" class="dropdown-item">
                             <i class="fa-solid fa-bed"></i> <span th:text="#{nav.myBookings}">Đặt phòng của tôi</span>
+                        </a>
+                        <a th:if="${isAdmin}" th:href="@{/admin/dashboard}" class="dropdown-item">
+                            <i class="fa-solid fa-gauge-high"></i> <span>Admin Dashboard</span>
+                        </a>
+                        <a th:if="${isAdmin}" th:href="@{/admin/bookings}" class="dropdown-item">
+                            <i class="fa-solid fa-calendar-check"></i> <span>Quản lý booking</span>
+                        </a>
+                        <a th:if="${isAdmin}" th:href="@{/admin/vouchers}" class="dropdown-item">
+                            <i class="fa-solid fa-ticket"></i> <span>Quản lý voucher</span>
                         </a>
                         <div class="dropdown-divider"></div>
                         <form method="post" th:action="@{/auth/logout}">

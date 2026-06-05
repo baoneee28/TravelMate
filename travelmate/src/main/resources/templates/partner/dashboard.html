@@ -151,14 +151,14 @@
                         <div class="stats-card__icon stats-card__icon--amber">⏳</div>
                         <div>
                             <div class="stats-card__value" th:text="${pendingConfirmCount}">0</div>
-                            <div class="stats-card__label" th:text="${'Chờ xác nhận giữ ' + (unitLabel ?: 'phòng')}">Chờ xác nhận giữ phòng</div>
+                            <div class="stats-card__label">Cần kiểm tra</div>
                         </div>
                     </div>
                     <div class="stats-card">
                         <div class="stats-card__icon stats-card__icon--green">✅</div>
                         <div>
                             <div class="stats-card__value" th:text="${confirmedCount}">0</div>
-                            <div class="stats-card__label" th:text="${'Đã xác nhận giữ ' + (unitLabel ?: 'phòng')}">Đã xác nhận giữ phòng</div>
+                            <div class="stats-card__label" th:text="${'Đã giữ ' + (unitLabel ?: 'phòng')}">Đã giữ phòng</div>
                         </div>
                     </div>
                     <div class="stats-card">
@@ -256,12 +256,12 @@
                                 <div style="font-size:11px;color:#6b7280;margin-top:2px;" th:text="${'Cần hoàn tất trả ' + (unitLabel ?: 'phòng')}">Cần hoàn tất trả phòng</div>
                             </div>
                         </a>
-                        <!-- Chờ xác nhận giữ phòng -->
+                        <!-- Legacy/ngoại lệ cần kiểm tra -->
                         <a href="/partner/bookings?filter=needs-action" style="text-decoration:none;">
                             <div th:style="${pendingConfirmCount > 0} ? 'border-radius:12px;padding:16px 12px;text-align:center;background:#fffbeb;border:2px solid #fde68a;' : 'border-radius:12px;padding:16px 12px;text-align:center;background:#f9fafb;border:2px solid #e5e7eb;'">
                                 <div style="font-size:26px;font-weight:800;color:#d97706;" th:text="${pendingConfirmCount}">0</div>
-                                <div style="font-size:12px;font-weight:600;color:#374151;margin-top:2px;">⏳ Chờ xác nhận</div>
-                                <div style="font-size:11px;color:#6b7280;margin-top:2px;" th:text="${'Cần xác nhận giữ ' + (unitLabel ?: 'phòng')}">Cần xác nhận giữ phòng</div>
+                                <div style="font-size:12px;font-weight:600;color:#374151;margin-top:2px;">⚠️ Cần kiểm tra</div>
+                                <div style="font-size:11px;color:#6b7280;margin-top:2px;" th:text="${'Kiểm tra giữ ' + (unitLabel ?: 'phòng')}">Kiểm tra giữ phòng</div>
                             </div>
                         </a>
                         <!-- Chờ thu 70% còn lại -->
@@ -359,7 +359,7 @@
                                     <th th:text="${'Cơ sở / ' + (unitLabelCap ?: 'Phòng')}">Khách sạn / Phòng</th>
                                     <th>Check-in</th>
                                     <th>Trạng thái</th>
-                                    <th>Trạng thái xác nhận</th>
+                                    <th>Trạng thái giữ phòng</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -381,7 +381,7 @@
                                                              b.bookingStatus.name() == 'CHECKED_IN' ? 'badge--info' :
                                                              b.bookingStatus.name() == 'COMPLETED' ? 'badge--success' :
                                                              b.bookingStatus.name() == 'NO_SHOW' ? 'badge--danger' : 'badge--muted'}"
-                                              th:text="${b.bookingStatus.name() == 'CONFIRMED' ? 'Đã xác nhận' :
+                                             th:text="${b.bookingStatus.name() == 'CONFIRMED' ? 'Đã ghi nhận' :
                                                         b.bookingStatus.name() == 'CHECKED_IN' ? 'Check-in' :
                                                         b.bookingStatus.name() == 'COMPLETED' ? 'Hoàn thành' :
                                                         b.bookingStatus.name() == 'NO_SHOW' ? 'Không đến' : b.bookingStatus.name()}">
@@ -392,10 +392,10 @@
                                         <span th:if="${b.partnerStatus == null}" class="badge badge--muted" style="font-size:11px;">—</span>
                                         <span th:if="${b.partnerStatus != null && b.partnerStatus.name() == 'PENDING_PARTNER_CONFIRMATION'}"
                                               class="badge badge--warning" style="font-size:11px;"
-                                              th:text="${'⏳ Chờ xác nhận giữ ' + (unitLabel ?: 'phòng')}">⏳ Chờ xác nhận giữ phòng</span>
+                                              th:text="${'⚠️ Cần kiểm tra trạng thái giữ ' + (unitLabel ?: 'phòng')}">⚠️ Cần kiểm tra trạng thái giữ phòng</span>
                                         <span th:if="${b.partnerStatus != null && b.partnerStatus.name() == 'PARTNER_CONFIRMED'}"
                                               class="badge badge--success" style="font-size:11px;"
-                                              th:text="${'✅ Đã xác nhận giữ ' + (unitLabel ?: 'phòng')}">✅ Đã xác nhận giữ phòng</span>
+                                              th:text="${'✅ Đã giữ ' + (unitLabel ?: 'phòng')}">✅ Đã giữ phòng</span>
                                     </td>
                                 </tr>
                             </tbody>
@@ -408,7 +408,7 @@
 
                 <div th:if="${#lists.isEmpty(recentBookings)}" style="text-align:center;padding:40px;color:var(--color-text-muted);">
                     <div style="font-size:48px;margin-bottom:12px;">📭</div>
-                    <p th:text="${'Chưa có đơn đặt ' + (unitLabel ?: 'phòng') + ' online nào đã được VNPAY xác nhận.'}">Chưa có đơn đặt phòng online nào đã được VNPAY xác nhận.</p>
+                    <p th:text="${'Chưa có đơn đặt ' + (unitLabel ?: 'phòng') + ' online nào đã được VNPAY ghi nhận.'}">Chưa có đơn đặt phòng online nào đã được VNPAY ghi nhận.</p>
                     <p style="font-size:13px;" th:text="${'Đảm bảo nơi lưu trú của bạn đã được Admin duyệt để khách hàng có thể đặt ' + (unitLabel ?: 'phòng') + '.'}">Đảm bảo nơi lưu trú của bạn đã được Admin duyệt để khách hàng có thể đặt phòng.</p>
                 </div>
             </main>

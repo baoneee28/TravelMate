@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  *   occupiedInRange = sumOverlappingBookingsForRoom(checkIn, checkOut)
  *   availableInRange = totalQuantity - occupiedInRange
  *
- * Booking được tính là "giữ phòng" nếu status ∈ {PENDING_ADMIN_APPROVAL, CONFIRMED, CHECKED_IN}.
+ * Booking được tính là "giữ phòng" nếu status ∈ {PENDING_PAYMENT, PENDING_ADMIN_APPROVAL, CONFIRMED, CHECKED_IN}.
  * CANCELLED, NO_SHOW, COMPLETED không giữ phòng.
  *
  * Dùng chung cho Admin (toàn bộ) và Partner (chỉ cơ sở của mình).

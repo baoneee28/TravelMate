@@ -1,6 +1,6 @@
 # TravelMate - Partner Resort Demo Checklist
 
-**Ngày cập nhật:** 2026-05-25  
+**Ngày cập nhật:** 2026-06-02
 **Phạm vi:** Partner Resort, kiểm soát cọc 30%, dữ liệu demo và các màn hình giảng viên có thể quan sát
 
 ## 1. Quy ước nghiệp vụ Resort
@@ -18,8 +18,8 @@
 
 | Mã booking | Màn hình cần mở | Điều giảng viên nhìn thấy |
 |---|---|---|
-| `BK-VNT-DLX-0001` | Đơn đặt phòng | Đơn online cọc 30%, TravelMate đã duyệt, Partner cần xác nhận giữ phòng |
-| `BK-FDN-FAM-RESORT-CHECKIN-01` | Đơn đặt phòng | Đơn cọc đã xác nhận giữ phòng; khi bấm check-in phải xác nhận thu **7.280.000đ** tại Resort |
+| `BK-VNT-DLX-0001` | Đơn đặt phòng | Đơn online cọc 30%, TravelMate đã tự giữ phòng/căn; Partner dùng để demo check-in khi khách đến |
+| `BK-FDN-FAM-RESORT-CHECKIN-01` | Đơn đặt phòng | Đơn cọc đã giữ phòng/căn; khi bấm check-in phải xác nhận thu **7.280.000đ** tại Resort |
 | `BK-VNT-DLX-RESORT-DEP-COMPLETE-01` | Đơn đặt phòng / Doanh thu | Đơn cọc đã hoàn thành và đã ghi nhận thu phần còn lại tại cơ sở |
 | `BK-FDN-DLX-0001` | Đơn đặt phòng / Doanh thu | Khách không đến, tiền cọc được xử lý theo chính sách và hoa hồng Resort |
 | `BK-VNT-DLX-DIRECT-01` | Lịch trống | Booking trực tiếp chiếm quota nhưng không vào doanh thu TravelMate |
@@ -56,6 +56,6 @@ Chạy từ thư mục `travelmate`:
 
 **Kết quả xác minh lịch sử ngày 2026-05-25:** `128/128` test pass, `0` fail, `0` error, `0` skipped. File SQL đã được rà mã booking seed: `91` mã, không trùng mã `VALUES`.
 
-**Kết quả suite toàn dự án chạy lại ngày 2026-05-29:** `247/247` test pass, `0` fail, `0` error, `0` skipped. Đây là con số hiện tại cần dùng trong báo cáo và buổi demo.
+**Kết quả suite toàn dự án chạy lại ngày 2026-06-05:** `279/279` test pass, `0` fail, `0` error, `0` skipped. Đây là con số hiện tại cần dùng trong báo cáo và buổi demo.
 
 Dữ liệu demo Resort đã được đưa vào `src/main/resources/travelmate_db.sql` để có thể import lại trên máy trình bày.

@@ -29,13 +29,39 @@
         .voucher-code-chip:hover { background: #dbeafe; }
         .voucher-meta { font-size: 12px; color: #64748b; margin-top: 6px; }
         .voucher-meta span { margin-right: 12px; }
+        .voucher-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+        .voucher-tag {
+            display:inline-flex;
+            align-items:center;
+            gap:5px;
+            padding:5px 9px;
+            border-radius:999px;
+            background:#eff6ff;
+            color:#1d4ed8;
+            font-size:11px;
+            font-weight:800;
+            line-height:1.2;
+        }
+        .voucher-tag.partner { background:#fff7ed; color:#c2410c; }
+        .voucher-tag.scope { background:#f0fdf4; color:#15803d; }
+        .voucher-pay-note {
+            display:block;
+            margin-top:8px;
+            padding:8px 10px;
+            border-radius:8px;
+            background:#f8fafc;
+            color:#475569;
+            font-size:12px;
+            line-height:1.45;
+            font-weight:650;
+        }
         .campaign-empty { text-align: center; padding: 60px 20px; color: #94a3b8; }
         .campaign-empty i { font-size: 48px; margin-bottom: 12px; display: block; }
     </style>
 </head>
 <body>
     <script src="/assets/js/main.js"></script>
-    <script src="/assets/js/user.js"></script>
+    <script src="/assets/js/user.js?v=20260603-preview"></script>
     <div th:replace="~{fragments/user-header :: header(true, 'voucher')}"></div>
 
 
@@ -56,7 +82,7 @@
         <div class="container">
             <div class="campaign-header">
                 <h2><i class="fa-solid fa-bullhorn text-sky"></i> Chiến Dịch Ưu Đãi Đặc Biệt</h2>
-                <span style="font-size:13px;color:#64748b;" th:text="${#lists.size(publicVouchers)} + ' voucher đang hoạt động'">0 voucher</span>
+                <span style="font-size:13px;color:#64748b;" th:text="${#lists.size(publicVouchers)} + ' ưu đãi đang hoạt động'">0 ưu đãi</span>
             </div>
 
             <!-- Không có voucher -->
@@ -105,6 +131,39 @@
                              style="font-size:12px;color:#64748b;margin:8px 0;"
                              th:text="${v.description}"></div>
 
+                        <div class="voucher-tags">
+                            <span class="voucher-tag scope"
+                                  th:if="${v.voucherScope.name() == 'USER_GLOBAL'}">
+                                <i class="fa-solid fa-globe"></i> Toàn hệ thống
+                            </span>
+                            <span class="voucher-tag scope"
+                                  th:if="${v.voucherScope.name() != 'USER_GLOBAL'}"
+                                  th:text="${v.propertyType != null ? (v.propertyType.name() == 'VILLA' ? 'Theo căn Villa' : (v.propertyType.name() == 'HOMESTAY' ? 'Theo phòng Homestay' : (v.propertyType.name() == 'RESORT' ? 'Theo phòng Resort' : 'Theo phòng khách sạn'))) : 'Theo phòng/căn đối tác chọn'}">
+                                Theo phòng/căn đối tác chọn
+                            </span>
+                            <span class="voucher-tag"
+                                  th:if="${v.costBearer.name() == 'ADMIN'}">
+                                <i class="fa-solid fa-shield-heart"></i> TravelMate tài trợ
+                            </span>
+                            <span class="voucher-tag partner"
+                                  th:if="${v.costBearer.name() == 'PARTNER'}">
+                                <i class="fa-solid fa-store"></i> Đối tác tài trợ
+                            </span>
+                        </div>
+
+                        <span class="voucher-pay-note"
+                              th:if="${v.costBearer.name() == 'ADMIN'}">
+                            Dùng được với thanh toán 100% hoặc cọc 30% nếu đơn đạt điều kiện.
+                        </span>
+                        <span class="voucher-pay-note"
+                              th:if="${v.costBearer.name() == 'PARTNER' and v.discountType.name() == 'PERCENT' and v.discountValue.compareTo(T(java.math.BigDecimal).TEN) > 0}">
+                            Phù hợp nhất khi thanh toán 100%; nếu chọn cọc 30%, hệ thống sẽ kiểm tra lại khi đặt phòng.
+                        </span>
+                        <span class="voucher-pay-note"
+                              th:if="${v.costBearer.name() == 'PARTNER' and (v.discountType.name() != 'PERCENT' or v.discountValue.compareTo(T(java.math.BigDecimal).TEN) <= 0)}">
+                            Có thể dùng với thanh toán 100%; cọc 30% sẽ được kiểm tra theo giá trị đơn thực tế.
+                        </span>
+
                         <!-- Giảm tối đa (nếu là PERCENT) -->
                         <div class="voucher-meta" th:if="${v.discountType.name() == 'PERCENT' && v.maxDiscountAmount != null}">
                             <span>Tối đa: <strong th:text="${#numbers.formatDecimal(v.maxDiscountAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'">—</strong></span>
@@ -118,8 +177,9 @@
                             <span style="font-size:12px;color:#94a3b8;">← Click để sao chép</span>
                         </div>
 
-                        <a href="/accommodations" class="campaign-card-btn" style="margin-top:12px;display:block;text-align:center;text-decoration:none;">
-                            Đặt phòng ngay &rarr;
+                        <a th:href="@{/accommodations(type=${v.propertyType != null ? v.propertyType.name() : 'HOTEL'}, voucherCode=${v.code})}"
+                           class="campaign-card-btn" style="margin-top:12px;display:block;text-align:center;text-decoration:none;">
+                            Tìm nơi áp dụng &rarr;
                         </a>
                     </div>
                 </div>

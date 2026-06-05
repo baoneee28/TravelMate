@@ -48,10 +48,8 @@ import java.util.Map;
  *  → Chỉ booking đã hoàn tất lưu trú hoặc khách không đến mới được quyết toán.
  *
  * Quy tắc commission dung rate snapshot booking:
- *   - Moi don ONLINE: commBase = khoan TravelMate da thu online
- *   - DEPOSIT_30: chi tinh tren coc online 30%, ke ca hoan tat hoac mat coc
- *   - FULL_PAYMENT: tinh tren khoan thanh toan online 100%
- *   payout = max(0, gross - commission - voucherPartnerDeduct)
+ *   - Commission base = tong don goc truoc voucher cho ca FULL_PAYMENT va DEPOSIT_30
+ *   payout = gross - commission - voucherPartnerDeduct
  */
 @SuppressWarnings("null")
 @Service
@@ -220,7 +218,7 @@ public class SettlementService {
     // ─── HELPERS ──────────────────────────────────────────────────────────────
 
     private BigDecimal resolveCommissionBase(Payment p) {
-        return resolveOnlinePaid(p);
+        return resolvePreDiscountTotal(p);
     }
 
     private BigDecimal resolveCommissionAmount(Payment p) {
@@ -243,11 +241,24 @@ public class SettlementService {
 
     private BigDecimal resolvePartnerPayout(Payment p) {
         return resolveOnlinePaid(p).subtract(resolveCommissionAmount(p))
-                .subtract(resolvePartnerVoucherAmount(p)).max(BigDecimal.ZERO);
+                .subtract(resolvePartnerVoucherAmount(p));
     }
 
     private BigDecimal resolveOnlinePaid(Payment p) {
         return p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO;
+    }
+
+    private BigDecimal resolvePreDiscountTotal(Payment p) {
+        Booking booking = p.getBooking();
+        BigDecimal totalBeforeDiscount = booking.getTotalBeforeDiscount();
+        if (totalBeforeDiscount != null && totalBeforeDiscount.compareTo(BigDecimal.ZERO) > 0) {
+            return totalBeforeDiscount;
+        }
+        BigDecimal totalAmount = booking.getTotalAmount();
+        if (totalAmount != null && totalAmount.compareTo(BigDecimal.ZERO) > 0) {
+            return totalAmount;
+        }
+        return resolveOnlinePaid(p);
     }
 
     private BigDecimal resolveOnsiteAmount(Payment p) {
@@ -451,11 +462,11 @@ public class SettlementService {
                     String baseNote;
                     if (p.getPaymentOption() == PaymentOption.DEPOSIT_30
                             && p.getPaymentStatus() == PaymentStatus.DEPOSIT_FORFEITED) {
-                        baseNote = ", HH trên cọc online bị giữ";
+                        baseNote = ", HH trên tổng đơn gốc (cọc bị giữ)";
                     } else if (p.getPaymentOption() == PaymentOption.DEPOSIT_30) {
-                        baseNote = ", HH trên cọc online 30%";
+                        baseNote = ", HH trên tổng đơn gốc";
                     } else {
-                        baseNote = ", HH trên tiền online 100%";
+                        baseNote = ", HH trên tổng đơn gốc";
                     }
                     String rateDisplay = ratePercent + "%" + (isOverride ? " (theo phòng)" : " (mặc định)") + baseNote;
 
@@ -474,7 +485,7 @@ public class SettlementService {
                     dto.setRoomName(room != null ? room.getRoomName() : "—");
                     dto.setCheckIn(b.getCheckIn() != null ? b.getCheckIn().format(fmt) : "—");
                     dto.setCheckOut(b.getCheckOut() != null ? b.getCheckOut().format(fmt) : "—");
-                    dto.setTotalOrderAmount(b.getTotalAmount());
+                    dto.setTotalOrderAmount(resolvePreDiscountTotal(p));
                     dto.setGross(gross);
                     dto.setOnsiteAmount(resolveOnsiteAmount(p));
                     dto.setCommissionBaseLabel(baseNote.substring(2));

@@ -37,6 +37,7 @@ public class PaymentService {
     private final BookingRepository bookingRepository;
     private final RoomRepository roomRepository;
     private final NotificationService notificationService;
+    private final EmailService emailService;
 
     /**
      * Xử lý khi VNPAY báo thanh toán THÀNH CÔNG.
@@ -45,7 +46,7 @@ public class PaymentService {
      * Sau khi xử lý:
      *   - paymentStatus = APPROVED vì kết quả VNPAY đã được xác minh chữ ký và số tiền
      *   - bookingStatus = CONFIRMED
-     *   - partnerStatus = PENDING_PARTNER_CONFIRMATION
+     *   - partnerStatus = PARTNER_CONFIRMED (TravelMate tự giữ phòng sau khi cổng thanh toán xác nhận)
      *
      * @param vnpTxnRef  Mã giao dịch (vnp_TxnRef)
      * @param vnpParams  Toàn bộ params từ VNPAY (để lưu audit)
@@ -81,18 +82,18 @@ public class PaymentService {
         payment.setPaymentStatus(PaymentStatus.APPROVED);
         payment.setPaidAt(LocalDateTime.now());
         payment.setApprovedAt(LocalDateTime.now());
-        payment.setNote("VNPAY xác nhận thành công; TravelMate tự động ghi nhận thanh toán.");
+        payment.setNote("VNPAY ghi nhận thành công; TravelMate tự động ghi nhận thanh toán.");
         paymentRepository.save(payment);
 
         // Cập nhật booking
         Booking booking = payment.getBooking();
         booking.setBookingStatus(BookingStatus.CONFIRMED);
         booking.setPaymentStatus(PaymentStatus.APPROVED);
-        booking.setPartnerStatus(PartnerBookingStatus.PENDING_PARTNER_CONFIRMATION);
+        booking.setPartnerStatus(PartnerBookingStatus.PARTNER_CONFIRMED);
         booking.setExpireAt(null); // Đã thanh toán xong, không cần expireAt nữa
         bookingRepository.save(booking);
 
-        // Thanh toán đã được hệ thống xác nhận; partner vẫn phải nhận giữ phòng/căn.
+        // Thanh toán đã được hệ thống xác nhận; partner có thể tiếp tục bước check-in khi tới ngày nhận phòng/căn.
         try {
             String optionLabel = (payment.getPaymentOption() != null
                     && payment.getPaymentOption().name().equals("DEPOSIT_30"))
@@ -107,7 +108,13 @@ public class PaymentService {
             log.warn("Không gửi được notification cho booking {}: {}", booking.getId(), e.getMessage());
         }
 
-        log.info("PaymentService.markGatewaySuccess: vnpTxnRef={} → CONFIRMED / APPROVED, chờ đối tác xác nhận", vnpTxnRef);
+        try {
+            emailService.sendBookingConfirmationEmail(booking);
+        } catch (Exception e) {
+            log.warn("Không gửi được email xác nhận cho booking {}: {}", booking.getId(), e.getMessage());
+        }
+
+        log.info("PaymentService.markGatewaySuccess: vnpTxnRef={} → CONFIRMED / APPROVED / PARTNER_CONFIRMED", vnpTxnRef);
         return true;
     }
 

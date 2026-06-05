@@ -301,10 +301,10 @@
                                 <td>
                                     <div th:if="${w.withdrawalStatus.name() == 'PENDING'}" class="withdraw-action-grid">
                                         <form th:action="@{/admin/withdrawals/{id}/mark-paid(id=${w.id})}" method="post"
-                                              onsubmit="return confirm('Xác nhận đã chuyển khoản cho Partner?')">
+                                              onsubmit="return confirm('Ghi nhận đã xử lý chuyển khoản ngoài hệ thống cho Partner?')">
                                             <input name="adminNote" type="text" placeholder="Mã giao dịch / ghi chú" />
                                             <div class="withdraw-action-buttons" style="margin-top:6px;">
-                                                <button type="submit" class="btn-paid"><i class="fa-solid fa-check"></i> Đã chuyển</button>
+                                                <button type="submit" class="btn-paid"><i class="fa-solid fa-check"></i> Ghi nhận đã xử lý</button>
                                             </div>
                                         </form>
                                         <form th:action="@{/admin/withdrawals/{id}/reject(id=${w.id})}" method="post"

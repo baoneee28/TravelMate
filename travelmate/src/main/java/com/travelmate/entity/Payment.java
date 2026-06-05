@@ -123,7 +123,7 @@ public class Payment {
     @Column(name = "expire_at")
     private LocalDateTime expireAt;
 
-    /** Thời điểm VNPAY xác nhận giao dịch thành công (từ IPN/Return) */
+    /** Thời điểm VNPAY ghi nhận giao dịch thành công (từ IPN/Return) */
     @Column(name = "confirmed_from_gateway_at")
     private LocalDateTime confirmedFromGatewayAt;
 }

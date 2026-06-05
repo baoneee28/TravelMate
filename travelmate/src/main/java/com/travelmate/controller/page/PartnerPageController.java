@@ -22,6 +22,7 @@ import com.travelmate.entity.enums.BookingStatus;
 import com.travelmate.entity.enums.PartnerBookingStatus;
 import com.travelmate.entity.enums.PropertyType;
 import com.travelmate.entity.enums.RoomCategory;
+import com.travelmate.entity.enums.VoucherCostBearer;
 import com.travelmate.service.AvailabilityService.RoomStatusDto;
 import com.travelmate.repository.UserRepository;
 import com.travelmate.security.CustomUserDetails;
@@ -34,6 +35,7 @@ import com.travelmate.service.ReviewService;
 import com.travelmate.service.SettlementService;
 import com.travelmate.service.PartnerWalletService;
 import com.travelmate.service.FileStorageService;
+import com.travelmate.service.RoomImageService;
 import com.travelmate.service.SupportTicketService;
 import com.travelmate.service.VoucherService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -50,6 +52,7 @@ import com.travelmate.repository.AdminActionLogRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,6 +83,7 @@ public class PartnerPageController {
     private final SettlementService settlementService;
     private final SupportTicketService supportTicketService;
     private final FileStorageService fileStorageService;
+    private final RoomImageService roomImageService;
     private final AvailabilityService availabilityService;
     private final AdminActionLogRepository actionLogRepository;
     private final CommissionService commissionService;
@@ -94,6 +98,7 @@ public class PartnerPageController {
                                  SettlementService settlementService,
                                  SupportTicketService supportTicketService,
                                  FileStorageService fileStorageService,
+                                 RoomImageService roomImageService,
                                  AvailabilityService availabilityService,
                                  AdminActionLogRepository actionLogRepository,
                                  CommissionService commissionService,
@@ -107,6 +112,7 @@ public class PartnerPageController {
         this.settlementService = settlementService;
         this.supportTicketService = supportTicketService;
         this.fileStorageService = fileStorageService;
+        this.roomImageService = roomImageService;
         this.availabilityService = availabilityService;
         this.actionLogRepository = actionLogRepository;
         this.commissionService = commissionService;
@@ -152,6 +158,36 @@ public class PartnerPageController {
 
     private String getUnitLabel(User partner) {
         return partner.getPartnerPropertyType() == PropertyType.VILLA ? "căn" : "phòng";
+    }
+
+    private String getUnitLabelCap(User partner) {
+        return partner.getPartnerPropertyType() == PropertyType.VILLA ? "Căn" : "Phòng";
+    }
+
+    private List<String> storePartnerRoomImages(MultipartFile[] roomImages) throws Exception {
+        List<String> urls = new ArrayList<>();
+        if (roomImages == null) {
+            return urls;
+        }
+        int selectedCount = 0;
+        for (MultipartFile file : roomImages) {
+            if (file != null && !file.isEmpty()) {
+                selectedCount++;
+            }
+        }
+        if (selectedCount > 3) {
+            throw new IllegalArgumentException("Mỗi phòng/căn chỉ được upload tối đa 3 ảnh.");
+        }
+        for (MultipartFile file : roomImages) {
+            if (file == null || file.isEmpty()) {
+                continue;
+            }
+            String storedUrl = fileStorageService.storeRoomImage(file);
+            if (storedUrl != null && !storedUrl.isBlank()) {
+                urls.add(storedUrl);
+            }
+        }
+        return urls;
     }
 
     private String getAccommodationNamePlaceholder(PropertyType propertyType) {
@@ -317,10 +353,25 @@ public class PartnerPageController {
 
         // Tính room count theo từng accommodation
         Map<Long, Long> roomCountMap = new HashMap<>();
+        Map<Long, Long> approvedRoomCountMap = new HashMap<>();
+        Map<Long, Long> pendingRoomCountMap = new HashMap<>();
         for (Accommodation acc : accommodations) {
             if (acc.getId() != null) {
                 long cnt = acc.getRooms() != null ? acc.getRooms().size() : 0L;
+                long approvedRooms = acc.getRooms() != null
+                        ? acc.getRooms().stream()
+                                .filter(r -> r.getApprovalStatus() == ApprovalStatus.APPROVED)
+                                .filter(r -> Boolean.TRUE.equals(r.getAvailableForBooking()))
+                                .count()
+                        : 0L;
+                long pendingRooms = acc.getRooms() != null
+                        ? acc.getRooms().stream()
+                                .filter(r -> r.getApprovalStatus() == ApprovalStatus.PENDING)
+                                .count()
+                        : 0L;
                 roomCountMap.put(acc.getId(), cnt);
+                approvedRoomCountMap.put(acc.getId(), approvedRooms);
+                pendingRoomCountMap.put(acc.getId(), pendingRooms);
             }
         }
 
@@ -331,6 +382,8 @@ public class PartnerPageController {
         model.addAttribute("rejectedCount", rejectedCount);
         addUnitLabels(model, partner);
         model.addAttribute("roomCountMap", roomCountMap);
+        model.addAttribute("approvedRoomCountMap", approvedRoomCountMap);
+        model.addAttribute("pendingRoomCountMap", pendingRoomCountMap);
 
         return "partner/accommodations";
     }
@@ -362,7 +415,6 @@ public class PartnerPageController {
             @RequestParam(required = false) String description,
             @RequestParam(required = false) MultipartFile thumbnailFile,
             @RequestParam(required = false, defaultValue = "HOTEL") String propertyType,
-            @RequestParam(required = false) Integer starRating,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             RedirectAttributes ra) {
 
@@ -382,7 +434,7 @@ public class PartnerPageController {
 
             PropertyType type = PropertyType.valueOf(propertyType.toUpperCase());
             accommodationService.createAccommodation(
-                    partner, name, address, city, description, thumbnailUrl, type, starRating);
+                    partner, name, address, city, description, thumbnailUrl, type);
             ra.addFlashAttribute("successMessage",
                 "✅ Đã gửi đăng ký nơi lưu trú thành công! Vui lòng chờ Admin duyệt.");
         } catch (IllegalArgumentException e) {
@@ -446,6 +498,7 @@ public class PartnerPageController {
             @RequestParam BigDecimal pricePerNight,
             @RequestParam Integer availableQuantity,
             @RequestParam(required = false) String imageUrl,
+            @RequestParam(name = "roomImages", required = false) MultipartFile[] roomImages,
             @RequestParam(required = false) String description,
             @RequestParam(required = false, defaultValue = "STANDARD") String roomCategory,
             @RequestParam(required = false) BigDecimal commissionRateOverride,
@@ -455,6 +508,11 @@ public class PartnerPageController {
 
         User partner = getCurrentPartner(userDetails);
         try {
+            List<String> uploadedImageUrls = storePartnerRoomImages(roomImages);
+            String primaryImageUrl = !uploadedImageUrls.isEmpty()
+                    ? uploadedImageUrls.get(0)
+                    : (imageUrl != null ? imageUrl.trim() : "");
+
             RoomCategory category;
             try {
                 category = RoomCategory.valueOf(roomCategory.toUpperCase());
@@ -462,12 +520,21 @@ public class PartnerPageController {
                 category = RoomCategory.STANDARD;
             }
 
-            accommodationService.createRoom(partner, id, roomCode, roomName, bedType,
-                    capacity, pricePerNight, availableQuantity, imageUrl, description,
+            Room room = accommodationService.createRoom(partner, id, roomCode, roomName, bedType,
+                    capacity, pricePerNight, availableQuantity, primaryImageUrl, description,
                     category, commissionRateOverride, amenityIds);
+
+            if (!uploadedImageUrls.isEmpty()) {
+                List<String> captions = uploadedImageUrls.stream()
+                        .map(url -> getUnitLabelCap(partner) + " " + roomName + " do Partner upload")
+                        .toList();
+                roomImageService.replaceImagesByAdmin(room.getId(), uploadedImageUrls, captions, 0);
+            }
             ra.addFlashAttribute("successMessage", "✅ Đã thêm " + getUnitLabel(partner) + " " + roomName + " thành công!");
         } catch (RuntimeException e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMessage", "❌ Không thể lưu ảnh " + getUnitLabel(partner) + ": " + e.getMessage());
         }
         return "redirect:/partner/accommodations";
     }
@@ -599,7 +666,7 @@ public class PartnerPageController {
         // Gộp tất cả để hiển thị (online + direct + block), đã có đủ
         List<Booking> displayBookings = allBookings.stream()
                 .filter(b -> {
-                    // Online: chỉ hiển thị sau khi TravelMate/Admin đã xác nhận thanh toán
+                    // Online: chỉ hiển thị sau khi TravelMate/Admin đã ghi nhận thanh toán
                     if (b.getBookingSource() == null || b.getBookingSource() == BookingSource.ONLINE) {
                         return b.getBookingStatus() == BookingStatus.CONFIRMED
                                 || b.getBookingStatus() == BookingStatus.CHECKED_IN
@@ -636,7 +703,7 @@ public class PartnerPageController {
     }
 
     /**
-     * POST /partner/bookings/{id}/confirm-hold — Đối tác xác nhận giữ phòng.
+     * POST /partner/bookings/{id}/confirm-hold — dự phòng cho booking legacy cần kiểm tra giữ phòng.
      */
     @PostMapping("/bookings/{id}/confirm-hold")
     public String confirmHold(@PathVariable Long id,
@@ -646,8 +713,9 @@ public class PartnerPageController {
         try {
             Booking b = bookingService.confirmBookingHoldByPartner(id, partner);
             logPartnerAction(partner, "PARTNER_CONFIRM_HOLD", "BOOKING", id,
-                    "Đối tác xác nhận giữ " + getUnitLabel(partner) + ": " + b.getBookingCode(), null);
-            ra.addFlashAttribute("successMessage", "✅ Đã xác nhận giữ " + getUnitLabel(partner) + " thành công!");
+                    "Đối tác giữ " + getUnitLabel(partner) + ": " + b.getBookingCode(), null);
+            ra.addFlashAttribute("successMessage",
+                    "✅ Đã ghi nhận trạng thái giữ " + getUnitLabel(partner) + ". TravelMate đã giữ trên hệ thống.");
         } catch (RuntimeException e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
         }
@@ -741,20 +809,61 @@ public class PartnerPageController {
 
         if (booking.getBookingStatus() == BookingStatus.NO_SHOW) {
             BigDecimal forfeited = booking.getPaidAmount() != null ? booking.getPaidAmount() : BigDecimal.ZERO;
-            BigDecimal commission = commissionService.calculateCommission(forfeited, booking.getRoom());
-            BigDecimal partnerPayout = forfeited.subtract(commission);
-            BigDecimal rateDecimal = commissionService.getEffectiveCommissionRate(booking.getRoom());
+            BigDecimal commissionBase = resolveNoShowCommissionBase(booking, forfeited);
+            BigDecimal rateDecimal = resolveNoShowCommissionRate(booking);
+            BigDecimal commission = resolveNoShowCommission(booking, commissionBase, rateDecimal);
+            BigDecimal partnerVoucher = resolveNoShowPartnerVoucher(booking);
+            BigDecimal partnerPayout = forfeited.subtract(commission).subtract(partnerVoucher);
             BigDecimal ratePercent = rateDecimal.multiply(BigDecimal.valueOf(100))
                     .setScale(1, java.math.RoundingMode.HALF_UP);
-            boolean isRoomOverride = commissionService.isRoomOverride(booking.getRoom());
+            boolean isRoomOverride = "ROOM_OVERRIDE".equals(booking.getCommissionSourceSnapshot())
+                    || commissionService.isRoomOverride(booking.getRoom());
             model.addAttribute("noShowForfeited", forfeited);
+            model.addAttribute("noShowCommissionBase", commissionBase);
             model.addAttribute("noShowCommission", commission);
+            model.addAttribute("noShowPartnerVoucher", partnerVoucher);
             model.addAttribute("noShowPartnerPayout", partnerPayout);
             model.addAttribute("noShowCommissionRate", ratePercent);
             model.addAttribute("noShowIsRoomOverride", isRoomOverride);
         }
 
         return "partner/booking-detail";
+    }
+
+    private BigDecimal resolveNoShowCommissionBase(Booking booking, BigDecimal fallback) {
+        BigDecimal snapshot = positiveOrNull(booking.getCommissionBaseAmount());
+        if (snapshot != null) return snapshot;
+        BigDecimal beforeDiscount = positiveOrNull(booking.getTotalBeforeDiscount());
+        if (beforeDiscount != null) return beforeDiscount;
+        BigDecimal total = positiveOrNull(booking.getTotalAmount());
+        return total != null ? total : fallback;
+    }
+
+    private BigDecimal resolveNoShowCommissionRate(Booking booking) {
+        return booking.getCommissionRateSnapshot() != null
+                ? booking.getCommissionRateSnapshot()
+                : commissionService.getEffectiveCommissionRate(booking.getRoom());
+    }
+
+    private BigDecimal resolveNoShowCommission(Booking booking,
+                                               BigDecimal commissionBase,
+                                               BigDecimal rateDecimal) {
+        BigDecimal snapshot = positiveOrNull(booking.getCommissionAmountSnapshot());
+        if (snapshot != null) return snapshot;
+        return commissionBase.multiply(rateDecimal).setScale(0, java.math.RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal resolveNoShowPartnerVoucher(Booking booking) {
+        if (booking.getPartnerVoucherAmountSnapshot() != null) {
+            return booking.getPartnerVoucherAmountSnapshot();
+        }
+        return booking.getVoucherCostBearer() == VoucherCostBearer.PARTNER
+                && booking.getDiscountAmount() != null
+                ? booking.getDiscountAmount() : BigDecimal.ZERO;
+    }
+
+    private BigDecimal positiveOrNull(BigDecimal value) {
+        return value != null && value.compareTo(BigDecimal.ZERO) > 0 ? value : null;
     }
 
     /**

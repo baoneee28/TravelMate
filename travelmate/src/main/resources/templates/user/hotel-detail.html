@@ -555,8 +555,24 @@
             font-weight: 400;
         }
 
+        .guest-col {
+            text-align: center;
+            min-width: 92px;
+            white-space: nowrap;
+        }
+
+        .guest-inline {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
         .price-col {
-            text-align: right;
+            text-align: center;
+            min-width: 132px;
+            white-space: nowrap;
         }
 
         .deal-badge {
@@ -581,11 +597,104 @@
             font-weight: 800;
             color: #ef4444;
             margin: 4px 0;
+            display: inline-block;
+            white-space: nowrap;
         }
 
         .price-tax {
             font-size: 0.72rem;
             color: #64748b;
+            white-space: nowrap;
+        }
+
+        .policy-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .policy-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            background: #f8fafc;
+            padding: 16px;
+        }
+
+        .policy-card.is-important {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+
+        .policy-card.is-warning {
+            background: #fff7ed;
+            border-color: #fed7aa;
+        }
+
+        .policy-card.is-danger {
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+
+        .policy-title {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin: 0 0 12px;
+            color: #0f172a;
+            font-size: 0.95rem;
+            font-weight: 800;
+        }
+
+        .policy-title i {
+            color: #2563eb;
+        }
+
+        .policy-card.is-danger .policy-title i {
+            color: #ef4444;
+        }
+
+        .policy-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .policy-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            color: #475569;
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+
+        .policy-list li::before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: #2563eb;
+            flex: 0 0 auto;
+            margin-top: 8px;
+        }
+
+        .policy-card.is-danger .policy-list li::before {
+            background: #ef4444;
+        }
+
+        .policy-note {
+            margin-top: 16px;
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            background: #eff6ff;
+            color: #1e3a8a;
+            padding: 12px 14px;
+            font-size: 0.86rem;
+            line-height: 1.55;
+            font-weight: 650;
         }
 
         .action-col {
@@ -923,6 +1032,7 @@
                 grid-template-rows: 236px 204px;
             }
             .gallery-thumbs { grid-template-rows: repeat(2, 1fr); }
+            .policy-grid { grid-template-columns: 1fr; }
         }
 
         /* Ẩn chấm pagination nếu có (swiper/slick) */
@@ -937,6 +1047,22 @@
         .btn-choose {
             white-space: nowrap;
             min-width: 100px;
+        }
+        .btn-choose--disabled,
+        .btn-choose--disabled:hover {
+            background: #e2e8f0 !important;
+            color: #64748b !important;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .admin-booking-note {
+            max-width: 170px;
+            margin: 3px auto 0;
+            color: #64748b;
+            font-size: 0.7rem;
+            line-height: 1.35;
+            text-align: center;
+            font-weight: 650;
         }
         .room-detail-trigger { width:100%; margin-top:8px; padding:8px 10px; border:1px solid #bfdbfe; border-radius:8px; background:#eff6ff; color:#2563eb; font-size:.8125rem; font-weight:700; cursor:pointer; }
         .room-detail-trigger:hover { background:#dbeafe; }
@@ -962,12 +1088,166 @@
         .room-detail-book { border:0; border-radius:9px; padding:13px 21px; background:#2563eb; color:#fff; font-weight:750; text-decoration:none; white-space:nowrap; }
         .room-detail-book.disabled { background:#cbd5e1; cursor:not-allowed; }
         @media (max-width:760px) { .room-detail-panel { padding:20px; } .room-detail-grid { grid-template-columns:1fr; } }
+
+        @media (max-width: 760px) {
+            .header .container.navbar {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                overflow: hidden;
+            }
+
+            .header .menu {
+                display: none;
+            }
+
+            .search-nav .container,
+            .hd-tabs-container,
+            .hd-main {
+                max-width: 100%;
+                padding-left: 14px !important;
+                padding-right: 14px !important;
+                box-sizing: border-box;
+            }
+
+            .mini-search-bar,
+            .mini-search-container {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .mini-search-container {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+                gap: 8px;
+            }
+
+            .msb-divider {
+                display: none;
+            }
+
+            .msb-field,
+            .msb-submit {
+                width: 100%;
+                min-width: 0;
+                justify-content: center;
+                padding-left: 10px;
+                padding-right: 10px;
+                box-sizing: border-box;
+            }
+
+            .msb-submit {
+                grid-column: 1 / -1;
+            }
+
+            .hd-tabs-container {
+                overflow-x: auto;
+                justify-content: flex-start;
+            }
+
+            .hd-tabs {
+                min-width: max-content;
+                gap: 18px;
+            }
+
+            .room-type,
+            .hd-card,
+            .am-gallery {
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+
+            .rt-body {
+                flex-direction: column;
+            }
+
+            .rt-img-col {
+                width: 100%;
+                border-right: 0;
+                border-bottom: 1px solid #e2e8f0;
+                padding: 14px;
+                box-sizing: border-box;
+            }
+
+            .rt-table-col {
+                width: 100%;
+                max-width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .rt-table {
+                width: 100%;
+                min-width: 0;
+                display: block;
+                border-collapse: separate;
+            }
+
+            .rt-table thead {
+                display: none;
+            }
+
+            .rt-table tbody,
+            .rt-table tr,
+            .rt-table td {
+                display: block;
+                width: 100%;
+            }
+
+            .rt-table tr {
+                padding: 14px;
+                border-bottom: 1px solid #e2e8f0;
+            }
+
+            .rt-table td {
+                padding: 0;
+                border-bottom: 0;
+            }
+
+            .rt-table td + td {
+                margin-top: 12px;
+            }
+
+            .guest-col,
+            .price-col,
+            .action-col {
+                min-width: 0;
+                text-align: left;
+                white-space: normal;
+            }
+
+            .guest-inline {
+                justify-content: flex-start;
+            }
+
+            .btn-choose {
+                width: 100%;
+                min-width: 0;
+                text-align: center;
+                white-space: normal;
+            }
+
+            .am-gallery {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+                overflow-x: visible;
+            }
+
+            .am-img-box {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 4 / 3;
+                min-width: 0;
+                flex-basis: auto;
+            }
+        }
     </style>
 </head>
 
 <body>
     <script src="/assets/js/main.js"></script>
-    <script src="/assets/js/user.js"></script>
+    <script src="/assets/js/user.js?v=20260603-preview"></script>
     <div th:replace="~{fragments/user-header :: header(true, 'hotels')}"></div>
 
 
@@ -1293,9 +1573,9 @@
                               (hotel.propertyType.name() == 'RESORT'   ? 'Resort'     : hotel.propertyType.name()))))
                               : 'Lưu trú'}">Khách sạn</span>
                     <span class="hd-stars">
-                        <th:block th:each="i : ${#numbers.sequence(1, hotel.starRating != null ? hotel.starRating : 3)}">
-                            <i class="fa-solid fa-star"></i>
-                        </th:block>
+                        <span th:if="${reviewCount != null and reviewCount > 0}"
+                              th:text="${reviewCount + ' đánh giá'}">Đã có đánh giá</span>
+                        <span th:if="${reviewCount == null or reviewCount == 0}">Chưa có đánh giá</span>
                     </span>
                 </div>
                 <div style="margin-top: 12px; font-size: 0.875rem; color: #475569">
@@ -1344,6 +1624,7 @@
                     <input type="hidden" name="adults" th:value="${adults}" />
                     <input type="hidden" name="children" th:value="${children}" />
                     <input type="hidden" name="rooms" th:value="${rooms}" />
+                    <input type="hidden" name="voucherCode" th:value="${voucherCode}" />
                     <button type="submit"
                             style="padding:9px 22px;background:#2563eb;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.875rem;cursor:pointer;display:flex;align-items:center;gap:7px;">
                         <i class="fa-solid fa-magnifying-glass"></i> <th:block th:text="${isVilla ? 'Kiểm tra căn' : 'Kiểm tra phòng'}"></th:block>
@@ -1486,9 +1767,12 @@
                                             <i class="fa-solid fa-fire-flame-curved"></i> Sắp hết — đặt ngay!
                                         </div>
                                     </td>
-                                    <td class="text-center" style="color: #64748b">
-                                        <i class="fa-solid fa-user-group"></i>
-                                        <span th:text="${room.capacity}">2</span> khách
+                                    <td class="text-center guest-col" style="color: #64748b">
+                                        <span class="guest-inline">
+                                            <i class="fa-solid fa-user-group"></i>
+                                            <span th:text="${room.capacity}">2</span>
+                                            <span>khách</span>
+                                        </span>
                                     </td>
                                     <td class="price-col">
                                         <div class="price-new"
@@ -1531,8 +1815,9 @@
                                         <div style="font-size:0.7rem;color:#94a3b8;text-align:center;margin-bottom:8px;"
                                              th:text="${isVilla ? 'Số căn muốn đặt' : 'Số phòng muốn đặt'}">Số phòng muốn đặt</div>
                                         <!-- Nút Đặt phòng -->
-                                        <a th:id="'book-btn-' + ${room.id}"
-                                           th:attr="data-base-url=@{/booking(roomId=${room.id},checkIn=${checkIn},checkOut=${checkOut},adults=${adults},children=${children})}"
+                                        <a th:if="${!isAdmin}"
+                                           th:id="'book-btn-' + ${room.id}"
+                                           th:attr="data-base-url=@{/booking(roomId=${room.id},checkIn=${checkIn},checkOut=${checkOut},adults=${adults},children=${children},voucherCode=${voucherCode})}"
                                            href="#"
                                            class="btn-choose"
                                            onclick="bookRoomWithQty(this, event)"
@@ -1541,6 +1826,15 @@
                                             <th:block th:if="${isLimited}"><i class="fa-solid fa-bolt"></i> Đặt ngay</th:block>
                                             <th:block th:if="${!isLimited}" th:text="${isVilla ? 'Đặt căn' : 'Đặt phòng'}"></th:block>
                                         </a>
+                                        <span th:if="${isAdmin}"
+                                              class="btn-choose btn-choose--disabled"
+                                              style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">
+                                            <i class="fa-solid fa-eye" style="margin-right:6px;"></i>
+                                            Đang xem trước
+                                        </span>
+                                        <div th:if="${isAdmin}" class="admin-booking-note">
+                                            Dùng tài khoản User để đặt phòng thử.
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -1621,9 +1915,12 @@
                                     <span style="font-size:.78rem;color:#64748b;" th:text="${isVilla ? 'Giá mỗi căn / đêm' : 'Giá mỗi đêm'}">Giá mỗi đêm</span>
                                     <strong th:text="${#numbers.formatDecimal(room.pricePerNight, 1, 'POINT', 0, 'COMMA')} + ' VND'">0 VND</strong>
                                 </div>
-                                <a th:if="${!isFull}" class="room-detail-book"
-                                   th:href="@{/booking(roomId=${room.id},checkIn=${checkIn},checkOut=${checkOut},adults=${adults},children=${children},rooms=1)}"
+                                <a th:if="${!isFull and !isAdmin}" class="room-detail-book"
+                                   th:href="@{/booking(roomId=${room.id},checkIn=${checkIn},checkOut=${checkOut},adults=${adults},children=${children},rooms=1,voucherCode=${voucherCode})}"
                                    th:text="${isVilla ? 'Đặt căn này' : 'Đặt phòng này'}">Đặt phòng này</a>
+                                <span th:if="${!isFull and isAdmin}" class="room-detail-book disabled">
+                                    Admin đang xem trước
+                                </span>
                                 <span th:if="${isFull}" class="room-detail-book disabled"
                                       th:text="${isVilla ? 'Căn đã hết' : 'Phòng đã hết'}">Phòng đã hết</span>
                             </div>
@@ -1710,7 +2007,7 @@
                 <div class="am-gallery" th:if="${hotel.name == 'LATA Hotel & Apartments'}">
                     <div class="am-img-box"><img src="/assets/images/accommodations/lata/shared/main-lounge.jpg" alt="Khu lounge tại LATA Hotel &amp; Apartments"/><div class="am-lbl">Khu lounge</div></div>
                     <div class="am-img-box"><img src="/assets/images/accommodations/lata/shared/dining-area.jpg" alt="Khu ăn uống tại LATA Hotel &amp; Apartments"/><div class="am-lbl">Khu ăn uống</div></div>
-                    <div class="am-img-box"><img src="/assets/images/accommodations/lata/shared/open-kitchen.jpg" alt="Bếp chung tại LATA Hotel &amp; Apartments"/><div class="am-lbl">Bếp tiện nghi</div></div>
+                    <div class="am-img-box"><img src="/assets/images/accommodations/lata/shared/open-kitchen.jpg" alt="Khu chuẩn bị đồ uống tại LATA Hotel &amp; Apartments"/><div class="am-lbl">Khu chuẩn bị đồ uống</div></div>
                     <div class="am-img-box"><img src="/assets/images/accommodations/lata/rooms/standard-king/bathroom.jpg" alt="Phòng tắm tại LATA Hotel &amp; Apartments"/><div class="am-lbl">Phòng tắm</div></div>
                     <div class="am-img-box"><img src="/assets/images/accommodations/lata/cover/room-hero.jpg" alt="Phòng ngủ tại LATA Hotel &amp; Apartments"/><div class="am-lbl">Phòng ngủ</div></div>
                 </div>
@@ -1750,9 +2047,9 @@
                         <h3 class="am-col-title"><i class="fa-solid fa-dumbbell"></i> Tiện ích chung</h3>
                         <ul class="am-list" th:if="${hotel.name == 'LATA Hotel & Apartments'}">
                             <li>Khu lounge thư giãn</li>
-                            <li>Khu ăn uống &amp; bếp tiện nghi</li>
+                            <li>Khu ăn uống chung</li>
                             <li>Phòng tắm riêng hiện đại</li>
-                            <li>Không gian gác lửng theo hạng phòng</li>
+                            <li>Không gian sinh hoạt chung</li>
                             <li>Bàn làm việc trong phòng</li>
                             <li>Thang máy &amp; hành lang sáng thoáng</li>
                             <li>Bãi đỗ xe miễn phí</li>
@@ -1922,141 +2219,152 @@
         <div class="hd-card" id="policies" style="margin-bottom: 30px">
             <h2 class="section-title" th:with="pt=${hotel.propertyType != null ? hotel.propertyType.name() : 'HOTEL'}" th:text="${'Chính sách ' + (pt == 'VILLA' ? 'Villa' : (pt == 'HOMESTAY' ? 'Homestay' : (pt == 'RESORT' ? 'Resort' : 'Khách sạn')))}">Chính sách Khách sạn</h2>
 
-            <!-- ── HOTEL Policies ── -->
-            <div th:if="${hotel.propertyType == null or hotel.propertyType.name() == 'HOTEL'}"
-                 style="font-size:0.9rem;line-height:1.7;color:#334155;display:grid;grid-template-columns:1fr 1fr;gap:24px;">
-                <div>
-                    <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-regular fa-clock" style="color:#2563eb;"></i> Giờ nhận/trả phòng</p>
-                    <ul style="padding-left:20px;color:#475569;margin-bottom:16px;">
-                        <li>Nhận phòng: Từ <strong>14:00</strong></li>
-                        <li>Trả phòng: Trước <strong>12:00</strong></li>
-                        <li>Check-in sớm từ 11:00 (theo yêu cầu, tùy phòng trống)</li>
-                    </ul>
-                    <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-child" style="color:#2563eb;"></i> Chính sách trẻ em</p>
-                    <ul style="padding-left:20px;color:#475569;">
-                        <li>Trẻ dưới 6 tuổi: Miễn phí, ở chung giường bố mẹ</li>
-                        <li>Trẻ 6–11 tuổi: Phụ thu 150.000đ/đêm</li>
-                        <li>Từ 12 tuổi: Tính như người lớn (thêm giường 300.000đ/đêm)</li>
+            <div class="policy-grid" th:if="${hotel.propertyType == null or hotel.propertyType.name() == 'HOTEL'}">
+                <div class="policy-card is-important">
+                    <p class="policy-title"><i class="fa-regular fa-clock"></i> Nhận và trả phòng</p>
+                    <ul class="policy-list">
+                        <li><strong>Nhận phòng từ 14:00.</strong></li>
+                        <li><strong>Trả phòng trước 12:00.</strong></li>
+                        <li>Muốn nhận sớm từ 11:00? Hãy báo trước, khách sạn sẽ xác nhận nếu còn phòng trống.</li>
                     </ul>
                 </div>
-                <div>
-                    <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-ban" style="color:#ef4444;"></i> Không được phép</p>
-                    <ul style="padding-left:20px;color:#475569;margin-bottom:16px;">
-                        <li>Hút thuốc trong phòng (khu vực riêng bên ngoài)</li>
-                        <li>Mang thú cưng vào phòng</li>
-                        <li>Tổ chức tiệc ồn ào sau 22:00</li>
-                    </ul>
-                    <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-credit-card" style="color:#2563eb;"></i> Thanh toán</p>
-                    <ul style="padding-left:20px;color:#475569;">
-                        <li>Thanh toán 100% hoặc đặt cọc 30%</li>
-                        <li>Cọc 30%: trả 70% còn lại tại cơ sở khi check-in</li>
-                        <li>Đã cọc mà hủy/no-show: không hoàn tiền cọc</li>
-                        <li>Thanh toán 100% hủy trước check-in: dự kiến hoàn 70%, phí hủy 30%</li>
+                <div class="policy-card">
+                    <p class="policy-title"><i class="fa-solid fa-child"></i> Trẻ em và phụ thu</p>
+                    <ul class="policy-list">
+                        <li>Trẻ dưới 6 tuổi: miễn phí khi ngủ chung giường với bố mẹ.</li>
+                        <li>Trẻ 6-11 tuổi: phụ thu 150.000đ/đêm.</li>
+                        <li>Từ 12 tuổi: tính như người lớn; thêm giường 300.000đ/đêm nếu cần.</li>
                     </ul>
                 </div>
-            </div>
-
-            <!-- ── VILLA Policies ── -->
-            <div th:if="${hotel.propertyType != null and hotel.propertyType.name() == 'VILLA'}"
-                 style="font-size:0.9rem;line-height:1.7;color:#334155;display:grid;grid-template-columns:1fr 1fr;gap:24px;">
-                <div>
-                    <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-regular fa-clock" style="color:#2563eb;"></i> Giờ nhận/trả căn</p>
-                    <ul style="padding-left:20px;color:#475569;margin-bottom:16px;">
-                        <li>Nhận căn: Từ <strong>15:00</strong> (linh hoạt theo thỏa thuận)</li>
-                        <li>Trả căn: Trước <strong>11:00</strong></li>
-                        <li>Ở lại muộn: Phụ thu tùy thỏa thuận với chủ villa</li>
-                    </ul>
-                    <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-users" style="color:#2563eb;"></i> Số khách & Quy định</p>
-                    <ul style="padding-left:20px;color:#475569;">
-                        <li>Số khách tối đa theo sức chứa từng villa</li>
-                        <li>Tiệc & sự kiện nhỏ: Cho phép (thông báo trước)</li>
-                        <li>Khách ngoài danh sách: Báo trước để đăng ký</li>
+                <div class="policy-card is-danger">
+                    <p class="policy-title"><i class="fa-solid fa-ban"></i> Vui lòng lưu ý</p>
+                    <ul class="policy-list">
+                        <li>Không hút thuốc trong phòng, chỉ hút ở khu vực được chỉ định.</li>
+                        <li>Không mang thú cưng vào phòng.</li>
+                        <li>Giữ yên tĩnh sau 22:00 để không ảnh hưởng khách khác.</li>
                     </ul>
                 </div>
-                <div>
-                    <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-shield-halved" style="color:#2563eb;"></i> Thanh toán & Hủy căn</p>
-                    <ul style="padding-left:20px;color:#475569;margin-bottom:16px;">
-                        <li>Chọn thanh toán 100% hoặc cọc 30% qua TravelMate</li>
-                        <li>Cọc 30%: trả 70% còn lại tại cơ sở khi nhận căn</li>
-                        <li>Đã cọc mà hủy/no-show: không hoàn tiền cọc</li>
-                        <li>Thanh toán 100% hủy trước check-in: dự kiến hoàn 70%, phí hủy 30%</li>
-                    </ul>
-                    <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-paw" style="color:#2563eb;"></i> Thú cưng & Hút thuốc</p>
-                    <ul style="padding-left:20px;color:#475569;">
-                        <li>Thú cưng: Tùy villa (hỏi trước khi đặt)</li>
-                        <li>Hút thuốc: Chỉ được ngoài trời</li>
-                        <li>Bếp nướng BBQ: Cho phép theo quy định</li>
+                <div class="policy-card is-warning">
+                    <p class="policy-title"><i class="fa-solid fa-credit-card"></i> Thanh toán và hủy</p>
+                    <ul class="policy-list">
+                        <li><strong>Thanh toán toàn bộ:</strong> trả 100% qua VNPAY ngay khi đặt.</li>
+                        <li><strong>Cọc thanh toán:</strong> trả trước 30%, 70% còn lại trả tại cơ sở khi nhận phòng.</li>
+                        <li>Đã cọc mà hủy hoặc không đến: không hoàn lại tiền cọc.</li>
+                        <li>Đã thanh toán toàn bộ và hủy trước check-in: dự kiến hoàn 70%, phí hủy 30%.</li>
                     </ul>
                 </div>
             </div>
 
-            <!-- ── HOMESTAY Policies ── -->
-            <div th:if="${hotel.propertyType != null and hotel.propertyType.name() == 'HOMESTAY'}"
-                 style="font-size:0.9rem;line-height:1.7;color:#334155;display:grid;grid-template-columns:1fr 1fr;gap:24px;">
-                <div>
-                    <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-regular fa-clock" style="color:#2563eb;"></i> Giờ nhận/trả phòng</p>
-                    <ul style="padding-left:20px;color:#475569;margin-bottom:16px;">
-                        <li>Nhận phòng: Linh hoạt từ <strong>13:00</strong></li>
-                        <li>Trả phòng: Trước <strong>12:00</strong> (có thể thỏa thuận)</li>
-                        <li>Khung giờ yên lặng: Sau 22:00</li>
-                    </ul>
-                    <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-utensils" style="color:#2563eb;"></i> Bếp & Không gian chung</p>
-                    <ul style="padding-left:20px;color:#475569;">
-                        <li>Bếp chung: Sử dụng tự do, dọn dẹp sau khi dùng</li>
-                        <li>Chia sẻ không gian với chủ nhà hoặc khách khác</li>
-                        <li>Không tụ tập ồn ào sau 22:00</li>
+            <div class="policy-grid" th:if="${hotel.propertyType != null and hotel.propertyType.name() == 'VILLA'}">
+                <div class="policy-card is-important">
+                    <p class="policy-title"><i class="fa-regular fa-clock"></i> Nhận và trả căn</p>
+                    <ul class="policy-list">
+                        <li><strong>Nhận căn từ 15:00.</strong></li>
+                        <li><strong>Trả căn trước 11:00.</strong></li>
+                        <li>Cần nhận sớm hoặc trả muộn? Hãy báo trước để chủ villa xác nhận và thông báo phụ thu nếu có.</li>
                     </ul>
                 </div>
-                <div>
-                    <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-paw" style="color:#2563eb;"></i> Thú cưng</p>
-                    <ul style="padding-left:20px;color:#475569;margin-bottom:16px;">
-                        <li>Hỏi chủ nhà trước khi mang thú cưng</li>
-                        <li>Chịu trách nhiệm về thiệt hại (nếu có)</li>
+                <div class="policy-card">
+                    <p class="policy-title"><i class="fa-solid fa-users"></i> Số khách và sinh hoạt</p>
+                    <ul class="policy-list">
+                        <li>Không vượt quá sức chứa ghi trong thông tin từng căn.</li>
+                        <li>Tiệc nhỏ hoặc BBQ: được phép khi báo trước và tuân thủ quy định của villa.</li>
+                        <li>Khách ngoài danh sách lưu trú cần đăng ký trước với chủ villa.</li>
                     </ul>
-                    <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-credit-card" style="color:#2563eb;"></i> Thanh toán & Hủy phòng</p>
-                    <ul style="padding-left:20px;color:#475569;">
-                        <li>Thanh toán 100% hoặc đặt cọc 30%</li>
-                        <li>Cọc 30%: trả 70% còn lại tại cơ sở khi check-in</li>
-                        <li>Đã cọc mà hủy/no-show: mất toàn bộ tiền đặt cọc</li>
-                        <li>Thanh toán 100% hủy trước check-in: dự kiến hoàn 70%, phí hủy 30%</li>
+                </div>
+                <div class="policy-card is-danger">
+                    <p class="policy-title"><i class="fa-solid fa-shield-halved"></i> Quy định riêng</p>
+                    <ul class="policy-list">
+                        <li>Hút thuốc chỉ ở khu vực ngoài trời.</li>
+                        <li>Thú cưng tùy từng villa, vui lòng hỏi trước khi đặt.</li>
+                        <li>Giữ trật tự ban đêm, đặc biệt khi có hồ bơi hoặc khu BBQ riêng.</li>
+                    </ul>
+                </div>
+                <div class="policy-card is-warning">
+                    <p class="policy-title"><i class="fa-solid fa-credit-card"></i> Thanh toán và hủy căn</p>
+                    <ul class="policy-list">
+                        <li><strong>Thanh toán toàn bộ:</strong> trả 100% qua VNPAY ngay khi đặt.</li>
+                        <li><strong>Cọc thanh toán:</strong> trả trước 30%, 70% còn lại trả tại cơ sở khi nhận căn.</li>
+                        <li>Đã cọc mà hủy hoặc không đến: không hoàn lại tiền cọc.</li>
+                        <li>Đã thanh toán toàn bộ và hủy trước check-in: dự kiến hoàn 70%, phí hủy 30%.</li>
                     </ul>
                 </div>
             </div>
 
-            <!-- ── RESORT Policies ── -->
-            <div th:if="${hotel.propertyType != null and hotel.propertyType.name() == 'RESORT'}"
-                 style="font-size:0.9rem;line-height:1.7;color:#334155;display:grid;grid-template-columns:1fr 1fr;gap:24px;">
-                <div>
-                    <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-regular fa-clock" style="color:#2563eb;"></i> Giờ nhận/trả phòng</p>
-                    <ul style="padding-left:20px;color:#475569;margin-bottom:16px;">
-                        <li>Nhận phòng: Từ <strong>14:00</strong></li>
-                        <li>Trả phòng: Trước <strong>12:00</strong></li>
-                        <li>Early check-in / Late check-out: Phụ thu 50% giá phòng</li>
-                    </ul>
-                    <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-child" style="color:#2563eb;"></i> Chính sách trẻ em</p>
-                    <ul style="padding-left:20px;color:#475569;">
-                        <li>Trẻ dưới 6 tuổi: Miễn phí (ở chung giường)</li>
-                        <li>Trẻ 6–11 tuổi: Phụ thu 200.000đ/đêm</li>
-                        <li>Kids Club: Miễn phí cho trẻ 3–12 tuổi</li>
-                        <li>Từ 12 tuổi: Tính như người lớn</li>
+            <div class="policy-grid" th:if="${hotel.propertyType != null and hotel.propertyType.name() == 'HOMESTAY'}">
+                <div class="policy-card is-important">
+                    <p class="policy-title"><i class="fa-regular fa-clock"></i> Nhận và trả phòng</p>
+                    <ul class="policy-list">
+                        <li><strong>Nhận phòng linh hoạt từ 13:00.</strong></li>
+                        <li><strong>Trả phòng trước 12:00.</strong></li>
+                        <li>Sau 22:00 là khung giờ yên lặng, vui lòng hạn chế tiếng ồn.</li>
                     </ul>
                 </div>
-                <div>
-                    <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-shirt" style="color:#2563eb;"></i> Dress code</p>
-                    <ul style="padding-left:20px;color:#475569;margin-bottom:16px;">
-                        <li>Trang phục lịch sự tại nhà hàng & khu vực công cộng</li>
-                        <li>Áo phông & Quần đùi: Chỉ tại khu bể bơi & bãi biển</li>
-                        <li>Giày dép bắt buộc tại nhà hàng buổi tối</li>
-                    </ul>
-                    <p style="font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-credit-card" style="color:#2563eb;"></i> Đặt phòng & Hủy</p>
-                    <ul style="padding-left:20px;color:#475569;">
-                        <li>Thanh toán 100% hoặc đặt cọc 30%</li>
-                        <li>Cọc 30%: trả 70% còn lại tại cơ sở khi check-in</li>
-                        <li>Đã cọc mà hủy/no-show: không hoàn tiền cọc</li>
-                        <li>Thanh toán 100% hủy trước check-in: dự kiến hoàn 70%, phí hủy 30%</li>
-                        <li>Đưa đón sân bay: Cần đặt trước 24h</li>
+                <div class="policy-card">
+                    <p class="policy-title"><i class="fa-solid fa-utensils"></i> Không gian chung</p>
+                    <ul class="policy-list">
+                        <li>Có thể dùng bếp chung, vui lòng dọn dẹp sau khi sử dụng.</li>
+                        <li>Một số khu vực có thể dùng chung với chủ nhà hoặc khách khác.</li>
+                        <li>Nếu cần tổ chức ăn uống nhóm, hãy báo trước cho chủ nhà.</li>
                     </ul>
                 </div>
+                <div class="policy-card is-danger">
+                    <p class="policy-title"><i class="fa-solid fa-ban"></i> Vui lòng lưu ý</p>
+                    <ul class="policy-list">
+                        <li>Hỏi chủ nhà trước khi mang thú cưng.</li>
+                        <li>Khách chịu trách nhiệm nếu làm hư hỏng tài sản trong phòng hoặc khu chung.</li>
+                        <li>Không tụ tập ồn ào sau 22:00.</li>
+                    </ul>
+                </div>
+                <div class="policy-card is-warning">
+                    <p class="policy-title"><i class="fa-solid fa-credit-card"></i> Thanh toán và hủy</p>
+                    <ul class="policy-list">
+                        <li><strong>Thanh toán toàn bộ:</strong> trả 100% qua VNPAY ngay khi đặt.</li>
+                        <li><strong>Cọc thanh toán:</strong> trả trước 30%, 70% còn lại trả tại cơ sở khi nhận phòng.</li>
+                        <li>Đã cọc mà hủy hoặc không đến: không hoàn lại tiền cọc.</li>
+                        <li>Đã thanh toán toàn bộ và hủy trước check-in: dự kiến hoàn 70%, phí hủy 30%.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="policy-grid" th:if="${hotel.propertyType != null and hotel.propertyType.name() == 'RESORT'}">
+                <div class="policy-card is-important">
+                    <p class="policy-title"><i class="fa-regular fa-clock"></i> Nhận và trả phòng</p>
+                    <ul class="policy-list">
+                        <li><strong>Nhận phòng từ 14:00.</strong></li>
+                        <li><strong>Trả phòng trước 12:00.</strong></li>
+                        <li>Nhận sớm hoặc trả muộn có thể phụ thu 50% giá phòng, tùy tình trạng phòng trống.</li>
+                    </ul>
+                </div>
+                <div class="policy-card">
+                    <p class="policy-title"><i class="fa-solid fa-child"></i> Trẻ em và dịch vụ</p>
+                    <ul class="policy-list">
+                        <li>Trẻ dưới 6 tuổi: miễn phí khi ngủ chung giường.</li>
+                        <li>Trẻ 6-11 tuổi: phụ thu 200.000đ/đêm.</li>
+                        <li>Kids Club miễn phí cho trẻ 3-12 tuổi; từ 12 tuổi tính như người lớn.</li>
+                    </ul>
+                </div>
+                <div class="policy-card is-danger">
+                    <p class="policy-title"><i class="fa-solid fa-shirt"></i> Khu vực chung</p>
+                    <ul class="policy-list">
+                        <li>Trang phục lịch sự khi vào nhà hàng và khu vực công cộng.</li>
+                        <li>Áo phông, quần đùi phù hợp tại hồ bơi và bãi biển.</li>
+                        <li>Dịch vụ đưa đón sân bay cần đặt trước ít nhất 24 giờ.</li>
+                    </ul>
+                </div>
+                <div class="policy-card is-warning">
+                    <p class="policy-title"><i class="fa-solid fa-credit-card"></i> Thanh toán và hủy</p>
+                    <ul class="policy-list">
+                        <li><strong>Thanh toán toàn bộ:</strong> trả 100% qua VNPAY ngay khi đặt.</li>
+                        <li><strong>Cọc thanh toán:</strong> trả trước 30%, 70% còn lại trả tại cơ sở khi nhận phòng.</li>
+                        <li>Đã cọc mà hủy hoặc không đến: không hoàn lại tiền cọc.</li>
+                        <li>Đã thanh toán toàn bộ và hủy trước check-in: dự kiến hoàn 70%, phí hủy 30%.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="policy-note">
+                Mẹo nhanh: chọn <strong>Thanh toán toàn bộ</strong> nếu muốn hoàn tất một lần; chọn <strong>Cọc thanh toán</strong> nếu chỉ muốn trả trước 30% để giữ chỗ và thanh toán phần còn lại tại cơ sở.
             </div>
         </div>
 
@@ -2138,13 +2446,9 @@
                      style="padding: 16px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px">
                         <div style="font-weight: 700; color: #0f172a" th:text="${review.user.name}">User</div>
-                        <div style="color: #f59e0b; font-size: 0.8rem">
-                            <th:block th:each="i : ${#numbers.sequence(1, review.rating)}">
-                                <i class="fa-solid fa-star"></i>
-                            </th:block>
-                            <th:block th:each="i : ${#numbers.sequence(1, 5 - review.rating)}" th:if="${review.rating < 5}">
-                                <i class="fa-regular fa-star"></i>
-                            </th:block>
+                        <div style="background:#fff7ed;border:1px solid #fed7aa;color:#c2410c;font-size:0.82rem;font-weight:800;border-radius:999px;padding:4px 10px;white-space:nowrap;"
+                             th:text="${review.rating} + ' điểm'">
+                            10 điểm
                         </div>
                     </div>
                     <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px">
@@ -2313,7 +2617,7 @@
             if (total !== undefined) {
                 body += `<div style="border-top:1px solid #334155;padding-top:6px;margin-top:4px;">
                     <div>Tổng ${window.CAL_UNIT_LABEL || 'phòng'}: <strong style="color:#fff">${total}</strong></div>
-                    <div>Đã giữ:&nbsp;&nbsp;&nbsp;<strong style="color:#f87171">${occ}</strong></div>
+                    <div>Đã đặt:&nbsp;&nbsp;&nbsp;<strong style="color:#f87171">${occ}</strong></div>
                     <div>Còn trống: <strong style="color:#4ade80">${avail}</strong></div>
                 </div>`;
             }

@@ -261,6 +261,9 @@ public class ChatbotService {
         if (aiResponse.isPresent()) {
             return aiResponse.get();
         }
+        if (shouldRedirectToTravelMate(norm)) {
+            return redirectToTravelMate(message, norm);
+        }
 
         return fallback();
     }
@@ -374,7 +377,7 @@ public class ChatbotService {
                 + "<p>📋 <strong>Chính sách đặt phòng TravelMate:</strong></p>"
                 + "<p><strong>💳 Hình thức thanh toán:</strong></p>"
                 + "<ul>"
-                + "<li><strong>Đặt cọc 30%</strong> qua VNPAY → đơn được ghi nhận và chuyển đối tác xác nhận giữ phòng</li>"
+                + "<li><strong>Đặt cọc 30%</strong> qua VNPAY → đơn được ghi nhận và TravelMate giữ phòng/căn trên hệ thống</li>"
                 + "<li>Thanh toán <strong>70% còn lại</strong> trực tiếp tại cơ sở khi nhận phòng</li>"
                 + "<li>Hoặc <strong>thanh toán 100%</strong> trực tuyến để được ưu tiên xác nhận nhanh</li>"
                 + "</ul>"
@@ -397,7 +400,7 @@ public class ChatbotService {
                 + "<li>✅ Thanh toán trực tuyến qua <strong>VNPAY Sandbox</strong> trong bản demo</li>"
                 + "<li>🏦 Hỗ trợ mô phỏng thanh toán bằng thẻ test do VNPAY cung cấp</li>"
                 + "<li>🔒 Mã hóa SSL — bảo mật tuyệt đối</li>"
-                + "<li>⏱ Sau khi thanh toán/cọc thành công, TravelMate tự xác nhận kết quả VNPAY và chuyển đơn sang chờ đối tác giữ phòng</li>"
+                + "<li>⏱ Sau khi thanh toán/cọc thành công, TravelMate tự xác nhận kết quả VNPAY và giữ phòng/căn trên hệ thống</li>"
                 + "</ul>"
                 + "<p>⚠️ Gặp sự cố? <a href='/contact' class='bot-link'>Liên hệ hỗ trợ ngay</a>.</p>"
                 + "</div>";
@@ -665,7 +668,7 @@ public class ChatbotService {
     private ChatbotResponse outOfScope() {
         String suggest = "Đà Lạt";
         String reply = "<div>"
-                + "<p>🤖 Mình chỉ hỗ trợ <strong>du lịch và đặt phòng trên TravelMate</strong>.</p>"
+                + "<p>🤖 Câu này nằm ngoài phạm vi đồ án, nên mình sẽ kéo về <strong>du lịch và đặt phòng trên TravelMate</strong>.</p>"
                 + "<p>Nếu bạn muốn đổi không khí, mình có thể gợi ý <strong>Đà Lạt</strong>, "
                 + "<strong>Sa Pa</strong>, <strong>Hội An</strong> hoặc <strong>Nha Trang</strong> theo ngân sách của bạn.</p>"
                 + botActionRow(suggest)
@@ -681,6 +684,48 @@ public class ChatbotService {
                 + "<li>Nhấn các nút gợi ý bên dưới</li>"
                 + "</ul>";
         return new ChatbotResponse(I_FALLBACK, reply, DEFAULT_QR);
+    }
+
+    private ChatbotResponse redirectToTravelMate(String message, String norm) {
+        String lead;
+        String primaryDestination;
+        List<String> destinations;
+
+        if (isCurrentNewsQuestion(norm)) {
+            primaryDestination = "Đà Lạt";
+            destinations = List.of("Đà Lạt", "Sa Pa", "Hội An", "Nha Trang");
+            lead = "Mình không cập nhật thời sự theo thời gian thực trong TravelMate. Nếu bạn muốn đổi chủ đề thành một chuyến đi, TravelMate có thể gợi ý các điểm đến dễ demo và dễ đặt phòng.";
+        } else if (isFoodContext(norm)) {
+            primaryDestination = "Hội An";
+            destinations = List.of("Hội An", "Đà Nẵng", "TP. HCM", "Nha Trang");
+            lead = "Nếu bạn đang đói hoặc muốn đi ăn ngon, mình sẽ kéo về du lịch ẩm thực: ưu tiên nơi lưu trú gần phố đi bộ, chợ đêm hoặc khu trung tâm để tiện khám phá.";
+        } else if (isTravelMoodCandidate(norm)) {
+            primaryDestination = "Đà Lạt";
+            destinations = List.of("Đà Lạt", "Hội An", "Đà Nẵng", "Nha Trang", "Vũng Tàu");
+            lead = "Nếu bạn muốn đổi không khí, TravelMate có thể gợi ý điểm đến nhẹ nhàng, nhiều quán cafe, photowalk và hoạt động nhóm. Mình không tư vấn chuyện tình cảm sâu, chỉ kéo về lựa chọn du lịch phù hợp.";
+        } else if (isRestContext(norm)) {
+            primaryDestination = "Phú Quốc";
+            destinations = List.of("Phú Quốc", "Đà Lạt", "Sa Pa", "Nha Trang");
+            lead = "Nếu bạn đang mệt, stress hoặc cần nghỉ ngơi, mình sẽ chuyển thành nhu cầu nghỉ dưỡng: ưu tiên resort, homestay yên tĩnh hoặc phòng có view đẹp trên TravelMate.";
+        } else if (isWeatherContext(norm)) {
+            primaryDestination = "Đà Lạt";
+            destinations = List.of("Đà Lạt", "Sa Pa", "Nha Trang", "Đà Nẵng");
+            lead = "TravelMate chưa có dự báo thời tiết trực tiếp, nhưng mình có thể bẻ câu này thành gợi ý điểm đến: trời nóng thì đi biển, muốn mát mẻ thì chọn Đà Lạt hoặc Sa Pa.";
+        } else {
+            primaryDestination = "Đà Lạt";
+            destinations = List.of("Đà Lạt", "Sa Pa", "Hội An", "Nha Trang");
+            lead = "Mình sẽ kéo câu này về TravelMate: nếu bạn muốn đổi không khí, mình có thể gợi ý điểm đến, loại nơi lưu trú và cách đặt phòng theo ngân sách của bạn.";
+        }
+
+        String reply = "<div class='bot-ai-response'>"
+                + "<p>" + esc(lead) + "</p>"
+                + destinationChips(destinations)
+                + "<p>Trên TravelMate, bạn có thể lọc khách sạn, homestay, villa hoặc resort theo điểm đến, ngày nhận - trả phòng và dùng voucher nếu có.</p>"
+                + botActionRow(primaryDestination)
+                + "</div>";
+        return new ChatbotResponse(I_AI_BUSINESS, reply,
+                List.of("Gợi ý " + primaryDestination, "Tìm khách sạn " + primaryDestination,
+                        "Xem voucher", "Hướng dẫn đặt phòng"));
     }
 
     private Optional<ChatbotResponse> groqBusinessFallback(String message, String norm, String username) {
@@ -705,15 +750,19 @@ public class ChatbotService {
                             "messages", List.of(
                                     Map.of("role", "system", "content", groqSystemPrompt()),
                                     Map.of("role", "user", "content",
-                                            "Cau hoi cua khach:\n" + message + "\n\nDu lieu TravelMate duoc phep dung:\n" + context)
+                                            "Câu hỏi của khách:\n" + message
+                                                    + "\n\nDữ liệu TravelMate được phép dùng:\n" + context)
                             )
                     ))
                     .retrieve()
                     .body(GroqChatCompletion.class);
 
-            String content = extractGroqContent(completion);
+            String content = normalizeKnownVietnameseFallbacks(extractGroqContent(completion));
             if (isBlank(content)) {
                 return Optional.empty();
+            }
+            if (shouldRedirectToTravelMate(norm) && isMissingTravelMateDataReply(content)) {
+                return Optional.of(redirectToTravelMate(message, norm));
             }
 
             return Optional.of(new ChatbotResponse(
@@ -729,16 +778,16 @@ public class ChatbotService {
 
     private String groqSystemPrompt() {
         return """
-                Ban la TravelBot cua TravelMate.
-                Quy tac bat buoc:
-                - Chi tra loi bang tieng Viet, toi da 80 tu.
-                - Chi dung thong tin trong phan "Du lieu TravelMate duoc phep dung".
-                - Khong bia gia, chinh sach, dia diem, voucher, hotline, link hay trang thai dat phong.
-                - Neu du lieu khong du de tra loi, noi ngan gon: "Minh chua co du lieu TravelMate de tra loi phan nay."
-                - Neu tin nhan doi thuong hoac lac de, hay suy ra tinh canh cua khach roi be lai sang goi y diem den, hoat dong du lich, loai noi luu tru hoac cach dat phong tren TravelMate.
-                - Vi du: doi bung thi goi y diem den hop am thuc/pho di bo/cho dem; met, stress thi goi y nghi duong; buon, co don, that tinh thi goi y doi khong khi, cafe, photowalk, hoat dong nhom.
-                - Khong hua hen se tim duoc nguoi yeu, khong tu van tinh cam sau, khong dua loi khuyen y te/phap ly/tai chinh/lap trinh.
-                - Khong tra loi lan man, khong markdown, khong HTML.
+                Bạn là TravelBot của TravelMate.
+                Quy tắc bắt buộc:
+                - Luôn trả lời bằng tiếng Việt có dấu chuẩn Unicode, tối đa 80 từ. Không dùng tiếng Việt không dấu.
+                - Chỉ dùng thông tin trong phần "Dữ liệu TravelMate được phép dùng".
+                - Không bịa giá, chính sách, địa điểm, voucher, hotline, link hay trạng thái đặt phòng.
+                - Nếu thiếu dữ liệu TravelMate cho câu hỏi đúng phạm vi, nói ngắn gọn: "Mình chưa có dữ liệu TravelMate để trả lời phần này."
+                - Nếu tin nhắn đời thường hoặc lạc đề, không trả lời trực tiếp chủ đề đó; hãy suy ra tình cảnh của khách rồi bẻ lái sang gợi ý điểm đến, hoạt động du lịch, loại nơi lưu trú, voucher hoặc cách đặt phòng trên TravelMate.
+                - Ví dụ: đói bụng thì gợi ý điểm đến hợp ẩm thực/phố đi bộ/chợ đêm; mệt, stress thì gợi ý nghỉ dưỡng; buồn, cô đơn, thất tình thì gợi ý đổi không khí, cafe, photowalk, hoạt động nhóm.
+                - Không hứa hẹn sẽ tìm được người yêu, không tư vấn tình cảm sâu, không đưa lời khuyên y tế/pháp lý/tài chính/lập trình.
+                - Không trả lời lan man, không markdown, không HTML.
                 """;
     }
 
@@ -748,25 +797,25 @@ public class ChatbotService {
         PropertyType propertyType = extractPropertyTypePreference(norm);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("Pham vi chatbot: tim noi luu tru, goi y diem den trong TravelMate, tu van ngan sach dua tren gia phong trong he thong, huong dan dat phong, thanh toan, voucher, lich su dat phong khi da dang nhap, lien he ho tro.\n");
-        sb.append("Tin nhan lac de van duoc xu ly bang cach suy ra tinh canh va noi ve du lich/luu tru/hoat dong trong TravelMate, khong tra loi truc tiep ngoai pham vi.\n");
-        sb.append("Khong ho tro: ve may bay/xe, gia ngoai he thong, nha hang ngoai du lieu, y te, phap ly, tai chinh, lap trinh, chinh tri.\n");
-        sb.append("Loai hinh luu tru: khach san, villa, homestay, resort.\n");
+        sb.append("Phạm vi chatbot: tìm nơi lưu trú, gợi ý điểm đến trong TravelMate, tư vấn ngân sách dựa trên giá phòng trong hệ thống, hướng dẫn đặt phòng, thanh toán, voucher, lịch sử đặt phòng khi đã đăng nhập, liên hệ hỗ trợ.\n");
+        sb.append("Tin nhắn lạc đề vẫn được xử lý bằng cách suy ra tình cảnh và nói về du lịch/lưu trú/hoạt động trong TravelMate, không trả lời trực tiếp ngoài phạm vi.\n");
+        sb.append("Không hỗ trợ: vé máy bay/xe, giá ngoài hệ thống, nhà hàng ngoài dữ liệu, y tế, pháp lý, tài chính, lập trình, chính trị.\n");
+        sb.append("Loại hình lưu trú: khách sạn, villa, homestay, resort.\n");
         if (isContextualTravelBridgeCandidate(norm)) {
-            sb.append("Bang goi y theo tinh canh:\n");
-            sb.append("- Doi bung/them an: Hoi An, Da Nang, Nha Trang, TP. HCM; uu tien luu tru gan trung tam, pho di bo, cho dem, khu am thuc.\n");
-            sb.append("- Met/stress/can nghi: Da Lat, Phu Quoc, Nha Trang, Sa Pa; uu tien resort, homestay yen tinh, phong co view.\n");
-            sb.append("- Buon/co don/that tinh/muon gap nguoi moi: Da Lat, Hoi An, Da Nang, Nha Trang, Vung Tau; goi y cafe, photowalk, bien, tour/hoat dong nhom; khong cam ket tim duoc nguoi yeu.\n");
-            sb.append("- Nong buc: bien nhu Nha Trang, Da Nang, Phu Quoc, Vung Tau. Mua lanh: Da Lat, Sa Pa, cafe/khach san gan trung tam.\n");
-            sb.append("- An mung/sinh nhat/di cung ban be: Da Nang, Nha Trang, TP. HCM, Hoi An; uu tien villa/homestay/khach san gan khu vui choi.\n");
+            sb.append("Bảng gợi ý theo tình cảnh:\n");
+            sb.append("- Đói bụng/thèm ăn: Hội An, Đà Nẵng, Nha Trang, TP. HCM; ưu tiên lưu trú gần trung tâm, phố đi bộ, chợ đêm, khu ẩm thực.\n");
+            sb.append("- Mệt/stress/cần nghỉ: Đà Lạt, Phú Quốc, Nha Trang, Sa Pa; ưu tiên resort, homestay yên tĩnh, phòng có view.\n");
+            sb.append("- Buồn/cô đơn/thất tình/muốn gặp người mới: Đà Lạt, Hội An, Đà Nẵng, Nha Trang, Vũng Tàu; gợi ý cafe, photowalk, biển, tour/hoạt động nhóm; không cam kết tìm được người yêu.\n");
+            sb.append("- Nóng bức: biển như Nha Trang, Đà Nẵng, Phú Quốc, Vũng Tàu. Mưa lạnh: Đà Lạt, Sa Pa, cafe/khách sạn gần trung tâm.\n");
+            sb.append("- Ăn mừng/sinh nhật/đi cùng bạn bè: Đà Nẵng, Nha Trang, TP. HCM, Hội An; ưu tiên villa/homestay/khách sạn gần khu vui chơi.\n");
         }
-        sb.append("Quy trinh dat phong: tim diem den va ngay o, chon noi luu tru/phong, dang nhap hoac dang ky, chon dat coc 30% hoac thanh toan 100% qua VNPAY, theo doi trong Dat phong cua toi.\n");
-        sb.append("Thanh toan: demo dung VNPAY Sandbox. Dat coc 30% qua VNPAY, 70% con lai thanh toan truc tiep tai co so khi nhan phong. Thanh toan 100% truc tuyen duoc uu tien xac nhan nhanh.\n");
-        sb.append("Huy/no-show: dat coc 30% da thanh toan neu huy hoac no-show thi mat toan bo tien coc. Thanh toan 100% neu huy truoc check-in thi du kien hoan 70% va giu 30% phi huy. He thong mo lai quota sau khi ghi nhan huy.\n");
-        sb.append("Ho tro: email support@travelmate.vn, hotline 1800 6868 tu 8:00 den 22:00, trang /contact.\n");
+        sb.append("Quy trình đặt phòng: tìm điểm đến và ngày ở, chọn nơi lưu trú/phòng, đăng nhập hoặc đăng ký, chọn đặt cọc 30% hoặc thanh toán 100% qua VNPAY, theo dõi trong Đặt phòng của tôi.\n");
+        sb.append("Thanh toán: demo dùng VNPAY Sandbox. Đặt cọc 30% qua VNPAY, 70% còn lại thanh toán trực tiếp tại cơ sở khi nhận phòng. Thanh toán 100% trực tuyến được ưu tiên xác nhận nhanh.\n");
+        sb.append("Hủy/no-show: đặt cọc 30% đã thanh toán nếu hủy hoặc no-show thì mất toàn bộ tiền cọc. Thanh toán 100% nếu hủy trước check-in thì dự kiến hoàn 70% và giữ 30% phí hủy. Hệ thống mở lại quota sau khi ghi nhận hủy.\n");
+        sb.append("Hỗ trợ: email support@travelmate.vn, hotline 1800 6868 từ 8:00 đến 22:00, trang /contact.\n");
         sb.append(username == null
-                ? "Nguoi dung chua dang nhap, khong duoc noi co the xem lich su dat phong truc tiep neu chua dang nhap.\n"
-                : "Nguoi dung da dang nhap, co the huong dan xem Dat phong cua toi.\n");
+                ? "Người dùng chưa đăng nhập, không được nói có thể xem lịch sử đặt phòng trực tiếp nếu chưa đăng nhập.\n"
+                : "Người dùng đã đăng nhập, có thể hướng dẫn xem Đặt phòng của tôi.\n");
 
         appendGroqAccommodationContext(sb, destination, preference, propertyType);
         appendGroqTravelPostContext(sb, destination);
@@ -787,17 +836,17 @@ public class ChatbotService {
                 .collect(Collectors.toList());
 
         if (matches.isEmpty()) {
-            sb.append("Noi luu tru phu hop trong DB: chua co ket qua ro rang.\n");
+            sb.append("Nơi lưu trú phù hợp trong DB: chưa có kết quả rõ ràng.\n");
             return;
         }
 
-        sb.append("Noi luu tru phu hop trong DB:\n");
+        sb.append("Nơi lưu trú phù hợp trong DB:\n");
         for (Accommodation a : matches) {
             sb.append("- ").append(a.getName());
             if (a.getCity() != null) sb.append(", ").append(a.getCity());
-            if (a.getPropertyType() != null) sb.append(", loai ").append(typeLabel(a.getPropertyType()));
-            if (a.getMinPrice() != null) sb.append(", tu ").append(fmtPrice(a.getMinPrice())).append("/dem");
-            if (a.getRating() != null) sb.append(", diem ").append(String.format("%.1f", a.getRating()));
+            if (a.getPropertyType() != null) sb.append(", loại ").append(typeLabel(a.getPropertyType()));
+            if (a.getMinPrice() != null) sb.append(", từ ").append(fmtPrice(a.getMinPrice())).append("/đêm");
+            if (a.getRating() != null) sb.append(", điểm ").append(String.format("%.1f", a.getRating()));
             sb.append(", link /accommodations/").append(a.getId()).append("\n");
         }
     }
@@ -819,7 +868,7 @@ public class ChatbotService {
             return;
         }
 
-        sb.append("Bai goi y du lich trong DB:\n");
+        sb.append("Bài gợi ý du lịch trong DB:\n");
         for (TravelPost post : posts) {
             sb.append("- ").append(post.getTitle());
             if (post.getSummary() != null && !post.getSummary().isBlank()) {
@@ -841,21 +890,21 @@ public class ChatbotService {
                 .collect(Collectors.toList());
 
         if (active.isEmpty()) {
-            sb.append("Voucher toan san dang hoat dong: chua co voucher hop le.\n");
+            sb.append("Voucher toàn sàn đang hoạt động: chưa có voucher hợp lệ.\n");
             return;
         }
 
-        sb.append("Voucher toan san dang hoat dong:\n");
+        sb.append("Voucher toàn sàn đang hoạt động:\n");
         for (Voucher v : active) {
-            sb.append("- Ma ").append(v.getCode());
+            sb.append("- Mã ").append(v.getCode());
             if (v.getName() != null && !v.getName().isBlank()) sb.append(", ").append(v.getName());
             if (v.getDiscountType() == DiscountType.PERCENT) {
-                sb.append(", giam ").append(v.getDiscountValue().stripTrailingZeros().toPlainString()).append("%");
+                sb.append(", giảm ").append(v.getDiscountValue().stripTrailingZeros().toPlainString()).append("%");
                 if (v.getMaxDiscountAmount() != null) {
-                    sb.append(" toi da ").append(fmtPrice(v.getMaxDiscountAmount().doubleValue()));
+                    sb.append(" tối đa ").append(fmtPrice(v.getMaxDiscountAmount().doubleValue()));
                 }
             } else {
-                sb.append(", giam ").append(fmtPrice(v.getDiscountValue().doubleValue()));
+                sb.append(", giảm ").append(fmtPrice(v.getDiscountValue().doubleValue()));
             }
             if (v.getEndDate() != null) sb.append(", HSD ").append(v.getEndDate().format(DATE_FMT));
             sb.append("\n");
@@ -890,7 +939,11 @@ public class ChatbotService {
     }
 
     private String formatAiReply(String content) {
-        String text = trimTo(content.replace("\r", "").trim(), 700);
+        String normalized = normalizeKnownVietnameseFallbacks(content);
+        if (isBlank(normalized)) {
+            return fallback().reply();
+        }
+        String text = trimTo(normalized.replace("\r", "").trim(), 700);
         if (isBlank(text)) {
             return fallback().reply();
         }
@@ -898,6 +951,83 @@ public class ChatbotService {
         String html = escaped.replaceAll("\\n{2,}", "</p><p>")
                 .replace("\n", "<br>");
         return "<div class='bot-ai-response'><p>" + html + "</p></div>";
+    }
+
+    private String normalizeKnownVietnameseFallbacks(String content) {
+        if (content == null) {
+            return null;
+        }
+        String normalized = content
+                .replace("Minh chua co du lieu TravelMate de tra loi phan nay.",
+                        "Mình chưa có dữ liệu TravelMate để trả lời phần này.")
+                .replace("Minh chua co du lieu TravelMate de tra loi phan nay",
+                        "Mình chưa có dữ liệu TravelMate để trả lời phần này")
+                .replace("Minh chua co du lieu de tra loi phan nay.",
+                        "Mình chưa có dữ liệu để trả lời phần này.")
+                .replace("Minh chua co du lieu de tra loi phan nay",
+                        "Mình chưa có dữ liệu để trả lời phần này");
+        normalized = replaceKnownTerm(normalized, "Da Lat", "Đà Lạt");
+        normalized = replaceKnownTerm(normalized, "Dalat", "Đà Lạt");
+        normalized = replaceKnownTerm(normalized, "Da Nang", "Đà Nẵng");
+        normalized = replaceKnownTerm(normalized, "Danang", "Đà Nẵng");
+        normalized = replaceKnownTerm(normalized, "Hoi An", "Hội An");
+        normalized = replaceKnownTerm(normalized, "Hoian", "Hội An");
+        normalized = replaceKnownTerm(normalized, "Phu Quoc", "Phú Quốc");
+        normalized = replaceKnownTerm(normalized, "Phuquoc", "Phú Quốc");
+        normalized = replaceKnownTerm(normalized, "Vung Tau", "Vũng Tàu");
+        normalized = replaceKnownTerm(normalized, "Vungtau", "Vũng Tàu");
+        normalized = replaceKnownTerm(normalized, "Mui Ne", "Mũi Né");
+        normalized = replaceKnownTerm(normalized, "Muine", "Mũi Né");
+        normalized = replaceKnownTerm(normalized, "Can Tho", "Cần Thơ");
+        normalized = replaceKnownTerm(normalized, "Cantho", "Cần Thơ");
+        normalized = replaceKnownTerm(normalized, "Ha Noi", "Hà Nội");
+        normalized = replaceKnownTerm(normalized, "Hanoi", "Hà Nội");
+        normalized = replaceKnownTerm(normalized, "Ha Long", "Hạ Long");
+        normalized = replaceKnownTerm(normalized, "Halong", "Hạ Long");
+        normalized = replaceKnownTerm(normalized, "Ha Giang", "Hà Giang");
+        normalized = replaceKnownTerm(normalized, "Hagiang", "Hà Giang");
+        normalized = replaceKnownTerm(normalized, "Ninh Binh", "Ninh Bình");
+        normalized = replaceKnownTerm(normalized, "Ninhbinh", "Ninh Bình");
+        normalized = replaceKnownTerm(normalized, "Quang Ninh", "Quảng Ninh");
+        normalized = replaceKnownTerm(normalized, "Quangninh", "Quảng Ninh");
+        normalized = replaceKnownTerm(normalized, "Yen Bai", "Yên Bái");
+        normalized = replaceKnownTerm(normalized, "Yenbai", "Yên Bái");
+        normalized = replaceKnownTerm(normalized, "Lao Cai", "Lào Cai");
+        normalized = replaceKnownTerm(normalized, "Laocai", "Lào Cai");
+        normalized = replaceKnownTerm(normalized, "Sapa", "Sa Pa");
+        normalized = replaceKnownTerm(normalized, "khach san", "khách sạn");
+        normalized = replaceKnownTerm(normalized, "luu tru", "lưu trú");
+        normalized = replaceKnownTerm(normalized, "nghi duong", "nghỉ dưỡng");
+        normalized = replaceKnownTerm(normalized, "yen tinh", "yên tĩnh");
+        normalized = replaceKnownTerm(normalized, "diem den", "điểm đến");
+        normalized = replaceKnownTerm(normalized, "du lich", "du lịch");
+        normalized = replaceKnownTerm(normalized, "dat phong", "đặt phòng");
+        normalized = replaceKnownTerm(normalized, "goi y", "gợi ý");
+        normalized = replaceKnownTerm(normalized, "am thuc", "ẩm thực");
+        normalized = replaceKnownTerm(normalized, "pho di bo", "phố đi bộ");
+        normalized = replaceKnownTerm(normalized, "cho dem", "chợ đêm");
+        normalized = replaceKnownTerm(normalized, "doi khong khi", "đổi không khí");
+        return normalized;
+    }
+
+    private String replaceKnownTerm(String content, String source, String replacement) {
+        return Pattern.compile("(?iu)(?<!\\p{L})" + Pattern.quote(source) + "(?!\\p{L})")
+                .matcher(content)
+                .replaceAll(Matcher.quoteReplacement(replacement));
+    }
+
+    private boolean isMissingTravelMateDataReply(String content) {
+        if (isBlank(content)) {
+            return false;
+        }
+        String norm = DestinationAliasUtil.normalizeText(content);
+        return norm.contains("minh chua co du lieu travelmate")
+                || norm.contains("chua co du lieu travelmate")
+                || norm.contains("khong co du lieu travelmate")
+                || norm.contains("chua co thong tin travelmate")
+                || norm.contains("khong co thong tin travelmate")
+                || norm.contains("khong du du lieu")
+                || norm.contains("du lieu khong du");
     }
 
     private String trimTo(String value, int maxLength) {
@@ -945,13 +1075,68 @@ public class ChatbotService {
     private boolean isContextualTravelBridgeCandidate(String norm) {
         return isTravelMoodCandidate(norm)
                 || matches(norm,
-                        "doi", "them an", "muon an", "an gi", "do an", "am thuc",
+                        "toi doi", "dang doi", "doi bung", "them an", "muon an", "an gi", "do an", "am thuc",
                         "met", "stress", "ap luc", "cang thang", "can nghi", "muon nghi",
                         "chan", "buon", "doi gio", "doi khong khi", "khong biet lam gi",
                         "hom nay toi", "toi dang", "toi muon", "cuoi tuan",
                         "nong", "lanh", "mua", "nang", "ngu khong ngon",
                         "sinh nhat", "ky niem", "an mung", "di voi ban", "di cung ban",
                         "gia dinh", "tre em", "cap doi", "mot minh");
+    }
+
+    private boolean shouldRedirectToTravelMate(String norm) {
+        return norm != null
+                && norm.length() >= 3
+                && !isHardOutOfScope(norm)
+                && (isContextualTravelBridgeCandidate(norm)
+                    || isSoftOutOfScope(norm)
+                    || !hasTravelMateDomainSignal(norm));
+    }
+
+    private boolean hasTravelMateDomainSignal(String norm) {
+        return extractDestination(norm) != null
+                || extractBudgetVnd(norm) != null
+                || extractTravelPreference(norm) != null
+                || extractPropertyTypePreference(norm) != null
+                || matches(norm,
+                        "travelmate", "du lich", "di choi", "di dau", "lich trinh", "diem den",
+                        "kham pha", "tham quan", "an gi", "am thuc",
+                        "khach san", "homestay", "villa", "resort", "noi luu tru", "phong",
+                        "dat phong", "booking", "check in", "check-in", "check out", "check-out",
+                        "nhan phong", "tra phong", "doi lich", "doi ngay", "huy phong", "huy don",
+                        "huy booking", "no show",
+                        "thanh toan", "dat coc", "vnpay", "hoan tien", "voucher", "ma giam gia",
+                        "uu dai", "tai khoan", "dang nhap", "dang ky", "ho tro", "lien he",
+                        "gia phong", "gia tien", "bang gia", "gia re", "chi phi", "ngan sach");
+    }
+
+    private boolean isSoftOutOfScope(String norm) {
+        return isCurrentNewsQuestion(norm)
+                || matches(norm,
+                        "thoi tiet", "du bao", "tin nong", "tin moi", "showbiz", "giai tri",
+                        "phim", "game", "the thao", "bong da", "facebook", "tiktok", "youtube",
+                        "mang xa hoi", "hoc bai", "bai tap", "nau an", "cong thuc",
+                        "mua hang", "dien thoai", "iphone", "may tinh", "laptop", "cong nghe");
+    }
+
+    private boolean isCurrentNewsQuestion(String norm) {
+        return matches(norm, "thoi su", "tin tuc hom nay", "tin moi hom nay", "tin nong hom nay")
+                || (matches(norm, "tin tuc", "tin moi", "tin nong")
+                    && !matches(norm, "du lich", "travelmate", "diem den", "khach san"));
+    }
+
+    private boolean isFoodContext(String norm) {
+        return matches(norm, "toi doi", "dang doi", "doi bung", "them an", "muon an",
+                "an gi", "do an", "am thuc", "cho dem", "pho di bo");
+    }
+
+    private boolean isRestContext(String norm) {
+        return matches(norm, "met", "stress", "ap luc", "cang thang", "can nghi",
+                "muon nghi", "ngu khong ngon", "thu gian", "nghi duong");
+    }
+
+    private boolean isWeatherContext(String norm) {
+        return matches(norm, "thoi tiet", "du bao", "nong", "lanh", "mua", "nang");
     }
 
     private boolean isHardOutOfScope(String norm) {
@@ -1033,11 +1218,11 @@ public class ChatbotService {
     private String statusBadge(BookingStatus status) {
         return switch (status) {
             case PENDING_PAYMENT ->
-                "<span style='background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:700'>⏳ Chờ TT</span>";
+                "<span style='background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:700'>⏳ Chờ thanh toán</span>";
             case PENDING_ADMIN_APPROVAL ->
                 "<span style='background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:700'>⚠ Cần đối soát</span>";
             case CONFIRMED ->
-                "<span style='background:#dcfce7;color:#166534;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:700'>✅ VNPAY đã xác nhận</span>";
+                "<span style='background:#dcfce7;color:#166534;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:700'>✅ VNPAY đã ghi nhận</span>";
             case CHECKED_IN ->
                 "<span style='background:#ccfbf1;color:#065f46;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:700'>🏨 Đang ở</span>";
             case COMPLETED ->

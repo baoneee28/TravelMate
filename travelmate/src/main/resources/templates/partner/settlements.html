@@ -75,9 +75,9 @@
 
             <div class="info-box">
                 📌 Mỗi tháng Admin sẽ tạo bản ghi quyết toán cho doanh thu tháng trước. Ngày chi trả dự kiến là <strong>mùng 10</strong>.
-                Khi settlement chuyển sang <strong>Đã thanh toán ✅</strong>, số tiền nhận sẽ được cộng vào <strong>Ví quyết toán</strong> để bạn gửi yêu cầu rút tiền.
-                <br/><strong>Số tiền nhận = Tiền TravelMate thu online − Commission nền tảng − Voucher partner chịu</strong>
-                <br/><span style="font-size:12px;color:#1d4ed8;">Booking COMPLETED hoặc đơn cọc bị giữ do hủy/no-show mới được quyết toán. Hoa hồng chỉ tính trên tiền TravelMate đã thu online; với đơn cọc 30%, phần 70% tại cơ sở không tính hoa hồng và không cộng vào ví TravelMate.</span>
+                Khi Admin ghi nhận settlement đã chi trả ngoài hệ thống, số tiền nhận sẽ được cộng vào <strong>Ví quyết toán nội bộ</strong> để bạn gửi yêu cầu rút tiền.
+                <br/><strong>Số tiền nhận được lấy từ phần TravelMate đã thu online, sau khi tách hoa hồng nền tảng và voucher do đối tác chịu.</strong>
+                <br/><span style="font-size:12px;color:#1d4ed8;">Booking COMPLETED hoặc đơn cọc bị giữ do hủy/no-show mới được quyết toán. Hoa hồng tính theo tổng đơn gốc trước voucher; với đơn cọc 30%, 70% tại cơ sở được ghi nhận riêng và không vào ví TravelMate.</span>
             </div>
 
             <!-- KPI -->
@@ -87,7 +87,7 @@
                     <div class="set-kpi-card__value" th:text="${#lists.size(settlements)}">0</div>
                 </div>
                 <div class="set-kpi-card">
-                    <div class="set-kpi-card__label">Chờ thanh toán</div>
+                    <div class="set-kpi-card__label">Chờ chi trả</div>
                     <div class="set-kpi-card__value" style="color:#ca8a04;" th:text="${pendingCount}">0</div>
                 </div>
                 <div class="set-kpi-card">
@@ -144,8 +144,8 @@
                                 <td style="font-size:12px;color:#1d4ed8;font-weight:700;white-space:nowrap;"
                                     th:text="${s.scheduledPayoutDate != null ? #temporals.format(s.scheduledPayoutDate,'dd/MM/yyyy') : '—'}">—</td>
                                 <td style="white-space: nowrap;">
-                                    <span class="badge-pending" th:if="${s.settlementStatus.name() == 'PENDING'}">⏳ Chờ chuyển khoản</span>
-                                    <span class="badge-paid"    th:if="${s.settlementStatus.name() == 'PAID'}">✅ Đã chuyển khoản</span>
+                                    <span class="badge-pending" th:if="${s.settlementStatus.name() == 'PENDING'}">⏳ Chờ chi trả</span>
+                                    <span class="badge-paid"    th:if="${s.settlementStatus.name() == 'PAID'}">✅ Đã ghi nhận chi trả</span>
                                     <span style="font-size:12px;color:#6b7280;"
                                           th:if="${s.settlementStatus.name() != 'PENDING' and s.settlementStatus.name() != 'PAID'}"
                                           th:text="${s.settlementStatus.name()}">—</span>

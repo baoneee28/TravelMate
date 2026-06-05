@@ -81,6 +81,21 @@ class AccommodationServiceSearchTest {
                         yenBaiHotel,
                         sonLaHotel
                 ));
+        mockVisibleRooms(
+                daLatHotel,
+                daNangHotel,
+                nhaTrangHotel,
+                hoiAnHotel,
+                saPaHotel,
+                haGiangHotel,
+                ninhBinhHotel,
+                haNoiHotel,
+                phuQuocHotel,
+                hcmHotel,
+                quangNinhHotel,
+                yenBaiHotel,
+                sonLaHotel
+        );
 
         assertSearch("Đà Lạt", "LATA Hotel & Apartments");
         assertSearch("da lat", "LATA Hotel & Apartments");
@@ -120,6 +135,7 @@ class AccommodationServiceSearchTest {
         when(accommodationRepository.findByPropertyTypeAndApprovalStatus(
                 PropertyType.RESORT, ApprovalStatus.APPROVED))
                 .thenReturn(List.of(canThoResort));
+        mockVisibleRooms(canThoResort);
 
         assertThat(accommodationService.searchByType(PropertyType.RESORT, "cantho"))
                 .extracting(Accommodation::getName)
@@ -141,6 +157,7 @@ class AccommodationServiceSearchTest {
         when(accommodationRepository.findByPropertyTypeAndApprovalStatus(
                 PropertyType.HOTEL, ApprovalStatus.APPROVED))
                 .thenReturn(List.of(daLatHotel, daNangHotel, hcmHotel));
+        mockVisibleRooms(daLatHotel, daNangHotel, hcmHotel);
 
         assertThat(accommodationService.searchByType(PropertyType.HOTEL, "đlat"))
                 .extracting(Accommodation::getName)
@@ -263,6 +280,13 @@ class AccommodationServiceSearchTest {
         assertThat(accommodationService.searchByType(PropertyType.HOTEL, keyword))
                 .extracting(Accommodation::getName)
                 .containsExactly(expectedAccommodationName);
+    }
+
+    private void mockVisibleRooms(Accommodation... accommodations) {
+        for (Accommodation accommodation : accommodations) {
+            when(roomRepository.findByAccommodationAndApprovalStatus(accommodation, ApprovalStatus.APPROVED))
+                    .thenReturn(List.of(room(accommodation.getName() + "-ROOM", accommodation)));
+        }
     }
 
     private static Accommodation accommodation(String name, String city) {

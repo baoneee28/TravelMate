@@ -231,10 +231,10 @@ public class HomePageController {
         return "redirect:/contact#reportSection";
     }
 
-    /** GET /vouchers — hiển thị voucher USER_GLOBAL đang hoạt động từ DB */
+    /** GET /vouchers — hiển thị voucher user có thể cân nhắc khi đặt phòng. */
     @GetMapping("/vouchers")
     public String voucher(Model model) {
-        model.addAttribute("publicVouchers", voucherService.getPublicVouchers());
+        model.addAttribute("publicVouchers", voucherService.getVoucherStoreVouchersForUsers());
         return "user/voucher";
     }
 

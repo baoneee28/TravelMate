@@ -181,18 +181,34 @@ public class PaymentController {
         boolean isSuccess = "00".equals(responseCode) && "00".equals(transactionStatus);
 
         if (isSuccess) {
-            // Xác minh số tiền
             Optional<Payment> optPay = paymentRepository.findByVnpTxnRef(vnpTxnRef);
-            if (optPay.isPresent()) {
-                String vnpAmount = params.get("vnp_Amount");
-                if (!vnpayService.validateAmount(vnpAmount, optPay.get().getAmount().longValue())) {
-                    log.warn("VNPAY Return: Số tiền không khớp! txnRef={}", vnpTxnRef);
-                    model.addAttribute("isSuccess", false);
-                    model.addAttribute("message", "Số tiền thanh toán không khớp. Vui lòng liên hệ TravelMate để được hỗ trợ.");
-                    model.addAttribute("txnRef", vnpTxnRef);
-                    model.addAttribute("errorCode", "AMOUNT_MISMATCH");
-                    return "user/payment-result";
-                }
+            if (optPay.isEmpty()) {
+                log.warn("VNPAY Return: Không tìm thấy payment với txnRef={}", vnpTxnRef);
+                model.addAttribute("isSuccess", false);
+                model.addAttribute("message", "Không tìm thấy đơn thanh toán trong hệ thống. Vui lòng liên hệ TravelMate để được hỗ trợ đối soát.");
+                model.addAttribute("txnRef", vnpTxnRef);
+                model.addAttribute("errorCode", "ORDER_NOT_FOUND");
+                return "user/payment-result";
+            }
+
+            Payment currentPayment = optPay.get();
+            PaymentStatus currentStatus = currentPayment.getPaymentStatus();
+            if (currentStatus == null
+                    || (currentStatus != PaymentStatus.PENDING_PAYMENT
+                    && currentStatus != PaymentStatus.APPROVED)) {
+                addStalePaymentResult(model, vnpTxnRef, currentStatus);
+                return "user/payment-result";
+            }
+
+            // Xác minh số tiền
+            String vnpAmount = params.get("vnp_Amount");
+            if (!vnpayService.validateAmount(vnpAmount, currentPayment.getAmount().longValue())) {
+                log.warn("VNPAY Return: Số tiền không khớp! txnRef={}", vnpTxnRef);
+                model.addAttribute("isSuccess", false);
+                model.addAttribute("message", "Số tiền thanh toán không khớp. Vui lòng liên hệ TravelMate để được hỗ trợ.");
+                model.addAttribute("txnRef", vnpTxnRef);
+                model.addAttribute("errorCode", "AMOUNT_MISMATCH");
+                return "user/payment-result";
             }
 
             // Gọi service (idempotent — nếu IPN đã xử lý rồi thì bỏ qua)
@@ -200,6 +216,10 @@ public class PaymentController {
 
             // Đọc lại booking để hiển thị thông tin chi tiết
             Optional<Payment> pay = paymentRepository.findByVnpTxnRef(vnpTxnRef);
+            if (pay.isPresent() && pay.get().getPaymentStatus() != PaymentStatus.APPROVED) {
+                addStalePaymentResult(model, vnpTxnRef, pay.get().getPaymentStatus());
+                return "user/payment-result";
+            }
             Booking booking = pay.map(Payment::getBooking).orElse(null);
 
             String paymentType = "";
@@ -208,10 +228,10 @@ public class PaymentController {
                     && booking.getPaymentOption() != null
                     && "DEPOSIT_30".equals(booking.getPaymentOption().name())) {
                 paymentType = "DEPOSIT_30";
-                msg = "Đã cọc 30% qua VNPAY. 70% còn lại thanh toán tại cơ sở - chờ đối tác xác nhận giữ phòng.";
+                msg = "Đã cọc 30% qua VNPAY. TravelMate đã giữ phòng/căn; 70% còn lại thanh toán tại cơ sở khi check-in.";
             } else {
                 paymentType = "FULL_PAYMENT";
-                msg = "Đã thanh toán 100% qua VNPAY - chờ đối tác xác nhận giữ phòng.";
+                msg = "Đã thanh toán 100% qua VNPAY. TravelMate đã giữ phòng/căn cho bạn.";
             }
 
             model.addAttribute("isSuccess", true);
@@ -348,6 +368,23 @@ public class PaymentController {
         resp.put("RspCode", rspCode);
         resp.put("Message", message);
         return resp;
+    }
+
+    private void addStalePaymentResult(org.springframework.ui.Model model,
+                                       String vnpTxnRef,
+                                       PaymentStatus currentStatus) {
+        String message = switch (currentStatus) {
+            case null -> "Giao dịch thiếu trạng thái thanh toán trong hệ thống. Vui lòng liên hệ TravelMate để đối soát.";
+            case CANCELLED -> "Giao dịch này đã bị hủy trước đó. Vui lòng đặt phòng lại nếu bạn vẫn muốn giữ phòng.";
+            case EXPIRED -> "Phiên thanh toán đã hết hạn và đơn đặt phòng đã được hủy. Vui lòng đặt phòng lại.";
+            case FAILED -> "Giao dịch đã được ghi nhận thất bại trước đó. Vui lòng tạo booking mới hoặc liên hệ TravelMate để đối soát.";
+            default -> "Giao dịch đã được xử lý ở trạng thái " + currentStatus.name()
+                    + ". TravelMate không cập nhật lại để tránh sai lệch thanh toán.";
+        };
+        model.addAttribute("isSuccess", false);
+        model.addAttribute("message", message);
+        model.addAttribute("txnRef", vnpTxnRef);
+        model.addAttribute("errorCode", "STALE_PAYMENT_STATUS");
     }
 
     private String buildPayload(Map<String, String> params) {

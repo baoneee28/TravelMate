@@ -13,7 +13,7 @@
 | Nghiệp vụ | Quy tắc trình bày |
 | --- | --- |
 | Mô hình Homestay | Demo theo từng phòng. Không bán đồng thời phòng riêng và nguyên căn khi chưa có logic chặn toàn bộ phòng cùng cơ sở. |
-| Đơn online sau VNPAY | VNPAY thành công thì TravelMate tự xác nhận thanh toán; Partner thấy đơn ở bước chờ xác nhận giữ phòng. |
+| Đơn online sau VNPAY | VNPAY thành công thì TravelMate tự xác nhận thanh toán và tự giữ phòng/căn; Partner vào thẳng bước check-in khi khách đến. |
 | Cọc 30% | Khi check-in, đối tác bắt buộc xác nhận đã thu 70% còn lại tại cơ sở. TravelMate chỉ ghi nhận doanh thu online đã thu. |
 | Booking trực tiếp/chặn phòng | Có ảnh hưởng lịch trống, không tính doanh thu online và không vào quyết toán. |
 | Commission Homestay | Mặc định `10%` trên khoản tiền TravelMate thực thu online. |
@@ -27,7 +27,7 @@ File gốc để mang sang máy khác: `src/main/resources/travelmate_db.sql`.
 | Chức năng demo | Mã dữ liệu | Điều cần trình bày |
 | --- | --- | --- |
 | Ngoại lệ đối soát | `BK-HLR-STD-HS-PENDING-01` | Admin thấy đơn cần đối soát thủ công; đối tác chưa thao tác cho đến khi TravelMate xác nhận xong. |
-| Xác nhận giữ phòng | `BK-MND-ATT-0002` | Booking full payment đã được VNPAY xác nhận, đang chờ đối tác xác nhận giữ phòng. |
+| Check-in phòng/căn đã giữ | `BK-MND-ATT-0002` | Booking full payment đã được VNPAY xác nhận, TravelMate đã tự giữ phòng/căn; Partner dùng để demo check-in. |
 | Check-in cọc 30% | `BK-MND-ATT-HS-CHECKIN-01` | Nhấn check-in phải xác nhận đã thu `812.000đ` còn lại tại Homestay. |
 | No-show cọc 30% | `BK-HLR-STD-HS-NOSHOW-01` | Báo no-show giữ cọc online `192.000đ` và mở lại quota. |
 | Check-out thanh toán đủ | `BK-MND-STD-DEMO1` | Đơn đang lưu trú để trình diễn trả phòng/hoàn thành. |
@@ -49,11 +49,11 @@ File gốc để mang sang máy khác: `src/main/resources/travelmate_db.sql`.
 
 ## Kết quả kiểm tra tự động
 
-Ngày kiểm tra: `27/05/2026`.
+Ngày kiểm tra: `02/06/2026`.
 
 | Nhóm kiểm tra | Kết quả |
 | --- | --- |
-| Toàn bộ unit/integration test hiện có | `247/247` PASS, 0 fail, 0 error, 0 skipped |
+| Toàn bộ unit/integration test hiện có | `279/279` PASS, 0 fail, 0 error, 0 skipped |
 | Homestay ẩn booking chưa được chuyển sang Partner và chặn mở URL trực tiếp | PASS |
 | Check-in cọc/đủ tiền và no-show Homestay | PASS |
 | Revenue Homestay 10%, trừ voucher Partner, loại Direct | PASS |
@@ -74,7 +74,7 @@ Tham số bỏ qua sao chép resource chỉ dùng vì bản `target/classes/trav
 | Bước | Thao tác | Kết quả cần nhìn thấy |
 | --- | --- | --- |
 | 1 | Partner mở `/partner/bookings` khi `BK-HLR-STD-HS-PENDING-01` còn là ngoại lệ đối soát | Không thấy đơn như đơn xử lý chính thức. |
-| 2 | Admin xác nhận đối soát ngoại lệ, Partner tải lại trang | Đơn xuất hiện với trạng thái chờ đối tác xác nhận giữ phòng. |
+| 2 | Admin xác nhận đối soát ngoại lệ, Partner tải lại trang | Đơn xuất hiện với trạng thái đã giữ phòng/căn và có thao tác check-in khi tới ngày nhận. |
 | 3 | Partner check-in `BK-MND-ATT-HS-CHECKIN-01` | Modal buộc tick xác nhận thu `812.000đ`; sau đó hiện đang lưu trú. |
 | 4 | Partner báo no-show `BK-HLR-STD-HS-NOSHOW-01` | Đơn thành no-show, cọc được giữ, availability tăng lại. |
 | 5 | Partner xem revenue/settlement | Direct và chặn phòng không cộng tiền; cọc hoàn tất chỉ tính khoản online. |

@@ -170,6 +170,11 @@ public class SecurityConfig {
                 .invalidateHttpSession(true)               // xóa session
                 .clearAuthentication(true)                 // xóa thông tin xác thực
                 .permitAll()
+            )
+
+            // Trang báo lỗi thân thiện khi user/partner truy cập nhầm khu vực Admin.
+            .exceptionHandling(ex -> ex
+                .accessDeniedPage("/auth/access-denied")
             );
 
         // Google OAuth2 là tính năng optional cho demo.

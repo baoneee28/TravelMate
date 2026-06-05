@@ -233,8 +233,39 @@ class ChatbotServiceTest {
                 "Tôi đang thất tình", "toi dang that tinh", null);
 
         assertThat(context)
-                .contains("mat toan bo tien coc", "du kien hoan 70%", "giu 30% phi huy")
-                .doesNotContain("hoan toan bo", "24 gio", "tung co so");
+                .contains("mất toàn bộ tiền cọc", "dự kiến hoàn 70%", "giữ 30% phí hủy")
+                .doesNotContain("hoàn toàn bộ", "24 giờ", "từng cơ sở");
+    }
+
+    @Test
+    void groqPromptForcesVietnameseWithDiacriticsAndTravelMateRedirect() {
+        String prompt = ReflectionTestUtils.invokeMethod(chatbotService, "groqSystemPrompt");
+
+        assertThat(prompt)
+                .contains("tiếng Việt có dấu")
+                .contains("Mình chưa có dữ liệu TravelMate để trả lời phần này.")
+                .contains("bẻ lái sang gợi ý điểm đến");
+        assertThat(prompt)
+                .doesNotContain("Minh chua co du lieu")
+                .doesNotContain("Chi tra loi bang tieng Viet");
+    }
+
+    @Test
+    void knownUnaccentedAiFallbackIsNormalized() {
+        String normalized = ReflectionTestUtils.invokeMethod(
+                chatbotService,
+                "normalizeKnownVietnameseFallbacks",
+                "Minh chua co du lieu TravelMate de tra loi phan nay.");
+
+        assertThat(normalized).isEqualTo("Mình chưa có dữ liệu TravelMate để trả lời phần này.");
+
+        String destinationNames = ReflectionTestUtils.invokeMethod(
+                chatbotService,
+                "normalizeKnownVietnameseFallbacks",
+                "Nen di Hoi An, Da Nang hoac Phu Quoc de nghi duong.");
+        assertThat(destinationNames)
+                .contains("Hội An", "Đà Nẵng", "Phú Quốc", "nghỉ dưỡng")
+                .doesNotContain("Hoi An", "Da Nang", "Phu Quoc", "nghi duong");
     }
 
     @Test
@@ -246,7 +277,7 @@ class ChatbotServiceTest {
 
         assertThat(policy.reply())
                 .doesNotContain("phòng được giữ ngay lập tức")
-                .contains("chuyển đối tác xác nhận giữ phòng");
+                .contains("giữ phòng/căn trên hệ thống");
         assertThat(payment.reply())
                 .doesNotContain("MoMo")
                 .doesNotContain("ZaloPay")
@@ -264,6 +295,19 @@ class ChatbotServiceTest {
                 .contains("du lịch và đặt phòng")
                 .contains("Đà Lạt")
                 .contains("Nha Trang");
+    }
+
+    @Test
+    void currentNewsQuestionRedirectsToTravelMateWhenAiIsUnavailable() {
+        ChatbotService.ChatbotResponse response =
+                chatbotService.processMessage("thời sự hôm nay", null);
+
+        assertThat(response.intent()).isEqualTo("AI_BUSINESS");
+        assertThat(response.reply())
+                .contains("TravelMate")
+                .contains("Đà Lạt")
+                .doesNotContain("Minh chua co du lieu")
+                .doesNotContain("Mình chưa có dữ liệu TravelMate");
     }
 
     @Test

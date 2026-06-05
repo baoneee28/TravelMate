@@ -204,8 +204,9 @@ class AccommodationPageControllerTravelSuggestionTest {
         @SuppressWarnings("unchecked")
         List<Map<String, String>> gallery = (List<Map<String, String>>) detailModel.getAttribute("galleryImages");
         assertThat(gallery).hasSize(5);
-        assertThat(gallery.get(0).get("src")).isEqualTo("/assets/images/resort.jpg");
-        assertThat(gallery.get(1).get("src")).isEqualTo("/uploads/official-room.webp");
+        assertThat(gallery.get(0).get("src")).isEqualTo("/uploads/official-room.webp");
+        assertThat(gallery.get(1).get("src")).isEqualTo("/uploads/legacy-room.jpg");
+        assertThat(gallery.get(2).get("src")).isEqualTo("/assets/images/resort.jpg");
         assertThat(detailModel.getAttribute("roomImagesMap")).isEqualTo(Map.of(room.getId(), List.of(uploadedImage)));
     }
 

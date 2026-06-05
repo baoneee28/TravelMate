@@ -216,14 +216,19 @@ public class AdminPageController {
 
             if (booking.getBookingStatus() == BookingStatus.NO_SHOW) {
                 BigDecimal forfeited = booking.getPaidAmount() != null ? booking.getPaidAmount() : BigDecimal.ZERO;
-                BigDecimal commission = commissionService.calculateCommission(forfeited, booking.getRoom());
-                BigDecimal partnerPayout = forfeited.subtract(commission);
-                BigDecimal rateDecimal = commissionService.getEffectiveCommissionRate(booking.getRoom());
+                BigDecimal commissionBase = resolveNoShowCommissionBase(booking, forfeited);
+                BigDecimal rateDecimal = resolveNoShowCommissionRate(booking);
+                BigDecimal commission = resolveNoShowCommission(booking, commissionBase, rateDecimal);
+                BigDecimal partnerVoucher = resolveNoShowPartnerVoucher(booking);
+                BigDecimal partnerPayout = forfeited.subtract(commission).subtract(partnerVoucher);
                 BigDecimal ratePercent = rateDecimal.multiply(BigDecimal.valueOf(100))
                         .setScale(1, java.math.RoundingMode.HALF_UP);
-                boolean isRoomOverride = commissionService.isRoomOverride(booking.getRoom());
+                boolean isRoomOverride = "ROOM_OVERRIDE".equals(booking.getCommissionSourceSnapshot())
+                        || commissionService.isRoomOverride(booking.getRoom());
                 model.addAttribute("noShowForfeited", forfeited);
+                model.addAttribute("noShowCommissionBase", commissionBase);
                 model.addAttribute("noShowCommission", commission);
+                model.addAttribute("noShowPartnerVoucher", partnerVoucher);
                 model.addAttribute("noShowPartnerPayout", partnerPayout);
                 model.addAttribute("noShowCommissionRate", ratePercent);
                 model.addAttribute("noShowIsRoomOverride", isRoomOverride);
@@ -236,13 +241,50 @@ public class AdminPageController {
         }
     }
 
+    private BigDecimal resolveNoShowCommissionBase(Booking booking, BigDecimal fallback) {
+        BigDecimal snapshot = positiveOrNull(booking.getCommissionBaseAmount());
+        if (snapshot != null) return snapshot;
+        BigDecimal beforeDiscount = positiveOrNull(booking.getTotalBeforeDiscount());
+        if (beforeDiscount != null) return beforeDiscount;
+        BigDecimal total = positiveOrNull(booking.getTotalAmount());
+        return total != null ? total : fallback;
+    }
+
+    private BigDecimal resolveNoShowCommissionRate(Booking booking) {
+        return booking.getCommissionRateSnapshot() != null
+                ? booking.getCommissionRateSnapshot()
+                : commissionService.getEffectiveCommissionRate(booking.getRoom());
+    }
+
+    private BigDecimal resolveNoShowCommission(Booking booking,
+                                               BigDecimal commissionBase,
+                                               BigDecimal rateDecimal) {
+        BigDecimal snapshot = positiveOrNull(booking.getCommissionAmountSnapshot());
+        if (snapshot != null) return snapshot;
+        return commissionBase.multiply(rateDecimal).setScale(0, java.math.RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal resolveNoShowPartnerVoucher(Booking booking) {
+        if (booking.getPartnerVoucherAmountSnapshot() != null) {
+            return booking.getPartnerVoucherAmountSnapshot();
+        }
+        return booking.getVoucherCostBearer() == VoucherCostBearer.PARTNER
+                && booking.getDiscountAmount() != null
+                ? booking.getDiscountAmount() : BigDecimal.ZERO;
+    }
+
+    private BigDecimal positiveOrNull(BigDecimal value) {
+        return value != null && value.compareTo(BigDecimal.ZERO) > 0 ? value : null;
+    }
+
     @PostMapping("/bookings/{id}/approve")
     public String approveBooking(@PathVariable Long id, Authentication auth, RedirectAttributes ra) {
         try {
             Booking b = bookingService.approveBookingByAdmin(id);
             logAction(auth, "APPROVE_BOOKING", "BOOKING", id,
-                    "Xác nhận thanh toán booking " + b.getBookingCode(), null);
-            ra.addFlashAttribute("successMessage", "✅ Đã xác nhận thanh toán booking. Đơn đã chuyển sang Partner để xác nhận giữ phòng.");
+                    "Ghi nhận thanh toán booking " + b.getBookingCode(), null);
+            ra.addFlashAttribute("successMessage",
+                    "✅ Đã ghi nhận thanh toán booking. TravelMate đã giữ phòng/căn trên hệ thống; Partner có thể check-in khi khách đến.");
         } catch (RuntimeException e) {
             ra.addFlashAttribute("errorMessage", e.getMessage());
         }
@@ -256,8 +298,8 @@ public class AdminPageController {
         try {
             Booking b = bookingService.rejectBookingByAdmin(id, rejectReason);
             logAction(auth, "REJECT_BOOKING", "BOOKING", id,
-                    "Từ chối xác nhận thanh toán booking " + b.getBookingCode(), rejectReason);
-            ra.addFlashAttribute("successMessage", "Đã từ chối xác nhận thanh toán. Booking đã bị hủy và quota phòng đã được mở lại.");
+                    "Từ chối ghi nhận thanh toán booking " + b.getBookingCode(), rejectReason);
+            ra.addFlashAttribute("successMessage", "Đã từ chối ghi nhận thanh toán. Booking đã bị hủy và quota phòng đã được mở lại.");
         } catch (RuntimeException e) {
             ra.addFlashAttribute("errorMessage", e.getMessage());
         }
@@ -307,7 +349,7 @@ public class AdminPageController {
         return "redirect:/admin/bookings/{id}".replace("{id}", id.toString());
     }
 
-    /** POST /admin/bookings/{id}/handle-partner-cancelled — Admin xử lý khi đối tác hủy giữ phòng */
+    /** POST /admin/bookings/{id}/handle-partner-cancelled — Admin xử lý khi đối tác không thể tiếp nhận khách */
     @PostMapping("/bookings/{id}/handle-partner-cancelled")
     public String handlePartnerCancelled(@PathVariable Long id,
                                          @RequestParam(required = false) String reason,
@@ -315,9 +357,9 @@ public class AdminPageController {
         try {
             Booking b = bookingService.handlePartnerCancelledByAdmin(id, reason);
             logAction(auth, "PARTNER_CANCELLED_RESOLVED", "BOOKING", id,
-                    "Hủy đơn do đối tác từ chối giữ phòng: " + b.getBookingCode(), reason);
+                    "Hủy đơn do đối tác báo không thể tiếp nhận khách: " + b.getBookingCode(), reason);
             ra.addFlashAttribute("successMessage",
-                "✅ Đã hủy đơn và trả lại phòng do đối tác từ chối!");
+                "✅ Đã hủy đơn và trả lại phòng do đối tác không thể tiếp nhận khách!");
         } catch (RuntimeException e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
         }
@@ -341,7 +383,7 @@ public class AdminPageController {
         return "redirect:/admin/bookings";
     }
 
-    /** POST /admin/bookings/{id}/mark-refunded — Admin xác nhận đã hoàn tiền cho khách */
+    /** POST /admin/bookings/{id}/mark-refunded — Admin ghi nhận đã xử lý hoàn tiền ngoài hệ thống */
     @PostMapping("/bookings/{id}/mark-refunded")
     public String markRefunded(@PathVariable Long id,
                                @RequestParam(required = false) String note,
@@ -349,9 +391,9 @@ public class AdminPageController {
         try {
             Booking b = bookingService.markRefundedByAdmin(id, note);
             logAction(auth, "REFUND_CONFIRMED", "BOOKING", id,
-                    "Xác nhận hoàn tiền: " + b.getBookingCode(), note);
+                    "Ghi nhận xử lý hoàn tiền: " + b.getBookingCode(), note);
             ra.addFlashAttribute("successMessage",
-                "✅ Đã xác nhận hoàn tiền thành công cho đơn " + b.getBookingCode() + "!");
+                "✅ Đã ghi nhận xử lý hoàn tiền cho đơn " + b.getBookingCode() + "!");
         } catch (RuntimeException e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
         }
@@ -697,8 +739,8 @@ public class AdminPageController {
             User admin = getCurrentAdmin(auth);
             PartnerSettlement s = settlementService.markSettlementPaid(id, combinedNote, admin);
             logAction(auth, "MARK_SETTLEMENT_PAID", "SETTLEMENT", id,
-                    "Thanh toán quyết toán #" + id + " cho đối tác: " + s.getPartner().getName(), combinedNote);
-            ra.addFlashAttribute("successMessage", "✅ Đã thanh toán settlement #" + id + " và cộng tiền vào ví đối tác!");
+                    "Ghi nhận chi trả quyết toán #" + id + " cho đối tác: " + s.getPartner().getName(), combinedNote);
+            ra.addFlashAttribute("successMessage", "✅ Đã ghi nhận chi trả settlement #" + id + " và cộng tiền vào ví nội bộ đối tác!");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
         }
@@ -719,7 +761,7 @@ public class AdminPageController {
             if (!sb.isEmpty()) sb.append(" | ");
             sb.append(note.trim());
         }
-        return sb.isEmpty() ? "Admin đã chuyển khoản." : sb.toString();
+        return sb.isEmpty() ? "Admin ghi nhận đã xử lý chi trả ngoài hệ thống." : sb.toString();
     }
 
     // ─── Partner Withdrawals ─────────────────────────────────────────────────
@@ -772,9 +814,9 @@ public class AdminPageController {
             User admin = getCurrentAdmin(auth);
             PartnerWithdrawalRequest request = partnerWalletService.markWithdrawalPaid(id, admin, adminNote);
             logAction(auth, "MARK_WITHDRAWAL_PAID", "WITHDRAWAL", id,
-                    "Xác nhận đã chuyển khoản yêu cầu rút " + request.getRequestCode(), adminNote);
+                    "Ghi nhận đã xử lý yêu cầu rút " + request.getRequestCode(), adminNote);
             ra.addFlashAttribute("successMessage",
-                    "✅ Đã xác nhận chuyển khoản cho yêu cầu " + request.getRequestCode() + "!");
+                    "✅ Đã ghi nhận xử lý yêu cầu rút " + request.getRequestCode() + "!");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMessage", "❌ " + e.getMessage());
         }

@@ -79,6 +79,27 @@ class RevenueServiceHomestayTest {
     }
 
     @Test
+    @DisplayName("Thanh toan du co voucher Partner tinh hoa hong tren tong don goc")
+    void fullPaymentPartnerVoucher_usesPreDiscountCommissionBase() {
+        Payment online = payment("960000", BookingSource.ONLINE);
+        online.getBooking().setTotalBeforeDiscount(new BigDecimal("1010000"));
+        online.getBooking().setTotalAmount(new BigDecimal("960000"));
+        online.getBooking().setVoucherCostBearer(VoucherCostBearer.PARTNER);
+        online.getBooking().setDiscountAmount(new BigDecimal("50000"));
+
+        when(paymentRepository.findByBookingAccommodationOwnerAndPaymentStatusIn(
+                org.mockito.ArgumentMatchers.eq(homestayPartner), any()))
+                .thenReturn(List.of(online));
+
+        PartnerRevenueSummaryDto summary = revenueService.calculatePartnerRevenueSummary(homestayPartner);
+
+        assertThat(summary.getTotalGross()).isEqualByComparingTo("960000");
+        assertThat(summary.getTotalCommission()).isEqualByComparingTo("101000");
+        assertThat(summary.getTotalVoucherDeduction()).isEqualByComparingTo("50000");
+        assertThat(summary.getTotalPayout()).isEqualByComparingTo("809000");
+    }
+
+    @Test
     @DisplayName("Revenue Homestay loại booking trực tiếp dù dữ liệu cũ có payment APPROVED")
     void partnerSummary_excludesDirectPaymentFromRevenue() {
         Payment online = payment("960000", BookingSource.ONLINE);
@@ -110,16 +131,16 @@ class RevenueServiceHomestayTest {
     }
 
     @Test
-    @DisplayName("Đơn cọc hoàn tất giữ rate snapshot nhưng chỉ tính hoa hồng trên tiền online")
+    @DisplayName("Đơn cọc hoàn tất giữ rate snapshot nhưng tính hoa hồng trên tổng đơn gốc")
     void completedDeposit_usesFrozenRateAndOnlinePaidCommissionBase() {
         Payment deposit = payment("288000", BookingSource.ONLINE);
         deposit.setPaymentOption(PaymentOption.DEPOSIT_30);
         deposit.getBooking().setPaymentOption(PaymentOption.DEPOSIT_30);
+        deposit.getBooking().setTotalBeforeDiscount(new BigDecimal("960000"));
         deposit.getBooking().setTotalAmount(new BigDecimal("960000"));
         deposit.getBooking().setRemainingAmount(new BigDecimal("672000"));
         deposit.getBooking().setCommissionRateSnapshot(new BigDecimal("0.1000"));
         deposit.getBooking().setCommissionSourceSnapshot("PROPERTY_TYPE_DEFAULT");
-        // Gia lap snapshot cu tung tinh tren tong don; man hinh phai tu chuan hoa theo Huong A.
         deposit.getBooking().setCommissionBaseAmount(new BigDecimal("960000"));
         deposit.getBooking().setCommissionAmountSnapshot(new BigDecimal("96000"));
         deposit.getBooking().setOnlinePaidAmountSnapshot(new BigDecimal("288000"));
@@ -134,10 +155,10 @@ class RevenueServiceHomestayTest {
 
         assertThat(item.getGrossAmount()).isEqualByComparingTo("288000");
         assertThat(item.getOnsiteAmount()).isEqualByComparingTo("672000");
-        assertThat(item.getCommissionBase()).isEqualByComparingTo("288000");
-        assertThat(item.getCommissionAmount()).isEqualByComparingTo("28800");
+        assertThat(item.getCommissionBase()).isEqualByComparingTo("960000");
+        assertThat(item.getCommissionAmount()).isEqualByComparingTo("96000");
         assertThat(item.getEffectiveCommissionRate()).isEqualByComparingTo("0.1000");
-        assertThat(item.getPartnerNetAmount()).isEqualByComparingTo("259200");
+        assertThat(item.getPartnerNetAmount()).isEqualByComparingTo("192000");
     }
 
     private Payment payment(String amount, BookingSource source) {

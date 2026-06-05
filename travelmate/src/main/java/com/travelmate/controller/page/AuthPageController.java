@@ -7,6 +7,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -53,6 +54,41 @@ public class AuthPageController {
     public String loginPage(Model model) {
         addOAuth2Model(model);
         return "auth/login";
+    }
+
+    @GetMapping("/access-denied")
+    public String accessDeniedPage(Authentication authentication, Model model) {
+        String roleLabel = "chưa đăng nhập";
+        String homeUrl = "/";
+        String homeText = "Về trang chủ";
+
+        if (authentication != null && authentication.isAuthenticated()) {
+            boolean isAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            boolean isPartner = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_PARTNER"));
+            boolean isUser = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_USER"));
+
+            if (isAdmin) {
+                roleLabel = "Admin";
+                homeUrl = "/admin/dashboard";
+                homeText = "Về Admin";
+            } else if (isPartner) {
+                roleLabel = "Partner";
+                homeUrl = "/partner/dashboard";
+                homeText = "Về trang đối tác";
+            } else if (isUser) {
+                roleLabel = "User";
+                homeUrl = "/";
+                homeText = "Về trang người dùng";
+            }
+        }
+
+        model.addAttribute("roleLabel", roleLabel);
+        model.addAttribute("homeUrl", homeUrl);
+        model.addAttribute("homeText", homeText);
+        return "auth/access-denied";
     }
 
     /**

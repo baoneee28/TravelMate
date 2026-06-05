@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="/assets/css/responsive.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <style>
-        .review-stars { color: #f59e0b; font-size: 0.75rem; }
+        .review-score { display:inline-flex;align-items:center;justify-content:center;min-width:48px;padding:4px 9px;border-radius:999px;background:#fff7ed;color:#c2410c;font-size:0.82rem;font-weight:800;border:1px solid #fed7aa; }
         .review-comment { font-size: 13px; color: #334155; max-width: 360px; line-height: 1.5; }
         .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
         .kpi-card { background: var(--color-surface, #fff); border-radius: 12px; padding: 18px 20px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
@@ -72,11 +72,12 @@
                     <div class="kpi-card">
                         <div class="kpi-card__label">Điểm trung bình</div>
                         <div class="kpi-card__value"
-                             th:text="${totalCount > 0 ? #numbers.formatDecimal(avgRating, 1, 1) + ' / 5' : '--'}">--</div>
+                             th:text="${totalCount > 0 ? #numbers.formatDecimal(avgRating, 1, 1) + ' điểm' : '--'}">--</div>
                         <div class="kpi-card__sub"
-                             th:text="${totalCount > 0 and avgRating >= 4 ? 'Rất tốt' :
-                                       (totalCount > 0 and avgRating >= 3 ? 'Tốt' :
-                                       (totalCount > 0 ? 'Trung bình' : 'Chưa có dữ liệu'))}">--</div>
+                             th:text="${totalCount > 0 and avgRating >= 9 ? 'Tuyệt vời' :
+                                       (totalCount > 0 and avgRating >= 8 ? 'Rất tốt' :
+                                       (totalCount > 0 and avgRating >= 7 ? 'Tốt' :
+                                       (totalCount > 0 ? 'Trung bình' : 'Chưa có dữ liệu')))}">--</div>
                     </div>
                 </div>
 
@@ -121,17 +122,9 @@
                                 <td style="font-family:monospace;font-size:12px;color:var(--color-primary);font-weight:600; white-space: nowrap;"
                                     th:text="${r.booking.bookingCode}">BK-XXX</td>
 
-                                <!-- Đánh giá sao -->
+                                <!-- Đánh giá -->
                                 <td style="white-space: nowrap;">
-                                    <div class="review-stars">
-                                        <th:block th:each="i : ${#numbers.sequence(1, r.rating)}">
-                                            <i class="fa-solid fa-star"></i>
-                                        </th:block>
-                                        <th:block th:each="i : ${#numbers.sequence(1, 5 - r.rating)}" th:if="${r.rating < 5}">
-                                            <i class="fa-regular fa-star"></i>
-                                        </th:block>
-                                    </div>
-                                    <div style="font-size:11px;color:var(--color-text-muted);" th:text="${r.rating} + '/5 sao'">5/5 sao</div>
+                                    <div class="review-score" th:text="${r.rating} + ' điểm'">10 điểm</div>
                                 </td>
 
                                 <!-- Nội dung -->

@@ -64,12 +64,35 @@ class OAuth2LoginSuccessHandlerTest {
         User savedUser = userCaptor.getValue();
         assertThat(savedUser.getEmail()).isEqualTo("google.user@gmail.com");
         assertThat(savedUser.getName()).isEqualTo("Nguyen Google");
+        assertThat(savedUser.getAvatarUrl()).isEqualTo("/avatar.png");
         assertThat(savedUser.getRole()).isEqualTo(User.Role.USER);
         assertThat(savedUser.getStatus()).isEqualTo("ACTIVE");
         assertThat(savedUser.getPassword()).isEqualTo("encoded-random-password");
         assertThat(response.getRedirectedUrl()).isEqualTo("/");
         assertThat(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
                 .isInstanceOf(CustomUserDetails.class);
+    }
+
+    @Test
+    @DisplayName("Dang nhap Google cap nhat avatar moi cho USER da ton tai")
+    void existingGoogleUserRefreshesAvatarUrl() throws Exception {
+        User user = user("google.user@gmail.com", User.Role.USER, "ACTIVE");
+        user.setAvatarUrl("/old-avatar.png");
+        when(userRepository.findByEmail("google.user@gmail.com")).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        handler.onAuthenticationSuccess(new MockHttpServletRequest(), response, oauthAuthentication(
+                Map.of("email", "google.user@gmail.com", "name", "Nguyen Google", "picture", "/new-avatar.png")));
+
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userCaptor.capture());
+        assertThat(userCaptor.getValue().getAvatarUrl()).isEqualTo("/new-avatar.png");
+        assertThat(response.getRedirectedUrl()).isEqualTo("/");
+        assertThat(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+                .isInstanceOf(CustomUserDetails.class)
+                .extracting("avatarUrl")
+                .isEqualTo("/new-avatar.png");
     }
 
     @Test

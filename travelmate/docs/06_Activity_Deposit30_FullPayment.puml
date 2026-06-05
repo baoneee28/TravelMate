@@ -51,8 +51,8 @@ endif
 if (VNPAY thành công và chữ ký hợp lệ?) then (Thành công)
     :Payment -> APPROVED;
     :Booking -> CONFIRMED;
-    :partnerStatus -> PENDING_PARTNER_CONFIRMATION;
-    :Thông báo Partner xác nhận giữ phòng;
+    :partnerStatus -> PARTNER_CONFIRMED;
+    :TravelMate giữ phòng/căn trên hệ thống;
 else (Thất bại / hủy)
     :Payment -> FAILED/CANCELLED/EXPIRED;
     :Booking -> CANCELLED;
@@ -63,18 +63,11 @@ else (Thất bại / hủy)
 endif
 
 |User|
-:Xem kết quả\n"Đã thanh toán - chờ đối tác xác nhận";
+:Xem kết quả\n"Đã thanh toán - đã giữ phòng/căn";
 
 |Partner|
 :Mở /partner/bookings;
-if (Đối tác xác nhận giữ phòng?) then (Xác nhận)
-    :partnerStatus -> PARTNER_CONFIRMED;
-else (Từ chối)
-    :partnerStatus -> PARTNER_CANCELLED;
-    |Admin|
-    :Xử lý hủy / hoàn tiền / liên hệ khách;
-    stop
-endif
+:Check-in khách khi tới ngày nhận phòng/căn;
 
 |Partner|
 if (Khách đến check-in?) then (Có)
@@ -108,7 +101,7 @@ endif
 :Chỉ lấy ONLINE + COMPLETED + APPROVED\nhoặc ONLINE + NO_SHOW + DEPOSIT_FORFEITED;
 :Trừ commission và voucher costBearer=PARTNER;
 :Tạo PartnerSettlement PENDING;
-:Xác nhận đã chuyển khoản -> PAID\nvà cộng ví Partner;
+:Admin ghi nhận đã xử lý quyết toán ngoài hệ thống -> PAID\nvà cộng ví Partner;
 
 stop
 @enduml
