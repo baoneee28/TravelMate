@@ -163,7 +163,7 @@ class AccommodationPageControllerTravelSuggestionTest {
             "HOMESTAY,hoi an,Hội An,hoi-an",
             "RESORT,phu quoc,Phú Quốc,phu-quoc"
     })
-    void travelSuggestionsAndFiveImageGalleryDependOnDestinationNotAccommodationType(
+    void travelSuggestionsAndUploadedRoomGalleryDependOnDestinationNotAccommodationType(
             String type, String keyword, String destinationLabel, String destinationSlug) {
         PropertyType propertyType = PropertyType.valueOf(type);
         List<Accommodation> accommodations = List.of(accommodation(10L, "Demo " + type, destinationLabel, propertyType));
@@ -216,6 +216,49 @@ class AccommodationPageControllerTravelSuggestionTest {
                         "/uploads/official-room-3.png")
                 .doesNotContain("/uploads/legacy-room.jpg", "/assets/images/resort.jpg");
         assertThat(detailModel.getAttribute("roomImagesMap")).isEqualTo(Map.of(room.getId(), uploadedImages));
+    }
+
+    @Test
+    void listingCardUsesOnlyUploadedRoomImagesWhenTheyExist() {
+        Accommodation hotel = accommodation(49L, "Dz Hoàng", "Bến Tre", PropertyType.HOTEL);
+        Room room = new Room();
+        room.setId(129L);
+        room.setRoomName("phòng vip");
+        room.setImageUrl("/uploads/legacy-room.jpg");
+        List<RoomImage> uploadedImages = List.of(
+                roomImage("/uploads/rooms/ben-tre-1.jpg", "Ảnh phòng 1"),
+                roomImage("/uploads/rooms/ben-tre-2.jpg", "Ảnh phòng 2"),
+                roomImage("/uploads/rooms/ben-tre-3.png", "Ảnh phòng 3")
+        );
+        when(accommodationService.searchByType(PropertyType.HOTEL, "Bến Tre")).thenReturn(List.of(hotel));
+        when(accommodationService.getAllApprovedRooms(hotel)).thenReturn(List.of(room));
+        when(roomImageService.getImagesForRooms(List.of(room)))
+                .thenReturn(Map.of(room.getId(), uploadedImages));
+        when(travelPostRepository.findByDestinationSlugInAndStatusOrderByCreatedAtDesc(
+                Set.of("ben-tre"), TravelPost.Status.VISIBLE)).thenReturn(List.of());
+
+        Model model = new ExtendedModelMap();
+        controller.listHotels("HOTEL", "Bến Tre", "", "", 2, 0, 1, model);
+
+        @SuppressWarnings("unchecked")
+        Map<Long, Map<String, String>> mainImages =
+                (Map<Long, Map<String, String>>) model.getAttribute("cardMainImageByAccommodationId");
+        @SuppressWarnings("unchecked")
+        Map<Long, List<Map<String, String>>> sideImages =
+                (Map<Long, List<Map<String, String>>>) model.getAttribute("cardSideImagesByAccommodationId");
+
+        assertThat(mainImages.get(49L).get("src")).isEqualTo("/uploads/rooms/ben-tre-1.jpg");
+        assertThat(sideImages.get(49L))
+                .extracting(image -> image.get("src"))
+                .containsExactly("/uploads/rooms/ben-tre-2.jpg", "/uploads/rooms/ben-tre-3.png")
+                .doesNotContain("/uploads/legacy-room.jpg", "/assets/images/resort.jpg");
+    }
+
+    private static RoomImage roomImage(String imageUrl, String caption) {
+        RoomImage image = new RoomImage();
+        image.setImageUrl(imageUrl);
+        image.setCaption(caption);
+        return image;
     }
 
     private static Accommodation accommodation(Long id, String name, String city, PropertyType propertyType) {

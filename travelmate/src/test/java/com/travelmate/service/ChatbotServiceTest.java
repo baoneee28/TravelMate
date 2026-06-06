@@ -3,6 +3,7 @@ package com.travelmate.service;
 import com.travelmate.dto.RoomAvailabilityDto;
 import com.travelmate.entity.Accommodation;
 import com.travelmate.entity.Room;
+import com.travelmate.entity.RoomImage;
 import com.travelmate.entity.User;
 import com.travelmate.entity.enums.ApprovalStatus;
 import com.travelmate.entity.enums.PropertyType;
@@ -52,6 +53,9 @@ class ChatbotServiceTest {
     @Mock
     private AvailabilityService availabilityService;
 
+    @Mock
+    private RoomImageService roomImageService;
+
     private ChatbotService chatbotService;
 
     @BeforeEach
@@ -62,13 +66,15 @@ class ChatbotServiceTest {
                 userRepository,
                 bookingRepository,
                 voucherRepository,
-                availabilityService
+                availabilityService,
+                roomImageService
         );
         lenient().when(travelPostRepository.findTop3ByDestinationSlugInAndStatusOrderByCreatedAtDesc(
                 anyCollection(), eq(com.travelmate.entity.TravelPost.Status.VISIBLE)))
                 .thenReturn(List.of());
         lenient().when(accommodationRepository.findByApprovalStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED))
                 .thenReturn(List.of());
+        lenient().when(roomImageService.getImages(any(Room.class))).thenReturn(List.of());
     }
 
     @Test
@@ -233,7 +239,10 @@ class ChatbotServiceTest {
     @Test
     void benTreHotelBookingQuestionReturnsDirectRoomChoice() {
         Accommodation hotel = accommodation(40L, "Dz Hoàng", "Bến Tre", PropertyType.HOTEL, 200_000D);
-        addRoomCapacity(hotel, 401L, 3);
+        Room room = addRoomCapacity(hotel, 401L, 3);
+        RoomImage roomImage = new RoomImage();
+        roomImage.setImageUrl("/uploads/rooms/ben-tre-room-1.jpg");
+        when(roomImageService.getImages(room)).thenReturn(List.of(roomImage));
         when(accommodationRepository.findByApprovalStatusOrderByCreatedAtDesc(ApprovalStatus.APPROVED))
                 .thenReturn(List.of(hotel));
         when(accommodationRepository.findByPropertyTypeAndApprovalStatus(PropertyType.HOTEL, ApprovalStatus.APPROVED))
@@ -251,6 +260,8 @@ class ChatbotServiceTest {
         assertThat(suggestion.intent()).isEqualTo("FIND_ACCOMMODATION");
         assertThat(suggestion.reply())
                 .contains("Bến Tre", "Dz Hoàng", "phòng vip", "200.000đ", "#room-401", "Xem phòng này")
+                .contains("/uploads/rooms/ben-tre-room-1.jpg")
+                .doesNotContain("/assets/images/homestay-sapa.jpg")
                 .doesNotContain("Bạn muốn tìm");
         assertThat(suggestion.quickReplies()).contains("Đặt phòng Bến Tre");
         assertThat(booking.reply())
@@ -432,10 +443,11 @@ class ChatbotServiceTest {
                 BigDecimal.valueOf(price), available + 1, 1, available);
     }
 
-    private void addRoomCapacity(Accommodation accommodation, Long roomId, int capacity) {
+    private Room addRoomCapacity(Accommodation accommodation, Long roomId, int capacity) {
         Room room = new Room();
         room.setId(roomId);
         room.setCapacity(capacity);
         accommodation.setRooms(List.of(room));
+        return room;
     }
 }

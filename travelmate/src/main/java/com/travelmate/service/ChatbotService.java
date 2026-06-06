@@ -4,6 +4,7 @@ import com.travelmate.dto.RoomAvailabilityDto;
 import com.travelmate.entity.Accommodation;
 import com.travelmate.entity.Booking;
 import com.travelmate.entity.Room;
+import com.travelmate.entity.RoomImage;
 import com.travelmate.entity.TravelPost;
 import com.travelmate.entity.User;
 import com.travelmate.entity.Voucher;
@@ -52,6 +53,7 @@ public class ChatbotService {
     private final BookingRepository bookingRepository;
     private final VoucherRepository voucherRepository;
     private final AvailabilityService availabilityService;
+    private final RoomImageService roomImageService;
 
     @Value("${travelmate.chatbot.groq.enabled:true}")
     private boolean groqEnabled = true;
@@ -70,13 +72,15 @@ public class ChatbotService {
                           UserRepository userRepository,
                           BookingRepository bookingRepository,
                           VoucherRepository voucherRepository,
-                          AvailabilityService availabilityService) {
+                          AvailabilityService availabilityService,
+                          RoomImageService roomImageService) {
         this.accommodationRepository = accommodationRepository;
         this.travelPostRepository = travelPostRepository;
         this.userRepository = userRepository;
         this.bookingRepository = bookingRepository;
         this.voucherRepository = voucherRepository;
         this.availabilityService = availabilityService;
+        this.roomImageService = roomImageService;
     }
 
     public record ChatbotResponse(String intent, String reply, List<String> quickReplies) {}
@@ -1409,9 +1413,11 @@ public class ChatbotService {
     private String roomCard(AvailableRoomSuggestion suggestion, StayDates dates, int guests, int rooms) {
         Accommodation accommodation = suggestion.accommodation();
         RoomAvailabilityDto room = suggestion.room();
+        Room matchedRoom = findRoom(accommodation, room.getRoomId()).orElse(null);
+        String imageUrl = roomDisplayImage(accommodation, matchedRoom);
         StringBuilder sb = new StringBuilder("<div class='bot-hotel-card'>");
-        if (accommodation.getThumbnailUrl() != null && !accommodation.getThumbnailUrl().isBlank()) {
-            sb.append("<img src='").append(accommodation.getThumbnailUrl())
+        if (imageUrl != null && !imageUrl.isBlank()) {
+            sb.append("<img src='").append(imageUrl)
               .append("' alt='' class='bot-hotel-img' loading='lazy'/>");
         } else {
             sb.append("<div class='bot-hotel-img-ph'><i class='fas fa-hotel'></i></div>");
@@ -1432,6 +1438,31 @@ public class ChatbotService {
           .append("' class='bot-hotel-btn' target='_blank'>Xem phòng này</a>")
           .append("</div></div>");
         return sb.toString();
+    }
+
+    private Optional<Room> findRoom(Accommodation accommodation, Long roomId) {
+        if (accommodation == null || roomId == null || accommodation.getRooms() == null) {
+            return Optional.empty();
+        }
+        return accommodation.getRooms().stream()
+                .filter(room -> roomId.equals(room.getId()))
+                .findFirst();
+    }
+
+    private String roomDisplayImage(Accommodation accommodation, Room room) {
+        if (room != null) {
+            List<RoomImage> images = roomImageService.getImages(room);
+            if (images != null && !images.isEmpty()) {
+                String uploadedImage = images.get(0).getImageUrl();
+                if (uploadedImage != null && !uploadedImage.isBlank()) {
+                    return uploadedImage;
+                }
+            }
+            if (room.getImageUrl() != null && !room.getImageUrl().isBlank()) {
+                return room.getImageUrl();
+            }
+        }
+        return accommodation == null ? null : accommodation.getThumbnailUrl();
     }
 
     private String hotelCard(Accommodation h) {

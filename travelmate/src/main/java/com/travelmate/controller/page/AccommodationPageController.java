@@ -209,9 +209,22 @@ public class AccommodationPageController {
                 : travelPostService.getDestinationDisplayName(cleanKeyword);
         boolean showTravelSuggestSection = !cleanKeyword.isBlank();
 
+        Map<Long, List<Map<String, String>>> listingCardImagesByAccommodationId = buildListingCardImages(hotels);
+        Map<Long, Map<String, String>> cardMainImageByAccommodationId = new HashMap<>();
+        Map<Long, List<Map<String, String>>> cardSideImagesByAccommodationId = new HashMap<>();
+        for (Map.Entry<Long, List<Map<String, String>>> entry : listingCardImagesByAccommodationId.entrySet()) {
+            List<Map<String, String>> images = entry.getValue();
+            if (images == null || images.isEmpty()) {
+                continue;
+            }
+            cardMainImageByAccommodationId.put(entry.getKey(), images.get(0));
+            cardSideImagesByAccommodationId.put(entry.getKey(), images.stream().skip(1).limit(2).toList());
+        }
+
         // Truyền dữ liệu vào template
         model.addAttribute("hotels", hotels);
-        model.addAttribute("cardSideImagesByAccommodationId", buildListingCardSideImages(hotels));
+        model.addAttribute("cardMainImageByAccommodationId", cardMainImageByAccommodationId);
+        model.addAttribute("cardSideImagesByAccommodationId", cardSideImagesByAccommodationId);
         model.addAttribute("keyword", effectiveKeyword);
         model.addAttribute("keywordDisplay", keywordDisplay);
         model.addAttribute("currentType", propertyType.name());
@@ -435,39 +448,67 @@ public class AccommodationPageController {
         return gallery;
     }
 
-    private Map<Long, List<Map<String, String>>> buildListingCardSideImages(List<Accommodation> hotels) {
+    private Map<Long, List<Map<String, String>>> buildListingCardImages(List<Accommodation> hotels) {
         Map<Long, List<Map<String, String>>> result = new HashMap<>();
         if (hotels == null) {
             return result;
         }
         for (Accommodation hotel : hotels) {
-            List<Map<String, String>> sideImages = new ArrayList<>();
+            List<Map<String, String>> images = new ArrayList<>();
             Set<String> usedUrls = new LinkedHashSet<>();
-            addListingSideImage(sideImages, usedUrls, hotel.getThumbnailUrl(), hotel.getName());
+            List<Room> approvedRooms = accommodationService.getAllApprovedRooms(hotel);
+            Map<Long, List<RoomImage>> roomImagesMap = roomImageService.getImagesForRooms(approvedRooms);
 
-            for (Room room : accommodationService.getAllApprovedRooms(hotel)) {
-                addListingSideImage(sideImages, usedUrls, room.getImageUrl(),
-                        hotel.getName() + " - " + room.getRoomName());
-                if (sideImages.size() >= 3) {
+            for (Room room : approvedRooms) {
+                for (RoomImage image : roomImagesMap.getOrDefault(room.getId(), List.of())) {
+                    String alt = image.getCaption() == null || image.getCaption().isBlank()
+                            ? hotel.getName() + " - " + room.getRoomName()
+                            : image.getCaption();
+                    addListingCardImage(images, usedUrls, image.getImageUrl(), alt);
+                    if (images.size() >= DETAIL_ROOM_UPLOAD_LIMIT) {
+                        break;
+                    }
+                }
+                if (images.size() >= DETAIL_ROOM_UPLOAD_LIMIT) {
                     break;
                 }
             }
+
+            if (!images.isEmpty()) {
+                result.put(hotel.getId(), images);
+                continue;
+            }
+
+            for (Room room : approvedRooms) {
+                addListingCardImage(images, usedUrls, room.getImageUrl(),
+                        hotel.getName() + " - " + room.getRoomName());
+                if (images.size() >= 3) {
+                    break;
+                }
+            }
+
+            if (!images.isEmpty()) {
+                result.put(hotel.getId(), images);
+                continue;
+            }
+
+            addListingCardImage(images, usedUrls, hotel.getThumbnailUrl(), hotel.getName());
 
             PropertyType propertyType = hotel.getPropertyType() == null ? PropertyType.HOTEL : hotel.getPropertyType();
             int fallbackIndex = 1;
             for (String fallbackUrl : DETAIL_GALLERY_FALLBACK_URLS.get(propertyType)) {
-                addListingSideImage(sideImages, usedUrls, fallbackUrl,
+                addListingCardImage(images, usedUrls, fallbackUrl,
                         hotel.getName() + " - hình ảnh " + fallbackIndex++);
-                if (sideImages.size() >= 3) {
+                if (images.size() >= 3) {
                     break;
                 }
             }
-            result.put(hotel.getId(), sideImages.stream().skip(1).limit(2).toList());
+            result.put(hotel.getId(), images);
         }
         return result;
     }
 
-    private static void addListingSideImage(List<Map<String, String>> images, Set<String> usedUrls,
+    private static void addListingCardImage(List<Map<String, String>> images, Set<String> usedUrls,
                                             String source, String alt) {
         if (images.size() >= 3) {
             return;

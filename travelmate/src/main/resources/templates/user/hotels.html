@@ -1312,10 +1312,12 @@
                                   isVilla=${hotel.propertyType?.name() == 'VILLA'}"
                          th:attr="data-price=${hotel.minPrice != null ? hotel.minPrice : 0},data-rating=${hotel.rating ?: 0},data-review-count=${hotel.reviewCount ?: 0},data-amenities=${hotel.propertyType?.name() == 'HOTEL' ? 'wifi pool breakfast' : hotel.propertyType?.name() == 'VILLA' ? 'pool wifi' : hotel.propertyType?.name() == 'RESORT' ? 'pool spa wifi breakfast' : 'wifi breakfast'}"
                          th:style="${accStatus == 'FULL'} ? 'opacity:0.80;border-color:#fca5a5;' : ''">
-                        <div class="hcl-images">
+                        <div class="hcl-images"
+                             th:with="cardMainImage=${cardMainImageByAccommodationId != null ? cardMainImageByAccommodationId[hotel.id] : null}">
                             <a th:href="@{/accommodations/{id}(id=${hotel.id}, checkIn=${checkIn}, checkOut=${checkOut}, adults=${adults}, children=${children}, rooms=${rooms}, voucherCode=${voucherCode})}" class="main-img">
                                 <!-- onerror: nếu ảnh online không load được → dùng ảnh local mặc định -->
-                                <img th:src="${hotel.thumbnailUrl}" th:alt="${hotel.name}"
+                                <img th:src="${cardMainImage != null ? cardMainImage.src : hotel.thumbnailUrl}"
+                                     th:alt="${cardMainImage != null ? cardMainImage.alt : hotel.name}"
                                      th:attr="data-fallback=${hotel.propertyType.name() == 'VILLA' ? '/assets/images/accommodations/catalog/villa-exterior.jpg' : (hotel.propertyType.name() == 'HOMESTAY' ? '/assets/images/accommodations/catalog/homestay-exterior.jpg' : (hotel.propertyType.name() == 'RESORT' ? '/assets/images/accommodations/catalog/resort-exterior.jpg' : '/assets/images/accommodations/catalog/hotel-exterior.jpg'))}"
                                      onerror="this.onerror=null; this.src=this.dataset.fallback" />
                             </a>
