@@ -11,6 +11,7 @@ run-logs/
 mysql-run/
 TravelMate_CLEAN_READY_DEMO/
 TravelMate_CLEAN_READY_DEMO.zip
+_archive_frontend_legacy/
 codex_chat_cleanup_backup_*/
 .m2/
 m2repo_test/
@@ -30,4 +31,5 @@ travelmate/_trash_review/
 travelmate/target/
 ShowSchema.class
 ShowSchema.java
+travelmate/fix_acc_header.py
 spring-boot.log
