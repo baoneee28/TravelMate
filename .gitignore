@@ -1,5 +1,6 @@
 .antigravity/
 .claude/
+.github/modernize/
 .vscode/
 browser-test-artifacts/
 .codex_tmp/
